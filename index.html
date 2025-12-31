@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Tensor Analytics - Coming Soon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2842 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(100, 200, 255, 0.5);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Flowing lines visualization */
+        .flow-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+        }
+
+        .flow-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #64c8ff, transparent);
+            animation: flowLine linear infinite;
+        }
+
+        @keyframes flowLine {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100vw);
+                opacity: 0;
+            }
+        }
+
+        .content {
+            text-align: center;
+            z-index: 10;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #64c8ff 0%, #a8e6ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .acronym {
+            font-size: 1.2rem;
+            color: #64c8ff;
+            font-weight: 300;
+            letter-spacing: 8px;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        .tagline {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            color: #e0f2ff;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a8d5ff;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .contact {
+            margin-top: 4rem;
+        }
+
+        .contact-label {
+            font-size: 0.9rem;
+            color: #a8d5ff;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .email {
+            font-size: 1.3rem;
+            color: #64c8ff;
+            text-decoration: none;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .email:hover {
+            background: rgba(100, 200, 255, 0.1);
+            border-color: rgba(100, 200, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .acronym {
+                font-size: 1rem;
+                letter-spacing: 6px;
+            }
+            
+            .tagline {
+                font-size: 1.3rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .email {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Grid overlay for tech aesthetic */
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 200, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 200, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    
+    <div class="particle-container" id="particles"></div>
+    
+    <div class="flow-lines" id="flowLines"></div>
+    
+    <div class="content">
+        <h1 class="logo">Fluid Tensor Analytics</h1>
+        <div class="acronym">FTA</div>
+        <p class="tagline">Where fluid mechanics meets data science</p>
+        <p class="subtitle">Coming Soon</p>
+        
+        <div class="contact">
+            <div class="contact-label">Get in Touch</div>
+            <a href="mailto:taylor@fluidta.com" class="email">taylor@fluidta.com</a>
+        </div>
+    </div>
+
+    <script>
+        // Generate floating particles
+        const particleContainer = document.getElementById('particles');
+        const particleCount = 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particleContainer.appendChild(particle);
+        }
+
+        // Generate flowing lines
+        const flowLinesContainer = document.getElementById('flowLines');
+        const lineCount = 8;
+        
+        for (let i = 0; i < lineCount; i++) {
+            const line = document.createElement('div');
+            line.className = 'flow-line';
+            line.style.top = Math.random() * 100 + '%';
+            line.style.width = (Math.random() * 400 + 200) + 'px';
+            line.style.animationDuration = (Math.random() * 8 + 6) + 's';
+            line.style.animationDelay = Math.random() * 4 + 's';
+            flowLinesContainer.appendChild(line);
+        }
+    </script>
+</body>
+</html>
