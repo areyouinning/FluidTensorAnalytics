@@ -22,6 +22,13 @@
             overflow: hidden;
             position: relative;
         }
+        <nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/navier-stokes-demo.html">Fluid</a></li>
+        <li><a href="mailto:taylor@fluidta.com">Contact</a></li>
+    </ul>
+</nav>
 
         /* Animated background particles */
         .particle-container {
@@ -197,16 +204,41 @@
             background-size: 50px 50px;
             opacity: 0.5;
         }
+        /* Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.5rem 3rem;
+    background: rgba(10, 22, 40, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+}
+
+nav a {
+    color: #a8d5ff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    letter-spacing: 1px;
+}
+
+nav a:hover {
+    color: #64c8ff;
+}
     </style>
 </head>
-<a href="/navier-stokes-demo.html" 
-   style="position: fixed; bottom: 20px; right: 20px; 
-          padding: 15px 25px; background: #00d9ff; 
-          color: #0a0e17; text-decoration: none; 
-          border-radius: 8px; font-weight: 600; 
-          box-shadow: 0 4px 20px rgba(0,217,255,0.3);">
-   🌊 Live Fluid Demo
-</a>
 <body>
     <div class="grid-overlay"></div>
     
