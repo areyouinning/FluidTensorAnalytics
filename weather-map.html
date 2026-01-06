@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Weather Forecast</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .location-input {
+            margin-bottom: 20px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .map-wrapper {
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 10px;
+            position: relative;
+        }
+        .map-wrapper h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+            z-index: 1000;
+            font-size: 12px;
+        }
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 11px;
+            color: #333;
+        }
+        .legend-scale {
+            display: flex;
+            height: 15px;
+            width: 150px;
+            margin-bottom: 3px;
+        }
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+        .time-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+        }
+        .time-display {
+            font-weight: 600;
+            color: #1e40af;
+            min-width: 200px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .status.loading {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status.error {
+            background: #fee;
+            color: #991b1b;
+        }
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .location-info {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Local Weather Forecast</h1>
+        
+        <div class="location-input">
+            <button id="getLocationBtn" onclick="requestLocation()">Use My Location</button>
+            <div class="location-info" id="locationInfo"></div>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="controls" id="controls" style="display: none;">
+            <div><strong>Forecast Time Controls</strong></div>
+            <div class="time-control">
+                <button onclick="previousTime()">◀ Previous</button>
+                <input type="range" id="timeSlider" min="0" max="0" value="0" onchange="updateTime()">
+                <button onclick="nextTime()">Next ▶</button>
+                <span class="time-display" id="timeDisplay"></span>
+            </div>
+        </div>
+
+        <div class="grid-container" id="mapsContainer" style="display: none;">
+            <div class="map-wrapper">
+                <h3>Temperature (°F)</h3>
+                <div id="tempMap" class="map-container">
+                    <div class="legend" id="tempLegend">
+                        <div class="legend-title">Temperature (°F)</div>
+                        <div class="legend-scale" id="tempScale"></div>
+                        <div class="legend-labels">
+                            <span id="tempMin">--</span>
+                            <span id="tempMax">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="map-wrapper">
+                <h3>Precipitation (in/hr)</h3>
+                <div id="precipMap" class="map-container">
+                    <div class="legend" id="precipLegend">
+                        <div class="legend-title">Precipitation (in/hr)</div>
+                        <div class="legend-scale" id="precipScale"></div>
+                        <div class="legend-labels">
+                            <span id="precipMin">--</span>
+                            <span id="precipMax">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="map-wrapper">
+                <h3>Wind Speed (mph)</h3>
+                <div id="windMap" class="map-container">
+                    <div class="legend" id="windLegend">
+                        <div class="legend-title">Wind Speed (mph)</div>
+                        <div class="legend-scale" id="windScale"></div>
+                        <div class="legend-labels">
+                            <span id="windMin">--</span>
+                            <span id="windMax">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="map-wrapper">
+                <h3>Relative Humidity (%)</h3>
+                <div id="humidityMap" class="map-container">
+                    <div class="legend" id="humidityLegend">
+                        <div class="legend-title">Relative Humidity (%)</div>
+                        <div class="legend-scale" id="humidityScale"></div>
+                        <div class="legend-labels">
+                            <span id="humidityMin">--</span>
+                            <span id="humidityMax">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let forecastData = null;
+        let currentTimeIndex = 0;
+        let forecastTimes = [];
+        let userLat = null;
+        let userLon = null;
+        
+        // Leaflet map objects
+        let maps = {
+            temp: null,
+            precip: null,
+            wind: null,
+            humidity: null
+        };
+        let overlays = {
+            temp: null,
+            precip: null,
+            wind: null,
+            humidity: null
+        };
+
+        function showStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+
+        function requestLocation() {
+            if (!navigator.geolocation) {
+                showStatus('Geolocation is not supported by your browser', 'error');
+                return;
+            }
+
+            showStatus('Getting your location...', 'loading');
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLat = position.coords.latitude;
+                    userLon = position.coords.longitude;
+                    document.getElementById('locationInfo').textContent = 
+                        `Location: ${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°W`;
+                    loadForecastData();
+                },
+                (error) => {
+                    showStatus(`Error getting location: ${error.message}`, 'error');
+                }
+            );
+        }
+
+        async function loadForecastData() {
+            showStatus('Loading forecast data...', 'loading');
+            
+            try {
+                /* 
+                 * IMPORTANT NOTE: Direct browser access to HRRR zarr data has limitations:
+                 * 1. CORS restrictions may block direct access
+                 * 2. Zarr v3 format requires specialized JavaScript libraries
+                 * 3. Large data transfers can be slow in browsers
+                 * 
+                 * RECOMMENDED APPROACH: Create a Python Flask/FastAPI backend that:
+                 * 1. Uses xarray to open the HRRR zarr: 
+                 *    ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
+                 * 2. Extracts 3x3 grid around user lat/lon
+                 * 3. Returns JSON with temperature_2m, precipitation_surface, 
+                 *    relative_humidity_2m, wind components
+                 * 4. Serves this page and API endpoint together
+                 * 
+                 * See backend implementation at end of this file.
+                 */
+                
+                // For demonstration, using realistic synthetic data
+                // Replace with: const response = await fetch(`/api/forecast?lat=${userLat}&lon=${userLon}`);
+                forecastData = await generateDemoData(userLat, userLon);
+                
+                forecastTimes = forecastData.times;
+                
+                showStatus('Demo data loaded! See code comments for production backend setup.', 'success');
+                setTimeout(hideStatus, 3000);
+                
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('mapsContainer').style.display = 'grid';
+                
+                // Initialize maps
+                initializeMaps();
+                setupTimeControls();
+                updateMaps();
+                
+            } catch (error) {
+                showStatus(`Error loading forecast data: ${error.message}`, 'error');
+                console.error('Forecast loading error:', error);
+            }
+        }
+
+        async function generateDemoData(lat, lon) {
+            // Generate realistic synthetic data for demo purposes
+            // In production, this would be replaced with actual HRRR data from backend
+            const nlat = 25;
+            const nlon = 25;
+            const ntimes = 48; // 48 hour forecast
+            
+            const gridSize = 0.03; // ~3km in degrees
+            const lats = Array.from({length: nlat}, (_, i) => lat + (i - 12) * gridSize);
+            const lons = Array.from({length: nlon}, (_, i) => lon + (i - 12) * gridSize);
+            
+            // Generate forecast times (hourly from now)
+            const now = new Date();
+            const times = Array.from({length: ntimes}, (_, i) => {
+                return new Date(now.getTime() + i * 3600000);
+            });
+
+            const data = {
+                lats: lats,
+                lons: lons,
+                times: times,
+                temperature: [],
+                precipitation: [],
+                windSpeed: [],
+                humidity: []
+            };
+
+            // Generate plausible weather patterns
+            for (let t = 0; t < ntimes; t++) {
+                const temp = Array(nlat).fill(0).map((_, i) => 
+                    Array(nlon).fill(0).map((_, j) => {
+                        const base = 50 + 25 * Math.sin(t * Math.PI / 12 - Math.PI/2); // diurnal
+                        const spatial = 3 * Math.sin(i * Math.PI) * Math.cos(j * Math.PI);
+                        return base + spatial + (Math.random() - 0.5) * 2;
+                    })
+                );
+                
+                const precip = Array(nlat).fill(0).map((_, i) => 
+                    Array(nlon).fill(0).map((_, j) => {
+                        const storm = Math.max(0, Math.sin((t - 24) * Math.PI / 8)) * 0.25;
+                        const spatial = Math.exp(-((i-12)**2 + (j-12)**2) / 25);
+                        return storm * spatial * (0.8 + 0.4 * Math.random());
+                    })
+                );
+                
+                const wind = Array(nlat).fill(0).map((_, i) => 
+                    Array(nlon).fill(0).map((_, j) => {
+                        const base = 8 + 6 * Math.sin(t * Math.PI / 24);
+                        return Math.abs(base + (Math.random() - 0.5) * 3);
+                    })
+                );
+                
+                const humidity = Array(nlat).fill(0).map((_, i) => 
+                    Array(nlon).fill(0).map((_, j) => {
+                        const base = 65 - 15 * Math.sin(t * Math.PI / 12 - Math.PI/2);
+                        return Math.max(25, Math.min(95, base + (Math.random() - 0.5) * 8));
+                    })
+                );
+
+                data.temperature.push(temp);
+                data.precipitation.push(precip);
+                data.windSpeed.push(wind);
+                data.humidity.push(humidity);
+            }
+
+            return data;
+        }
+
+        function setupTimeControls() {
+            const slider = document.getElementById('timeSlider');
+            slider.max = forecastTimes.length - 1;
+            slider.value = 0;
+            currentTimeIndex = 0;
+            updateTimeDisplay();
+        }
+
+        function updateTimeDisplay() {
+            const time = forecastTimes[currentTimeIndex];
+            const display = time.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('timeDisplay').textContent = display;
+        }
+
+        function updateTime() {
+            currentTimeIndex = parseInt(document.getElementById('timeSlider').value);
+            updateTimeDisplay();
+            updateMaps();
+        }
+
+        function previousTime() {
+            if (currentTimeIndex > 0) {
+                currentTimeIndex--;
+                document.getElementById('timeSlider').value = currentTimeIndex;
+                updateTimeDisplay();
+                updateMaps();
+            }
+        }
+
+        function nextTime() {
+            if (currentTimeIndex < forecastTimes.length - 1) {
+                currentTimeIndex++;
+                document.getElementById('timeSlider').value = currentTimeIndex;
+                updateTimeDisplay();
+                updateMaps();
+            }
+        }
+
+        function initializeMaps() {
+            // Calculate bounds for all maps
+            const latMin = Math.min(...forecastData.lats);
+            const latMax = Math.max(...forecastData.lats);
+            const lonMin = Math.min(...forecastData.lons);
+            const lonMax = Math.max(...forecastData.lons);
+            const bounds = [[latMin, lonMin], [latMax, lonMax]];
+            
+            // Initialize each map
+            const mapIds = ['temp', 'precip', 'wind', 'humidity'];
+            const mapDivIds = ['tempMap', 'precipMap', 'windMap', 'humidityMap'];
+            
+            mapIds.forEach((id, idx) => {
+                maps[id] = L.map(mapDivIds[idx], {
+                    center: [userLat, userLon],
+                    zoom: 11,
+                    zoomControl: true
+                });
+                
+                // Add base tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    opacity: 0.7
+                }).addTo(maps[id]);
+                
+                // Fit bounds
+                maps[id].fitBounds(bounds, { padding: [20, 20] });
+            });
+        }
+
+        function bilinearInterpolate(data, lats, lons, targetLat, targetLon) {
+            // Find bounding grid cells
+            let i0 = 0, i1 = 0, j0 = 0, j1 = 0;
+            
+            // Find latitude indices
+            for (let i = 0; i < lats.length - 1; i++) {
+                if ((lats[i] <= targetLat && targetLat <= lats[i+1]) ||
+                    (lats[i] >= targetLat && targetLat >= lats[i+1])) {
+                    i0 = i;
+                    i1 = i + 1;
+                    break;
+                }
+            }
+            
+            // Find longitude indices
+            for (let j = 0; j < lons.length - 1; j++) {
+                if ((lons[j] <= targetLon && targetLon <= lons[j+1]) ||
+                    (lons[j] >= targetLon && targetLon >= lons[j+1])) {
+                    j0 = j;
+                    j1 = j + 1;
+                    break;
+                }
+            }
+            
+            // Get corner values
+            const q11 = data[i0][j0];
+            const q21 = data[i0][j1];
+            const q12 = data[i1][j0];
+            const q22 = data[i1][j1];
+            
+            // Get corner coordinates
+            const lat1 = lats[i0];
+            const lat2 = lats[i1];
+            const lon1 = lons[j0];
+            const lon2 = lons[j1];
+            
+            // Avoid division by zero
+            if (lat1 === lat2 || lon1 === lon2) {
+                return q11;
+            }
+            
+            // Bilinear interpolation
+            const t = (targetLat - lat1) / (lat2 - lat1);
+            const u = (targetLon - lon1) / (lon2 - lon1);
+            
+            const value = (1 - t) * (1 - u) * q11 +
+                         (1 - t) * u * q21 +
+                         t * (1 - u) * q12 +
+                         t * u * q22;
+            
+            return value;
+        }
+
+        function interpolateToHighRes(data, lats, lons) {
+            // Create 1km grid (approximately 0.009 degrees)
+            const latMin = Math.min(...lats);
+            const latMax = Math.max(...lats);
+            const lonMin = Math.min(...lons);
+            const lonMax = Math.max(...lons);
+            
+            const kmToDeg = 0.009;
+            const nLat = Math.ceil((latMax - latMin) / kmToDeg);
+            const nLon = Math.ceil((lonMax - lonMin) / kmToDeg);
+            
+            const highResData = [];
+            const highResLats = [];
+            const highResLons = [];
+            
+            for (let i = 0; i < nLat; i++) {
+                const lat = latMin + i * kmToDeg;
+                highResLats.push(lat);
+                const row = [];
+                
+                for (let j = 0; j < nLon; j++) {
+                    const lon = lonMin + j * kmToDeg;
+                    if (i === 0) highResLons.push(lon);
+                    
+                    // Bilinear interpolation
+                    const value = bilinearInterpolate(data, lats, lons, lat, lon);
+                    row.push(value);
+                }
+                highResData.push(row);
+            }
+            
+            return { data: highResData, lats: highResLats, lons: highResLons };
+        }
+
+        function createCanvasOverlay(data, lats, lons, colorScale, variable) {
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = data[0].length;
+            canvas.height = data.length;
+            
+            // Get value range for color mapping
+            let minVal = Infinity, maxVal = -Infinity;
+            data.forEach(row => {
+                row.forEach(val => {
+                    if (isFinite(val)) {
+                        minVal = Math.min(minVal, val);
+                        maxVal = Math.max(maxVal, val);
+                    }
+                });
+            });
+            
+            // Draw pixels
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            
+            for (let i = 0; i < data.length; i++) {
+                for (let j = 0; j < data[i].length; j++) {
+                    const value = data[i][j];
+                    const idx = (i * canvas.width + j) * 4;
+                    
+                    // Map value to color
+                    const normalized = (value - minVal) / (maxVal - minVal);
+                    const color = getColor(normalized, colorScale, variable);
+                    
+                    imageData.data[idx] = color[0];     // R
+                    imageData.data[idx + 1] = color[1]; // G
+                    imageData.data[idx + 2] = color[2]; // B
+                    imageData.data[idx + 3] = 180;      // A (70% opacity)
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Create image overlay bounds
+            const bounds = [
+                [Math.min(...lats), Math.min(...lons)],
+                [Math.max(...lats), Math.max(...lons)]
+            ];
+            
+            return { canvas: canvas, bounds: bounds, minVal: minVal, maxVal: maxVal };
+        }
+
+        function createLegend(variable, colorScale, minVal, maxVal) {
+            const scaleDiv = document.getElementById(`${variable}Scale`);
+            const minSpan = document.getElementById(`${variable}Min`);
+            const maxSpan = document.getElementById(`${variable}Max`);
+            
+            // Create gradient
+            const steps = 100;
+            let gradient = '';
+            for (let i = 0; i < steps; i++) {
+                const normalized = i / (steps - 1);
+                const color = getColor(normalized, colorScale, variable);
+                const percent = (i / (steps - 1)) * 100;
+                gradient += `rgb(${color[0]},${color[1]},${color[2]}) ${percent}%`;
+                if (i < steps - 1) gradient += ', ';
+            }
+            
+            scaleDiv.style.background = `linear-gradient(to right, ${gradient})`;
+            
+            // Update labels with proper formatting
+            let minText, maxText;
+            if (variable === 'precip') {
+                minText = minVal.toFixed(3);
+                maxText = maxVal.toFixed(3);
+            } else if (variable === 'temp' || variable === 'wind' || variable === 'humidity') {
+                minText = minVal.toFixed(1);
+                maxText = maxVal.toFixed(1);
+            } else {
+                minText = minVal.toFixed(0);
+                maxText = maxVal.toFixed(0);
+            }
+            
+            minSpan.textContent = minText;
+            maxSpan.textContent = maxText;
+        }
+
+        function getColor(normalized, colorScale, variable) {
+            // Color scales for different variables
+            const scales = {
+                temp: [ // Red-Yellow-Blue reversed
+                    [0, [49, 54, 149]],
+                    [0.25, [69, 117, 180]],
+                    [0.5, [255, 255, 191]],
+                    [0.75, [254, 224, 144]],
+                    [1, [215, 48, 39]]
+                ],
+                precip: [ // Blues
+                    [0, [247, 251, 255]],
+                    [0.25, [198, 219, 239]],
+                    [0.5, [107, 174, 214]],
+                    [0.75, [49, 130, 189]],
+                    [1, [8, 81, 156]]
+                ],
+                wind: [ // Greens
+                    [0, [247, 252, 245]],
+                    [0.25, [199, 233, 192]],
+                    [0.5, [127, 188, 65]],
+                    [0.75, [49, 163, 84]],
+                    [1, [0, 109, 44]]
+                ],
+                humidity: [ // Yellow-Green-Blue
+                    [0, [255, 255, 217]],
+                    [0.25, [199, 233, 180]],
+                    [0.5, [127, 205, 187]],
+                    [0.75, [65, 182, 196]],
+                    [1, [34, 94, 168]]
+                ]
+            };
+            
+            const scale = scales[colorScale] || scales.temp;
+            
+            // Find bracketing colors
+            let lower = scale[0];
+            let upper = scale[scale.length - 1];
+            
+            for (let i = 0; i < scale.length - 1; i++) {
+                if (normalized >= scale[i][0] && normalized <= scale[i+1][0]) {
+                    lower = scale[i];
+                    upper = scale[i+1];
+                    break;
+                }
+            }
+            
+            // Interpolate
+            const t = (normalized - lower[0]) / (upper[0] - lower[0]);
+            return [
+                Math.round(lower[1][0] + t * (upper[1][0] - lower[1][0])),
+                Math.round(lower[1][1] + t * (upper[1][1] - lower[1][1])),
+                Math.round(lower[1][2] + t * (upper[1][2] - lower[1][2]))
+            ];
+        }
+
+        function updateMaps() {
+            const t = currentTimeIndex;
+            
+            // Update temperature map
+            updateMapOverlay(
+                'temp',
+                forecastData.temperature[t],
+                'temp'
+            );
+            
+            // Update precipitation map
+            updateMapOverlay(
+                'precip',
+                forecastData.precipitation[t],
+                'precip'
+            );
+            
+            // Update wind map
+            updateMapOverlay(
+                'wind',
+                forecastData.windSpeed[t],
+                'wind'
+            );
+            
+            // Update humidity map
+            updateMapOverlay(
+                'humidity',
+                forecastData.humidity[t],
+                'humidity'
+            );
+        }
+
+        function updateMapOverlay(mapId, data, variable) {
+            // Remove existing overlay
+            if (overlays[mapId]) {
+                maps[mapId].removeLayer(overlays[mapId]);
+            }
+            
+            // Interpolate to high resolution
+            const highRes = interpolateToHighRes(
+                data,
+                forecastData.lats,
+                forecastData.lons
+            );
+            
+            // Create canvas overlay
+            const { canvas, bounds, minVal, maxVal } = createCanvasOverlay(
+                highRes.data,
+                highRes.lats,
+                highRes.lons,
+                variable,
+                variable
+            );
+            
+            // Update legend
+            createLegend(variable, variable, minVal, maxVal);
+            
+            // Add to map
+            overlays[mapId] = L.imageOverlay(canvas.toDataURL(), bounds, {
+                opacity: 0.7,
+                interactive: false
+            }).addTo(maps[mapId]);
+        }
+    </script>
+
+    <!-- 
+    =====================================================================
+    PYTHON BACKEND IMPLEMENTATION FOR PRODUCTION USE
+    =====================================================================
+    
+    Save this as weather_backend.py and run with: python weather_backend.py
+    Then update the fetch() call in loadForecastData() to use the backend API
+    
+    Requirements:
+    pip install flask flask-cors xarray zarr numpy
+    
+    =====================================================================
+    -->
+    <!--
+from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS
+import xarray as xr
+import numpy as np
+from datetime import datetime
+
+app = Flask(__name__)
+CORS(app)
+
+# Cache the dataset to avoid reloading
+_ds_cache = None
+_cache_time = None
+
+def get_dataset():
+    global _ds_cache, _cache_time
+    if _ds_cache is None or (datetime.now() - _cache_time).seconds > 3600:
+        _ds_cache = xr.open_zarr(
+            "https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr",
+            chunks=None
+        )
+        _cache_time = datetime.now()
+    return _ds_cache
+
+@app.route('/')
+def index():
+    return send_file('weather-map.html')
+
+@app.route('/api/forecast')
+def get_forecast():
+    try:
+        lat = float(request.args.get('lat'))
+        lon = float(request.args.get('lon'))
+        
+        ds = get_dataset()
+        
+        # Find nearest grid point
+        lat_data = ds.latitude.values
+        lon_data = ds.longitude.values
+        
+        # Calculate distances
+        dist = np.sqrt((lat_data - lat)**2 + (lon_data - lon)**2)
+        min_idx = np.unravel_index(np.argmin(dist), dist.shape)
+        y_center, x_center = min_idx
+        
+        # Extract 25x25 grid
+        y_slice = slice(max(0, y_center-12), min(lat_data.shape[0], y_center+13))
+        x_slice = slice(max(0, x_center-12), min(lat_data.shape[1], x_center+13))
+        
+        # Get latest initialization time
+        latest_init = ds.init_time.values[-1]
+        
+        # Extract data
+        ds_subset = ds.sel(init_time=latest_init).isel(y=y_slice, x=x_slice)
+        
+        # Get lead times (up to 48 hours)
+        lead_times = ds_subset.lead_time.values
+        
+        # Build response
+        result = {
+            'lats': ds_subset.latitude.values.tolist(),
+            'lons': ds_subset.longitude.values.tolist(),
+            'times': [],
+            'temperature': [],
+            'precipitation': [],
+            'windSpeed': [],
+            'humidity': []
+        }
+        
+        init_dt = np.datetime64(latest_init).astype('datetime64[s]').astype(int)
+        
+        for i, lead_time in enumerate(lead_times[:48]):
+            # Calculate valid time
+            lead_seconds = lead_time.astype('timedelta64[s]').astype(int)
+            valid_time = datetime.fromtimestamp(init_dt + lead_seconds)
+            result['times'].append(valid_time.isoformat())
+            
+            # Temperature: C to F
+            temp_c = ds_subset.temperature_2m.isel(lead_time=i).values
+            result['temperature'].append((temp_c * 9/5 + 32).tolist())
+            
+            # Precipitation: mm/s to in/hr
+            precip_mm = ds_subset.precipitation_surface.isel(lead_time=i).values
+            result['precipitation'].append((precip_mm * 3600 / 25.4).tolist())
+            
+            # Humidity: already in %
+            humid = ds_subset.relative_humidity_2m.isel(lead_time=i).values
+            result['humidity'].append(humid.tolist())
+            
+            # Wind speed: calculate from U and V, m/s to mph
+            wind_u = ds_subset.wind_u_10m.isel(lead_time=i).values
+            wind_v = ds_subset.wind_v_10m.isel(lead_time=i).values
+            wind_speed_ms = np.sqrt(wind_u**2 + wind_v**2)
+            result['windSpeed'].append((wind_speed_ms * 2.237).tolist())
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+    -->
+
+</body>
+</html>
