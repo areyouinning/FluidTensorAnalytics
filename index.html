@@ -130,6 +130,36 @@
             margin-left: 4px;
         }
 
+        /* Tooltip for explanations */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+            color: #a8d5ff;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            border-radius: 4px;
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            margin-bottom: 8px;
+            z-index: 102;
+        }
+
+        .tooltip:hover::before {
+            opacity: 1;
+        }
+
         /* Nested dropdown styles */
         .nested-dropdown {
             position: relative;
@@ -153,10 +183,22 @@
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
             border: 1px solid rgba(100, 200, 255, 0.2);
             border-radius: 4px;
-            margin-left: 0.5rem;
+            margin-left: -0.5rem; /* Bridge the gap */
+            padding-left: 0.5rem; /* Create invisible bridge */
         }
 
-        .nested-dropdown:hover .nested-dropdown-content {
+        .nested-dropdown-content::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0.5rem;
+            background: transparent;
+        }
+
+        .nested-dropdown:hover .nested-dropdown-content,
+        .nested-dropdown-content:hover {
             display: block;
         }
 
@@ -374,8 +416,22 @@
     <nav>
         <ul>
             <li><a href="/">Home</a></li>
-            <li><a href="/navier-stokes-demo.html">Fluid</a></li>
-            <li><a href="/optimal-channel-networks-v8.html">Tensor</a></li>
+            <li class="dropdown">
+                <a href="#">Fluid</a>
+                <div class="dropdown-content">
+                    <a href="/navier-stokes-demo.html">2D Simulation</a>
+                    <a href="/navier-stokes-3d.html">3D Simulation</a>
+                    <a href="/optimal-channel-networks-v8.html">Channel Networks (OCN)</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="#">Tensor</a>
+                <div class="dropdown-content">
+                    <a href="/climate-tensor-ops.html">Climate Models</a>
+                    <a href="/ensemble-methods.html">Ensemble Methods</a>
+                    <a href="/tensor-analysis.html">Tensor Analysis</a>
+                </div>
+            </li>
             <li class="dropdown">
                 <a href="#">Analytics</a>
                 <div class="dropdown-content">
