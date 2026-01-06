@@ -90,7 +90,8 @@
             background: transparent;
         }
 
-        .dropdown-content a {
+        .dropdown-content a,
+        .dropdown-content .dropdown-item {
             color: #a8d5ff;
             padding: 12px 20px;
             text-decoration: none;
@@ -98,17 +99,21 @@
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
             font-size: 0.95rem;
+            cursor: pointer;
+            position: relative;
         }
 
         .dropdown-content a:first-child {
             border-radius: 4px 4px 0 0;
         }
 
-        .dropdown-content a:last-child {
+        .dropdown-content a:last-child,
+        .dropdown-content .dropdown-item:last-child {
             border-radius: 0 0 4px 4px;
         }
 
-        .dropdown-content a:hover {
+        .dropdown-content a:hover,
+        .dropdown-content .dropdown-item:hover {
             background: rgba(100, 200, 255, 0.1);
             color: #64c8ff;
             border-left-color: #64c8ff;
@@ -123,6 +128,49 @@
             content: ' ▾';
             font-size: 0.8em;
             margin-left: 4px;
+        }
+
+        /* Nested dropdown styles */
+        .nested-dropdown {
+            position: relative;
+        }
+
+        .nested-dropdown::after {
+            content: ' ▸';
+            position: absolute;
+            right: 15px;
+            font-size: 0.9em;
+        }
+
+        .nested-dropdown-content {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -0.5rem;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 4px;
+            margin-left: 0.5rem;
+        }
+
+        .nested-dropdown:hover .nested-dropdown-content {
+            display: block;
+        }
+
+        .nested-dropdown-content a {
+            padding: 12px 20px;
+            border-radius: 0;
+        }
+
+        .nested-dropdown-content a:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .nested-dropdown-content a:last-child {
+            border-radius: 0 0 4px 4px;
         }
 
         /* Animated background particles */
@@ -332,7 +380,13 @@
                 <a href="#">Analytics</a>
                 <div class="dropdown-content">
                     <a href="/weather-map.html">🌦️ Weather Forecast</a>
-                    <a href="/impossible-escape.html">🧩 Puzzle Solver</a>
+                    <div class="dropdown-item nested-dropdown">
+                        🧩 Puzzles
+                        <div class="nested-dropdown-content">
+                            <a href="/8-queens.html">Easy: 8 Queens</a>
+                            <a href="/impossible-escape.html">Hard: Impossible Escape</a>
+                        </div>
+                    </div>
                 </div>
             </li>
             <li><a href="mailto:taylor@fluidta.com">Contact</a></li>
