@@ -288,10 +288,19 @@
                  * RECOMMENDED APPROACH: Create a Python Flask/FastAPI backend that:
                  * 1. Uses xarray to open the HRRR zarr: 
                  *    ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
-                 * 2. Extracts 3x3 grid around user lat/lon
-                 * 3. Returns JSON with temperature_2m, precipitation_surface, 
+                 * 2. Extracts 25x25 grid around user lat/lon
+                 * 3. Returns JSON with temperature_2m (converted to °F), precipitation_surface, 
                  *    relative_humidity_2m, wind components
                  * 4. Serves this page and API endpoint together
+                 * 
+                 * NOTE: Temperature from HRRR is in Celsius and must be converted to Fahrenheit.
+                 * The backend code (at end of file) includes this conversion: temp_f = temp_c * 9/5 + 32
+                 * 
+                 * COLOR SCALES: Fixed ranges are used to avoid over-emphasizing spatial variability:
+                 * - Temperature: 0-100°F
+                 * - Precipitation: 0-0.5 in/hr
+                 * - Wind Speed: 0-40 mph
+                 * - Humidity: 0-100%
                  * 
                  * See backend implementation at end of this file.
                  */
@@ -556,13 +565,25 @@
             canvas.width = data[0].length;
             canvas.height = data.length;
             
-            // Get value range for color mapping
-            let minVal = Infinity, maxVal = -Infinity;
+            // Define fixed ranges for each variable to avoid over-emphasizing spatial variability
+            const fixedRanges = {
+                temp: { min: 0, max: 100 },        // °F
+                precip: { min: 0, max: 0.5 },       // in/hr
+                wind: { min: 0, max: 40 },          // mph
+                humidity: { min: 0, max: 100 }      // %
+            };
+            
+            const range = fixedRanges[variable] || { min: 0, max: 100 };
+            let minVal = range.min;
+            let maxVal = range.max;
+            
+            // Get actual data range for legend display
+            let actualMin = Infinity, actualMax = -Infinity;
             data.forEach(row => {
                 row.forEach(val => {
                     if (isFinite(val)) {
-                        minVal = Math.min(minVal, val);
-                        maxVal = Math.max(maxVal, val);
+                        actualMin = Math.min(actualMin, val);
+                        actualMax = Math.max(actualMax, val);
                     }
                 });
             });
@@ -575,8 +596,8 @@
                     const value = data[i][j];
                     const idx = (i * canvas.width + j) * 4;
                     
-                    // Map value to color
-                    const normalized = (value - minVal) / (maxVal - minVal);
+                    // Map value to color using fixed scale
+                    const normalized = Math.max(0, Math.min(1, (value - minVal) / (maxVal - minVal)));
                     const color = getColor(normalized, colorScale, variable);
                     
                     imageData.data[idx] = color[0];     // R
@@ -594,13 +615,23 @@
                 [Math.max(...lats), Math.max(...lons)]
             ];
             
-            return { canvas: canvas, bounds: bounds, minVal: minVal, maxVal: maxVal };
+            return { canvas: canvas, bounds: bounds, minVal: actualMin, maxVal: actualMax };
         }
 
         function createLegend(variable, colorScale, minVal, maxVal) {
             const scaleDiv = document.getElementById(`${variable}Scale`);
             const minSpan = document.getElementById(`${variable}Min`);
             const maxSpan = document.getElementById(`${variable}Max`);
+            
+            // Fixed ranges for color scale
+            const fixedRanges = {
+                temp: { min: 0, max: 100 },
+                precip: { min: 0, max: 0.5 },
+                wind: { min: 0, max: 40 },
+                humidity: { min: 0, max: 100 }
+            };
+            
+            const range = fixedRanges[variable] || { min: 0, max: 100 };
             
             // Create gradient
             const steps = 100;
@@ -615,17 +646,14 @@
             
             scaleDiv.style.background = `linear-gradient(to right, ${gradient})`;
             
-            // Update labels with proper formatting
+            // Update labels with fixed scale (showing actual range in context)
             let minText, maxText;
             if (variable === 'precip') {
-                minText = minVal.toFixed(3);
-                maxText = maxVal.toFixed(3);
-            } else if (variable === 'temp' || variable === 'wind' || variable === 'humidity') {
-                minText = minVal.toFixed(1);
-                maxText = maxVal.toFixed(1);
+                minText = range.min.toFixed(2);
+                maxText = range.max.toFixed(2);
             } else {
-                minText = minVal.toFixed(0);
-                maxText = maxVal.toFixed(0);
+                minText = range.min.toFixed(0);
+                maxText = range.max.toFixed(0);
             }
             
             minSpan.textContent = minText;
