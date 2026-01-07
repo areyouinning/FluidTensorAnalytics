@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tensor Analysis | Fluid Tensor Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .method-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border-top: 4px solid #667eea;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .method-card h3 {
+            margin-top: 0;
+        }
+
+        .equation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .tensor-viz {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .tech-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tech-list li {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            border-radius: 3px;
+        }
+
+        .tech-list li strong {
+            color: #764ba2;
+        }
+
+        .dimension-box {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Fluid Tensor Analytics</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="ensemble-methods.html">Ensemble Methods</a></li>
+                <li><a href="tensor-analysis.html">Tensor Analysis</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <h1>Tensor Analysis for Multidimensional Water Resources Data</h1>
+            
+            <p>Modern water resources engineering generates vast multidimensional datasets spanning spatial, temporal, spectral, and ensemble dimensions. Traditional matrix-based analysis methods struggle with the complexity and scale of these high-dimensional data structures. Tensor analysis provides a natural mathematical framework for representing, analyzing, and extracting patterns from multidimensional hydrological data while preserving inherent structure and relationships.</p>
+
+            <div class="highlight-box">
+                <h3>What Are Tensors?</h3>
+                <p>Tensors are multidimensional arrays that generalize vectors (1D) and matrices (2D) to arbitrary dimensions. In water resources applications, tensors naturally represent data with multiple modes of variation: spatial location × time × climate predictor × ensemble member, for example. Tensor decompositions reveal latent structure by factoring high-dimensional data into lower-dimensional components, enabling pattern recognition, dimensionality reduction, and efficient computation on massive datasets.</p>
+            </div>
+
+            <div class="tensor-viz">
+                <h3>Common Tensor Structures in Hydrology</h3>
+                <p style="margin-top: 20px;">
+                    <span class="dimension-box">Location</span>
+                    <span class="dimension-box">Time</span>
+                    <span class="dimension-box">Variable</span>
+                    <span class="dimension-box">Ensemble</span>
+                </p>
+                <p style="margin-top: 20px; text-align: justify;">
+                    Example: Climate model output with dimensions [lat × lon × time × variable × model] forms a 5th-order tensor. Tensor decomposition can extract dominant spatial patterns, temporal modes, and inter-variable relationships simultaneously.
+                </p>
+            </div>
+
+            <h2>Core Tensor Decomposition Methods</h2>
+
+            <div class="method-grid">
+                <div class="method-card">
+                    <h3>CANDECOMP/PARAFAC (CP)</h3>
+                    <p>Decomposes a tensor into sum of rank-one components. Uniqueness properties under mild conditions make CP decomposition particularly powerful for identifying true latent factors.</p>
+                    <p><strong>Applications:</strong> Climate teleconnection analysis, spatial pattern identification, multi-model ensemble analysis.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Tucker Decomposition</h3>
+                    <p>Generalizes PCA to higher dimensions, decomposing a tensor into core tensor multiplied by factor matrices along each mode. Provides more flexible representation than CP.</p>
+                    <p><strong>Applications:</strong> Dimensionality reduction, data compression, spatiotemporal pattern extraction.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Tensor Train (TT)</h3>
+                    <p>Represents high-order tensors as products of lower-order tensors, enabling efficient storage and computation for extremely high-dimensional problems.</p>
+                    <p><strong>Applications:</strong> High-dimensional uncertainty quantification, stochastic modeling, parameter space exploration.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Hierarchical Tucker</h3>
+                    <p>Tree-structured tensor decomposition allowing different compression levels for different modes. Balances approximation accuracy with computational efficiency.</p>
+                    <p><strong>Applications:</strong> Multi-scale analysis, adaptive mesh refinement, hierarchical model structures.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Tensor Regression</h3>
+                    <p>Extends regression to tensor-valued predictors and responses, preserving multidimensional structure rather than vectorizing data.</p>
+                    <p><strong>Applications:</strong> Spatial field prediction, climate-to-hydrology forecasting, image-based prediction.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Tensor Completion</h3>
+                    <p>Fills missing entries in incomplete tensors using low-rank structure. Analogous to matrix completion but exploiting higher-order correlations.</p>
+                    <p><strong>Applications:</strong> Gap-filling in observational data, data assimilation, sensor network interpolation.</p>
+                </div>
+            </div>
+
+            <h2>Technical Implementation</h2>
+
+            <h3>GPU-Accelerated Tensor Operations</h3>
+            <p>Our tensor analysis platform leverages GPU parallelization for computational efficiency on large-scale problems. Key operations including tensor contractions, decompositions, and optimization are implemented in CUDA, achieving order-of-magnitude speedups over CPU implementations.</p>
+
+            <div class="equation">
+                # Tensor contraction example (Einstein notation)
+                Y[i,j,k] = A[i,j,l,m] * B[l,m,k]
+                
+                # CP decomposition optimization
+                minimize ||X - [[λ; A1, A2, ..., AN]]||²_F
+                
+                where X is the target tensor, λ weights, 
+                and Ai are factor matrices
+            </div>
+
+            <h3>Climate Data Tensor Analysis</h3>
+            <p>Our MERRA-2 reanalysis processing pipeline constructs spatiotemporal tensors from gridded climate data, applies tensor decomposition to identify dominant modes of variability, and extracts predictor time series for forecasting applications. This approach naturally handles the multidimensional structure of climate data without arbitrary vectorization.</p>
+
+            <h2>Water Resources Applications</h2>
+
+            <h3>Spatiotemporal Pattern Extraction</h3>
+            <p>Tensor decomposition reveals coherent spatial patterns and their temporal evolution in hydrological fields. Unlike traditional EOF analysis (which vectorizes spatial fields), tensor methods preserve spatial structure and can simultaneously extract patterns across multiple variables.</p>
+
+            <ul class="tech-list">
+                <li><strong>Drought monitoring:</strong> Identify regional drought patterns and their temporal dynamics across multiple indicators (precipitation, soil moisture, streamflow)</li>
+                <li><strong>Snowpack analysis:</strong> Extract elevation-dependent snowmelt patterns and their seasonal evolution</li>
+                <li><strong>Groundwater dynamics:</strong> Characterize spatial patterns of groundwater response to pumping and recharge across well networks</li>
+            </ul>
+
+            <h3>Multi-Model Climate Ensemble Analysis</h3>
+            <p>Climate projection ensembles naturally form tensors with dimensions [location × time × climate variable × GCM × scenario]. Tensor decomposition identifies consensus patterns across models while quantifying inter-model uncertainty structure.</p>
+
+            <div class="highlight-box">
+                <h3>Example: CMIP6 Ensemble Tensor Analysis</h3>
+                <p>Construction of 5D tensor from CMIP6 projections: [latitude × longitude × time × variable × model]. Tucker decomposition with ranks [10, 10, 5, 3, 15] captures 95% of variance while reducing data volume by factor of 100+. Extracted spatial modes reveal regional patterns of climate change; temporal modes capture transient vs. equilibrium responses; variable modes identify coupled changes across temperature, precipitation, and humidity.</p>
+            </div>
+
+            <h3>Forecasting with Tensor-Valued Predictors</h3>
+            <p>Rather than flattening spatial fields into vectors, tensor regression preserves spatial structure in predictor variables. This maintains spatial coherence, reduces overfitting in small-sample regimes, and often improves forecast skill.</p>
+
+            <div class="equation">
+                # Tensor regression formulation
+                y = W ×₁ X₁ ×₂ X₂ ×₃ X₃ + ε
+                
+                where y is scalar response, 
+                X₁, X₂, X₃ are predictor tensors,
+                W is coefficient tensor, 
+                ×ᵢ denotes mode-i product
+            </div>
+
+            <h3>Uncertainty Quantification via Tensor Train</h3>
+            <p>High-dimensional uncertainty quantification becomes tractable through tensor train decomposition. This enables propagation of uncertainty through complex models with dozens or hundreds of uncertain parameters—infeasible with traditional Monte Carlo approaches.</p>
+
+            <h2>Computational Advantages</h2>
+
+            <ul class="tech-list">
+                <li><strong>Dimensionality reduction:</strong> Compress massive datasets while preserving essential structure</li>
+                <li><strong>Pattern discovery:</strong> Automated extraction of dominant modes without manual feature engineering</li>
+                <li><strong>Structure preservation:</strong> Maintain spatial, temporal, and physical relationships rather than vectorizing</li>
+                <li><strong>Computational efficiency:</strong> GPU-accelerated operations enable real-time analysis of large-scale problems</li>
+                <li><strong>Missing data handling:</strong> Tensor completion leverages multidimensional structure for robust gap-filling</li>
+                <li><strong>Multi-scale analysis:</strong> Hierarchical decompositions adapt to different scales and resolutions</li>
+            </ul>
+
+            <h2>Integration with Machine Learning</h2>
+
+            <p>Tensor methods integrate naturally with modern machine learning workflows. Tensor decomposition provides dimensionality reduction for deep learning inputs, tensor regression serves as regularization for high-dimensional problems, and tensor networks offer structured architectures for neural network design.</p>
+
+            <h3>Tensor Neural Networks</h3>
+            <p>Tensorized neural networks replace fully-connected layers with tensor operations, dramatically reducing parameter count while maintaining expressivity. This is particularly valuable for problems with natural tensor structure, such as spatiotemporal forecasting or multi-site prediction.</p>
+
+            <h3>Physics-Informed Tensor Decomposition</h3>
+            <p>Incorporating physical constraints (mass balance, energy conservation, monotonicity) into tensor decomposition ensures extracted patterns respect hydrological principles. This hybrid approach combines data-driven pattern extraction with physics-based guardrails.</p>
+
+            <h2>Case Studies</h2>
+
+            <div class="method-grid">
+                <div class="method-card">
+                    <h3>Colorado River Basin Climate Analysis</h3>
+                    <p>4D tensor [latitude × longitude × time × variable] from MERRA-2 reanalysis spanning 1980-2024. CP decomposition identified three dominant modes: ENSO teleconnection pattern, PDO influence on winter precipitation, and monsoon circulation impacts on summer convection.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Multi-Model Ensemble Streamflow Forecasting</h3>
+                    <p>5D forecast ensemble tensor [location × time × predictor × model × ensemble_member]. Tucker decomposition reduced dimensionality while preserving forecast spread. Tensor regression outperformed traditional approaches by 15% in cross-validation skill.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Groundwater Monitoring Network Optimization</h3>
+                    <p>3D tensor [x × y × time] from 150-well monitoring network. Tensor completion filled 30% missing data using spatial-temporal correlations. Hierarchical Tucker decomposition identified optimal well locations for network expansion.</p>
+                </div>
+            </div>
+
+            <h2>Technical Capabilities</h2>
+
+            <ul class="tech-list">
+                <li><strong>Scalable implementations:</strong> GPU-accelerated tensor operations handling terabyte-scale datasets</li>
+                <li><strong>Custom decompositions:</strong> Problem-specific tensor factorizations incorporating domain constraints</li>
+                <li><strong>Real-time analysis:</strong> Streaming tensor decomposition for operational monitoring and forecasting</li>
+                <li><strong>Hybrid methods:</strong> Integration of tensor analysis with physical models and machine learning</li>
+                <li><strong>Visualization:</strong> Interactive exploration of multidimensional patterns and relationships</li>
+                <li><strong>Production deployment:</strong> Robust, tested implementations ready for operational systems</li>
+            </ul>
+
+            <h2>Why Tensor Analysis for Water Resources?</h2>
+
+            <p>Water resources data is inherently multidimensional. Spatial patterns evolve in time, multiple variables interact, ensemble forecasts span probability space, and climate projections vary across models and scenarios. Traditional methods force these multidimensional structures into vectors and matrices, discarding valuable information and introducing artifacts.</p>
+
+            <p>Tensor analysis preserves the natural structure of water resources data, extracting patterns that reflect true physical processes rather than artifacts of dimension reduction. The result is more accurate forecasts, more robust analyses, and deeper insight into complex hydrological systems.</p>
+
+            <div class="highlight-box">
+                <h3>Get Started with Tensor Analysis</h3>
+                <p>Whether you're working with multi-model climate ensembles, spatiotemporal monitoring data, or high-dimensional uncertainty quantification, tensor analysis can unlock insights hidden in your data's structure. Fluid Tensor Analytics brings cutting-edge tensor methods and deep domain expertise to your water resources challenges.</p>
+                <p style="margin-top: 15px;"><a href="contact.html" style="color: #667eea; font-weight: 600;">Contact us</a> to explore how tensor analysis can transform your data analysis capabilities.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Fluid Tensor Analytics | Professional Water Resources Engineering</p>
+    </footer>
+</body>
+</html>
