@@ -107,11 +107,50 @@
             box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
         }
 
+        .canvas-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .canvas-border rect {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            opacity: 0.4;
+        }
+
         canvas {
             width: 100%;
             height: 100%;
             cursor: crosshair;
             image-rendering: pixelated;
+        }
+
+        .interaction-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(10, 14, 23, 0.85);
+            border: 1px solid var(--accent-primary);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.2);
+        }
+
+        .interaction-hint strong {
+            color: var(--accent-primary);
+            font-weight: 600;
         }
 
         .visualization-modes {
@@ -153,30 +192,32 @@
         .mode-btn[title]:hover::after {
             content: attr(title);
             position: absolute;
-            bottom: calc(100% + 10px);
-            left: 50%;
-            transform: translateX(-50%);
+            top: 50%;
+            left: calc(100% + 15px);
+            transform: translateY(-50%);
             background: rgba(10, 14, 23, 0.95);
             color: var(--text-primary);
             padding: 0.75rem 1rem;
             border-radius: 6px;
             border: 1px solid var(--accent-primary);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 400;
-            white-space: nowrap;
+            max-width: 280px;
+            white-space: normal;
             z-index: 1000;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+            line-height: 1.4;
         }
 
         .mode-btn[title]:hover::before {
             content: '';
             position: absolute;
-            bottom: calc(100% + 4px);
-            left: 50%;
-            transform: translateX(-50%);
+            top: 50%;
+            left: calc(100% + 9px);
+            transform: translateY(-50%);
             border: 6px solid transparent;
-            border-top-color: var(--accent-primary);
+            border-right-color: var(--accent-primary);
             z-index: 1000;
             pointer-events: none;
         }
@@ -338,6 +379,12 @@
                 </div>
                 <div class="canvas-container">
                     <canvas id="fluidCanvas"></canvas>
+                    <svg class="canvas-border" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <rect x="1" y="1" width="98" height="98" />
+                    </svg>
+                    <div class="interaction-hint">
+                        <strong>Click &amp; drag</strong> to add forces and create flow patterns
+                    </div>
                 </div>
             </div>
 
@@ -744,10 +791,10 @@
             }
             
             // Add force at position
-            addForce(x, y, fx, fy) {
+            addForce(x, y, fx, fy, canvasWidth, canvasHeight) {
                 const N = this.N;
-                const i = Math.floor(x * N / 600);
-                const j = Math.floor(y * N / 600);
+                const i = Math.floor(x * N / canvasWidth);
+                const j = Math.floor(y * N / canvasHeight);
                 
                 if (i >= 1 && i <= N && j >= 1 && j <= N) {
                     this.u_prev[this.IX(i, j)] += fx;
@@ -828,9 +875,10 @@
             }
             
             resizeCanvas() {
-                const rect = this.canvas.getBoundingClientRect();
-                this.canvas.width = 600;
-                this.canvas.height = 600;
+                const N = this.fluid.N;
+                // Set canvas to match simulation grid for 1:1 pixel mapping
+                this.canvas.width = N;
+                this.canvas.height = N;
             }
             
             render() {
@@ -1291,11 +1339,11 @@
                                      legendX + 30, legendY + legendHeight + 30);
                     
                 } else if (mode === 'vorticity') {
-                    // Vorticity gradient (blue-white-red for neg-zero-pos)
+                    // Vorticity gradient - matches actual rendering: magenta (clockwise) to black to cyan (counterclockwise)
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(0, 0, 255)');
-                    gradient.addColorStop(0.5, 'rgb(255, 255, 255)');
-                    gradient.addColorStop(1, 'rgb(255, 0, 0)');
+                    gradient.addColorStop(0, 'rgb(255, 0, 255)');  // Magenta for negative (clockwise)
+                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');     // Black for zero
+                    gradient.addColorStop(1, 'rgb(0, 255, 255)');   // Cyan for positive (counterclockwise)
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1303,17 +1351,16 @@
                     // Labels
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('-ω', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('CW', legendX, legendY + legendHeight + 15);
                     this.ctx.fillText('0', legendX + legendWidth/2 - 5, legendY + legendHeight + 15);
-                    this.ctx.fillText('+ω', legendX + legendWidth - 15, legendY + legendHeight + 15);
+                    this.ctx.fillText('CCW', legendX + legendWidth - 20, legendY + legendHeight + 15);
                     this.ctx.fillText('Vorticity (curl)', legendX + 50, legendY + legendHeight + 30);
                     
                 } else if (mode === 'divergence') {
-                    // Divergence gradient
+                    // Divergence gradient - matches actual rendering: grayscale
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(255, 0, 0)');
-                    gradient.addColorStop(0.5, 'rgb(255, 255, 255)');
-                    gradient.addColorStop(1, 'rgb(0, 0, 255)');
+                    gradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    gradient.addColorStop(1, 'rgb(255, 255, 255)');
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1321,15 +1368,14 @@
                     // Labels
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('Source', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('Sink', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Max |∇·u|', legendX + legendWidth - 55, legendY + legendHeight + 15);
                     this.ctx.fillText('Divergence (∇·u)', legendX + 45, legendY + legendHeight + 30);
                     
                 } else if (mode === 'pressure') {
-                    // Pressure gradient
+                    // Pressure gradient - matches actual rendering: low=blue, high=red
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(0, 0, 139)');
-                    gradient.addColorStop(0.5, 'rgb(127, 255, 0)');
+                    gradient.addColorStop(0, 'rgb(0, 0, 255)');
                     gradient.addColorStop(1, 'rgb(255, 0, 0)');
                     
                     this.ctx.fillStyle = gradient;
@@ -1343,11 +1389,14 @@
                     this.ctx.fillText('Pressure', legendX + 70, legendY + legendHeight + 30);
                     
                 } else if (mode === 'strain') {
-                    // Strain gradient
+                    // Strain gradient - HSL color wheel showing principal strain direction
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(0, 0, 0)');
-                    gradient.addColorStop(0.5, 'rgb(139, 0, 139)');
-                    gradient.addColorStop(1, 'rgb(255, 0, 255)');
+                    // Full HSL hue cycle at 50% lightness
+                    for (let i = 0; i <= 10; i++) {
+                        const hue = (i / 10) * 360;
+                        const rgb = this.hslToRgb(hue / 360, 1, 0.5);
+                        gradient.addColorStop(i / 10, `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`);
+                    }
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1355,16 +1404,16 @@
                     // Labels
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
-                    this.ctx.fillText('Strain Rate', legendX + 60, legendY + legendHeight + 30);
+                    this.ctx.fillText('0°', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('180°', legendX + legendWidth - 20, legendY + legendHeight + 15);
+                    this.ctx.fillText('Strain Direction', legendX + 50, legendY + legendHeight + 30);
                     
                 } else if (mode === 'rotation') {
-                    // Rotation gradient
+                    // Rotation gradient - matches actual rendering
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(0, 0, 0)');
-                    gradient.addColorStop(0.5, 'rgb(0, 100, 0)');
-                    gradient.addColorStop(1, 'rgb(0, 255, 0)');
+                    gradient.addColorStop(0, 'rgb(255, 0, 110)');   // Magenta/red for clockwise
+                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');      // Black for zero
+                    gradient.addColorStop(1, 'rgb(0, 217, 255)');    // Cyan/blue for counterclockwise
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1372,8 +1421,8 @@
                     // Labels
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('CW', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('CCW', legendX + legendWidth - 20, legendY + legendHeight + 15);
                     this.ctx.fillText('Rotation Rate', legendX + 55, legendY + legendHeight + 30);
                     
                 } else if (mode === 'vorticity-decomp') {
@@ -1465,7 +1514,7 @@
             const dx = x - lastX;
             const dy = y - lastY;
             
-            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1);
+            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
             
             lastX = x;
             lastY = y;
@@ -1501,7 +1550,7 @@
             const dx = x - lastX;
             const dy = y - lastY;
             
-            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1);
+            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
             
             lastX = x;
             lastY = y;
