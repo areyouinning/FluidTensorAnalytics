@@ -3,1019 +3,810 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fluid Tensor Dynamics | Navier-Stokes Simulation</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>3D Fluid Mixing Simulation</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-primary: #0a0e17;
-            --bg-secondary: #141923;
-            --bg-tertiary: #1a2332;
-            --accent-primary: #00d9ff;
-            --accent-secondary: #ff006e;
-            --accent-tertiary: #8b5cf6;
-            --text-primary: #e0e6ed;
-            --text-secondary: #8b95a5;
-            --border: rgba(0, 217, 255, 0.2);
-        }
-
         body {
-            font-family: 'IBM Plex Sans', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            margin: 0;
             overflow: hidden;
-            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
         }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
+        #container {
+            width: 100vw;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
-
-        header {
-            padding: 2rem 3rem;
-            border-bottom: 1px solid var(--border);
-            background: rgba(10, 14, 23, 0.8);
-            backdrop-filter: blur(10px);
-        }
-
-        h1 {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            font-weight: 300;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            gap: 2rem;
-            padding: 2rem 3rem;
-            overflow: hidden;
-        }
-
-        .simulation-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .canvas-container {
-            position: relative;
-            flex: 1;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            background: var(--bg-secondary);
-            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
-        }
-
-        #renderCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .visualization-modes {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .mode-btn {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            font-weight: 400;
-        }
-
-        .mode-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translateY(-2px);
-        }
-
-        .mode-btn.active {
-            background: var(--accent-primary);
-            color: var(--bg-primary);
-            border-color: var(--accent-primary);
-            font-weight: 600;
-        }
-
-        .controls-panel {
-            width: 320px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
-        }
-
-        .control-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .control-section h3 {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--accent-primary);
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .control-group {
-            margin-bottom: 1rem;
-        }
-
-        .control-group label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .control-group input[type="range"] {
-            width: 100%;
-            height: 4px;
-            background: var(--bg-tertiary);
-            border-radius: 2px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .control-group input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
-        }
-
-        .control-group input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
-        }
-
-        .value-display {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--accent-primary);
-            float: right;
-        }
-
-        .btn {
-            font-family: 'JetBrains Mono', monospace;
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            font-size: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .btn:hover {
-            border-color: var(--accent-primary);
-            background: rgba(0, 217, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .stats {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            padding: 1rem;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            line-height: 1.6;
-        }
-
-        .stats-value {
-            color: var(--accent-primary);
-            font-weight: 600;
-        }
-
-        .loading {
+        #controls {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-primary);
-            font-size: 1rem;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .control-group {
+            margin-bottom: 15px;
         }
-
-        .container > * {
-            animation: fadeIn 0.6s ease-out backwards;
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
         }
-
-        header {
-            animation-delay: 0.1s;
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #555;
+            background: #2a2a2a;
+            color: #fff;
+            border-radius: 4px;
         }
-
-        .simulation-panel {
-            animation-delay: 0.2s;
+        select {
+            width: 150px;
+            padding: 5px;
+            border: 1px solid #555;
+            background: #2a2a2a;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
-        .controls-panel {
-            animation-delay: 0.3s;
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #reset {
+            background: #f44336;
+            margin-left: 10px;
+        }
+        #reset:hover {
+            background: #da190b;
+        }
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>3D Fluid Tensor Dynamics</h1>
-            <div class="subtitle">Real-time 3D Navier-Stokes Solution • WebGL Accelerated</div>
-        </header>
-
-        <div class="main-content">
-            <div class="simulation-panel">
-                <div class="visualization-modes">
-                    <button class="mode-btn active" data-mode="particles">Particle Flow</button>
-                    <button class="mode-btn" data-mode="velocity">Velocity Vectors</button>
-                    <button class="mode-btn" data-mode="vorticity">Vorticity Tubes</button>
-                    <button class="mode-btn" data-mode="pressure">Pressure Isosurface</button>
-                    <button class="mode-btn" data-mode="streamlines">Streamlines</button>
-                </div>
-                <div class="canvas-container">
-                    <canvas id="renderCanvas"></canvas>
-                    <div class="loading" id="loading">Initializing 3D Simulation...</div>
-                </div>
-            </div>
-
-            <div class="controls-panel">
-                <div class="control-section">
-                    <h3>Physical Parameters</h3>
-                    <div class="control-group">
-                        <label>
-                            Viscosity (ν)
-                            <span class="value-display" id="viscosity-value">0.0001</span>
-                        </label>
-                        <input type="range" id="viscosity" min="0" max="0.001" step="0.00001" value="0.0001">
-                    </div>
-                    <div class="control-group">
-                        <label>
-                            Time Step (Δt)
-                            <span class="value-display" id="dt-value">0.1</span>
-                        </label>
-                        <input type="range" id="timestep" min="0.01" max="0.5" step="0.01" value="0.1">
-                    </div>
-                    <div class="control-group">
-                        <label>
-                            Force Magnitude
-                            <span class="value-display" id="force-value">30</span>
-                        </label>
-                        <input type="range" id="force" min="1" max="100" step="1" value="30">
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Visualization</h3>
-                    <div class="control-group">
-                        <label>
-                            Particle Count
-                            <span class="value-display" id="particle-count-value">5000</span>
-                        </label>
-                        <input type="range" id="particle-count" min="1000" max="10000" step="500" value="5000">
-                    </div>
-                    <div class="control-group">
-                        <label>
-                            Particle Size
-                            <span class="value-display" id="particle-size-value">0.03</span>
-                        </label>
-                        <input type="range" id="particle-size" min="0.01" max="0.1" step="0.01" value="0.03">
-                    </div>
-                    <div class="control-group">
-                        <label>
-                            Camera Speed
-                            <span class="value-display" id="rotation-speed-value">0.2</span>
-                        </label>
-                        <input type="range" id="rotation-speed" min="0" max="1" step="0.1" value="0.2">
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Solver Settings</h3>
-                    <div class="control-group">
-                        <label>
-                            Grid Resolution
-                            <span class="value-display" id="resolution-value">32³</span>
-                        </label>
-                        <input type="range" id="resolution" min="16" max="64" step="8" value="32">
-                    </div>
-                    <div class="control-group">
-                        <label>
-                            Solver Iterations
-                            <span class="value-display" id="iterations-value">20</span>
-                        </label>
-                        <input type="range" id="iterations" min="5" max="50" step="1" value="20">
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Actions</h3>
-                    <button class="btn" id="reset-btn">Reset Simulation</button>
-                    <button class="btn" id="add-vortex-btn">Add Vortex Ring</button>
-                    <button class="btn" id="pause-btn">Pause</button>
-                </div>
-
-                <div class="control-section">
-                    <h3>Statistics</h3>
-                    <div class="stats">
-                        <div>Grid: <span class="stats-value" id="grid-size">32×32×32</span></div>
-                        <div>FPS: <span class="stats-value" id="fps">60</span></div>
-                        <div>Max |u|: <span class="stats-value" id="max-velocity">0.0</span></div>
-                        <div>Max |ω|: <span class="stats-value" id="max-vorticity">0.0</span></div>
-                        <div>Particles: <span class="stats-value" id="particle-stats">5000</span></div>
-                    </div>
-                </div>
-            </div>
+    <div id="container"></div>
+    <div id="controls">
+        <h2 style="margin-top: 0;">3D Fluid Mixing</h2>
+        <div class="control-group">
+            <label>Left Fluid Density (kg/m³):</label>
+            <input type="number" id="density1" value="1000" min="500" max="2000" step="50">
         </div>
+        <div class="control-group">
+            <label>Right Fluid Density (kg/m³):</label>
+            <input type="number" id="density2" value="1200" min="500" max="2000" step="50">
+        </div>
+        <div class="control-group">
+            <label>Visualization Mode:</label>
+            <select id="vizMode">
+                <option value="particles">Particles</option>
+                <option value="streamlines">Flow Paths</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <button id="startBtn">Remove Barrier</button>
+            <button id="reset">Reset</button>
+        </div>
+    </div>
+    <div id="info">
+        <strong>Controls:</strong><br>
+        • Mouse: Rotate view<br>
+        • Scroll: Zoom<br>
+        • Right-click: Pan<br><br>
+        <strong>Physics:</strong><br>
+        Incompressible Navier-Stokes with density-driven buoyancy
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // 3D Navier-Stokes Fluid Simulation
+        // Simulation parameters
+        const N = 48; // Grid resolution (48³ = 110,592 cells)
+        const dt = 0.016; // Time step
+        const viscosity = 0.0001;
+        const diffusion = 0.0001;
+        const gravity = -9.81;
         
-        class FluidSimulation3D {
-            constructor(N) {
-                this.N = N;
-                this.size = (N + 2) * (N + 2) * (N + 2);
+        // Fluid simulation class
+        class FluidSim3D {
+            constructor(size) {
+                this.size = size;
+                this.n = size * size * size;
                 
-                // Velocity fields
-                this.u = new Float32Array(this.size);
-                this.v = new Float32Array(this.size);
-                this.w = new Float32Array(this.size);
-                this.u_prev = new Float32Array(this.size);
-                this.v_prev = new Float32Array(this.size);
-                this.w_prev = new Float32Array(this.size);
+                // Velocity fields (staggered grid)
+                this.u = new Float32Array(this.n); // x-velocity
+                this.v = new Float32Array(this.n); // y-velocity
+                this.w = new Float32Array(this.n); // z-velocity
                 
-                // Pressure and vorticity
-                this.pressure = new Float32Array(this.size);
-                this.vorticity = new Float32Array(this.size);
+                this.u0 = new Float32Array(this.n);
+                this.v0 = new Float32Array(this.n);
+                this.w0 = new Float32Array(this.n);
                 
-                // Parameters
-                this.visc = 0.0001;
-                this.dt = 0.1;
-                this.iterations = 20;
+                // Scalar fields
+                this.density = new Float32Array(this.n);
+                this.density0 = new Float32Array(this.n);
+                
+                // Pressure
+                this.p = new Float32Array(this.n);
+                this.div = new Float32Array(this.n);
+                
+                this.barrierActive = true;
             }
             
             IX(i, j, k) {
-                return i + (this.N + 2) * (j + (this.N + 2) * k);
+                i = Math.max(0, Math.min(this.size - 1, i));
+                j = Math.max(0, Math.min(this.size - 1, j));
+                k = Math.max(0, Math.min(this.size - 1, k));
+                return i + j * this.size + k * this.size * this.size;
             }
             
-            set_bnd(b, x) {
-                const N = this.N;
+            initialize(density1, density2) {
+                const mid = Math.floor(this.size / 2);
                 
-                // Set boundary conditions on all 6 faces
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        x[this.IX(i, j, 0)] = b === 3 ? -x[this.IX(i, j, 1)] : x[this.IX(i, j, 1)];
-                        x[this.IX(i, j, N+1)] = b === 3 ? -x[this.IX(i, j, N)] : x[this.IX(i, j, N)];
+                for (let k = 0; k < this.size; k++) {
+                    for (let j = 0; j < this.size; j++) {
+                        for (let i = 0; i < this.size; i++) {
+                            const idx = this.IX(i, j, k);
+                            
+                            // Left side: density1, Right side: density2
+                            this.density[idx] = i < mid ? density1 : density2;
+                            
+                            // Zero initial velocity
+                            this.u[idx] = 0;
+                            this.v[idx] = 0;
+                            this.w[idx] = 0;
+                        }
                     }
                 }
                 
-                for (let k = 1; k <= N; k++) {
-                    for (let i = 1; i <= N; i++) {
-                        x[this.IX(i, 0, k)] = b === 2 ? -x[this.IX(i, 1, k)] : x[this.IX(i, 1, k)];
-                        x[this.IX(i, N+1, k)] = b === 2 ? -x[this.IX(i, N, k)] : x[this.IX(i, N, k)];
-                    }
-                }
+                this.barrierActive = true;
+            }
+            
+            removeBarrier() {
+                this.barrierActive = false;
+            }
+            
+            step(dt) {
+                // Diffuse velocity
+                this.diffuse(1, this.u0, this.u, viscosity, dt);
+                this.diffuse(2, this.v0, this.v, viscosity, dt);
+                this.diffuse(3, this.w0, this.w, viscosity, dt);
                 
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        x[this.IX(0, j, k)] = b === 1 ? -x[this.IX(1, j, k)] : x[this.IX(1, j, k)];
-                        x[this.IX(N+1, j, k)] = b === 1 ? -x[this.IX(N, j, k)] : x[this.IX(N, j, k)];
+                // Project to make incompressible
+                this.project(this.u0, this.v0, this.w0, this.p, this.div);
+                
+                // Advect velocity
+                this.advect(1, this.u, this.u0, this.u0, this.v0, this.w0, dt);
+                this.advect(2, this.v, this.v0, this.u0, this.v0, this.w0, dt);
+                this.advect(3, this.w, this.w0, this.u0, this.v0, this.w0, dt);
+                
+                // Add buoyancy force
+                this.addBuoyancy(dt);
+                
+                // Project again
+                this.project(this.u, this.v, this.w, this.p, this.div);
+                
+                // Diffuse density
+                this.diffuse(0, this.density0, this.density, diffusion, dt);
+                
+                // Advect density
+                this.advect(0, this.density, this.density0, this.u, this.v, this.w, dt);
+            }
+            
+            addBuoyancy(dt) {
+                // Calculate average density
+                let avgDensity = 0;
+                for (let i = 0; i < this.n; i++) {
+                    avgDensity += this.density[i];
+                }
+                avgDensity /= this.n;
+                
+                // Add buoyancy force to y-velocity
+                const buoyancyCoeff = 0.1; // Scaling factor
+                for (let k = 1; k < this.size - 1; k++) {
+                    for (let j = 1; j < this.size - 1; j++) {
+                        for (let i = 1; i < this.size - 1; i++) {
+                            const idx = this.IX(i, j, k);
+                            const densityDiff = (this.density[idx] - avgDensity) / avgDensity;
+                            this.v[idx] += buoyancyCoeff * gravity * densityDiff * dt;
+                        }
                     }
                 }
             }
             
-            lin_solve(b, x, x0, a, c) {
-                const N = this.N;
+            diffuse(b, x, x0, diff, dt) {
+                const a = dt * diff * (this.size - 2) * (this.size - 2);
+                this.linSolve(b, x, x0, a, 1 + 6 * a, 4);
+            }
+            
+            linSolve(b, x, x0, a, c, iterations) {
+                const cRecip = 1.0 / c;
                 
-                for (let iter = 0; iter < this.iterations; iter++) {
-                    for (let k = 1; k <= N; k++) {
-                        for (let j = 1; j <= N; j++) {
-                            for (let i = 1; i <= N; i++) {
-                                x[this.IX(i, j, k)] = (x0[this.IX(i, j, k)] + a * (
-                                    x[this.IX(i-1, j, k)] + x[this.IX(i+1, j, k)] +
-                                    x[this.IX(i, j-1, k)] + x[this.IX(i, j+1, k)] +
-                                    x[this.IX(i, j, k-1)] + x[this.IX(i, j, k+1)]
-                                )) / c;
+                for (let iter = 0; iter < iterations; iter++) {
+                    for (let k = 1; k < this.size - 1; k++) {
+                        for (let j = 1; j < this.size - 1; j++) {
+                            for (let i = 1; i < this.size - 1; i++) {
+                                const idx = this.IX(i, j, k);
+                                
+                                x[idx] = (x0[idx] + a * (
+                                    x[this.IX(i-1, j, k)] +
+                                    x[this.IX(i+1, j, k)] +
+                                    x[this.IX(i, j-1, k)] +
+                                    x[this.IX(i, j+1, k)] +
+                                    x[this.IX(i, j, k-1)] +
+                                    x[this.IX(i, j, k+1)]
+                                )) * cRecip;
                             }
                         }
                     }
-                    this.set_bnd(b, x);
+                    this.setBoundary(b, x);
                 }
-            }
-            
-            diffuse(b, x, x0, diff) {
-                const a = this.dt * diff * this.N * this.N * this.N;
-                this.lin_solve(b, x, x0, a, 1 + 6 * a);
-            }
-            
-            advect(b, d, d0, u, v, w) {
-                const N = this.N;
-                const dt0 = this.dt * N;
-                
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            let x = i - dt0 * u[this.IX(i, j, k)];
-                            let y = j - dt0 * v[this.IX(i, j, k)];
-                            let z = k - dt0 * w[this.IX(i, j, k)];
-                            
-                            if (x < 0.5) x = 0.5;
-                            if (x > N + 0.5) x = N + 0.5;
-                            let i0 = Math.floor(x);
-                            let i1 = i0 + 1;
-                            
-                            if (y < 0.5) y = 0.5;
-                            if (y > N + 0.5) y = N + 0.5;
-                            let j0 = Math.floor(y);
-                            let j1 = j0 + 1;
-                            
-                            if (z < 0.5) z = 0.5;
-                            if (z > N + 0.5) z = N + 0.5;
-                            let k0 = Math.floor(z);
-                            let k1 = k0 + 1;
-                            
-                            let s1 = x - i0;
-                            let s0 = 1 - s1;
-                            let t1 = y - j0;
-                            let t0 = 1 - t1;
-                            let u1 = z - k0;
-                            let u0 = 1 - u1;
-                            
-                            d[this.IX(i, j, k)] = 
-                                s0 * (t0 * (u0 * d0[this.IX(i0, j0, k0)] + u1 * d0[this.IX(i0, j0, k1)]) +
-                                      t1 * (u0 * d0[this.IX(i0, j1, k0)] + u1 * d0[this.IX(i0, j1, k1)])) +
-                                s1 * (t0 * (u0 * d0[this.IX(i1, j0, k0)] + u1 * d0[this.IX(i1, j0, k1)]) +
-                                      t1 * (u0 * d0[this.IX(i1, j1, k0)] + u1 * d0[this.IX(i1, j1, k1)]));
-                        }
-                    }
-                }
-                this.set_bnd(b, d);
             }
             
             project(u, v, w, p, div) {
-                const N = this.N;
-                const h = 1.0 / N;
+                const h = 1.0 / this.size;
                 
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            div[this.IX(i, j, k)] = -h * (
+                // Calculate divergence
+                for (let k = 1; k < this.size - 1; k++) {
+                    for (let j = 1; j < this.size - 1; j++) {
+                        for (let i = 1; i < this.size - 1; i++) {
+                            const idx = this.IX(i, j, k);
+                            
+                            div[idx] = -0.5 * h * (
                                 u[this.IX(i+1, j, k)] - u[this.IX(i-1, j, k)] +
                                 v[this.IX(i, j+1, k)] - v[this.IX(i, j-1, k)] +
                                 w[this.IX(i, j, k+1)] - w[this.IX(i, j, k-1)]
-                            ) / 3.0;
-                            p[this.IX(i, j, k)] = 0;
+                            );
+                            p[idx] = 0;
                         }
                     }
                 }
-                this.set_bnd(0, div);
-                this.set_bnd(0, p);
                 
-                this.lin_solve(0, p, div, 1, 6);
+                this.setBoundary(0, div);
+                this.setBoundary(0, p);
+                this.linSolve(0, p, div, 1, 6, 10);
                 
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            u[this.IX(i, j, k)] -= 0.5 * (p[this.IX(i+1, j, k)] - p[this.IX(i-1, j, k)]) / h;
-                            v[this.IX(i, j, k)] -= 0.5 * (p[this.IX(i, j+1, k)] - p[this.IX(i, j-1, k)]) / h;
-                            w[this.IX(i, j, k)] -= 0.5 * (p[this.IX(i, j, k+1)] - p[this.IX(i, j, k-1)]) / h;
-                        }
-                    }
-                }
-                this.set_bnd(1, u);
-                this.set_bnd(2, v);
-                this.set_bnd(3, w);
-            }
-            
-            vel_step() {
-                this.diffuse(1, this.u_prev, this.u, this.visc);
-                this.diffuse(2, this.v_prev, this.v, this.visc);
-                this.diffuse(3, this.w_prev, this.w, this.visc);
-                
-                this.project(this.u_prev, this.v_prev, this.w_prev, this.u, this.v);
-                
-                this.advect(1, this.u, this.u_prev, this.u_prev, this.v_prev, this.w_prev);
-                this.advect(2, this.v, this.v_prev, this.u_prev, this.v_prev, this.w_prev);
-                this.advect(3, this.w, this.w_prev, this.u_prev, this.v_prev, this.w_prev);
-                
-                this.project(this.u, this.v, this.w, this.u_prev, this.v_prev);
-                
-                this.u_prev.fill(0);
-                this.v_prev.fill(0);
-                this.w_prev.fill(0);
-            }
-            
-            computeVorticity() {
-                const N = this.N;
-                const h = 1.0 / N;
-                
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            const dw_dy = (this.w[this.IX(i, j+1, k)] - this.w[this.IX(i, j-1, k)]) / (2 * h);
-                            const dv_dz = (this.v[this.IX(i, j, k+1)] - this.v[this.IX(i, j, k-1)]) / (2 * h);
-                            const du_dz = (this.u[this.IX(i, j, k+1)] - this.u[this.IX(i, j, k-1)]) / (2 * h);
-                            const dw_dx = (this.w[this.IX(i+1, j, k)] - this.w[this.IX(i-1, j, k)]) / (2 * h);
-                            const dv_dx = (this.v[this.IX(i+1, j, k)] - this.v[this.IX(i-1, j, k)]) / (2 * h);
-                            const du_dy = (this.u[this.IX(i, j+1, k)] - this.u[this.IX(i, j-1, k)]) / (2 * h);
+                // Subtract pressure gradient
+                for (let k = 1; k < this.size - 1; k++) {
+                    for (let j = 1; j < this.size - 1; j++) {
+                        for (let i = 1; i < this.size - 1; i++) {
+                            const idx = this.IX(i, j, k);
                             
-                            const omega_x = dw_dy - dv_dz;
-                            const omega_y = du_dz - dw_dx;
-                            const omega_z = dv_dx - du_dy;
-                            
-                            this.vorticity[this.IX(i, j, k)] = Math.sqrt(omega_x*omega_x + omega_y*omega_y + omega_z*omega_z);
+                            u[idx] -= 0.5 * (p[this.IX(i+1, j, k)] - p[this.IX(i-1, j, k)]) / h;
+                            v[idx] -= 0.5 * (p[this.IX(i, j+1, k)] - p[this.IX(i, j-1, k)]) / h;
+                            w[idx] -= 0.5 * (p[this.IX(i, j, k+1)] - p[this.IX(i, j, k-1)]) / h;
                         }
                     }
                 }
+                
+                this.setBoundary(1, u);
+                this.setBoundary(2, v);
+                this.setBoundary(3, w);
             }
             
-            addForce(x, y, z, fx, fy, fz) {
-                const N = this.N;
-                const i = Math.floor(x * N);
-                const j = Math.floor(y * N);
-                const k = Math.floor(z * N);
+            advect(b, d, d0, u, v, w, dt) {
+                const dt0 = dt * (this.size - 2);
                 
-                if (i >= 1 && i <= N && j >= 1 && j <= N && k >= 1 && k <= N) {
-                    this.u_prev[this.IX(i, j, k)] += fx;
-                    this.v_prev[this.IX(i, j, k)] += fy;
-                    this.w_prev[this.IX(i, j, k)] += fz;
-                }
-            }
-            
-            addVortexRing() {
-                const N = this.N;
-                const cx = N * 0.5;
-                const cy = N * 0.5;
-                const cz = N * 0.3;
-                const radius = N * 0.2;
-                const strength = 30;
-                
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            const dx = i - cx;
-                            const dy = j - cy;
-                            const dz = k - cz;
-                            const r_xz = Math.sqrt(dx*dx + dz*dz);
-                            const dist = Math.sqrt((r_xz - radius) * (r_xz - radius) + dy*dy);
+                for (let k = 1; k < this.size - 1; k++) {
+                    for (let j = 1; j < this.size - 1; j++) {
+                        for (let i = 1; i < this.size - 1; i++) {
+                            const idx = this.IX(i, j, k);
                             
-                            if (dist < radius * 0.3) {
-                                const theta = Math.atan2(dz, dx);
-                                const falloff = 1 - dist / (radius * 0.3);
-                                this.u[this.IX(i, j, k)] += strength * Math.sin(theta) * falloff;
-                                this.w[this.IX(i, j, k)] += -strength * Math.cos(theta) * falloff;
-                            }
+                            // Backtrace
+                            let x = i - dt0 * u[idx];
+                            let y = j - dt0 * v[idx];
+                            let z = k - dt0 * w[idx];
+                            
+                            // Clamp to grid
+                            x = Math.max(0.5, Math.min(this.size - 1.5, x));
+                            y = Math.max(0.5, Math.min(this.size - 1.5, y));
+                            z = Math.max(0.5, Math.min(this.size - 1.5, z));
+                            
+                            const i0 = Math.floor(x);
+                            const i1 = i0 + 1;
+                            const j0 = Math.floor(y);
+                            const j1 = j0 + 1;
+                            const k0 = Math.floor(z);
+                            const k1 = k0 + 1;
+                            
+                            const sx1 = x - i0;
+                            const sx0 = 1 - sx1;
+                            const sy1 = y - j0;
+                            const sy0 = 1 - sy1;
+                            const sz1 = z - k0;
+                            const sz0 = 1 - sz1;
+                            
+                            // Trilinear interpolation
+                            d[idx] = 
+                                sx0 * (sy0 * (sz0 * d0[this.IX(i0, j0, k0)] + sz1 * d0[this.IX(i0, j0, k1)]) +
+                                       sy1 * (sz0 * d0[this.IX(i0, j1, k0)] + sz1 * d0[this.IX(i0, j1, k1)])) +
+                                sx1 * (sy0 * (sz0 * d0[this.IX(i1, j0, k0)] + sz1 * d0[this.IX(i1, j0, k1)]) +
+                                       sy1 * (sz0 * d0[this.IX(i1, j1, k0)] + sz1 * d0[this.IX(i1, j1, k1)]));
                         }
                     }
                 }
+                
+                this.setBoundary(b, d);
+            }
+            
+            setBoundary(b, x) {
+                const N = this.size - 1;
+                
+                for (let j = 1; j < N; j++) {
+                    for (let i = 1; i < N; i++) {
+                        x[this.IX(i, j, 0)] = b === 3 ? -x[this.IX(i, j, 1)] : x[this.IX(i, j, 1)];
+                        x[this.IX(i, j, N)] = b === 3 ? -x[this.IX(i, j, N-1)] : x[this.IX(i, j, N-1)];
+                    }
+                }
+                
+                for (let k = 1; k < N; k++) {
+                    for (let i = 1; i < N; i++) {
+                        x[this.IX(i, 0, k)] = b === 2 ? -x[this.IX(i, 1, k)] : x[this.IX(i, 1, k)];
+                        x[this.IX(i, N, k)] = b === 2 ? -x[this.IX(i, N-1, k)] : x[this.IX(i, N-1, k)];
+                    }
+                }
+                
+                for (let k = 1; k < N; k++) {
+                    for (let j = 1; j < N; j++) {
+                        x[this.IX(0, j, k)] = b === 1 ? -x[this.IX(1, j, k)] : x[this.IX(1, j, k)];
+                        x[this.IX(N, j, k)] = b === 1 ? -x[this.IX(N-1, j, k)] : x[this.IX(N-1, j, k)];
+                    }
+                }
+            }
+        }
+
+        // Three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        camera.position.set(N * 0.8, N * 0.8, N * 1.2);
+        camera.lookAt(N * 0.5, N * 0.5, N * 0.5);
+
+        // Simple orbit controls
+        let mouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let cameraTheta = Math.PI / 4;
+        let cameraPhi = Math.PI / 4;
+        let cameraRadius = N * 1.5;
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            mouseDown = true;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => mouseDown = false);
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (!mouseDown) return;
+            
+            const deltaX = e.clientX - mouseX;
+            const deltaY = e.clientY - mouseY;
+            
+            cameraTheta += deltaX * 0.01;
+            cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi + deltaY * 0.01));
+            
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        renderer.domElement.addEventListener('wheel', (e) => {
+            cameraRadius = Math.max(N * 0.5, Math.min(N * 3, cameraRadius + e.deltaY * 0.1));
+        });
+
+        // Particle system for visualization
+        const particleCount = 8000;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleColors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            particlePositions[i * 3] = Math.random() * N;
+            particlePositions[i * 3 + 1] = Math.random() * N;
+            particlePositions[i * 3 + 2] = Math.random() * N;
+        }
+
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+
+        // Streamline system
+        const streamlineCount = 400;
+        const streamlineLength = 50;
+        const streamlines = [];
+        const streamlineGroup = new THREE.Group();
+        scene.add(streamlineGroup);
+        streamlineGroup.visible = false;
+
+        class Streamline {
+            constructor(index) {
+                this.index = index;
+                this.points = [];
+                this.age = 0;
+                this.maxAge = streamlineLength;
+                
+                // Random starting position
+                this.reset();
+                
+                // Create line
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(this.maxAge * 3);
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                const material = new THREE.LineBasicMaterial({
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.7,
+                    linewidth: 2
+                });
+                
+                const colors = new Float32Array(this.maxAge * 3);
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                
+                this.line = new THREE.Line(geometry, material);
+                streamlineGroup.add(this.line);
             }
             
             reset() {
-                this.u.fill(0);
-                this.v.fill(0);
-                this.w.fill(0);
-                this.u_prev.fill(0);
-                this.v_prev.fill(0);
-                this.w_prev.fill(0);
-                this.pressure.fill(0);
+                // Distribute evenly through the volume
+                this.x = Math.random() * (N - 4) + 2;
+                this.y = Math.random() * (N - 4) + 2;
+                this.z = Math.random() * (N - 4) + 2;
+                this.points = [];
+                this.age = 0;
             }
             
-            step() {
-                this.vel_step();
-                this.computeVorticity();
-            }
-        }
-        
-        // Three.js Renderer
-        class FluidRenderer3D {
-            constructor() {
-                this.canvas = document.getElementById('renderCanvas');
-                this.mode = 'particles';
-                this.isPaused = false;
-                this.rotationSpeed = 0.2;
+            getVelocityAt(fluid, x, y, z) {
+                // Trilinear interpolation of velocity
+                const i0 = Math.floor(x);
+                const j0 = Math.floor(y);
+                const k0 = Math.floor(z);
+                const i1 = i0 + 1;
+                const j1 = j0 + 1;
+                const k1 = k0 + 1;
                 
-                this.setupScene();
-                this.setupFluid();
-                this.setupParticles();
+                // Clamp to valid range
+                if (i0 < 1 || i1 >= N - 1 || j0 < 1 || j1 >= N - 1 || k0 < 1 || k1 >= N - 1) {
+                    return [0, 0, 0];
+                }
                 
-                window.addEventListener('resize', () => this.onResize());
-                this.onResize();
+                const fx = x - i0;
+                const fy = y - j0;
+                const fz = z - k0;
                 
-                document.getElementById('loading').style.display = 'none';
+                const fx1 = 1 - fx;
+                const fy1 = 1 - fy;
+                const fz1 = 1 - fz;
+                
+                // Get velocities at 8 corners
+                const idx000 = fluid.IX(i0, j0, k0);
+                const idx001 = fluid.IX(i0, j0, k1);
+                const idx010 = fluid.IX(i0, j1, k0);
+                const idx011 = fluid.IX(i0, j1, k1);
+                const idx100 = fluid.IX(i1, j0, k0);
+                const idx101 = fluid.IX(i1, j0, k1);
+                const idx110 = fluid.IX(i1, j1, k0);
+                const idx111 = fluid.IX(i1, j1, k1);
+                
+                // Interpolate u
+                const u = fx1 * (fy1 * (fz1 * fluid.u[idx000] + fz * fluid.u[idx001]) +
+                                 fy  * (fz1 * fluid.u[idx010] + fz * fluid.u[idx011])) +
+                          fx  * (fy1 * (fz1 * fluid.u[idx100] + fz * fluid.u[idx101]) +
+                                 fy  * (fz1 * fluid.u[idx110] + fz * fluid.u[idx111]));
+                
+                // Interpolate v
+                const v = fx1 * (fy1 * (fz1 * fluid.v[idx000] + fz * fluid.v[idx001]) +
+                                 fy  * (fz1 * fluid.v[idx010] + fz * fluid.v[idx011])) +
+                          fx  * (fy1 * (fz1 * fluid.v[idx100] + fz * fluid.v[idx101]) +
+                                 fy  * (fz1 * fluid.v[idx110] + fz * fluid.v[idx111]));
+                
+                // Interpolate w
+                const w = fx1 * (fy1 * (fz1 * fluid.w[idx000] + fz * fluid.w[idx001]) +
+                                 fy  * (fz1 * fluid.w[idx010] + fz * fluid.w[idx011])) +
+                          fx  * (fy1 * (fz1 * fluid.w[idx100] + fz * fluid.w[idx101]) +
+                                 fy  * (fz1 * fluid.w[idx110] + fz * fluid.w[idx111]));
+                
+                return [u, v, w];
             }
             
-            setupScene() {
-                this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0x0a0e17);
+            update(fluid, dt) {
+                // Check bounds
+                if (this.x < 2 || this.x >= N - 2 || 
+                    this.y < 2 || this.y >= N - 2 || 
+                    this.z < 2 || this.z >= N - 2) {
+                    this.reset();
+                    return;
+                }
                 
-                const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-                this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-                this.camera.position.set(2, 2, 3);
-                this.camera.lookAt(0, 0, 0);
+                // RK4 integration for smooth particle tracing
+                const [k1x, k1y, k1z] = this.getVelocityAt(fluid, this.x, this.y, this.z);
                 
-                this.renderer = new THREE.WebGLRenderer({ 
-                    canvas: this.canvas, 
-                    antialias: true,
-                    alpha: true
-                });
-                this.renderer.setPixelRatio(window.devicePixelRatio);
-                
-                // Lighting
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-                this.scene.add(ambientLight);
-                
-                const directionalLight = new THREE.DirectionalLight(0x00d9ff, 0.8);
-                directionalLight.position.set(5, 5, 5);
-                this.scene.add(directionalLight);
-                
-                const directionalLight2 = new THREE.DirectionalLight(0xff006e, 0.3);
-                directionalLight2.position.set(-5, -5, -5);
-                this.scene.add(directionalLight2);
-                
-                // Bounding box
-                const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
-                const boxEdges = new THREE.EdgesGeometry(boxGeometry);
-                const boxLine = new THREE.LineSegments(
-                    boxEdges, 
-                    new THREE.LineBasicMaterial({ color: 0x00d9ff, opacity: 0.2, transparent: true })
+                const [k2x, k2y, k2z] = this.getVelocityAt(fluid, 
+                    this.x + k1x * dt * 0.5,
+                    this.y + k1y * dt * 0.5,
+                    this.z + k1z * dt * 0.5
                 );
-                this.scene.add(boxLine);
-            }
-            
-            setupFluid() {
-                this.fluid = new FluidSimulation3D(32);
-                this.fluid.addVortexRing();
-            }
-            
-            setupParticles() {
-                this.particleCount = 5000;
-                this.particleSize = 0.03;
                 
-                const geometry = new THREE.BufferGeometry();
-                const positions = new Float32Array(this.particleCount * 3);
-                const colors = new Float32Array(this.particleCount * 3);
+                const [k3x, k3y, k3z] = this.getVelocityAt(fluid,
+                    this.x + k2x * dt * 0.5,
+                    this.y + k2y * dt * 0.5,
+                    this.z + k2z * dt * 0.5
+                );
                 
-                for (let i = 0; i < this.particleCount; i++) {
-                    positions[i * 3] = (Math.random() - 0.5) * 2;
-                    positions[i * 3 + 1] = (Math.random() - 0.5) * 2;
-                    positions[i * 3 + 2] = (Math.random() - 0.5) * 2;
-                    
-                    colors[i * 3] = 0;
-                    colors[i * 3 + 1] = 0.85;
-                    colors[i * 3 + 2] = 1;
+                const [k4x, k4y, k4z] = this.getVelocityAt(fluid,
+                    this.x + k3x * dt,
+                    this.y + k3y * dt,
+                    this.z + k3z * dt
+                );
+                
+                // Update position with RK4
+                const speedMult = 5.0; // Speed up visualization
+                this.x += (k1x + 2*k2x + 2*k3x + k4x) / 6 * dt * speedMult;
+                this.y += (k1y + 2*k2y + 2*k3y + k4y) / 6 * dt * speedMult;
+                this.z += (k1z + 2*k2z + 2*k3z + k4z) / 6 * dt * speedMult;
+                
+                // Add current position to trail
+                this.points.push([this.x, this.y, this.z]);
+                
+                // Limit trail length
+                if (this.points.length > this.maxAge) {
+                    this.points.shift();
                 }
                 
-                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                this.age++;
                 
-                const material = new THREE.PointsMaterial({
-                    size: this.particleSize,
-                    vertexColors: true,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                
-                this.particles = new THREE.Points(geometry, material);
-                this.scene.add(this.particles);
-                
-                // Velocity vectors
-                this.vectorHelpers = [];
-                this.createVectorHelpers();
-            }
-            
-            createVectorHelpers() {
-                const spacing = 4;
-                const N = this.fluid.N;
-                const scale = 2 / N;
-                
-                for (let k = spacing; k < N; k += spacing) {
-                    for (let j = spacing; j < N; j += spacing) {
-                        for (let i = spacing; i < N; i += spacing) {
-                            const origin = new THREE.Vector3(
-                                (i / N - 0.5) * 2,
-                                (j / N - 0.5) * 2,
-                                (k / N - 0.5) * 2
-                            );
-                            const dir = new THREE.Vector3(0, 0, 0);
-                            const arrow = new THREE.ArrowHelper(
-                                dir, origin, 0.1, 0x00d9ff, 0.05, 0.025
-                            );
-                            arrow.visible = false;
-                            this.scene.add(arrow);
-                            this.vectorHelpers.push({ arrow, i, j, k });
-                        }
-                    }
+                // Periodically reset to keep flow fresh
+                if (this.age > streamlineLength * 3) {
+                    this.reset();
                 }
+                
+                // Update line geometry
+                this.updateGeometry(fluid);
             }
             
-            updateParticles() {
-                const positions = this.particles.geometry.attributes.position.array;
-                const colors = this.particles.geometry.attributes.color.array;
-                const N = this.fluid.N;
+            updateGeometry(fluid) {
+                const positions = this.line.geometry.attributes.position.array;
+                const colors = this.line.geometry.attributes.color.array;
                 
-                for (let i = 0; i < this.particleCount; i++) {
-                    const px = (positions[i * 3] / 2 + 0.5) * N;
-                    const py = (positions[i * 3 + 1] / 2 + 0.5) * N;
-                    const pz = (positions[i * 3 + 2] / 2 + 0.5) * N;
-                    
-                    if (px >= 1 && px <= N && py >= 1 && py <= N && pz >= 1 && pz <= N) {
-                        const ix = Math.floor(px);
-                        const iy = Math.floor(py);
-                        const iz = Math.floor(pz);
+                const density1 = parseFloat(document.getElementById('density1').value);
+                const density2 = parseFloat(document.getElementById('density2').value);
+                const minDens = Math.min(density1, density2);
+                const maxDens = Math.max(density1, density2);
+                
+                const numPoints = this.points.length;
+                
+                for (let i = 0; i < this.maxAge; i++) {
+                    if (i < numPoints) {
+                        const [x, y, z] = this.points[i];
+                        positions[i * 3] = x;
+                        positions[i * 3 + 1] = y;
+                        positions[i * 3 + 2] = z;
                         
-                        const u = this.fluid.u[this.fluid.IX(ix, iy, iz)];
-                        const v = this.fluid.v[this.fluid.IX(ix, iy, iz)];
-                        const w = this.fluid.w[this.fluid.IX(ix, iy, iz)];
+                        // Get density at this point
+                        const gi = Math.floor(x);
+                        const gj = Math.floor(y);
+                        const gk = Math.floor(z);
                         
-                        positions[i * 3] += u * this.fluid.dt * 0.5;
-                        positions[i * 3 + 1] += v * this.fluid.dt * 0.5;
-                        positions[i * 3 + 2] += w * this.fluid.dt * 0.5;
-                        
-                        // Color by velocity magnitude
-                        const vel = Math.sqrt(u*u + v*v + w*w);
-                        const t = Math.min(1, vel * 2);
-                        colors[i * 3] = t;
-                        colors[i * 3 + 1] = 0.85 * (1 - t * 0.5);
-                        colors[i * 3 + 2] = 1;
-                    }
-                    
-                    // Wrap around
-                    if (positions[i * 3] < -1) positions[i * 3] += 2;
-                    if (positions[i * 3] > 1) positions[i * 3] -= 2;
-                    if (positions[i * 3 + 1] < -1) positions[i * 3 + 1] += 2;
-                    if (positions[i * 3 + 1] > 1) positions[i * 3 + 1] -= 2;
-                    if (positions[i * 3 + 2] < -1) positions[i * 3 + 2] += 2;
-                    if (positions[i * 3 + 2] > 1) positions[i * 3 + 2] -= 2;
-                }
-                
-                this.particles.geometry.attributes.position.needsUpdate = true;
-                this.particles.geometry.attributes.color.needsUpdate = true;
-            }
-            
-            updateVectors() {
-                const N = this.fluid.N;
-                
-                for (const helper of this.vectorHelpers) {
-                    const u = this.fluid.u[this.fluid.IX(helper.i, helper.j, helper.k)];
-                    const v = this.fluid.v[this.fluid.IX(helper.i, helper.j, helper.k)];
-                    const w = this.fluid.w[this.fluid.IX(helper.i, helper.j, helper.k)];
-                    
-                    const vel = Math.sqrt(u*u + v*v + w*w);
-                    if (vel > 0.01) {
-                        helper.arrow.setDirection(new THREE.Vector3(u, v, w).normalize());
-                        helper.arrow.setLength(vel * 0.5, 0.1 * vel, 0.05 * vel);
-                        helper.arrow.visible = this.mode === 'velocity';
-                    } else {
-                        helper.arrow.visible = false;
-                    }
-                }
-            }
-            
-            setMode(mode) {
-                this.mode = mode;
-                this.particles.visible = mode === 'particles' || mode === 'streamlines';
-                
-                for (const helper of this.vectorHelpers) {
-                    helper.arrow.visible = false;
-                }
-            }
-            
-            onResize() {
-                const width = this.canvas.clientWidth;
-                const height = this.canvas.clientHeight;
-                
-                this.camera.aspect = width / height;
-                this.camera.updateProjectionMatrix();
-                this.renderer.setSize(width, height);
-            }
-            
-            updateStats() {
-                const N = this.fluid.N;
-                let maxVel = 0;
-                let maxVort = 0;
-                
-                for (let k = 1; k <= N; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            const u = this.fluid.u[this.fluid.IX(i, j, k)];
-                            const v = this.fluid.v[this.fluid.IX(i, j, k)];
-                            const w = this.fluid.w[this.fluid.IX(i, j, k)];
-                            const vel = Math.sqrt(u*u + v*v + w*w);
-                            if (vel > maxVel) maxVel = vel;
+                        if (gi >= 0 && gi < N && gj >= 0 && gj < N && gk >= 0 && gk < N) {
+                            const idx = fluid.IX(gi, gj, gk);
+                            const density = fluid.density[idx];
+                            const [r, g, b] = getDensityColor(density, minDens, maxDens);
                             
-                            const vort = this.fluid.vorticity[this.fluid.IX(i, j, k)];
-                            if (vort > maxVort) maxVort = vort;
+                            // Fade from tail to head (older = dimmer)
+                            const fade = Math.pow(i / numPoints, 0.7); // Power curve for smoother fade
+                            colors[i * 3] = r * fade;
+                            colors[i * 3 + 1] = g * fade;
+                            colors[i * 3 + 2] = b * fade;
+                        } else {
+                            colors[i * 3] = 0.5;
+                            colors[i * 3 + 1] = 0.5;
+                            colors[i * 3 + 2] = 0.5;
                         }
+                    } else {
+                        // For unfilled points, copy the last valid point (creates continuous line)
+                        if (numPoints > 0) {
+                            const [x, y, z] = this.points[numPoints - 1];
+                            positions[i * 3] = x;
+                            positions[i * 3 + 1] = y;
+                            positions[i * 3 + 2] = z;
+                        } else {
+                            positions[i * 3] = this.x;
+                            positions[i * 3 + 1] = this.y;
+                            positions[i * 3 + 2] = this.z;
+                        }
+                        colors[i * 3] = 0;
+                        colors[i * 3 + 1] = 0;
+                        colors[i * 3 + 2] = 0;
                     }
                 }
                 
-                document.getElementById('max-velocity').textContent = maxVel.toFixed(2);
-                document.getElementById('max-vorticity').textContent = maxVort.toFixed(2);
-            }
-            
-            animate() {
-                requestAnimationFrame(() => this.animate());
+                this.line.geometry.attributes.position.needsUpdate = true;
+                this.line.geometry.attributes.color.needsUpdate = true;
                 
-                if (!this.isPaused) {
-                    this.fluid.step();
-                    this.updateParticles();
-                    this.updateVectors();
-                    this.updateStats();
-                }
-                
-                // Auto-rotate camera
-                if (this.rotationSpeed > 0) {
-                    const time = Date.now() * 0.0001 * this.rotationSpeed;
-                    this.camera.position.x = Math.cos(time) * 3;
-                    this.camera.position.z = Math.sin(time) * 3;
-                    this.camera.lookAt(0, 0, 0);
-                }
-                
-                this.renderer.render(this.scene, this.camera);
+                // Set draw range to only show valid points
+                this.line.geometry.setDrawRange(0, Math.max(2, numPoints));
             }
         }
-        
+
+        // Initialize streamlines
+        for (let i = 0; i < streamlineCount; i++) {
+            streamlines.push(new Streamline());
+        }
+
+        // Bounding box
+        const boxGeometry = new THREE.BoxGeometry(N, N, N);
+        const edges = new THREE.EdgesGeometry(boxGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+        const box = new THREE.LineSegments(edges, lineMaterial);
+        box.position.set(N / 2, N / 2, N / 2);
+        scene.add(box);
+
+        // Fluid simulation
+        const fluid = new FluidSim3D(N);
+        let simRunning = false;
+
+        function getDensityColor(density, minDens, maxDens) {
+            const t = (density - minDens) / (maxDens - minDens);
+            const r = t;
+            const g = 0.5 + 0.5 * Math.sin(t * Math.PI);
+            const b = 1 - t;
+            return [r, g, b];
+        }
+
+        function updateParticles() {
+            const positions = particles.geometry.attributes.position.array;
+            const colors = particles.geometry.attributes.color.array;
+            
+            const density1 = parseFloat(document.getElementById('density1').value);
+            const density2 = parseFloat(document.getElementById('density2').value);
+            const minDens = Math.min(density1, density2);
+            const maxDens = Math.max(density1, density2);
+
+            for (let i = 0; i < particleCount; i++) {
+                const x = Math.floor(positions[i * 3]);
+                const y = Math.floor(positions[i * 3 + 1]);
+                const z = Math.floor(positions[i * 3 + 2]);
+                
+                const idx = fluid.IX(x, y, z);
+                const density = fluid.density[idx];
+                
+                const [r, g, b] = getDensityColor(density, minDens, maxDens);
+                colors[i * 3] = r;
+                colors[i * 3 + 1] = g;
+                colors[i * 3 + 2] = b;
+            }
+
+            particles.geometry.attributes.color.needsUpdate = true;
+        }
+
+        function updateStreamlines() {
+            for (let i = 0; i < streamlineCount; i++) {
+                streamlines[i].update(fluid, dt);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (simRunning) {
+                fluid.step(dt);
+                
+                const vizMode = document.getElementById('vizMode').value;
+                if (vizMode === 'particles') {
+                    updateParticles();
+                } else {
+                    updateStreamlines();
+                }
+            }
+
+            // Update camera position
+            const centerX = N / 2;
+            const centerY = N / 2;
+            const centerZ = N / 2;
+            
+            camera.position.x = centerX + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            camera.position.y = centerY + cameraRadius * Math.cos(cameraPhi);
+            camera.position.z = centerZ + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            camera.lookAt(centerX, centerY, centerZ);
+
+            renderer.render(scene, camera);
+        }
+
+        // UI Controls
+        document.getElementById('vizMode').addEventListener('change', (e) => {
+            const mode = e.target.value;
+            particles.visible = (mode === 'particles');
+            streamlineGroup.visible = (mode === 'streamlines');
+            
+            // Reset streamlines when switching to them
+            if (mode === 'streamlines') {
+                streamlines.forEach(s => s.reset());
+            }
+        });
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!simRunning) {
+                const density1 = parseFloat(document.getElementById('density1').value);
+                const density2 = parseFloat(document.getElementById('density2').value);
+                
+                fluid.initialize(density1, density2);
+                fluid.removeBarrier();
+                
+                const vizMode = document.getElementById('vizMode').value;
+                if (vizMode === 'particles') {
+                    updateParticles();
+                } else {
+                    streamlines.forEach(s => s.reset());
+                }
+                
+                simRunning = true;
+                document.getElementById('startBtn').disabled = true;
+            }
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            const density1 = parseFloat(document.getElementById('density1').value);
+            const density2 = parseFloat(document.getElementById('density2').value);
+            
+            fluid.initialize(density1, density2);
+            
+            const vizMode = document.getElementById('vizMode').value;
+            if (vizMode === 'particles') {
+                updateParticles();
+            } else {
+                streamlines.forEach(s => s.reset());
+            }
+            
+            simRunning = false;
+            document.getElementById('startBtn').disabled = false;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
         // Initialize
-        const renderer = new FluidRenderer3D();
-        
-        // Controls
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                renderer.setMode(btn.dataset.mode);
-            });
-        });
-        
-        document.getElementById('viscosity').addEventListener('input', (e) => {
-            renderer.fluid.visc = parseFloat(e.target.value);
-            document.getElementById('viscosity-value').textContent = renderer.fluid.visc.toFixed(5);
-        });
-        
-        document.getElementById('timestep').addEventListener('input', (e) => {
-            renderer.fluid.dt = parseFloat(e.target.value);
-            document.getElementById('dt-value').textContent = renderer.fluid.dt.toFixed(2);
-        });
-        
-        document.getElementById('rotation-speed').addEventListener('input', (e) => {
-            renderer.rotationSpeed = parseFloat(e.target.value);
-            document.getElementById('rotation-speed-value').textContent = renderer.rotationSpeed.toFixed(1);
-        });
-        
-        document.getElementById('particle-size').addEventListener('input', (e) => {
-            renderer.particleSize = parseFloat(e.target.value);
-            renderer.particles.material.size = renderer.particleSize;
-            document.getElementById('particle-size-value').textContent = renderer.particleSize.toFixed(2);
-        });
-        
-        document.getElementById('resolution').addEventListener('input', (e) => {
-            const N = parseInt(e.target.value);
-            document.getElementById('resolution-value').textContent = `${N}³`;
-            document.getElementById('grid-size').textContent = `${N}×${N}×${N}`;
-        });
-        
-        document.getElementById('iterations').addEventListener('input', (e) => {
-            renderer.fluid.iterations = parseInt(e.target.value);
-            document.getElementById('iterations-value').textContent = renderer.fluid.iterations;
-        });
-        
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            renderer.fluid.reset();
-            renderer.setupParticles();
-        });
-        
-        document.getElementById('add-vortex-btn').addEventListener('click', () => {
-            renderer.fluid.addVortexRing();
-        });
-        
-        document.getElementById('pause-btn').addEventListener('click', (e) => {
-            renderer.isPaused = !renderer.isPaused;
-            e.target.textContent = renderer.isPaused ? 'Resume' : 'Pause';
-        });
-        
-        // FPS counter
-        let frameCount = 0;
-        let lastTime = performance.now();
-        
-        setInterval(() => {
-            const currentTime = performance.now();
-            const fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
-            document.getElementById('fps').textContent = fps;
-            frameCount = 0;
-            lastTime = currentTime;
-        }, 1000);
-        
-        function countFrame() {
-            frameCount++;
-            requestAnimationFrame(countFrame);
-        }
-        countFrame();
-        
-        // Start animation
-        renderer.animate();
-        
-        // Mouse interaction
-        let isMouseDown = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
-        
-        renderer.canvas.addEventListener('mousedown', (e) => {
-            isMouseDown = true;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-        });
-        
-        renderer.canvas.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) return;
-            
-            const dx = (e.clientX - lastMouseX) * 0.01;
-            const dy = (e.clientY - lastMouseY) * 0.01;
-            
-            renderer.fluid.addForce(0.5, 0.5, 0.5, dx * 30, -dy * 30, 0);
-            
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-        });
-        
-        renderer.canvas.addEventListener('mouseup', () => {
-            isMouseDown = false;
-        });
+        const density1 = parseFloat(document.getElementById('density1').value);
+        const density2 = parseFloat(document.getElementById('density2').value);
+        fluid.initialize(density1, density2);
+        updateParticles();
+
+        animate();
     </script>
 </body>
 </html>
