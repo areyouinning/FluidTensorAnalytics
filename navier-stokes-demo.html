@@ -146,6 +146,41 @@
             font-weight: 600;
         }
 
+        .mode-btn[title] {
+            position: relative;
+        }
+
+        .mode-btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 14, 23, 0.95);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--accent-primary);
+            font-size: 0.75rem;
+            font-weight: 400;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+
+        .mode-btn[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--accent-primary);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
         .controls-panel {
             width: 320px;
             background: var(--bg-secondary);
@@ -292,14 +327,14 @@
         <div class="main-content">
             <div class="simulation-panel">
                 <div class="visualization-modes">
-                    <button class="mode-btn active" data-mode="velocity">Velocity Field</button>
-                    <button class="mode-btn" data-mode="pressure">Pressure</button>
-                    <button class="mode-btn" data-mode="vorticity">Vorticity (∇×u)</button>
-                    <button class="mode-btn" data-mode="divergence">Divergence (∇·u)</button>
-                    <button class="mode-btn" data-mode="strain">Strain Rate Tensor</button>
-                    <button class="mode-btn" data-mode="rotation">Rotation Rate Tensor</button>
-                    <button class="mode-btn" data-mode="decomposition">Tensor Decomposition</button>
-                    <button class="mode-btn" data-mode="particles">Particle Tracers</button>
+                    <button class="mode-btn active" data-mode="velocity" title="Shows velocity magnitude and direction using color. Hue indicates flow direction, brightness shows speed.">Velocity Field</button>
+                    <button class="mode-btn" data-mode="pressure" title="Pressure field from solving ∇²p = -∇·(u·∇u). Enforces incompressibility via Helmholtz-Hodge decomposition.">Pressure</button>
+                    <button class="mode-btn" data-mode="vorticity" title="Vorticity ω = ∇×u measures local fluid rotation. Blue = clockwise, red = counterclockwise. Key for identifying vortex structures.">Vorticity (∇×u)</button>
+                    <button class="mode-btn" data-mode="divergence" title="Divergence ∇·u measures expansion/compression. Should be ~0 for incompressible flow (mass conservation).">Divergence (∇·u)</button>
+                    <button class="mode-btn" data-mode="strain" title="Strain rate tensor S_ij = ½(∂u_i/∂x_j + ∂u_j/∂x_i) shows pure deformation without rotation. Color indicates principal strain direction.">Strain Rate Tensor</button>
+                    <button class="mode-btn" data-mode="rotation" title="Rotation rate tensor Ω_ij = ½(∂u_i/∂x_j - ∂u_j/∂x_i) isolates pure rotation without deformation.">Rotation Rate Tensor</button>
+                    <button class="mode-btn" data-mode="decomposition" title="RGB decomposition: R = clockwise rotation, G = strain, B = counterclockwise rotation. Shows how velocity gradient splits into rotation + deformation.">Tensor Decomposition</button>
+                    <button class="mode-btn" data-mode="particles" title="Lagrangian particle tracers advected by the velocity field. Visualizes flow pathlines and mixing.">Particle Tracers</button>
                 </div>
                 <div class="canvas-container">
                     <canvas id="fluidCanvas"></canvas>
@@ -877,6 +912,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('velocity');
             }
             
             renderPressure(cellSize) {
@@ -919,6 +955,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('pressure');
             }
             
             renderVorticity(cellSize) {
@@ -968,6 +1005,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('vorticity');
             }
             
             renderDivergence(cellSize) {
@@ -1006,6 +1044,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('divergence');
             }
             
             renderParticles() {
@@ -1108,6 +1147,7 @@
                         this.ctx.restore();
                     }
                 }
+                this.drawLegend('strain');
             }
             
             renderRotationRate(cellSize) {
@@ -1158,6 +1198,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('rotation');
             }
             
             renderTensorDecomposition(cellSize) {
@@ -1209,11 +1250,165 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
+                this.drawLegend('vorticity-decomp');
+            }
+            
+            drawLegend(mode) {
+                const legendWidth = 200;
+                const legendHeight = 20;
+                const legendX = this.canvas.width - legendWidth - 20;
+                const legendY = 20;
+                const padding = 10;
                 
-                // Add legend
-                this.ctx.font = '12px JetBrains Mono';
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                this.ctx.fillText('R: Clockwise  G: Strain  B: Counterclockwise', 10, this.canvas.height - 10);
+                // Background
+                this.ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
+                this.ctx.fillRect(legendX - padding, legendY - padding, 
+                                 legendWidth + 2*padding, legendHeight + 50);
+                
+                // Border
+                this.ctx.strokeStyle = 'rgba(0, 217, 255, 0.3)';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(legendX - padding, legendY - padding, 
+                                   legendWidth + 2*padding, legendHeight + 50);
+                
+                if (mode === 'velocity' || mode === 'speed') {
+                    // Velocity gradient (blue to red)
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(0, 0, 139)');
+                    gradient.addColorStop(0.33, 'rgb(0, 191, 255)');
+                    gradient.addColorStop(0.67, 'rgb(255, 165, 0)');
+                    gradient.addColorStop(1, 'rgb(220, 20, 60)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText(mode === 'velocity' ? 'Velocity Magnitude' : 'Speed', 
+                                     legendX + 30, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'vorticity') {
+                    // Vorticity gradient (blue-white-red for neg-zero-pos)
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(0, 0, 255)');
+                    gradient.addColorStop(0.5, 'rgb(255, 255, 255)');
+                    gradient.addColorStop(1, 'rgb(255, 0, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('-ω', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('0', legendX + legendWidth/2 - 5, legendY + legendHeight + 15);
+                    this.ctx.fillText('+ω', legendX + legendWidth - 15, legendY + legendHeight + 15);
+                    this.ctx.fillText('Vorticity (curl)', legendX + 50, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'divergence') {
+                    // Divergence gradient
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(255, 0, 0)');
+                    gradient.addColorStop(0.5, 'rgb(255, 255, 255)');
+                    gradient.addColorStop(1, 'rgb(0, 0, 255)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('Source', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Sink', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Divergence (∇·u)', legendX + 45, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'pressure') {
+                    // Pressure gradient
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(0, 0, 139)');
+                    gradient.addColorStop(0.5, 'rgb(127, 255, 0)');
+                    gradient.addColorStop(1, 'rgb(255, 0, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('Low', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('High', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Pressure', legendX + 70, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'strain') {
+                    // Strain gradient
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    gradient.addColorStop(0.5, 'rgb(139, 0, 139)');
+                    gradient.addColorStop(1, 'rgb(255, 0, 255)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Strain Rate', legendX + 60, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'rotation') {
+                    // Rotation gradient
+                    const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    gradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    gradient.addColorStop(0.5, 'rgb(0, 100, 0)');
+                    gradient.addColorStop(1, 'rgb(0, 255, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+                    
+                    // Labels
+                    this.ctx.font = '10px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Rotation Rate', legendX + 55, legendY + legendHeight + 30);
+                    
+                } else if (mode === 'vorticity-decomp') {
+                    // RGB decomposition legend - show three separate bars
+                    const barHeight = 12;
+                    const spacing = 3;
+                    
+                    // Red bar (clockwise)
+                    const redGradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    redGradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    redGradient.addColorStop(1, 'rgb(255, 0, 0)');
+                    this.ctx.fillStyle = redGradient;
+                    this.ctx.fillRect(legendX, legendY, legendWidth, barHeight);
+                    
+                    // Green bar (strain)
+                    const greenGradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    greenGradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    greenGradient.addColorStop(1, 'rgb(0, 217, 0)');
+                    this.ctx.fillStyle = greenGradient;
+                    this.ctx.fillRect(legendX, legendY + barHeight + spacing, legendWidth, barHeight);
+                    
+                    // Blue bar (counterclockwise)
+                    const blueGradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
+                    blueGradient.addColorStop(0, 'rgb(0, 0, 0)');
+                    blueGradient.addColorStop(1, 'rgb(0, 0, 255)');
+                    this.ctx.fillStyle = blueGradient;
+                    this.ctx.fillRect(legendX, legendY + 2*(barHeight + spacing), legendWidth, barHeight);
+                    
+                    // Labels
+                    this.ctx.font = '9px JetBrains Mono';
+                    this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
+                    this.ctx.fillText('R: Clockwise', legendX, legendY + 3*barHeight + 2*spacing + 12);
+                    this.ctx.fillText('G: Strain', legendX, legendY + 3*barHeight + 2*spacing + 23);
+                    this.ctx.fillText('B: Counter-CW', legendX, legendY + 3*barHeight + 2*spacing + 34);
+                }
             }
             
             hslToRgb(h, s, l) {
@@ -1244,7 +1439,7 @@
         
         // Application
         const canvas = document.getElementById('fluidCanvas');
-        const fluid = new FluidSimulation(128);
+        const fluid = new FluidSimulation(256);
         const renderer = new FluidRenderer(canvas, fluid);
         
         let isPaused = false;
