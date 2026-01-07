@@ -98,6 +98,23 @@
             font-size: 10px;
             color: #666;
         }
+        .map-tooltip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            z-index: 1001;
+            display: none;
+            white-space: nowrap;
+        }
+        .map-tooltip.visible {
+            display: block;
+        }
         .controls {
             margin: 20px 0;
             padding: 15px;
@@ -177,6 +194,7 @@
                             <span id="tempMax">--</span>
                         </div>
                     </div>
+                    <div class="map-tooltip" id="tempTooltip"></div>
                 </div>
             </div>
             <div class="map-wrapper">
@@ -190,6 +208,7 @@
                             <span id="precipMax">--</span>
                         </div>
                     </div>
+                    <div class="map-tooltip" id="precipTooltip"></div>
                 </div>
             </div>
             <div class="map-wrapper">
@@ -203,6 +222,7 @@
                             <span id="windMax">--</span>
                         </div>
                     </div>
+                    <div class="map-tooltip" id="windTooltip"></div>
                 </div>
             </div>
             <div class="map-wrapper">
@@ -216,6 +236,7 @@
                             <span id="humidityMax">--</span>
                         </div>
                     </div>
+                    <div class="map-tooltip" id="humidityTooltip"></div>
                 </div>
             </div>
         </div>
@@ -236,6 +257,12 @@
             humidity: null
         };
         let overlays = {
+            temp: null,
+            precip: null,
+            wind: null,
+            humidity: null
+        };
+        let rawData = {
             temp: null,
             precip: null,
             wind: null,
@@ -357,6 +384,7 @@
 
             // Generate plausible weather patterns
             for (let t = 0; t < ntimes; t++) {
+                // Temperature in Fahrenheit (25-75°F range with diurnal cycle)
                 const temp = Array(nlat).fill(0).map((_, i) => 
                     Array(nlon).fill(0).map((_, j) => {
                         const base = 50 + 25 * Math.sin(t * Math.PI / 12 - Math.PI/2); // diurnal
@@ -451,6 +479,12 @@
             // Initialize each map
             const mapIds = ['temp', 'precip', 'wind', 'humidity'];
             const mapDivIds = ['tempMap', 'precipMap', 'windMap', 'humidityMap'];
+            const units = {
+                temp: '°F',
+                precip: 'in/hr',
+                wind: 'mph',
+                humidity: '%'
+            };
             
             mapIds.forEach((id, idx) => {
                 maps[id] = L.map(mapDivIds[idx], {
@@ -467,7 +501,66 @@
                 
                 // Fit bounds
                 maps[id].fitBounds(bounds, { padding: [20, 20] });
+                
+                // Add hover interaction for tooltip
+                const tooltip = document.getElementById(`${id}Tooltip`);
+                const mapContainer = document.getElementById(mapDivIds[idx]);
+                
+                maps[id].on('mousemove', function(e) {
+                    if (!rawData[id]) return;
+                    
+                    const lat = e.latlng.lat;
+                    const lon = e.latlng.lng;
+                    
+                    // Find nearest grid point
+                    const value = getNearestValue(rawData[id], forecastData.lats, forecastData.lons, lat, lon);
+                    
+                    if (value !== null) {
+                        // Format value based on variable
+                        let displayValue;
+                        if (id === 'precip') {
+                            displayValue = value.toFixed(3);
+                        } else if (id === 'temp' || id === 'wind') {
+                            displayValue = value.toFixed(1);
+                        } else {
+                            displayValue = value.toFixed(0);
+                        }
+                        
+                        tooltip.textContent = `${displayValue} ${units[id]}`;
+                        tooltip.className = 'map-tooltip visible';
+                        
+                        // Position tooltip near cursor
+                        const containerRect = mapContainer.getBoundingClientRect();
+                        tooltip.style.left = (e.originalEvent.clientX - containerRect.left + 15) + 'px';
+                        tooltip.style.top = (e.originalEvent.clientY - containerRect.top + 15) + 'px';
+                    }
+                });
+                
+                maps[id].on('mouseout', function() {
+                    tooltip.className = 'map-tooltip';
+                });
             });
+        }
+
+        function getNearestValue(data, lats, lons, targetLat, targetLon) {
+            // Find nearest grid point
+            let minDist = Infinity;
+            let nearestValue = null;
+            
+            for (let i = 0; i < lats.length; i++) {
+                for (let j = 0; j < lons.length; j++) {
+                    const dist = Math.sqrt(
+                        Math.pow(lats[i] - targetLat, 2) + 
+                        Math.pow(lons[j] - targetLon, 2)
+                    );
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestValue = data[i][j];
+                    }
+                }
+            }
+            
+            return nearestValue;
         }
 
         function bilinearInterpolate(data, lats, lons, targetLat, targetLon) {
@@ -751,6 +844,9 @@
         }
 
         function updateMapOverlay(mapId, data, variable) {
+            // Store raw data for tooltip
+            rawData[mapId] = data;
+            
             // Remove existing overlay
             if (overlays[mapId]) {
                 maps[mapId].removeLayer(overlays[mapId]);
