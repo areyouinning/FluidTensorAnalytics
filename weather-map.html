@@ -6,6 +6,7 @@
     <title>Local Weather Forecast</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,6 +25,14 @@
         h1 {
             margin-top: 0;
             color: #333;
+        }
+        h2 {
+            color: #334155;
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
         }
         .location-input {
             margin-bottom: 20px;
@@ -63,7 +72,7 @@
             color: #334155;
         }
         .map-container {
-            height: 400px;
+            height: 600px;
             width: 100%;
             border-radius: 4px;
             overflow: hidden;
@@ -159,6 +168,28 @@
             color: #64748b;
             margin-top: 5px;
         }
+        .meteogram-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .meteogram-container {
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .plot-container {
+            width: 100%;
+            height: 250px;
+            background: white;
+            border-radius: 4px;
+        }
+        .meteogram-note {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -182,6 +213,7 @@
             </div>
         </div>
 
+        <h2 id="mapsHeader" style="display: none;">Spatial Forecast Maps</h2>
         <div class="grid-container" id="mapsContainer" style="display: none;">
             <div class="map-wrapper">
                 <h3>Temperature (°F)</h3>
@@ -240,44 +272,47 @@
                 </div>
             </div>
         </div>
+
+        <div class="meteogram-section" id="meteogramSection">
+            <h2>Point Forecast Time Series</h2>
+            <div class="meteogram-note">
+                Forecast for the center point of your selected location. Hover over plots for detailed values.
+            </div>
+            
+            <div class="meteogram-container">
+                <h3>Temperature & Dewpoint</h3>
+                <div id="tempPlot" class="plot-container"></div>
+            </div>
+
+            <div class="meteogram-container">
+                <h3>Wind Speed & Gusts</h3>
+                <div id="windPlot" class="plot-container"></div>
+            </div>
+
+            <div class="meteogram-container">
+                <h3>Precipitation & Humidity</h3>
+                <div id="precipPlot" class="plot-container"></div>
+            </div>
+
+            <div class="meteogram-container">
+                <h3>Sky Cover</h3>
+                <div id="cloudPlot" class="plot-container"></div>
+            </div>
+        </div>
     </div>
 
     <script>
+        let map, maps = {}, overlays = {}, rawData = {};
         let forecastData = null;
         let currentTimeIndex = 0;
-        let forecastTimes = [];
-        let userLat = null;
-        let userLon = null;
-        
-        // Leaflet map objects
-        let maps = {
-            temp: null,
-            precip: null,
-            wind: null,
-            humidity: null
-        };
-        let overlays = {
-            temp: null,
-            precip: null,
-            wind: null,
-            humidity: null
-        };
-        let rawData = {
-            temp: null,
-            precip: null,
-            wind: null,
-            humidity: null
-        };
+        let userLocation = null;
+        let centerPoint = null; // Store center point data for meteograms
 
-        function showStatus(message, type = 'loading') {
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = message;
+            statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
             statusDiv.style.display = 'block';
-        }
-
-        function hideStatus() {
-            document.getElementById('status').style.display = 'none';
         }
 
         function requestLocation() {
@@ -286,500 +321,623 @@
                 return;
             }
 
-            showStatus('Getting your location...', 'loading');
-            
+            const btn = document.getElementById('getLocationBtn');
+            btn.disabled = true;
+            btn.textContent = 'Getting location...';
+
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    userLat = position.coords.latitude;
-                    userLon = position.coords.longitude;
+                position => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    
                     document.getElementById('locationInfo').textContent = 
-                        `Location: ${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°W`;
-                    loadForecastData();
+                        `Location: ${userLocation.lat.toFixed(4)}°N, ${Math.abs(userLocation.lon).toFixed(4)}°W`;
+                    
+                    loadForecastData(userLocation.lat, userLocation.lon);
+                    btn.textContent = 'Update Location';
+                    btn.disabled = false;
                 },
-                (error) => {
-                    showStatus(`Error getting location: ${error.message}`, 'error');
+                error => {
+                    showStatus('Unable to get your location', 'error');
+                    btn.textContent = 'Use My Location';
+                    btn.disabled = false;
                 }
             );
         }
 
-        async function loadForecastData() {
+        async function loadForecastData(lat, lon) {
             showStatus('Loading forecast data...', 'loading');
             
             try {
-                /* 
-                 * IMPORTANT NOTE: Direct browser access to HRRR zarr data has limitations:
-                 * 1. CORS restrictions may block direct access
-                 * 2. Zarr v3 format requires specialized JavaScript libraries
-                 * 3. Large data transfers can be slow in browsers
-                 * 
-                 * RECOMMENDED APPROACH: Create a Python Flask/FastAPI backend that:
-                 * 1. Uses xarray to open the HRRR zarr: 
-                 *    ds = xr.open_zarr("https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr")
-                 * 2. Extracts 25x25 grid around user lat/lon
-                 * 3. Returns JSON with temperature_2m (converted to °F), precipitation_surface, 
-                 *    relative_humidity_2m, wind components
-                 * 4. Serves this page and API endpoint together
-                 * 
-                 * NOTE: Temperature from HRRR is in Celsius and must be converted to Fahrenheit.
-                 * The backend code (at end of file) includes this conversion: temp_f = temp_c * 9/5 + 32
-                 * 
-                 * COLOR SCALES: Adaptive ranges blend actual data with expected ranges (60/40 blend):
-                 * - Shows spatial variability without overemphasizing minor differences
-                 * - Maintains context by anchoring to climatological ranges
-                 * - Expected ranges: Temp 0-100°F, Precip 0-0.5 in/hr, Wind 0-40 mph, Humidity 0-100%
-                 * - Actual range adapts each time step for optimal visualization
-                 * 
-                 * See backend implementation at end of this file.
-                 */
+                // Use mock data for demo
+                forecastData = generateMockData(lat, lon);
                 
-                // For demonstration, using realistic synthetic data
-                // Replace with: const response = await fetch(`/api/forecast?lat=${userLat}&lon=${userLon}`);
-                forecastData = await generateDemoData(userLat, userLon);
+                showStatus('Forecast data loaded successfully!', 'success');
+                setTimeout(() => {
+                    document.getElementById('status').style.display = 'none';
+                }, 2000);
                 
-                forecastTimes = forecastData.times;
-                
-                showStatus('Demo data loaded! See code comments for production backend setup.', 'success');
-                setTimeout(hideStatus, 3000);
-                
-                document.getElementById('controls').style.display = 'block';
-                document.getElementById('mapsContainer').style.display = 'grid';
-                
-                // Initialize maps
                 initializeMaps();
-                setupTimeControls();
-                updateMaps();
+                initializeMeteograms();
+                updateDisplay();
                 
             } catch (error) {
-                showStatus(`Error loading forecast data: ${error.message}`, 'error');
-                console.error('Forecast loading error:', error);
+                showStatus(`Error loading forecast: ${error.message}`, 'error');
             }
         }
 
-        async function generateDemoData(lat, lon) {
-            // Generate realistic synthetic data for demo purposes
-            // In production, this would be replaced with actual HRRR data from backend
-            const nlat = 25;
-            const nlon = 25;
-            const ntimes = 48; // 48 hour forecast
+        function generateMockData(centerLat, centerLon) {
+            const gridSize = 25;
+            const numTimes = 48;
             
-            const gridSize = 0.03; // ~3km in degrees
-            const lats = Array.from({length: nlat}, (_, i) => lat + (i - 12) * gridSize);
-            const lons = Array.from({length: nlon}, (_, i) => lon + (i - 12) * gridSize);
+            const lats = [];
+            const lons = [];
+            for (let i = 0; i < gridSize; i++) {
+                const row_lats = [];
+                const row_lons = [];
+                for (let j = 0; j < gridSize; j++) {
+                    row_lats.push(centerLat + (i - 12) * 0.027);
+                    row_lons.push(centerLon + (j - 12) * 0.027);
+                }
+                lats.push(row_lats);
+                lons.push(row_lons);
+            }
             
-            // Generate forecast times (hourly from now)
+            const times = [];
             const now = new Date();
-            const times = Array.from({length: ntimes}, (_, i) => {
-                return new Date(now.getTime() + i * 3600000);
-            });
-
-            const data = {
-                lats: lats,
-                lons: lons,
-                times: times,
-                temperature: [],
-                precipitation: [],
-                windSpeed: [],
-                humidity: []
-            };
-
-            // Generate plausible weather patterns
-            for (let t = 0; t < ntimes; t++) {
-                // Temperature in Fahrenheit (25-75°F range with diurnal cycle)
-                const temp = Array(nlat).fill(0).map((_, i) => 
-                    Array(nlon).fill(0).map((_, j) => {
-                        const base = 50 + 25 * Math.sin(t * Math.PI / 12 - Math.PI/2); // diurnal
-                        const spatial = 3 * Math.sin(i * Math.PI) * Math.cos(j * Math.PI);
-                        return base + spatial + (Math.random() - 0.5) * 2;
-                    })
-                );
-                
-                const precip = Array(nlat).fill(0).map((_, i) => 
-                    Array(nlon).fill(0).map((_, j) => {
-                        const storm = Math.max(0, Math.sin((t - 24) * Math.PI / 8)) * 0.25;
-                        const spatial = Math.exp(-((i-12)**2 + (j-12)**2) / 25);
-                        return storm * spatial * (0.8 + 0.4 * Math.random());
-                    })
-                );
-                
-                const wind = Array(nlat).fill(0).map((_, i) => 
-                    Array(nlon).fill(0).map((_, j) => {
-                        const base = 8 + 6 * Math.sin(t * Math.PI / 24);
-                        return Math.abs(base + (Math.random() - 0.5) * 3);
-                    })
-                );
-                
-                const humidity = Array(nlat).fill(0).map((_, i) => 
-                    Array(nlon).fill(0).map((_, j) => {
-                        const base = 65 - 15 * Math.sin(t * Math.PI / 12 - Math.PI/2);
-                        return Math.max(25, Math.min(95, base + (Math.random() - 0.5) * 8));
-                    })
-                );
-
-                data.temperature.push(temp);
-                data.precipitation.push(precip);
-                data.windSpeed.push(wind);
-                data.humidity.push(humidity);
+            for (let t = 0; t < numTimes; t++) {
+                const time = new Date(now.getTime() + t * 3600000);
+                times.push(time.toISOString());
             }
-
-            return data;
+            
+            const temperature = [];
+            const precipitation = [];
+            const windSpeed = [];
+            const humidity = [];
+            const cloudCover = [];
+            const dewpoint = [];
+            const windGust = [];
+            
+            for (let t = 0; t < numTimes; t++) {
+                const tempGrid = [];
+                const precipGrid = [];
+                const windGrid = [];
+                const humidGrid = [];
+                const cloudGrid = [];
+                const dewGrid = [];
+                const gustGrid = [];
+                
+                const hourOfDay = (now.getHours() + t) % 24;
+                const dayPhase = Math.sin((hourOfDay - 6) * Math.PI / 12);
+                const baseTemp = 50 + 25 * dayPhase;
+                const basePrecip = Math.max(0, Math.sin(t * Math.PI / 24) * 0.1);
+                
+                for (let i = 0; i < gridSize; i++) {
+                    const tempRow = [];
+                    const precipRow = [];
+                    const windRow = [];
+                    const humidRow = [];
+                    const cloudRow = [];
+                    const dewRow = [];
+                    const gustRow = [];
+                    
+                    for (let j = 0; j < gridSize; j++) {
+                        const noise = (Math.random() - 0.5) * 10;
+                        const temp = baseTemp + noise;
+                        tempRow.push(temp);
+                        
+                        const precipNoise = Math.random() * 0.05;
+                        precipRow.push(basePrecip + precipNoise);
+                        
+                        const windNoise = (Math.random() - 0.5) * 5;
+                        const wind = 10 + 5 * Math.sin(t * Math.PI / 12) + windNoise;
+                        windRow.push(Math.max(0, wind));
+                        
+                        const rh = 40 + 30 * Math.sin(t * Math.PI / 24) + (Math.random() - 0.5) * 20;
+                        humidRow.push(Math.max(10, Math.min(95, rh)));
+                        
+                        const clouds = 20 + 60 * Math.sin(t * Math.PI / 18) + (Math.random() - 0.5) * 30;
+                        cloudRow.push(Math.max(0, Math.min(100, clouds)));
+                        
+                        // Calculate dewpoint from temp and RH
+                        const rh_actual = Math.max(10, Math.min(95, rh)) / 100;
+                        const dp = temp - ((100 - rh_actual * 100) / 5);
+                        dewRow.push(dp);
+                        
+                        // Wind gust is 1.3-1.5x wind speed
+                        const gust = wind * (1.3 + Math.random() * 0.2);
+                        gustRow.push(Math.max(0, gust));
+                    }
+                    
+                    tempGrid.push(tempRow);
+                    precipGrid.push(precipRow);
+                    windGrid.push(windRow);
+                    humidGrid.push(humidRow);
+                    cloudGrid.push(cloudRow);
+                    dewGrid.push(dewRow);
+                    gustGrid.push(gustRow);
+                }
+                
+                temperature.push(tempGrid);
+                precipitation.push(precipGrid);
+                windSpeed.push(windGrid);
+                humidity.push(humidGrid);
+                cloudCover.push(cloudGrid);
+                dewpoint.push(dewGrid);
+                windGust.push(gustGrid);
+            }
+            
+            return {
+                lats,
+                lons,
+                times,
+                temperature,
+                precipitation,
+                windSpeed,
+                humidity,
+                cloudCover,
+                dewpoint,
+                windGust
+            };
         }
 
-        function setupTimeControls() {
-            const slider = document.getElementById('timeSlider');
-            slider.max = forecastTimes.length - 1;
-            slider.value = 0;
-            currentTimeIndex = 0;
-            updateTimeDisplay();
-        }
-
-        function updateTimeDisplay() {
-            const time = forecastTimes[currentTimeIndex];
-            const display = time.toLocaleString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+        function initializeMaps() {
+            const variables = ['temp', 'precip', 'wind', 'humidity'];
+            
+            variables.forEach(variable => {
+                const mapId = variable === 'temp' ? 'tempMap' : 
+                             variable === 'precip' ? 'precipMap' :
+                             variable === 'wind' ? 'windMap' : 'humidityMap';
+                
+                if (!maps[variable]) {
+                    maps[variable] = L.map(mapId, {
+                        zoomControl: true,
+                        attributionControl: false
+                    }).setView([userLocation.lat, userLocation.lon], 9);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19
+                    }).addTo(maps[variable]);
+                    
+                    setupMapTooltip(variable, mapId);
+                }
             });
-            document.getElementById('timeDisplay').textContent = display;
+            
+            document.getElementById('controls').style.display = 'block';
+            document.getElementById('mapsContainer').style.display = 'grid';
+            document.getElementById('mapsHeader').style.display = 'block';
+            
+            // Force Leaflet to recalculate map sizes after display
+            setTimeout(() => {
+                variables.forEach(variable => {
+                    if (maps[variable]) {
+                        maps[variable].invalidateSize();
+                    }
+                });
+            }, 100);
+            
+            const slider = document.getElementById('timeSlider');
+            slider.max = forecastData.times.length - 1;
+            slider.value = 0;
+        }
+
+        function initializeMeteograms() {
+            // Extract center point data
+            const centerY = Math.floor(forecastData.lats.length / 2);
+            const centerX = Math.floor(forecastData.lats[0].length / 2);
+            
+            centerPoint = {
+                times: forecastData.times,
+                temperature: forecastData.temperature.map(grid => grid[centerY][centerX]),
+                dewpoint: forecastData.dewpoint.map(grid => grid[centerY][centerX]),
+                windSpeed: forecastData.windSpeed.map(grid => grid[centerY][centerX]),
+                windGust: forecastData.windGust.map(grid => grid[centerY][centerX]),
+                precipitation: forecastData.precipitation.map(grid => grid[centerY][centerX]),
+                humidity: forecastData.humidity.map(grid => grid[centerY][centerX]),
+                cloudCover: forecastData.cloudCover.map(grid => grid[centerY][centerX])
+            };
+            
+            createMeteogramPlots();
+            document.getElementById('meteogramSection').style.display = 'block';
+        }
+
+        function createMeteogramPlots() {
+            const times = centerPoint.times.map(t => new Date(t));
+            
+            // Temperature & Dewpoint Plot
+            const tempTrace = {
+                x: times,
+                y: centerPoint.temperature,
+                name: 'Temperature',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#dc2626', width: 2 },
+                marker: { size: 4 }
+            };
+            
+            const dewTrace = {
+                x: times,
+                y: centerPoint.dewpoint,
+                name: 'Dewpoint',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#2563eb', width: 2 },
+                marker: { size: 4 }
+            };
+            
+            const tempLayout = {
+                margin: { l: 50, r: 20, t: 20, b: 40 },
+                xaxis: { 
+                    title: '',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                yaxis: { 
+                    title: 'Temperature (°F)',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                legend: { orientation: 'h', y: 1.1 },
+                hovermode: 'x unified',
+                plot_bgcolor: '#fafafa',
+                paper_bgcolor: 'white'
+            };
+            
+            Plotly.newPlot('tempPlot', [tempTrace, dewTrace], tempLayout, {responsive: true});
+            
+            // Wind Speed & Gusts Plot
+            const windTrace = {
+                x: times,
+                y: centerPoint.windSpeed,
+                name: 'Wind Speed',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#059669', width: 2 },
+                marker: { size: 4 }
+            };
+            
+            const gustTrace = {
+                x: times,
+                y: centerPoint.windGust,
+                name: 'Wind Gust',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#ea580c', width: 1, dash: 'dash' }
+            };
+            
+            const windLayout = {
+                margin: { l: 50, r: 20, t: 20, b: 40 },
+                xaxis: { 
+                    title: '',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                yaxis: { 
+                    title: 'Wind Speed (mph)',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                legend: { orientation: 'h', y: 1.1 },
+                hovermode: 'x unified',
+                plot_bgcolor: '#fafafa',
+                paper_bgcolor: 'white'
+            };
+            
+            Plotly.newPlot('windPlot', [windTrace, gustTrace], windLayout, {responsive: true});
+            
+            // Precipitation & Humidity Plot
+            const precipTrace = {
+                x: times,
+                y: centerPoint.precipitation,
+                name: 'Precipitation',
+                type: 'bar',
+                marker: { color: '#0284c7' },
+                yaxis: 'y'
+            };
+            
+            const humidTrace = {
+                x: times,
+                y: centerPoint.humidity,
+                name: 'Humidity',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#65a30d', width: 2 },
+                yaxis: 'y2'
+            };
+            
+            const precipLayout = {
+                margin: { l: 50, r: 50, t: 20, b: 40 },
+                xaxis: { 
+                    title: '',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                yaxis: { 
+                    title: 'Precipitation (in/hr)',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb',
+                    rangemode: 'tozero'
+                },
+                yaxis2: {
+                    title: 'Relative Humidity (%)',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 100]
+                },
+                legend: { orientation: 'h', y: 1.1 },
+                hovermode: 'x unified',
+                plot_bgcolor: '#fafafa',
+                paper_bgcolor: 'white'
+            };
+            
+            Plotly.newPlot('precipPlot', [precipTrace, humidTrace], precipLayout, {responsive: true});
+            
+            // Cloud Cover Plot
+            const cloudTrace = {
+                x: times,
+                y: centerPoint.cloudCover,
+                name: 'Sky Cover',
+                type: 'scatter',
+                mode: 'lines',
+                fill: 'tozeroy',
+                fillcolor: 'rgba(100, 116, 139, 0.3)',
+                line: { color: '#64748b', width: 2 }
+            };
+            
+            const cloudLayout = {
+                margin: { l: 50, r: 20, t: 20, b: 40 },
+                xaxis: { 
+                    title: 'Forecast Time',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb'
+                },
+                yaxis: { 
+                    title: 'Sky Cover (%)',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb',
+                    range: [0, 100]
+                },
+                legend: { orientation: 'h', y: 1.1 },
+                hovermode: 'x unified',
+                plot_bgcolor: '#fafafa',
+                paper_bgcolor: 'white'
+            };
+            
+            Plotly.newPlot('cloudPlot', [cloudTrace], cloudLayout, {responsive: true});
+        }
+
+        function setupMapTooltip(variable, mapId) {
+            const mapElement = document.getElementById(mapId);
+            const tooltip = document.getElementById(variable + 'Tooltip');
+            
+            mapElement.addEventListener('mousemove', (e) => {
+                if (!rawData[variable]) return;
+                
+                const rect = mapElement.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const mapBounds = maps[variable].getBounds();
+                const mapSize = maps[variable].getSize();
+                
+                const lat = mapBounds.getNorth() - (mouseY / mapSize.y) * (mapBounds.getNorth() - mapBounds.getSouth());
+                const lon = mapBounds.getWest() + (mouseX / mapSize.x) * (mapBounds.getEast() - mapBounds.getWest());
+                
+                const value = getValueAtLocation(rawData[variable], forecastData.lats, forecastData.lons, lat, lon);
+                
+                if (value !== null) {
+                    const units = variable === 'temp' ? '°F' :
+                                variable === 'precip' ? 'in/hr' :
+                                variable === 'wind' ? 'mph' : '%';
+                    
+                    tooltip.textContent = `${value.toFixed(1)} ${units}`;
+                    tooltip.style.left = mouseX + 10 + 'px';
+                    tooltip.style.top = mouseY - 30 + 'px';
+                    tooltip.classList.add('visible');
+                } else {
+                    tooltip.classList.remove('visible');
+                }
+            });
+            
+            mapElement.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+        }
+
+        function getValueAtLocation(data, lats, lons, targetLat, targetLon) {
+            let minDist = Infinity;
+            let value = null;
+            
+            for (let i = 0; i < data.length; i++) {
+                for (let j = 0; j < data[i].length; j++) {
+                    const dist = Math.sqrt(
+                        Math.pow(lats[i][j] - targetLat, 2) + 
+                        Math.pow(lons[i][j] - targetLon, 2)
+                    );
+                    if (dist < minDist) {
+                        minDist = dist;
+                        value = data[i][j];
+                    }
+                }
+            }
+            
+            return value;
         }
 
         function updateTime() {
-            currentTimeIndex = parseInt(document.getElementById('timeSlider').value);
-            updateTimeDisplay();
-            updateMaps();
+            const slider = document.getElementById('timeSlider');
+            currentTimeIndex = parseInt(slider.value);
+            updateDisplay();
         }
 
         function previousTime() {
             if (currentTimeIndex > 0) {
                 currentTimeIndex--;
                 document.getElementById('timeSlider').value = currentTimeIndex;
-                updateTimeDisplay();
-                updateMaps();
+                updateDisplay();
             }
         }
 
         function nextTime() {
-            if (currentTimeIndex < forecastTimes.length - 1) {
+            if (currentTimeIndex < forecastData.times.length - 1) {
                 currentTimeIndex++;
                 document.getElementById('timeSlider').value = currentTimeIndex;
-                updateTimeDisplay();
-                updateMaps();
+                updateDisplay();
             }
         }
 
-        function initializeMaps() {
-            // Calculate bounds for all maps
-            const latMin = Math.min(...forecastData.lats);
-            const latMax = Math.max(...forecastData.lats);
-            const lonMin = Math.min(...forecastData.lons);
-            const lonMax = Math.max(...forecastData.lons);
-            const bounds = [[latMin, lonMin], [latMax, lonMax]];
-            
-            // Initialize each map
-            const mapIds = ['temp', 'precip', 'wind', 'humidity'];
-            const mapDivIds = ['tempMap', 'precipMap', 'windMap', 'humidityMap'];
-            const units = {
-                temp: '°F',
-                precip: 'in/hr',
-                wind: 'mph',
-                humidity: '%'
-            };
-            
-            mapIds.forEach((id, idx) => {
-                maps[id] = L.map(mapDivIds[idx], {
-                    center: [userLat, userLon],
-                    zoom: 11,
-                    zoomControl: true
+        function updateDisplay() {
+            const time = new Date(forecastData.times[currentTimeIndex]);
+            document.getElementById('timeDisplay').textContent = 
+                time.toLocaleString('en-US', { 
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
                 });
-                
-                // Add base tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors',
-                    opacity: 0.7
-                }).addTo(maps[id]);
-                
-                // Fit bounds
-                maps[id].fitBounds(bounds, { padding: [20, 20] });
-                
-                // Add hover interaction for tooltip
-                const tooltip = document.getElementById(`${id}Tooltip`);
-                const mapContainer = document.getElementById(mapDivIds[idx]);
-                
-                maps[id].on('mousemove', function(e) {
-                    if (!rawData[id]) return;
-                    
-                    const lat = e.latlng.lat;
-                    const lon = e.latlng.lng;
-                    
-                    // Find nearest grid point
-                    const value = getNearestValue(rawData[id], forecastData.lats, forecastData.lons, lat, lon);
-                    
-                    if (value !== null) {
-                        // Format value based on variable
-                        let displayValue;
-                        if (id === 'precip') {
-                            displayValue = value.toFixed(3);
-                        } else if (id === 'temp' || id === 'wind') {
-                            displayValue = value.toFixed(1);
-                        } else {
-                            displayValue = value.toFixed(0);
-                        }
-                        
-                        tooltip.textContent = `${displayValue} ${units[id]}`;
-                        tooltip.className = 'map-tooltip visible';
-                        
-                        // Position tooltip near cursor
-                        const containerRect = mapContainer.getBoundingClientRect();
-                        tooltip.style.left = (e.originalEvent.clientX - containerRect.left + 15) + 'px';
-                        tooltip.style.top = (e.originalEvent.clientY - containerRect.top + 15) + 'px';
-                    }
-                });
-                
-                maps[id].on('mouseout', function() {
-                    tooltip.className = 'map-tooltip';
-                });
-            });
-        }
-
-        function getNearestValue(data, lats, lons, targetLat, targetLon) {
-            // Find nearest grid point
-            let minDist = Infinity;
-            let nearestValue = null;
             
-            for (let i = 0; i < lats.length; i++) {
-                for (let j = 0; j < lons.length; j++) {
-                    const dist = Math.sqrt(
-                        Math.pow(lats[i] - targetLat, 2) + 
-                        Math.pow(lons[j] - targetLon, 2)
-                    );
-                    if (dist < minDist) {
-                        minDist = dist;
-                        nearestValue = data[i][j];
-                    }
-                }
-            }
-            
-            return nearestValue;
-        }
-
-        function bilinearInterpolate(data, lats, lons, targetLat, targetLon) {
-            // Find bounding grid cells
-            let i0 = 0, i1 = 0, j0 = 0, j1 = 0;
-            
-            // Find latitude indices
-            for (let i = 0; i < lats.length - 1; i++) {
-                if ((lats[i] <= targetLat && targetLat <= lats[i+1]) ||
-                    (lats[i] >= targetLat && targetLat >= lats[i+1])) {
-                    i0 = i;
-                    i1 = i + 1;
-                    break;
-                }
-            }
-            
-            // Find longitude indices
-            for (let j = 0; j < lons.length - 1; j++) {
-                if ((lons[j] <= targetLon && targetLon <= lons[j+1]) ||
-                    (lons[j] >= targetLon && targetLon >= lons[j+1])) {
-                    j0 = j;
-                    j1 = j + 1;
-                    break;
-                }
-            }
-            
-            // Get corner values
-            const q11 = data[i0][j0];
-            const q21 = data[i0][j1];
-            const q12 = data[i1][j0];
-            const q22 = data[i1][j1];
-            
-            // Get corner coordinates
-            const lat1 = lats[i0];
-            const lat2 = lats[i1];
-            const lon1 = lons[j0];
-            const lon2 = lons[j1];
-            
-            // Avoid division by zero
-            if (lat1 === lat2 || lon1 === lon2) {
-                return q11;
-            }
-            
-            // Bilinear interpolation
-            const t = (targetLat - lat1) / (lat2 - lat1);
-            const u = (targetLon - lon1) / (lon2 - lon1);
-            
-            const value = (1 - t) * (1 - u) * q11 +
-                         (1 - t) * u * q21 +
-                         t * (1 - u) * q12 +
-                         t * u * q22;
-            
-            return value;
+            updateMaps();
         }
 
         function interpolateToHighRes(data, lats, lons) {
-            // Create 1km grid (approximately 0.009 degrees)
-            const latMin = Math.min(...lats);
-            const latMax = Math.max(...lats);
-            const lonMin = Math.min(...lons);
-            const lonMax = Math.max(...lons);
-            
-            const kmToDeg = 0.009;
-            const nLat = Math.ceil((latMax - latMin) / kmToDeg);
-            const nLon = Math.ceil((lonMax - lonMin) / kmToDeg);
+            const factor = 4;
+            const origRows = data.length;
+            const origCols = data[0].length;
+            const newRows = (origRows - 1) * factor + 1;
+            const newCols = (origCols - 1) * factor + 1;
             
             const highResData = [];
             const highResLats = [];
             const highResLons = [];
             
-            for (let i = 0; i < nLat; i++) {
-                const lat = latMin + i * kmToDeg;
-                highResLats.push(lat);
-                const row = [];
+            for (let i = 0; i < newRows; i++) {
+                const highResRow = [];
+                const latRow = [];
+                const lonRow = [];
                 
-                for (let j = 0; j < nLon; j++) {
-                    const lon = lonMin + j * kmToDeg;
-                    if (i === 0) highResLons.push(lon);
+                for (let j = 0; j < newCols; j++) {
+                    const origI = i / factor;
+                    const origJ = j / factor;
                     
-                    // Bilinear interpolation
-                    const value = bilinearInterpolate(data, lats, lons, lat, lon);
-                    row.push(value);
+                    const i0 = Math.floor(origI);
+                    const i1 = Math.min(i0 + 1, origRows - 1);
+                    const j0 = Math.floor(origJ);
+                    const j1 = Math.min(j0 + 1, origCols - 1);
+                    
+                    const wi = origI - i0;
+                    const wj = origJ - j0;
+                    
+                    const val = (1 - wi) * (1 - wj) * data[i0][j0] +
+                               (1 - wi) * wj * data[i0][j1] +
+                               wi * (1 - wj) * data[i1][j0] +
+                               wi * wj * data[i1][j1];
+                    
+                    const lat = (1 - wi) * (1 - wj) * lats[i0][j0] +
+                               (1 - wi) * wj * lats[i0][j1] +
+                               wi * (1 - wj) * lats[i1][j0] +
+                               wi * wj * lats[i1][j1];
+                    
+                    const lon = (1 - wi) * (1 - wj) * lons[i0][j0] +
+                               (1 - wi) * wj * lons[i0][j1] +
+                               wi * (1 - wj) * lons[i1][j0] +
+                               wi * wj * lons[i1][j1];
+                    
+                    highResRow.push(val);
+                    latRow.push(lat);
+                    lonRow.push(lon);
                 }
-                highResData.push(row);
+                
+                highResData.push(highResRow);
+                highResLats.push(latRow);
+                highResLons.push(lonRow);
             }
             
             return { data: highResData, lats: highResLats, lons: highResLons };
         }
 
-        function createCanvasOverlay(data, lats, lons, colorScale, variable) {
-            // Create canvas
+        function createCanvasOverlay(data, lats, lons, variable, colorScale) {
             const canvas = document.createElement('canvas');
+            const rows = data.length;
+            const cols = data[0].length;
+            canvas.width = cols;
+            canvas.height = rows;
             const ctx = canvas.getContext('2d');
             
-            canvas.width = data[0].length;
-            canvas.height = data.length;
+            const flatData = data.flat();
+            const minVal = Math.min(...flatData);
+            const maxVal = Math.max(...flatData);
             
-            // Define full expected ranges for each variable
-            const fullRanges = {
-                temp: { min: 0, max: 100 },        // °F
-                precip: { min: 0, max: 0.5 },       // in/hr
-                wind: { min: 0, max: 40 },          // mph
-                humidity: { min: 0, max: 100 }      // %
-            };
+            const imageData = ctx.createImageData(cols, rows);
             
-            // Get actual data range
-            let actualMin = Infinity, actualMax = -Infinity;
-            data.forEach(row => {
-                row.forEach(val => {
-                    if (isFinite(val)) {
-                        actualMin = Math.min(actualMin, val);
-                        actualMax = Math.max(actualMax, val);
-                    }
-                });
-            });
-            
-            // Adaptive blending: 60% actual range, 40% expected range
-            // This shows variation while maintaining some context
-            const fullRange = fullRanges[variable] || { min: 0, max: 100 };
-            const blendFactor = 0.6; // Weight towards actual data
-            
-            const minVal = blendFactor * actualMin + (1 - blendFactor) * fullRange.min;
-            const maxVal = blendFactor * actualMax + (1 - blendFactor) * fullRange.max;
-            
-            // Ensure we don't have inverted or zero-width ranges
-            const finalMin = Math.min(minVal, actualMin - 0.1);
-            const finalMax = Math.max(maxVal, actualMax + 0.1);
-            const rangeWidth = finalMax - finalMin;
-            
-            // Draw pixels
-            const imageData = ctx.createImageData(canvas.width, canvas.height);
-            
-            for (let i = 0; i < data.length; i++) {
-                for (let j = 0; j < data[i].length; j++) {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
                     const value = data[i][j];
-                    const idx = (i * canvas.width + j) * 4;
+                    const normalized = (value - minVal) / (maxVal - minVal);
+                    const [r, g, b] = getColor(normalized, colorScale);
                     
-                    // Map value to color using adaptive scale
-                    const normalized = Math.max(0, Math.min(1, (value - finalMin) / rangeWidth));
-                    const color = getColor(normalized, colorScale, variable);
-                    
-                    imageData.data[idx] = color[0];     // R
-                    imageData.data[idx + 1] = color[1]; // G
-                    imageData.data[idx + 2] = color[2]; // B
-                    imageData.data[idx + 3] = 180;      // A (70% opacity)
+                    const idx = (i * cols + j) * 4;
+                    imageData.data[idx] = r;
+                    imageData.data[idx + 1] = g;
+                    imageData.data[idx + 2] = b;
+                    imageData.data[idx + 3] = 255;
                 }
             }
             
             ctx.putImageData(imageData, 0, 0);
             
-            // Create image overlay bounds
             const bounds = [
-                [Math.min(...lats), Math.min(...lons)],
-                [Math.max(...lats), Math.max(...lons)]
+                [Math.min(...lats.flat()), Math.min(...lons.flat())],
+                [Math.max(...lats.flat()), Math.max(...lons.flat())]
             ];
             
-            return { canvas: canvas, bounds: bounds, minVal: finalMin, maxVal: finalMax };
+            return { canvas, bounds, minVal, maxVal };
         }
 
         function createLegend(variable, colorScale, minVal, maxVal) {
-            const scaleDiv = document.getElementById(`${variable}Scale`);
-            const minSpan = document.getElementById(`${variable}Min`);
-            const maxSpan = document.getElementById(`${variable}Max`);
+            const scaleDiv = document.getElementById(variable + 'Scale');
+            scaleDiv.innerHTML = '';
             
-            // Create gradient based on actual adaptive range
             const steps = 100;
-            let gradient = '';
             for (let i = 0; i < steps; i++) {
                 const normalized = i / (steps - 1);
-                const color = getColor(normalized, colorScale, variable);
-                const percent = (i / (steps - 1)) * 100;
-                gradient += `rgb(${color[0]},${color[1]},${color[2]}) ${percent}%`;
-                if (i < steps - 1) gradient += ', ';
+                const [r, g, b] = getColor(normalized, colorScale);
+                const div = document.createElement('div');
+                div.style.flex = '1';
+                div.style.backgroundColor = `rgb(${r},${g},${b})`;
+                scaleDiv.appendChild(div);
             }
             
-            scaleDiv.style.background = `linear-gradient(to right, ${gradient})`;
-            
-            // Update labels with adaptive range
-            let minText, maxText;
-            if (variable === 'precip') {
-                minText = minVal.toFixed(2);
-                maxText = maxVal.toFixed(2);
-            } else if (variable === 'temp' || variable === 'wind') {
-                minText = minVal.toFixed(1);
-                maxText = maxVal.toFixed(1);
-            } else {
-                minText = minVal.toFixed(0);
-                maxText = maxVal.toFixed(0);
-            }
-            
-            minSpan.textContent = minText;
-            maxSpan.textContent = maxText;
+            document.getElementById(variable + 'Min').textContent = minVal.toFixed(1);
+            document.getElementById(variable + 'Max').textContent = maxVal.toFixed(1);
         }
 
-        function getColor(normalized, colorScale, variable) {
-            // Color scales for different variables
+        function getColor(normalized, colorScale) {
             const scales = {
-                temp: [ // Red-Yellow-Blue reversed
+                temp: [
                     [0, [49, 54, 149]],
                     [0.25, [69, 117, 180]],
                     [0.5, [255, 255, 191]],
                     [0.75, [254, 224, 144]],
                     [1, [215, 48, 39]]
                 ],
-                precip: [ // Blues
+                precip: [
                     [0, [247, 251, 255]],
                     [0.25, [198, 219, 239]],
                     [0.5, [107, 174, 214]],
                     [0.75, [49, 130, 189]],
                     [1, [8, 81, 156]]
                 ],
-                wind: [ // Greens
+                wind: [
                     [0, [247, 252, 245]],
                     [0.25, [199, 233, 192]],
                     [0.5, [127, 188, 65]],
                     [0.75, [49, 163, 84]],
                     [1, [0, 109, 44]]
                 ],
-                humidity: [ // Yellow-Green-Blue
+                humidity: [
                     [0, [255, 255, 217]],
                     [0.25, [199, 233, 180]],
                     [0.5, [127, 205, 187]],
@@ -790,7 +948,6 @@
             
             const scale = scales[colorScale] || scales.temp;
             
-            // Find bracketing colors
             let lower = scale[0];
             let upper = scale[scale.length - 1];
             
@@ -802,7 +959,6 @@
                 }
             }
             
-            // Interpolate
             const t = (normalized - lower[0]) / (upper[0] - lower[0]);
             return [
                 Math.round(lower[1][0] + t * (upper[1][0] - lower[1][0])),
@@ -814,52 +970,25 @@
         function updateMaps() {
             const t = currentTimeIndex;
             
-            // Update temperature map
-            updateMapOverlay(
-                'temp',
-                forecastData.temperature[t],
-                'temp'
-            );
-            
-            // Update precipitation map
-            updateMapOverlay(
-                'precip',
-                forecastData.precipitation[t],
-                'precip'
-            );
-            
-            // Update wind map
-            updateMapOverlay(
-                'wind',
-                forecastData.windSpeed[t],
-                'wind'
-            );
-            
-            // Update humidity map
-            updateMapOverlay(
-                'humidity',
-                forecastData.humidity[t],
-                'humidity'
-            );
+            updateMapOverlay('temp', forecastData.temperature[t], 'temp');
+            updateMapOverlay('precip', forecastData.precipitation[t], 'precip');
+            updateMapOverlay('wind', forecastData.windSpeed[t], 'wind');
+            updateMapOverlay('humidity', forecastData.humidity[t], 'humidity');
         }
 
         function updateMapOverlay(mapId, data, variable) {
-            // Store raw data for tooltip
             rawData[mapId] = data;
             
-            // Remove existing overlay
             if (overlays[mapId]) {
                 maps[mapId].removeLayer(overlays[mapId]);
             }
             
-            // Interpolate to high resolution
             const highRes = interpolateToHighRes(
                 data,
                 forecastData.lats,
                 forecastData.lons
             );
             
-            // Create canvas overlay
             const { canvas, bounds, minVal, maxVal } = createCanvasOverlay(
                 highRes.data,
                 highRes.lats,
@@ -868,133 +997,13 @@
                 variable
             );
             
-            // Update legend
             createLegend(variable, variable, minVal, maxVal);
             
-            // Add to map
             overlays[mapId] = L.imageOverlay(canvas.toDataURL(), bounds, {
                 opacity: 0.7,
                 interactive: false
             }).addTo(maps[mapId]);
         }
     </script>
-
-    <!-- 
-    =====================================================================
-    PYTHON BACKEND IMPLEMENTATION FOR PRODUCTION USE
-    =====================================================================
-    
-    Save this as weather_backend.py and run with: python weather_backend.py
-    Then update the fetch() call in loadForecastData() to use the backend API
-    
-    Requirements:
-    pip install flask flask-cors xarray zarr numpy
-    
-    =====================================================================
-    -->
-    <!--
-from flask import Flask, jsonify, request, send_file
-from flask_cors import CORS
-import xarray as xr
-import numpy as np
-from datetime import datetime
-
-app = Flask(__name__)
-CORS(app)
-
-# Cache the dataset to avoid reloading
-_ds_cache = None
-_cache_time = None
-
-def get_dataset():
-    global _ds_cache, _cache_time
-    if _ds_cache is None or (datetime.now() - _cache_time).seconds > 3600:
-        _ds_cache = xr.open_zarr(
-            "https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr",
-            chunks=None
-        )
-        _cache_time = datetime.now()
-    return _ds_cache
-
-@app.route('/')
-def index():
-    return send_file('weather-map.html')
-
-@app.route('/api/forecast')
-def get_forecast():
-    try:
-        lat = float(request.args.get('lat'))
-        lon = float(request.args.get('lon'))
-        
-        ds = get_dataset()
-        
-        # Find nearest grid point
-        lat_data = ds.latitude.values
-        lon_data = ds.longitude.values
-        
-        # Calculate distances
-        dist = np.sqrt((lat_data - lat)**2 + (lon_data - lon)**2)
-        min_idx = np.unravel_index(np.argmin(dist), dist.shape)
-        y_center, x_center = min_idx
-        
-        # Extract 25x25 grid
-        y_slice = slice(max(0, y_center-12), min(lat_data.shape[0], y_center+13))
-        x_slice = slice(max(0, x_center-12), min(lat_data.shape[1], x_center+13))
-        
-        # Get latest initialization time
-        latest_init = ds.init_time.values[-1]
-        
-        # Extract data
-        ds_subset = ds.sel(init_time=latest_init).isel(y=y_slice, x=x_slice)
-        
-        # Get lead times (up to 48 hours)
-        lead_times = ds_subset.lead_time.values
-        
-        # Build response
-        result = {
-            'lats': ds_subset.latitude.values.tolist(),
-            'lons': ds_subset.longitude.values.tolist(),
-            'times': [],
-            'temperature': [],
-            'precipitation': [],
-            'windSpeed': [],
-            'humidity': []
-        }
-        
-        init_dt = np.datetime64(latest_init).astype('datetime64[s]').astype(int)
-        
-        for i, lead_time in enumerate(lead_times[:48]):
-            # Calculate valid time
-            lead_seconds = lead_time.astype('timedelta64[s]').astype(int)
-            valid_time = datetime.fromtimestamp(init_dt + lead_seconds)
-            result['times'].append(valid_time.isoformat())
-            
-            # Temperature: C to F
-            temp_c = ds_subset.temperature_2m.isel(lead_time=i).values
-            result['temperature'].append((temp_c * 9/5 + 32).tolist())
-            
-            # Precipitation: mm/s to in/hr
-            precip_mm = ds_subset.precipitation_surface.isel(lead_time=i).values
-            result['precipitation'].append((precip_mm * 3600 / 25.4).tolist())
-            
-            # Humidity: already in %
-            humid = ds_subset.relative_humidity_2m.isel(lead_time=i).values
-            result['humidity'].append(humid.tolist())
-            
-            # Wind speed: calculate from U and V, m/s to mph
-            wind_u = ds_subset.wind_u_10m.isel(lead_time=i).values
-            wind_v = ds_subset.wind_v_10m.isel(lead_time=i).values
-            wind_speed_ms = np.sqrt(wind_u**2 + wind_v**2)
-            result['windSpeed'].append((wind_speed_ms * 2.237).tolist())
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-    -->
-
 </body>
 </html>
