@@ -310,11 +310,6 @@
             <h3>Multi-Model Climate Ensemble Analysis</h3>
             <p>Climate projection ensembles naturally form tensors with dimensions [location × time × climate variable × GCM × scenario]. Tensor decomposition identifies consensus patterns across models while quantifying inter-model uncertainty structure.</p>
 
-            <div class="highlight-box">
-                <h3>Example: CMIP6 Ensemble Tensor Analysis</h3>
-                <p>Construction of 5D tensor from CMIP6 projections: [latitude × longitude × time × variable × model]. Tucker decomposition with ranks [10, 10, 5, 3, 15] captures 95% of variance while reducing data volume by factor of 100+. Extracted spatial modes reveal regional patterns of climate change; temporal modes capture transient vs. equilibrium responses; variable modes identify coupled changes across temperature, precipitation, and humidity.</p>
-            </div>
-
             <h3>Forecasting with Tensor-Valued Predictors</h3>
             <p>Rather than flattening spatial fields into vectors, tensor regression preserves spatial structure in predictor variables. This maintains spatial coherence, reduces overfitting in small-sample regimes, and often improves forecast skill.</p>
 
