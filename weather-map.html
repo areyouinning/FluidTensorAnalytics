@@ -296,11 +296,11 @@
                  * NOTE: Temperature from HRRR is in Celsius and must be converted to Fahrenheit.
                  * The backend code (at end of file) includes this conversion: temp_f = temp_c * 9/5 + 32
                  * 
-                 * COLOR SCALES: Fixed ranges are used to avoid over-emphasizing spatial variability:
-                 * - Temperature: 0-100°F
-                 * - Precipitation: 0-0.5 in/hr
-                 * - Wind Speed: 0-40 mph
-                 * - Humidity: 0-100%
+                 * COLOR SCALES: Adaptive ranges blend actual data with expected ranges (60/40 blend):
+                 * - Shows spatial variability without overemphasizing minor differences
+                 * - Maintains context by anchoring to climatological ranges
+                 * - Expected ranges: Temp 0-100°F, Precip 0-0.5 in/hr, Wind 0-40 mph, Humidity 0-100%
+                 * - Actual range adapts each time step for optimal visualization
                  * 
                  * See backend implementation at end of this file.
                  */
@@ -565,19 +565,15 @@
             canvas.width = data[0].length;
             canvas.height = data.length;
             
-            // Define fixed ranges for each variable to avoid over-emphasizing spatial variability
-            const fixedRanges = {
+            // Define full expected ranges for each variable
+            const fullRanges = {
                 temp: { min: 0, max: 100 },        // °F
                 precip: { min: 0, max: 0.5 },       // in/hr
                 wind: { min: 0, max: 40 },          // mph
                 humidity: { min: 0, max: 100 }      // %
             };
             
-            const range = fixedRanges[variable] || { min: 0, max: 100 };
-            let minVal = range.min;
-            let maxVal = range.max;
-            
-            // Get actual data range for legend display
+            // Get actual data range
             let actualMin = Infinity, actualMax = -Infinity;
             data.forEach(row => {
                 row.forEach(val => {
@@ -588,6 +584,19 @@
                 });
             });
             
+            // Adaptive blending: 60% actual range, 40% expected range
+            // This shows variation while maintaining some context
+            const fullRange = fullRanges[variable] || { min: 0, max: 100 };
+            const blendFactor = 0.6; // Weight towards actual data
+            
+            const minVal = blendFactor * actualMin + (1 - blendFactor) * fullRange.min;
+            const maxVal = blendFactor * actualMax + (1 - blendFactor) * fullRange.max;
+            
+            // Ensure we don't have inverted or zero-width ranges
+            const finalMin = Math.min(minVal, actualMin - 0.1);
+            const finalMax = Math.max(maxVal, actualMax + 0.1);
+            const rangeWidth = finalMax - finalMin;
+            
             // Draw pixels
             const imageData = ctx.createImageData(canvas.width, canvas.height);
             
@@ -596,8 +605,8 @@
                     const value = data[i][j];
                     const idx = (i * canvas.width + j) * 4;
                     
-                    // Map value to color using fixed scale
-                    const normalized = Math.max(0, Math.min(1, (value - minVal) / (maxVal - minVal)));
+                    // Map value to color using adaptive scale
+                    const normalized = Math.max(0, Math.min(1, (value - finalMin) / rangeWidth));
                     const color = getColor(normalized, colorScale, variable);
                     
                     imageData.data[idx] = color[0];     // R
@@ -615,7 +624,7 @@
                 [Math.max(...lats), Math.max(...lons)]
             ];
             
-            return { canvas: canvas, bounds: bounds, minVal: actualMin, maxVal: actualMax };
+            return { canvas: canvas, bounds: bounds, minVal: finalMin, maxVal: finalMax };
         }
 
         function createLegend(variable, colorScale, minVal, maxVal) {
@@ -623,17 +632,7 @@
             const minSpan = document.getElementById(`${variable}Min`);
             const maxSpan = document.getElementById(`${variable}Max`);
             
-            // Fixed ranges for color scale
-            const fixedRanges = {
-                temp: { min: 0, max: 100 },
-                precip: { min: 0, max: 0.5 },
-                wind: { min: 0, max: 40 },
-                humidity: { min: 0, max: 100 }
-            };
-            
-            const range = fixedRanges[variable] || { min: 0, max: 100 };
-            
-            // Create gradient
+            // Create gradient based on actual adaptive range
             const steps = 100;
             let gradient = '';
             for (let i = 0; i < steps; i++) {
@@ -646,14 +645,17 @@
             
             scaleDiv.style.background = `linear-gradient(to right, ${gradient})`;
             
-            // Update labels with fixed scale (showing actual range in context)
+            // Update labels with adaptive range
             let minText, maxText;
             if (variable === 'precip') {
-                minText = range.min.toFixed(2);
-                maxText = range.max.toFixed(2);
+                minText = minVal.toFixed(2);
+                maxText = maxVal.toFixed(2);
+            } else if (variable === 'temp' || variable === 'wind') {
+                minText = minVal.toFixed(1);
+                maxText = maxVal.toFixed(1);
             } else {
-                minText = range.min.toFixed(0);
-                maxText = range.max.toFixed(0);
+                minText = minVal.toFixed(0);
+                maxText = maxVal.toFixed(0);
             }
             
             minSpan.textContent = minText;
