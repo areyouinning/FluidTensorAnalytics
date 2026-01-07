@@ -19,6 +19,7 @@
             --accent-primary: #00d9ff;
             --accent-secondary: #ff006e;
             --accent-tertiary: #8b5cf6;
+            --accent-yellow: #fbbf24;
             --text-primary: #e0e6ed;
             --text-secondary: #8b95a5;
             --border: rgba(0, 217, 255, 0.2);
@@ -135,7 +136,7 @@
             position: absolute;
             bottom: 15px;
             left: 15px;
-            background: rgba(10, 14, 23, 0.85);
+            background: rgba(10, 14, 23, 0.9);
             border: 1px solid var(--accent-primary);
             border-radius: 6px;
             padding: 0.75rem 1rem;
@@ -146,11 +147,17 @@
             z-index: 10;
             backdrop-filter: blur(5px);
             box-shadow: 0 4px 12px rgba(0, 217, 255, 0.2);
+            max-width: 280px;
+            line-height: 1.5;
         }
 
         .interaction-hint strong {
             color: var(--accent-primary);
             font-weight: 600;
+        }
+
+        .interaction-hint .yellow {
+            color: var(--accent-yellow);
         }
 
         .visualization-modes {
@@ -315,6 +322,20 @@
             transform: translateY(-2px);
         }
 
+        .btn-primary {
+            background: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            color: var(--bg-primary);
+            font-weight: 600;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #fcd34d;
+            border-color: #fcd34d;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
         .stats {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
@@ -328,6 +349,24 @@
         .stats-value {
             color: var(--accent-primary);
             font-weight: 600;
+        }
+
+        .tensor-info {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            line-height: 1.6;
+            margin-top: 1rem;
+            border-left: 3px solid var(--accent-tertiary);
+        }
+
+        .tensor-info h4 {
+            color: var(--accent-tertiary);
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem;
         }
 
         @keyframes fadeIn {
@@ -362,7 +401,7 @@
     <div class="container">
         <header>
             <h1>Fluid Tensor Dynamics</h1>
-            <div class="subtitle">Real-time Navier-Stokes Solution • GPU-Accelerated</div>
+            <div class="subtitle">Real-time Navier-Stokes Solution • Velocity Gradient Tensor Decomposition</div>
         </header>
 
         <div class="main-content">
@@ -370,11 +409,11 @@
                 <div class="visualization-modes">
                     <button class="mode-btn active" data-mode="velocity" title="Shows velocity magnitude and direction using color. Hue indicates flow direction, brightness shows speed.">Velocity Field</button>
                     <button class="mode-btn" data-mode="pressure" title="Pressure field from solving ∇²p = -∇·(u·∇u). Enforces incompressibility via Helmholtz-Hodge decomposition.">Pressure</button>
-                    <button class="mode-btn" data-mode="vorticity" title="Vorticity ω = ∇×u measures local fluid rotation. Blue = clockwise, red = counterclockwise. Key for identifying vortex structures.">Vorticity (∇×u)</button>
+                    <button class="mode-btn" data-mode="vorticity" title="Vorticity ω = ∇×u measures local fluid rotation. Cyan = counterclockwise (positive), Magenta = clockwise (negative).">Vorticity (∇×u)</button>
                     <button class="mode-btn" data-mode="divergence" title="Divergence ∇·u measures expansion/compression. Should be ~0 for incompressible flow (mass conservation).">Divergence (∇·u)</button>
                     <button class="mode-btn" data-mode="strain" title="Strain rate tensor S_ij = ½(∂u_i/∂x_j + ∂u_j/∂x_i) shows pure deformation without rotation. Color indicates principal strain direction.">Strain Rate Tensor</button>
                     <button class="mode-btn" data-mode="rotation" title="Rotation rate tensor Ω_ij = ½(∂u_i/∂x_j - ∂u_j/∂x_i) isolates pure rotation without deformation.">Rotation Rate Tensor</button>
-                    <button class="mode-btn" data-mode="decomposition" title="RGB decomposition: R = clockwise rotation, G = strain, B = counterclockwise rotation. Shows how velocity gradient splits into rotation + deformation.">Tensor Decomposition</button>
+                    <button class="mode-btn" data-mode="decomposition" title="RGB decomposition: R = clockwise rotation, G = strain magnitude, B = counterclockwise rotation. Shows how velocity gradient tensor ∇u splits into symmetric (strain) + antisymmetric (rotation) parts.">Tensor Decomposition</button>
                     <button class="mode-btn" data-mode="particles" title="Lagrangian particle tracers advected by the velocity field. Visualizes flow pathlines and mixing.">Particle Tracers</button>
                 </div>
                 <div class="canvas-container">
@@ -383,7 +422,9 @@
                         <rect x="1" y="1" width="98" height="98" />
                     </svg>
                     <div class="interaction-hint">
-                        <strong>Click &amp; drag</strong> to add forces and create flow patterns
+                        <strong>Click</strong> to inject a counter-rotating vortex pair<br>
+                        <strong>Click &amp; drag</strong> to apply force in drag direction<br>
+                        <span class="yellow">★ Use "Add Vortex Pair" button for symmetric injection</span>
                     </div>
                 </div>
             </div>
@@ -434,21 +475,30 @@
 
                 <div class="control-section">
                     <h3>Actions</h3>
+                    <button class="btn btn-primary" id="add-vortex-btn">★ Add Vortex Pair</button>
                     <button class="btn" id="reset-btn">Reset Simulation</button>
-                    <button class="btn" id="add-vortex-btn">Add Vortex Pair</button>
                     <button class="btn" id="pause-btn">Pause</button>
                 </div>
 
                 <div class="control-section">
                     <h3>Statistics</h3>
                     <div class="stats">
-                        <div>Grid: <span class="stats-value" id="grid-size">128×128</span></div>
+                        <div>Grid: <span class="stats-value" id="grid-size">256×256</span></div>
                         <div>FPS: <span class="stats-value" id="fps">60</span></div>
                         <div>Max |u|: <span class="stats-value" id="max-velocity">0.0</span></div>
                         <div>Max |ω|: <span class="stats-value" id="max-vorticity">0.0</span></div>
                         <div>Max |S|: <span class="stats-value" id="max-strain">0.0</span></div>
                         <div>Max |Ω|: <span class="stats-value" id="max-rotation">0.0</span></div>
                     </div>
+                </div>
+
+                <div class="tensor-info">
+                    <h4>Tensor Decomposition</h4>
+                    The velocity gradient tensor ∇u decomposes into:<br><br>
+                    <strong>∇u = S + Ω</strong><br><br>
+                    S = ½(∇u + ∇uᵀ) — Symmetric strain rate<br>
+                    Ω = ½(∇u − ∇uᵀ) — Antisymmetric rotation<br><br>
+                    Strain deforms fluid elements without rotation. Rotation spins them without deformation.
                 </div>
             </div>
         </div>
@@ -499,19 +549,22 @@
                 // Parameters
                 this.visc = 0.0001;
                 this.dt = 0.1;
-                this.diff = 0.0;
-                
-                // Solver iterations
                 this.pressureIterations = 20;
                 this.diffusionIterations = 20;
                 
-                // Particles for tracer visualization
+                // Particles for Lagrangian visualization
                 this.particles = [];
+                this.initParticles();
+            }
+            
+            initParticles() {
+                this.particles = [];
+                const N = this.N;
                 for (let i = 0; i < 2000; i++) {
                     this.particles.push({
                         x: Math.random() * N,
                         y: Math.random() * N,
-                        life: Math.random()
+                        life: 1
                     });
                 }
             }
@@ -520,318 +573,87 @@
                 return i + (this.N + 2) * j;
             }
             
-            // Set boundary conditions
-            set_bnd(b, x) {
-                const N = this.N;
-                
-                // Vertical edges
-                for (let i = 1; i <= N; i++) {
-                    x[this.IX(0, i)] = b === 1 ? -x[this.IX(1, i)] : x[this.IX(1, i)];
-                    x[this.IX(N+1, i)] = b === 1 ? -x[this.IX(N, i)] : x[this.IX(N, i)];
-                }
-                
-                // Horizontal edges
-                for (let j = 1; j <= N; j++) {
-                    x[this.IX(j, 0)] = b === 2 ? -x[this.IX(j, 1)] : x[this.IX(j, 1)];
-                    x[this.IX(j, N+1)] = b === 2 ? -x[this.IX(j, N)] : x[this.IX(j, N)];
-                }
-                
-                // Corners
-                x[this.IX(0, 0)] = 0.5 * (x[this.IX(1, 0)] + x[this.IX(0, 1)]);
-                x[this.IX(0, N+1)] = 0.5 * (x[this.IX(1, N+1)] + x[this.IX(0, N)]);
-                x[this.IX(N+1, 0)] = 0.5 * (x[this.IX(N, 0)] + x[this.IX(N+1, 1)]);
-                x[this.IX(N+1, N+1)] = 0.5 * (x[this.IX(N, N+1)] + x[this.IX(N+1, N)]);
-            }
-            
-            // Linear solver for implicit diffusion and pressure
-            lin_solve(b, x, x0, a, c) {
-                const N = this.N;
-                const iterations = b === 0 ? this.pressureIterations : this.diffusionIterations;
-                
-                for (let k = 0; k < iterations; k++) {
-                    for (let j = 1; j <= N; j++) {
-                        for (let i = 1; i <= N; i++) {
-                            x[this.IX(i, j)] = (x0[this.IX(i, j)] + a * (
-                                x[this.IX(i-1, j)] + x[this.IX(i+1, j)] +
-                                x[this.IX(i, j-1)] + x[this.IX(i, j+1)]
-                            )) / c;
-                        }
-                    }
-                    this.set_bnd(b, x);
-                }
-            }
-            
-            // Diffusion step
-            diffuse(b, x, x0, diff) {
-                const a = this.dt * diff * this.N * this.N;
-                this.lin_solve(b, x, x0, a, 1 + 4 * a);
-            }
-            
-            // Advection step (semi-Lagrangian)
-            advect(b, d, d0, u, v) {
-                const N = this.N;
-                const dt0 = this.dt * N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        let x = i - dt0 * u[this.IX(i, j)];
-                        let y = j - dt0 * v[this.IX(i, j)];
-                        
-                        if (x < 0.5) x = 0.5;
-                        if (x > N + 0.5) x = N + 0.5;
-                        let i0 = Math.floor(x);
-                        let i1 = i0 + 1;
-                        
-                        if (y < 0.5) y = 0.5;
-                        if (y > N + 0.5) y = N + 0.5;
-                        let j0 = Math.floor(y);
-                        let j1 = j0 + 1;
-                        
-                        let s1 = x - i0;
-                        let s0 = 1 - s1;
-                        let t1 = y - j0;
-                        let t0 = 1 - t1;
-                        
-                        d[this.IX(i, j)] = 
-                            s0 * (t0 * d0[this.IX(i0, j0)] + t1 * d0[this.IX(i0, j1)]) +
-                            s1 * (t0 * d0[this.IX(i1, j0)] + t1 * d0[this.IX(i1, j1)]);
-                    }
-                }
-                this.set_bnd(b, d);
-            }
-            
-            // Project to make velocity field divergence-free
-            project(u, v, p, div) {
-                const N = this.N;
-                const h = 1.0 / N;
-                
-                // Compute divergence
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        div[this.IX(i, j)] = -0.5 * h * (
-                            u[this.IX(i+1, j)] - u[this.IX(i-1, j)] +
-                            v[this.IX(i, j+1)] - v[this.IX(i, j-1)]
-                        );
-                        p[this.IX(i, j)] = 0;
-                    }
-                }
-                this.set_bnd(0, div);
-                this.set_bnd(0, p);
-                
-                // Solve for pressure
-                this.lin_solve(0, p, div, 1, 4);
-                
-                // Subtract pressure gradient
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        u[this.IX(i, j)] -= 0.5 * (p[this.IX(i+1, j)] - p[this.IX(i-1, j)]) / h;
-                        v[this.IX(i, j)] -= 0.5 * (p[this.IX(i, j+1)] - p[this.IX(i, j-1)]) / h;
-                    }
-                }
-                this.set_bnd(1, u);
-                this.set_bnd(2, v);
-            }
-            
-            // Velocity step (full N-S)
-            vel_step() {
-                // Add forces (already in u_prev, v_prev)
-                
-                // Diffusion
-                this.diffuse(1, this.u_prev, this.u, this.visc);
-                this.diffuse(2, this.v_prev, this.v, this.visc);
-                
-                // Project
-                this.project(this.u_prev, this.v_prev, this.u, this.v);
-                
-                // Advection
-                this.advect(1, this.u, this.u_prev, this.u_prev, this.v_prev);
-                this.advect(2, this.v, this.v_prev, this.u_prev, this.v_prev);
-                
-                // Project again
-                this.project(this.u, this.v, this.u_prev, this.v_prev);
-                
-                // Clear force arrays
-                this.u_prev.fill(0);
-                this.v_prev.fill(0);
-            }
-            
-            // Compute vorticity
-            computeVorticity() {
-                const N = this.N;
-                const h = 1.0 / N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        const dv_dx = (this.v[this.IX(i+1, j)] - this.v[this.IX(i-1, j)]) / (2 * h);
-                        const du_dy = (this.u[this.IX(i, j+1)] - this.u[this.IX(i, j-1)]) / (2 * h);
-                        this.vorticity[this.IX(i, j)] = dv_dx - du_dy;
-                    }
-                }
-            }
-            
-            // Compute divergence
-            computeDivergence() {
-                const N = this.N;
-                const h = 1.0 / N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        this.divergence[this.IX(i, j)] = 0.5 * h * (
-                            this.u[this.IX(i+1, j)] - this.u[this.IX(i-1, j)] +
-                            this.v[this.IX(i, j+1)] - this.v[this.IX(i, j-1)]
-                        );
-                    }
-                }
-            }
-            
-            // Compute velocity gradient tensor
-            computeVelocityGradient() {
-                const N = this.N;
-                const h = 1.0 / N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        // ∂u/∂x
-                        this.du_dx[this.IX(i, j)] = (this.u[this.IX(i+1, j)] - this.u[this.IX(i-1, j)]) / (2 * h);
-                        // ∂u/∂y
-                        this.du_dy[this.IX(i, j)] = (this.u[this.IX(i, j+1)] - this.u[this.IX(i, j-1)]) / (2 * h);
-                        // ∂v/∂x
-                        this.dv_dx[this.IX(i, j)] = (this.v[this.IX(i+1, j)] - this.v[this.IX(i-1, j)]) / (2 * h);
-                        // ∂v/∂y
-                        this.dv_dy[this.IX(i, j)] = (this.v[this.IX(i, j+1)] - this.v[this.IX(i, j-1)]) / (2 * h);
-                    }
-                }
-            }
-            
-            // Compute strain rate tensor (symmetric part of velocity gradient)
-            // S_ij = 1/2 * (∂u_i/∂x_j + ∂u_j/∂x_i)
-            computeStrainRate() {
-                const N = this.N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        const idx = this.IX(i, j);
-                        
-                        // S_xx = ∂u/∂x
-                        this.S_xx[idx] = this.du_dx[idx];
-                        
-                        // S_yy = ∂v/∂y
-                        this.S_yy[idx] = this.dv_dy[idx];
-                        
-                        // S_xy = S_yx = 1/2 * (∂u/∂y + ∂v/∂x)
-                        this.S_xy[idx] = 0.5 * (this.du_dy[idx] + this.dv_dx[idx]);
-                        
-                        // Strain rate magnitude: sqrt(2 * S_ij * S_ij)
-                        // For 2D: sqrt(2 * (S_xx² + S_yy² + 2*S_xy²))
-                        this.strainMagnitude[idx] = Math.sqrt(2 * (
-                            this.S_xx[idx] * this.S_xx[idx] +
-                            this.S_yy[idx] * this.S_yy[idx] +
-                            2 * this.S_xy[idx] * this.S_xy[idx]
-                        ));
-                    }
-                }
-            }
-            
-            // Compute rotation rate tensor (antisymmetric part of velocity gradient)
-            // Ω_ij = 1/2 * (∂u_i/∂x_j - ∂u_j/∂x_i)
-            computeRotationRate() {
-                const N = this.N;
-                
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        const idx = this.IX(i, j);
-                        
-                        // Ω_xy = -Ω_yx = 1/2 * (∂u/∂y - ∂v/∂x)
-                        // Note: This is equivalent to -1/2 * vorticity
-                        this.Omega_xy[idx] = 0.5 * (this.du_dy[idx] - this.dv_dx[idx]);
-                        
-                        // Rotation magnitude
-                        this.rotationMagnitude[idx] = Math.abs(this.Omega_xy[idx]);
-                    }
-                }
-            }
-            
-            // Compute all tensor decomposition fields
-            computeTensorDecomposition() {
-                this.computeVelocityGradient();
-                this.computeStrainRate();
-                this.computeRotationRate();
-            }
-            
-            // Update particle tracers
-            updateParticles() {
-                const N = this.N;
-                
-                for (let p of this.particles) {
-                    const i = Math.floor(p.x);
-                    const j = Math.floor(p.y);
-                    
-                    if (i >= 1 && i <= N && j >= 1 && j <= N) {
-                        const u = this.u[this.IX(i, j)];
-                        const v = this.v[this.IX(i, j)];
-                        
-                        p.x += u * this.dt * 5;
-                        p.y += v * this.dt * 5;
-                    }
-                    
-                    // Wrap around
-                    if (p.x < 0) p.x += N;
-                    if (p.x > N) p.x -= N;
-                    if (p.y < 0) p.y += N;
-                    if (p.y > N) p.y -= N;
-                    
-                    // Age particles
-                    p.life -= 0.002;
-                    if (p.life <= 0) {
-                        p.x = Math.random() * N;
-                        p.y = Math.random() * N;
-                        p.life = 1.0;
-                    }
-                }
-            }
-            
-            // Add force at position
             addForce(x, y, fx, fy, canvasWidth, canvasHeight) {
                 const N = this.N;
-                const i = Math.floor(x * N / canvasWidth);
-                const j = Math.floor(y * N / canvasHeight);
+                const i = Math.floor(x / canvasWidth * N) + 1;
+                const j = Math.floor(y / canvasHeight * N) + 1;
                 
-                if (i >= 1 && i <= N && j >= 1 && j <= N) {
-                    this.u_prev[this.IX(i, j)] += fx;
-                    this.v_prev[this.IX(i, j)] += fy;
+                if (i > 0 && i <= N && j > 0 && j <= N) {
+                    const radius = 3;
+                    for (let di = -radius; di <= radius; di++) {
+                        for (let dj = -radius; dj <= radius; dj++) {
+                            const ni = i + di;
+                            const nj = j + dj;
+                            if (ni > 0 && ni <= N && nj > 0 && nj <= N) {
+                                const dist = Math.sqrt(di * di + dj * dj);
+                                const falloff = Math.exp(-dist * dist / (radius * radius));
+                                this.u[this.IX(ni, nj)] += fx * falloff;
+                                this.v[this.IX(ni, nj)] += fy * falloff;
+                            }
+                        }
+                    }
                 }
             }
             
-            // Add vortex pair
             addVortexPair() {
                 const N = this.N;
-                const cx1 = N * 0.3;
-                const cy = N * 0.5;
-                const cx2 = N * 0.7;
-                const radius = N * 0.1;
-                const strength = 50;
+                const cx = N / 2;
+                const cy = N / 2;
+                const separation = N / 6;
+                const strength = 15;
+                const radius = N / 10;
                 
+                // Add two counter-rotating vortices
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
-                        // Left vortex (counterclockwise)
-                        const dx1 = i - cx1;
+                        // Vortex 1 (positive rotation)
+                        const dx1 = i - (cx - separation);
                         const dy1 = j - cy;
-                        const r1 = Math.sqrt(dx1*dx1 + dy1*dy1);
-                        if (r1 < radius && r1 > 0) {
-                            const theta1 = Math.atan2(dy1, dx1);
-                            this.u[this.IX(i, j)] += -strength * Math.sin(theta1) * (1 - r1/radius);
-                            this.v[this.IX(i, j)] += strength * Math.cos(theta1) * (1 - r1/radius);
-                        }
+                        const r1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+                        const theta1 = strength * Math.exp(-r1 * r1 / (radius * radius));
                         
-                        // Right vortex (clockwise)
-                        const dx2 = i - cx2;
+                        // Vortex 2 (negative rotation)
+                        const dx2 = i - (cx + separation);
                         const dy2 = j - cy;
-                        const r2 = Math.sqrt(dx2*dx2 + dy2*dy2);
-                        if (r2 < radius && r2 > 0) {
-                            const theta2 = Math.atan2(dy2, dx2);
-                            this.u[this.IX(i, j)] += strength * Math.sin(theta2) * (1 - r2/radius);
-                            this.v[this.IX(i, j)] += -strength * Math.cos(theta2) * (1 - r2/radius);
-                        }
+                        const r2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                        const theta2 = -strength * Math.exp(-r2 * r2 / (radius * radius));
+                        
+                        // Tangential velocity components
+                        this.u[this.IX(i, j)] += -dy1 * theta1 / (r1 + 1) - dy2 * theta2 / (r2 + 1);
+                        this.v[this.IX(i, j)] += dx1 * theta1 / (r1 + 1) + dx2 * theta2 / (r2 + 1);
+                    }
+                }
+            }
+            
+            addVortexAt(x, y, canvasWidth, canvasHeight) {
+                const N = this.N;
+                const cx = Math.floor(x / canvasWidth * N) + 1;
+                const cy = Math.floor(y / canvasHeight * N) + 1;
+                
+                if (cx < 1 || cx > N || cy < 1 || cy > N) return;
+                
+                const separation = N / 12;
+                const strength = 12;
+                const radius = N / 12;
+                
+                // Add two counter-rotating vortices centered at click location
+                for (let j = 1; j <= N; j++) {
+                    for (let i = 1; i <= N; i++) {
+                        // Vortex 1 (positive rotation) - left of click
+                        const dx1 = i - (cx - separation / 2);
+                        const dy1 = j - cy;
+                        const r1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+                        const theta1 = strength * Math.exp(-r1 * r1 / (radius * radius));
+                        
+                        // Vortex 2 (negative rotation) - right of click
+                        const dx2 = i - (cx + separation / 2);
+                        const dy2 = j - cy;
+                        const r2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                        const theta2 = -strength * Math.exp(-r2 * r2 / (radius * radius));
+                        
+                        // Tangential velocity components
+                        this.u[this.IX(i, j)] += -dy1 * theta1 / (r1 + 1) - dy2 * theta2 / (r2 + 1);
+                        this.v[this.IX(i, j)] += dx1 * theta1 / (r1 + 1) + dx2 * theta2 / (r2 + 1);
                     }
                 }
             }
@@ -844,50 +666,250 @@
                 this.density.fill(0);
                 this.density_prev.fill(0);
                 this.pressure.fill(0);
+                this.vorticity.fill(0);
+                this.divergence.fill(0);
+                this.initParticles();
+            }
+            
+            setBoundary(b, x) {
+                const N = this.N;
                 
-                // Reset particles
+                for (let i = 1; i <= N; i++) {
+                    x[this.IX(0, i)] = b === 1 ? -x[this.IX(1, i)] : x[this.IX(1, i)];
+                    x[this.IX(N + 1, i)] = b === 1 ? -x[this.IX(N, i)] : x[this.IX(N, i)];
+                    x[this.IX(i, 0)] = b === 2 ? -x[this.IX(i, 1)] : x[this.IX(i, 1)];
+                    x[this.IX(i, N + 1)] = b === 2 ? -x[this.IX(i, N)] : x[this.IX(i, N)];
+                }
+                
+                x[this.IX(0, 0)] = 0.5 * (x[this.IX(1, 0)] + x[this.IX(0, 1)]);
+                x[this.IX(0, N + 1)] = 0.5 * (x[this.IX(1, N + 1)] + x[this.IX(0, N)]);
+                x[this.IX(N + 1, 0)] = 0.5 * (x[this.IX(N, 0)] + x[this.IX(N + 1, 1)]);
+                x[this.IX(N + 1, N + 1)] = 0.5 * (x[this.IX(N, N + 1)] + x[this.IX(N + 1, N)]);
+            }
+            
+            linearSolve(b, x, x0, a, c, iterations) {
+                const N = this.N;
+                const cRecip = 1.0 / c;
+                
+                for (let k = 0; k < iterations; k++) {
+                    for (let j = 1; j <= N; j++) {
+                        for (let i = 1; i <= N; i++) {
+                            x[this.IX(i, j)] = (x0[this.IX(i, j)] + a * (
+                                x[this.IX(i + 1, j)] +
+                                x[this.IX(i - 1, j)] +
+                                x[this.IX(i, j + 1)] +
+                                x[this.IX(i, j - 1)]
+                            )) * cRecip;
+                        }
+                    }
+                    this.setBoundary(b, x);
+                }
+            }
+            
+            diffuse(b, x, x0, diff, iterations) {
+                const N = this.N;
+                const a = this.dt * diff * N * N;
+                this.linearSolve(b, x, x0, a, 1 + 4 * a, iterations);
+            }
+            
+            advect(b, d, d0, u, v) {
+                const N = this.N;
+                const dt0 = this.dt * N;
+                
+                for (let j = 1; j <= N; j++) {
+                    for (let i = 1; i <= N; i++) {
+                        let x = i - dt0 * u[this.IX(i, j)];
+                        let y = j - dt0 * v[this.IX(i, j)];
+                        
+                        if (x < 0.5) x = 0.5;
+                        if (x > N + 0.5) x = N + 0.5;
+                        const i0 = Math.floor(x);
+                        const i1 = i0 + 1;
+                        
+                        if (y < 0.5) y = 0.5;
+                        if (y > N + 0.5) y = N + 0.5;
+                        const j0 = Math.floor(y);
+                        const j1 = j0 + 1;
+                        
+                        const s1 = x - i0;
+                        const s0 = 1 - s1;
+                        const t1 = y - j0;
+                        const t0 = 1 - t1;
+                        
+                        d[this.IX(i, j)] =
+                            s0 * (t0 * d0[this.IX(i0, j0)] + t1 * d0[this.IX(i0, j1)]) +
+                            s1 * (t0 * d0[this.IX(i1, j0)] + t1 * d0[this.IX(i1, j1)]);
+                    }
+                }
+                
+                this.setBoundary(b, d);
+            }
+            
+            project() {
+                const N = this.N;
+                const h = 1.0 / N;
+                
+                // Compute divergence
+                for (let j = 1; j <= N; j++) {
+                    for (let i = 1; i <= N; i++) {
+                        this.divergence[this.IX(i, j)] = -0.5 * h * (
+                            this.u[this.IX(i + 1, j)] - this.u[this.IX(i - 1, j)] +
+                            this.v[this.IX(i, j + 1)] - this.v[this.IX(i, j - 1)]
+                        );
+                        this.pressure[this.IX(i, j)] = 0;
+                    }
+                }
+                
+                this.setBoundary(0, this.divergence);
+                this.setBoundary(0, this.pressure);
+                
+                // Solve pressure Poisson equation
+                this.linearSolve(0, this.pressure, this.divergence, 1, 4, this.pressureIterations);
+                
+                // Subtract pressure gradient (Helmholtz-Hodge)
+                for (let j = 1; j <= N; j++) {
+                    for (let i = 1; i <= N; i++) {
+                        this.u[this.IX(i, j)] -= 0.5 * (this.pressure[this.IX(i + 1, j)] - this.pressure[this.IX(i - 1, j)]) * N;
+                        this.v[this.IX(i, j)] -= 0.5 * (this.pressure[this.IX(i, j + 1)] - this.pressure[this.IX(i, j - 1)]) * N;
+                    }
+                }
+                
+                this.setBoundary(1, this.u);
+                this.setBoundary(2, this.v);
+            }
+            
+            computeVelocityGradientTensor() {
+                const N = this.N;
+                const h = 1.0 / N;
+                
+                for (let j = 1; j <= N; j++) {
+                    for (let i = 1; i <= N; i++) {
+                        const idx = this.IX(i, j);
+                        
+                        // Velocity gradient tensor components (central differences)
+                        this.du_dx[idx] = (this.u[this.IX(i + 1, j)] - this.u[this.IX(i - 1, j)]) / (2 * h);
+                        this.du_dy[idx] = (this.u[this.IX(i, j + 1)] - this.u[this.IX(i, j - 1)]) / (2 * h);
+                        this.dv_dx[idx] = (this.v[this.IX(i + 1, j)] - this.v[this.IX(i - 1, j)]) / (2 * h);
+                        this.dv_dy[idx] = (this.v[this.IX(i, j + 1)] - this.v[this.IX(i, j - 1)]) / (2 * h);
+                        
+                        // Strain rate tensor (symmetric part): S = 1/2 * (∇u + ∇uᵀ)
+                        this.S_xx[idx] = this.du_dx[idx];
+                        this.S_yy[idx] = this.dv_dy[idx];
+                        this.S_xy[idx] = 0.5 * (this.du_dy[idx] + this.dv_dx[idx]);
+                        
+                        // Rotation rate tensor (antisymmetric part): Ω = 1/2 * (∇u - ∇uᵀ)
+                        this.Omega_xy[idx] = 0.5 * (this.dv_dx[idx] - this.du_dy[idx]);
+                        
+                        // Vorticity (z-component of curl in 2D = 2 * Ω_xy)
+                        this.vorticity[idx] = this.dv_dx[idx] - this.du_dy[idx];
+                        
+                        // Strain rate magnitude: ||S|| = sqrt(2 * S_ij * S_ij)
+                        this.strainMagnitude[idx] = Math.sqrt(
+                            2 * (this.S_xx[idx] * this.S_xx[idx] + 
+                                 2 * this.S_xy[idx] * this.S_xy[idx] + 
+                                 this.S_yy[idx] * this.S_yy[idx])
+                        );
+                        
+                        // Rotation rate magnitude: |Ω_xy|
+                        this.rotationMagnitude[idx] = Math.abs(this.Omega_xy[idx]);
+                    }
+                }
+            }
+            
+            advectParticles() {
+                const N = this.N;
+                
                 for (let p of this.particles) {
-                    p.x = Math.random() * this.N;
-                    p.y = Math.random() * this.N;
-                    p.life = Math.random();
+                    // Get velocity at particle position (bilinear interpolation)
+                    const i = Math.floor(p.x);
+                    const j = Math.floor(p.y);
+                    
+                    if (i < 1 || i >= N || j < 1 || j >= N) {
+                        // Reset particle
+                        p.x = Math.random() * N;
+                        p.y = Math.random() * N;
+                        p.life = 1;
+                        continue;
+                    }
+                    
+                    const s = p.x - i;
+                    const t = p.y - j;
+                    
+                    const u00 = this.u[this.IX(i, j)];
+                    const u10 = this.u[this.IX(i + 1, j)];
+                    const u01 = this.u[this.IX(i, j + 1)];
+                    const u11 = this.u[this.IX(i + 1, j + 1)];
+                    
+                    const v00 = this.v[this.IX(i, j)];
+                    const v10 = this.v[this.IX(i + 1, j)];
+                    const v01 = this.v[this.IX(i, j + 1)];
+                    const v11 = this.v[this.IX(i + 1, j + 1)];
+                    
+                    const u = (1 - s) * (1 - t) * u00 + s * (1 - t) * u10 + (1 - s) * t * u01 + s * t * u11;
+                    const v = (1 - s) * (1 - t) * v00 + s * (1 - t) * v10 + (1 - s) * t * v01 + s * t * v11;
+                    
+                    p.x += u * this.dt * 5;
+                    p.y += v * this.dt * 5;
+                    
+                    p.life -= 0.002;
+                    
+                    if (p.life <= 0 || p.x < 0 || p.x > N || p.y < 0 || p.y > N) {
+                        p.x = Math.random() * N;
+                        p.y = Math.random() * N;
+                        p.life = 1;
+                    }
                 }
             }
             
             step() {
-                this.vel_step();
-                this.computeVorticity();
-                this.computeDivergence();
-                this.computeTensorDecomposition();
-                this.updateParticles();
+                // Diffuse velocity
+                this.u_prev.set(this.u);
+                this.v_prev.set(this.v);
+                
+                this.diffuse(1, this.u, this.u_prev, this.visc, this.diffusionIterations);
+                this.diffuse(2, this.v, this.v_prev, this.visc, this.diffusionIterations);
+                
+                this.project();
+                
+                // Advect velocity
+                this.u_prev.set(this.u);
+                this.v_prev.set(this.v);
+                
+                this.advect(1, this.u, this.u_prev, this.u_prev, this.v_prev);
+                this.advect(2, this.v, this.v_prev, this.u_prev, this.v_prev);
+                
+                this.project();
+                
+                // Compute derived quantities
+                this.computeVelocityGradientTensor();
+                
+                // Advect particles
+                this.advectParticles();
             }
         }
         
-        // Renderer
+        // Fluid Renderer
         class FluidRenderer {
             constructor(canvas, fluid) {
                 this.canvas = canvas;
-                this.fluid = fluid;
                 this.ctx = canvas.getContext('2d');
+                this.fluid = fluid;
                 this.mode = 'velocity';
                 
-                this.resizeCanvas();
-                window.addEventListener('resize', () => this.resizeCanvas());
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
             }
             
-            resizeCanvas() {
-                const N = this.fluid.N;
-                // Set canvas to match simulation grid for 1:1 pixel mapping
-                this.canvas.width = N;
-                this.canvas.height = N;
+            resize() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
             }
             
             render() {
-                const N = this.fluid.N;
-                const cellSize = this.canvas.width / N;
+                const cellSize = this.canvas.width / this.fluid.N;
                 
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                switch(this.mode) {
+                switch (this.mode) {
                     case 'velocity':
                         this.renderVelocityField(cellSize);
                         break;
@@ -936,7 +958,7 @@
                         const v = this.fluid.v[this.fluid.IX(i, j)];
                         const vel = Math.sqrt(u*u + v*v);
                         
-                        const intensity = Math.min(1, vel / (maxVel * 0.5));
+                        const intensity = Math.min(1, vel / (maxVel * 0.5 || 1));
                         
                         // Color based on direction and magnitude
                         const angle = Math.atan2(v, u);
@@ -1177,8 +1199,11 @@
                         // Eigenvalues of strain rate tensor
                         const trace = S_xx + S_yy;
                         const det = S_xx * S_yy - S_xy * S_xy;
-                        const lambda1 = 0.5 * (trace + Math.sqrt(trace * trace - 4 * det));
-                        const lambda2 = 0.5 * (trace - Math.sqrt(trace * trace - 4 * det));
+                        const discriminant = trace * trace - 4 * det;
+                        if (discriminant < 0) continue;
+                        
+                        const lambda1 = 0.5 * (trace + Math.sqrt(discriminant));
+                        const lambda2 = 0.5 * (trace - Math.sqrt(discriminant));
                         
                         const angle = 0.5 * Math.atan2(2 * S_xy, S_xx - S_yy);
                         
@@ -1203,10 +1228,11 @@
                 const imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
                 const data = imageData.data;
                 
+                // Find max rotation rate
                 let maxRot = 0;
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
-                        const rot = this.fluid.rotationMagnitude[this.fluid.IX(i, j)];
+                        const rot = Math.abs(this.fluid.Omega_xy[this.fluid.IX(i, j)]);
                         if (rot > maxRot) maxRot = rot;
                     }
                 }
@@ -1214,17 +1240,17 @@
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
                         const idx = this.fluid.IX(i, j);
-                        const omega = this.fluid.Omega_xy[idx];
-                        const norm = Math.abs(omega) / (maxRot || 1);
+                        const rot = this.fluid.Omega_xy[idx];
+                        const norm = Math.min(1, Math.abs(rot) / (maxRot * 0.5 || 1));
                         
                         let r, g, b;
-                        if (omega > 0) {
-                            // Positive rotation (counterclockwise) - cyan/blue
+                        if (rot > 0) {
+                            // Positive (counterclockwise) - cyan/blue
                             r = 0;
                             g = Math.floor(norm * 217);
                             b = Math.floor(norm * 255);
                         } else {
-                            // Negative rotation (clockwise) - magenta/red
+                            // Negative (clockwise) - magenta/red
                             r = Math.floor(norm * 255);
                             g = 0;
                             b = Math.floor(norm * 110);
@@ -1254,33 +1280,35 @@
                 const imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
                 const data = imageData.data;
                 
-                // Find max values
+                // Find max values for normalization
                 let maxStrain = 0, maxRot = 0;
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
-                        const strain = this.fluid.strainMagnitude[this.fluid.IX(i, j)];
-                        const rot = this.fluid.rotationMagnitude[this.fluid.IX(i, j)];
+                        const idx = this.fluid.IX(i, j);
+                        const strain = this.fluid.strainMagnitude[idx];
+                        const rot = Math.abs(this.fluid.Omega_xy[idx]);
                         if (strain > maxStrain) maxStrain = strain;
                         if (rot > maxRot) maxRot = rot;
                     }
                 }
                 
-                // Visualize strain (green) vs rotation (magenta/cyan)
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
                         const idx = this.fluid.IX(i, j);
-                        const strain = this.fluid.strainMagnitude[idx] / (maxStrain || 1);
-                        const omega = this.fluid.Omega_xy[idx];
-                        const rot = Math.abs(omega) / (maxRot || 1);
+                        const strain = this.fluid.strainMagnitude[idx];
+                        const rot = this.fluid.Omega_xy[idx];
                         
-                        // RGB decomposition:
-                        // R: Clockwise rotation (negative omega)
-                        // G: Strain (deformation)
-                        // B: Counterclockwise rotation (positive omega)
+                        // Normalize
+                        const strainNorm = Math.min(1, strain / (maxStrain * 0.5 || 1));
+                        const rotNorm = Math.min(1, Math.abs(rot) / (maxRot * 0.5 || 1));
                         
-                        const r = omega < 0 ? Math.floor(rot * 255) : 0;
-                        const g = Math.floor(strain * 217);
-                        const b = omega > 0 ? Math.floor(rot * 255) : 0;
+                        // RGB encoding:
+                        // R = clockwise rotation (negative Omega_xy)
+                        // G = strain magnitude
+                        // B = counterclockwise rotation (positive Omega_xy)
+                        const r = rot < 0 ? Math.floor(rotNorm * 255) : 0;
+                        const g = Math.floor(strainNorm * 217);
+                        const b = rot > 0 ? Math.floor(rotNorm * 255) : 0;
                         
                         for (let dy = 0; dy < cellSize; dy++) {
                             for (let dx = 0; dx < cellSize; dx++) {
@@ -1298,7 +1326,7 @@
                 }
                 
                 this.ctx.putImageData(imageData, 0, 0);
-                this.drawLegend('vorticity-decomp');
+                this.drawLegend('decomposition');
             }
             
             drawLegend(mode) {
@@ -1308,16 +1336,22 @@
                 const legendY = 20;
                 const padding = 10;
                 
+                // Calculate box height based on mode
+                let boxHeight = legendHeight + 50;
+                if (mode === 'decomposition') {
+                    boxHeight = 100; // Taller for RGB decomposition
+                }
+                
                 // Background
-                this.ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
+                this.ctx.fillStyle = 'rgba(10, 14, 23, 0.9)';
                 this.ctx.fillRect(legendX - padding, legendY - padding, 
-                                 legendWidth + 2*padding, legendHeight + 50);
+                                 legendWidth + 2*padding, boxHeight);
                 
                 // Border
-                this.ctx.strokeStyle = 'rgba(0, 217, 255, 0.3)';
+                this.ctx.strokeStyle = 'rgba(0, 217, 255, 0.5)';
                 this.ctx.lineWidth = 1;
                 this.ctx.strokeRect(legendX - padding, legendY - padding, 
-                                   legendWidth + 2*padding, legendHeight + 50);
+                                   legendWidth + 2*padding, boxHeight);
                 
                 if (mode === 'velocity' || mode === 'speed') {
                     // Velocity gradient (blue to red)
@@ -1335,15 +1369,14 @@
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
                     this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
-                    this.ctx.fillText(mode === 'velocity' ? 'Velocity Magnitude' : 'Speed', 
-                                     legendX + 30, legendY + legendHeight + 30);
+                    this.ctx.fillText('Velocity |u|', legendX + 55, legendY + legendHeight + 32);
                     
                 } else if (mode === 'vorticity') {
-                    // Vorticity gradient - matches actual rendering: magenta (clockwise) to black to cyan (counterclockwise)
+                    // Vorticity gradient
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(255, 0, 255)');  // Magenta for negative (clockwise)
-                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');     // Black for zero
-                    gradient.addColorStop(1, 'rgb(0, 255, 255)');   // Cyan for positive (counterclockwise)
+                    gradient.addColorStop(0, 'rgb(255, 0, 255)');
+                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');
+                    gradient.addColorStop(1, 'rgb(0, 255, 255)');
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1353,11 +1386,11 @@
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('CW', legendX, legendY + legendHeight + 15);
                     this.ctx.fillText('0', legendX + legendWidth/2 - 5, legendY + legendHeight + 15);
-                    this.ctx.fillText('CCW', legendX + legendWidth - 20, legendY + legendHeight + 15);
-                    this.ctx.fillText('Vorticity (curl)', legendX + 50, legendY + legendHeight + 30);
+                    this.ctx.fillText('CCW', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Vorticity ω = ∇×u', legendX + 35, legendY + legendHeight + 32);
                     
                 } else if (mode === 'divergence') {
-                    // Divergence gradient - matches actual rendering: grayscale
+                    // Divergence gradient
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
                     gradient.addColorStop(0, 'rgb(0, 0, 0)');
                     gradient.addColorStop(1, 'rgb(255, 255, 255)');
@@ -1370,10 +1403,10 @@
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
                     this.ctx.fillText('Max |∇·u|', legendX + legendWidth - 55, legendY + legendHeight + 15);
-                    this.ctx.fillText('Divergence (∇·u)', legendX + 45, legendY + legendHeight + 30);
+                    this.ctx.fillText('Divergence ∇·u', legendX + 40, legendY + legendHeight + 32);
                     
                 } else if (mode === 'pressure') {
-                    // Pressure gradient - matches actual rendering: low=blue, high=red
+                    // Pressure gradient
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
                     gradient.addColorStop(0, 'rgb(0, 0, 255)');
                     gradient.addColorStop(1, 'rgb(255, 0, 0)');
@@ -1386,12 +1419,11 @@
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('Low', legendX, legendY + legendHeight + 15);
                     this.ctx.fillText('High', legendX + legendWidth - 25, legendY + legendHeight + 15);
-                    this.ctx.fillText('Pressure', legendX + 70, legendY + legendHeight + 30);
+                    this.ctx.fillText('Pressure p', legendX + 60, legendY + legendHeight + 32);
                     
                 } else if (mode === 'strain') {
-                    // Strain gradient - HSL color wheel showing principal strain direction
+                    // Strain gradient - HSL color wheel
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    // Full HSL hue cycle at 50% lightness
                     for (let i = 0; i <= 10; i++) {
                         const hue = (i / 10) * 360;
                         const rgb = this.hslToRgb(hue / 360, 1, 0.5);
@@ -1405,15 +1437,15 @@
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('0°', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('180°', legendX + legendWidth - 20, legendY + legendHeight + 15);
-                    this.ctx.fillText('Strain Direction', legendX + 50, legendY + legendHeight + 30);
+                    this.ctx.fillText('180°', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Strain S = ½(∇u+∇uᵀ)', legendX + 20, legendY + legendHeight + 32);
                     
                 } else if (mode === 'rotation') {
-                    // Rotation gradient - matches actual rendering
+                    // Rotation gradient
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
-                    gradient.addColorStop(0, 'rgb(255, 0, 110)');   // Magenta/red for clockwise
-                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');      // Black for zero
-                    gradient.addColorStop(1, 'rgb(0, 217, 255)');    // Cyan/blue for counterclockwise
+                    gradient.addColorStop(0, 'rgb(255, 0, 110)');
+                    gradient.addColorStop(0.5, 'rgb(0, 0, 0)');
+                    gradient.addColorStop(1, 'rgb(0, 217, 255)');
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1422,15 +1454,15 @@
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
                     this.ctx.fillText('CW', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('CCW', legendX + legendWidth - 20, legendY + legendHeight + 15);
-                    this.ctx.fillText('Rotation Rate', legendX + 55, legendY + legendHeight + 30);
+                    this.ctx.fillText('CCW', legendX + legendWidth - 25, legendY + legendHeight + 15);
+                    this.ctx.fillText('Rotation Ω = ½(∇u−∇uᵀ)', legendX + 15, legendY + legendHeight + 32);
                     
-                } else if (mode === 'vorticity-decomp') {
+                } else if (mode === 'decomposition') {
                     // RGB decomposition legend - show three separate bars
-                    const barHeight = 12;
-                    const spacing = 3;
+                    const barHeight = 14;
+                    const spacing = 4;
                     
-                    // Red bar (clockwise)
+                    // Red bar (clockwise rotation)
                     const redGradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
                     redGradient.addColorStop(0, 'rgb(0, 0, 0)');
                     redGradient.addColorStop(1, 'rgb(255, 0, 0)');
@@ -1447,16 +1479,16 @@
                     // Blue bar (counterclockwise)
                     const blueGradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
                     blueGradient.addColorStop(0, 'rgb(0, 0, 0)');
-                    blueGradient.addColorStop(1, 'rgb(0, 0, 255)');
+                    blueGradient.addColorStop(1, 'rgb(0, 100, 255)');
                     this.ctx.fillStyle = blueGradient;
                     this.ctx.fillRect(legendX, legendY + 2*(barHeight + spacing), legendWidth, barHeight);
                     
                     // Labels
                     this.ctx.font = '9px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('R: Clockwise', legendX, legendY + 3*barHeight + 2*spacing + 12);
-                    this.ctx.fillText('G: Strain', legendX, legendY + 3*barHeight + 2*spacing + 23);
-                    this.ctx.fillText('B: Counter-CW', legendX, legendY + 3*barHeight + 2*spacing + 34);
+                    this.ctx.fillText('R: Clockwise Ω', legendX, legendY + 3*barHeight + 2*spacing + 12);
+                    this.ctx.fillText('G: Strain |S|', legendX, legendY + 3*barHeight + 2*spacing + 24);
+                    this.ctx.fillText('B: Counter-CW Ω', legendX, legendY + 3*barHeight + 2*spacing + 36);
                 }
             }
             
@@ -1495,6 +1527,8 @@
         let isMouseDown = false;
         let lastX = 0, lastY = 0;
         let forceMagnitude = 50;
+        let clickStartTime = 0;
+        let clickStartX = 0, clickStartY = 0;
         
         // Mouse interaction
         canvas.addEventListener('mousedown', (e) => {
@@ -1502,6 +1536,9 @@
             const rect = canvas.getBoundingClientRect();
             lastX = e.clientX - rect.left;
             lastY = e.clientY - rect.top;
+            clickStartX = lastX;
+            clickStartY = lastY;
+            clickStartTime = Date.now();
         });
         
         canvas.addEventListener('mousemove', (e) => {
@@ -1514,13 +1551,30 @@
             const dx = x - lastX;
             const dy = y - lastY;
             
-            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
+            // Only apply force if we've moved significantly (not a click)
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
+            }
             
             lastX = x;
             lastY = y;
         });
         
-        canvas.addEventListener('mouseup', () => {
+        canvas.addEventListener('mouseup', (e) => {
+            if (isMouseDown) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Check if this was a click (short duration, little movement)
+                const duration = Date.now() - clickStartTime;
+                const distance = Math.sqrt(Math.pow(x - clickStartX, 2) + Math.pow(y - clickStartY, 2));
+                
+                if (duration < 200 && distance < 10) {
+                    // This was a click - add vortex pair at location
+                    fluid.addVortexAt(x, y, canvas.width, canvas.height);
+                }
+            }
             isMouseDown = false;
         });
         
@@ -1535,6 +1589,9 @@
             const touch = e.touches[0];
             lastX = touch.clientX - rect.left;
             lastY = touch.clientY - rect.top;
+            clickStartX = lastX;
+            clickStartY = lastY;
+            clickStartTime = Date.now();
             isMouseDown = true;
         });
         
@@ -1550,13 +1607,23 @@
             const dx = x - lastX;
             const dy = y - lastY;
             
-            fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                fluid.addForce(x, y, dx * forceMagnitude * 0.1, dy * forceMagnitude * 0.1, canvas.width, canvas.height);
+            }
             
             lastX = x;
             lastY = y;
         });
         
-        canvas.addEventListener('touchend', () => {
+        canvas.addEventListener('touchend', (e) => {
+            if (isMouseDown) {
+                const duration = Date.now() - clickStartTime;
+                
+                if (duration < 200) {
+                    // This was a tap - add vortex pair at location
+                    fluid.addVortexAt(clickStartX, clickStartY, canvas.width, canvas.height);
+                }
+            }
             isMouseDown = false;
         });
         
