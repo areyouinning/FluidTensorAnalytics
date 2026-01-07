@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disc Flight Simulator | Fluid Tensor Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0d12;
+            --bg-card: #111820;
+            --bg-elevated: #1a2230;
+            --bg-input: #0d1117;
+            --text-primary: #e8edf5;
+            --text-secondary: #8a9bb0;
+            --text-dim: #5a6a7a;
+            --accent-cyan: #00d4ff;
+            --accent-orange: #ff6b35;
+            --accent-green: #58d68d;
+            --accent-yellow: #f4d03f;
+            --accent-red: #e74c3c;
+            --border-subtle: rgba(255,255,255,0.08);
+            --glow-cyan: rgba(0, 212, 255, 0.12);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Noise texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.025;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        /* Header */
+        header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(10, 13, 18, 0.95);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-inner {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        
+        .logo span { color: var(--text-secondary); }
+        
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-left: 1.5rem;
+            transition: color 0.2s;
+        }
+        
+        nav a:hover { color: var(--text-primary); }
+        
+        /* Main layout */
+        .simulator-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+        
+        @media (max-width: 1100px) {
+            .simulator-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+        
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+        }
+        
+        .control-label label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        .control-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-orange);
+            min-width: 70px;
+            text-align: right;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 2px 12px rgba(0, 212, 255, 0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* Toggle buttons */
+        .toggle-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .toggle-btn:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        
+        .toggle-btn.active {
+            background: var(--accent-cyan);
+            color: var(--bg-deep);
+            border-color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        
+        .toggle-btn.active.rhfh {
+            background: var(--accent-orange);
+            border-color: var(--accent-orange);
+        }
+        
+        /* Run button */
+        .run-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-cyan), #0099cc);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-deep);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            letter-spacing: 0.03em;
+        }
+        
+        .run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+        
+        .run-btn:active {
+            transform: translateY(0);
+        }
+        
+        .run-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Preset buttons */
+        .preset-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+        
+        .preset-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+        }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .preset-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--accent-cyan);
+        }
+        
+        /* Visualization area */
+        .viz-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Canvas container */
+        .canvas-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .canvas-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .canvas-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .phase-indicator {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            background: var(--bg-elevated);
+        }
+        
+        .phase-indicator.rising { color: var(--accent-green); }
+        .phase-indicator.apex { color: var(--accent-yellow); }
+        .phase-indicator.falling { color: var(--accent-red); }
+        
+        .canvas-wrap {
+            position: relative;
+            background: linear-gradient(180deg, #0d1117 0%, #151d28 100%);
+        }
+        
+        #flightCanvas {
+            display: block;
+            width: 100%;
+            height: 500px;
+        }
+        
+        /* Playback controls */
+        .playback-controls {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .play-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-cyan);
+            color: var(--bg-deep);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+        
+        .play-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .timeline {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .timeline-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .timeline-progress {
+            height: 100%;
+            background: var(--accent-cyan);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+        
+        .timeline-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            min-width: 45px;
+        }
+        
+        /* Speed control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .speed-btn {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .speed-btn:hover, .speed-btn.active {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        
+        .speed-btn.active {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .stat-value.cyan { color: var(--accent-cyan); }
+        .stat-value.orange { color: var(--accent-orange); }
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.yellow { color: var(--accent-yellow); }
+        
+        .stat-unit {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 0.25rem;
+        }
+        
+        /* Charts row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 900px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+        
+        .chart-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .chart-body {
+            padding: 1rem;
+            height: 200px;
+        }
+        
+        .chart-body canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* HUD overlay */
+        .hud-overlay {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(17, 24, 32, 0.92);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.7;
+            backdrop-filter: blur(8px);
+        }
+        
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+        
+        .hud-label {
+            color: var(--text-dim);
+        }
+        
+        .hud-val {
+            color: var(--text-primary);
+            text-align: right;
+        }
+        
+        /* Footer */
+        footer {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border-subtle);
+        }
+        
+        footer p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+        
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .simulator-container {
+                padding: 1rem;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+            
+            #flightCanvas {
+                height: 350px;
+            }
+            
+            nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <a href="index.html" class="logo">FLUID<span>TENSOR</span>ANALYTICS</a>
+            <nav>
+                <a href="disc-flight-physics.html">Flight Physics</a>
+                <a href="weather-map.html">Weather</a>
+                <a href="optimal-channel-networks-v8.html">Networks</a>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="simulator-container">
+        <!-- Control Panel -->
+        <aside class="control-panel">
+            <div class="panel-title">Flight Parameters</div>
+            
+            <!-- Throw type -->
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Throw Type</label>
+                </div>
+                <div class="toggle-group">
+                    <button class="toggle-btn active" data-spin="ccw" id="btnRHBH">RHBH</button>
+                    <button class="toggle-btn rhfh" data-spin="cw" id="btnRHFH">RHFH</button>
+                </div>
+            </div>
+            
+            <!-- Speed -->
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Initial Speed</label>
+                    <span class="control-value" id="speedValue">50 mph</span>
+                </div>
+                <input type="range" id="speedSlider" min="30" max="75" value="50" step="1">
+            </div>
+            
+            <!-- Spin rate -->
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Spin Rate</label>
+                    <span class="control-value" id="spinValue">1000 rpm</span>
+                </div>
+                <input type="range" id="spinSlider" min="400" max="1800" value="1000" step="50">
+            </div>
+            
+            <!-- Release angle -->
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Release Angle</label>
+                    <span class="control-value" id="angleValue">10°</span>
+                </div>
+                <input type="range" id="angleSlider" min="-5" max="25" value="10" step="1">
+            </div>
+            
+            <!-- Initial roll (hyzer/anhyzer) -->
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Initial Roll (Hyzer/Anhyzer)</label>
+                    <span class="control-value" id="rollValue">0°</span>
+                </div>
+                <input type="range" id="rollSlider" min="-30" max="30" value="0" step="1">
+                <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 0.25rem;">
+                    <span>Anhyzer</span>
+                    <span>Hyzer</span>
+                </div>
+            </div>
+            
+            <!-- Run button -->
+            <button class="run-btn" id="runBtn">
+                ▶ Run Simulation
+            </button>
+            
+            <!-- Presets -->
+            <div class="preset-section">
+                <div class="preset-label">Presets</div>
+                <div class="preset-grid">
+                    <button class="preset-btn" data-preset="hyzer">Hyzer Shot</button>
+                    <button class="preset-btn" data-preset="anhyzer">Anhyzer Flip</button>
+                    <button class="preset-btn" data-preset="power">Power Drive</button>
+                    <button class="preset-btn" data-preset="touch">Touch Shot</button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Visualization Area -->
+        <div class="viz-area">
+            <!-- Main canvas -->
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <span class="canvas-title">View from Behind · <span id="throwTypeLabel">RHBH / LHFH</span></span>
+                    <span class="phase-indicator rising" id="phaseIndicator">READY</span>
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="flightCanvas"></canvas>
+                    <div class="hud-overlay" id="hud">
+                        <div class="hud-row"><span class="hud-label">t</span><span class="hud-val" id="hudTime">0.00 s</span></div>
+                        <div class="hud-row"><span class="hud-label">h</span><span class="hud-val" id="hudHeight">1.5 m</span></div>
+                        <div class="hud-row"><span class="hud-label">V</span><span class="hud-val" id="hudSpeed">22.4 m/s</span></div>
+                        <div class="hud-row"><span class="hud-label">α</span><span class="hud-val" id="hudAlpha">-10.0°</span></div>
+                        <div class="hud-row"><span class="hud-label">φ</span><span class="hud-val" id="hudRoll">0.0°</span></div>
+                        <div class="hud-row"><span class="hud-label">C<sub>M</sub></span><span class="hud-val" id="hudCM">-0.040</span></div>
+                    </div>
+                </div>
+                <div class="playback-controls">
+                    <button class="play-btn" id="playBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                    <div class="timeline">
+                        <div class="timeline-bar" id="timelineBar">
+                            <div class="timeline-progress" id="timelineProgress"></div>
+                        </div>
+                        <span class="timeline-time" id="timelineTime">0.0 / 0.0s</span>
+                    </div>
+                    <div class="speed-control">
+                        <button class="speed-btn" data-speed="0.25">0.25×</button>
+                        <button class="speed-btn" data-speed="0.5">0.5×</button>
+                        <button class="speed-btn active" data-speed="1">1×</button>
+                        <button class="speed-btn" data-speed="2">2×</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Flight Distance</div>
+                    <div class="stat-value cyan" id="statDistance">—<span class="stat-unit">m</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Max Height</div>
+                    <div class="stat-value green" id="statMaxHeight">—<span class="stat-unit">m</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Flight Time</div>
+                    <div class="stat-value orange" id="statFlightTime">—<span class="stat-unit">s</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Final Roll</div>
+                    <div class="stat-value yellow" id="statFinalRoll">—<span class="stat-unit">°</span></div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">Trajectory (Top View)</div>
+                    <div class="chart-body">
+                        <canvas id="trajectoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">Roll Angle vs Time</div>
+                    <div class="chart-body">
+                        <canvas id="rollChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>
+            Fluid Tensor Analytics · Based on Giljarhus et al. (2022) · 
+            <a href="https://github.com/areyouinning/FluidTensorAnalytics">GitHub</a>
+        </p>
+    </footer>
+
+    <script>
+    // ============================================================
+    // DISC FLIGHT SIMULATOR - JavaScript Implementation
+    // Giljarhus et al. (2022) rigid body dynamics model
+    // ============================================================
+
+    class DiscFlightSimulator {
+        constructor() {
+            // Physical constants
+            this.m = 0.175;           // kg
+            this.R = 0.1055;          // m
+            this.D = 2 * this.R;      // m
+            this.S = Math.PI * this.R * this.R;  // m²
+            this.rho = 1.225;         // kg/m³
+            this.g = 9.81;            // m/s²
+            
+            // Moments of inertia
+            this.I_xy = 0.00121;      // kg·m² (roll/pitch)
+            this.I_z = 0.00235;       // kg·m² (spin)
+            this.dI = this.I_xy - this.I_z;  // Negative for disc
+            
+            // Aerodynamic coefficients
+            this.CL0 = 0.15;
+            this.CLa = 2.5;           // per radian
+            this.CD0 = 0.08;
+            this.CDa = 0.20;
+            this.CM0 = -0.015;
+            this.CMa = 0.25;          // per radian
+        }
+        
+        computeAlpha(vel) {
+            const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+            if (vMag < 0.1) return 0;
+            return -Math.atan2(vel[2], vel[0]);
+        }
+        
+        simulate(params) {
+            const {
+                V0_mph = 50,
+                spin_rpm = 1000,
+                release_angle_deg = 10,
+                initial_roll_deg = 0,
+                spin_cw_from_above = false,
+                dt = 0.004,
+                max_time = 5.0
+            } = params;
+            
+            // Convert units
+            const V0 = V0_mph * 0.44704;  // m/s
+            let omega = spin_rpm * 2 * Math.PI / 60;  // rad/s
+            
+            // Spin direction
+            if (spin_cw_from_above) {
+                omega = -Math.abs(omega);
+            } else {
+                omega = Math.abs(omega);
+            }
+            
+            // Initial state
+            const releaseRad = release_angle_deg * Math.PI / 180;
+            const initialRollRad = initial_roll_deg * Math.PI / 180;
+            
+            let pos = [0, 0, 1.5];
+            let vel = [
+                V0 * Math.cos(releaseRad),
+                0,
+                V0 * Math.sin(releaseRad)
+            ];
+            let roll = initialRollRad;
+            
+            // Storage
+            const history = {
+                time: [],
+                pos: [],
+                vel: [],
+                roll: [],
+                roll_rate: [],
+                alpha: [],
+                CM: [],
+                omega: [],
+                CL: [],
+                CD: []
+            };
+            
+            const nSteps = Math.floor(max_time / dt);
+            
+            for (let i = 0; i < nSteps; i++) {
+                const t = i * dt;
+                
+                // Check landing
+                if (pos[2] <= 0 && i > 0) break;
+                
+                const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+                if (vMag < 1.0) break;
+                
+                // Angle of attack
+                let alpha = this.computeAlpha(vel);
+                alpha = Math.max(-30 * Math.PI/180, Math.min(30 * Math.PI/180, alpha));
+                
+                // Aerodynamic coefficients
+                let CL = this.CL0 + this.CLa * alpha;
+                CL = Math.max(-0.5, Math.min(1.5, CL));
+                const CD = this.CD0 + this.CDa * alpha * alpha;
+                const CM = this.CM0 + this.CMa * alpha;
+                
+                // Dynamic pressure
+                const q = 0.5 * this.rho * vMag * vMag;
+                
+                // Disc normal (simplified)
+                const cr = Math.cos(roll);
+                const sr = Math.sin(roll);
+                let zDisc = [0, -sr, cr];
+                const zMag = Math.sqrt(zDisc[0]*zDisc[0] + zDisc[1]*zDisc[1] + zDisc[2]*zDisc[2]);
+                zDisc = zDisc.map(x => x / zMag);
+                
+                const vUnit = vel.map(x => x / vMag);
+                
+                // Forces
+                const lift = q * this.S * CL;
+                const drag = q * this.S * CD;
+                
+                const F_aero = [
+                    lift * zDisc[0] - drag * vUnit[0],
+                    lift * zDisc[1] - drag * vUnit[1],
+                    lift * zDisc[2] - drag * vUnit[2]
+                ];
+                const F_grav = [0, 0, -this.m * this.g];
+                
+                const accel = [
+                    (F_aero[0] + F_grav[0]) / this.m,
+                    (F_aero[1] + F_grav[1]) / this.m,
+                    (F_aero[2] + F_grav[2]) / this.m
+                ];
+                
+                // Gyroscopic precession
+                const M = q * CM * this.D * this.S;
+                let rollRate = 0;
+                if (Math.abs(omega) > 1e-6) {
+                    rollRate = -M / (omega * this.dI);
+                }
+                rollRate = Math.max(-150 * Math.PI/180, Math.min(150 * Math.PI/180, rollRate));
+                
+                // Store
+                history.time.push(t);
+                history.pos.push([...pos]);
+                history.vel.push([...vel]);
+                history.roll.push(roll);
+                history.roll_rate.push(rollRate);
+                history.alpha.push(alpha);
+                history.CM.push(CM);
+                history.omega.push(omega);
+                history.CL.push(CL);
+                history.CD.push(CD);
+                
+                // Update state
+                vel = [
+                    vel[0] + accel[0] * dt,
+                    vel[1] + accel[1] * dt,
+                    vel[2] + accel[2] * dt
+                ];
+                pos = [
+                    pos[0] + vel[0] * dt,
+                    pos[1] + vel[1] * dt,
+                    pos[2] + vel[2] * dt
+                ];
+                roll = roll + rollRate * dt;
+                roll = Math.max(-Math.PI/2, Math.min(Math.PI/2, roll));
+                
+                // Spin decay
+                omega = omega * 0.9998;
+            }
+            
+            return history;
+        }
+    }
+
+    // ============================================================
+    // VISUALIZATION
+    // ============================================================
+    
+    const simulator = new DiscFlightSimulator();
+    let history = null;
+    let animationId = null;
+    let isPlaying = false;
+    let currentFrame = 0;
+    let playbackSpeed = 1;
+    let lastTimestamp = 0;
+    
+    // DOM elements
+    const canvas = document.getElementById('flightCanvas');
+    const ctx = canvas.getContext('2d');
+    const trajectoryCanvas = document.getElementById('trajectoryChart');
+    const trajCtx = trajectoryCanvas.getContext('2d');
+    const rollCanvas = document.getElementById('rollChart');
+    const rollCtx = rollCanvas.getContext('2d');
+    
+    // Controls
+    const speedSlider = document.getElementById('speedSlider');
+    const spinSlider = document.getElementById('spinSlider');
+    const angleSlider = document.getElementById('angleSlider');
+    const rollSlider = document.getElementById('rollSlider');
+    const runBtn = document.getElementById('runBtn');
+    const playBtn = document.getElementById('playBtn');
+    const btnRHBH = document.getElementById('btnRHBH');
+    const btnRHFH = document.getElementById('btnRHFH');
+    
+    let spinCWFromAbove = false;  // RHBH default
+    
+    // Initialize canvas sizes
+    function resizeCanvases() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = 500 * window.devicePixelRatio;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = '500px';
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        
+        // Chart canvases
+        [trajectoryCanvas, rollCanvas].forEach(c => {
+            const r = c.parentElement.getBoundingClientRect();
+            c.width = r.width * window.devicePixelRatio;
+            c.height = r.height * window.devicePixelRatio;
+            c.style.width = r.width + 'px';
+            c.style.height = r.height + 'px';
+        });
+    }
+    
+    window.addEventListener('resize', () => {
+        resizeCanvases();
+        if (history) drawFrame(currentFrame);
+    });
+    resizeCanvases();
+    
+    // Slider updates
+    speedSlider.oninput = () => {
+        document.getElementById('speedValue').textContent = speedSlider.value + ' mph';
+    };
+    spinSlider.oninput = () => {
+        document.getElementById('spinValue').textContent = spinSlider.value + ' rpm';
+    };
+    angleSlider.oninput = () => {
+        document.getElementById('angleValue').textContent = angleSlider.value + '°';
+    };
+    rollSlider.oninput = () => {
+        const val = parseInt(rollSlider.value);
+        const label = val > 0 ? `+${val}° (hyzer)` : val < 0 ? `${val}° (anhyzer)` : '0°';
+        document.getElementById('rollValue').textContent = label;
+    };
+    
+    // Throw type toggle
+    btnRHBH.onclick = () => {
+        btnRHBH.classList.add('active');
+        btnRHFH.classList.remove('active');
+        spinCWFromAbove = false;
+        document.getElementById('throwTypeLabel').textContent = 'RHBH / LHFH';
+    };
+    btnRHFH.onclick = () => {
+        btnRHFH.classList.add('active');
+        btnRHBH.classList.remove('active');
+        spinCWFromAbove = true;
+        document.getElementById('throwTypeLabel').textContent = 'RHFH / LHBH';
+    };
+    
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.onclick = () => {
+            const preset = btn.dataset.preset;
+            switch(preset) {
+                case 'hyzer':
+                    speedSlider.value = 50; spinSlider.value = 1000; angleSlider.value = 8; rollSlider.value = 15;
+                    btnRHBH.click();
+                    break;
+                case 'anhyzer':
+                    speedSlider.value = 55; spinSlider.value = 1100; angleSlider.value = 5; rollSlider.value = -20;
+                    btnRHBH.click();
+                    break;
+                case 'power':
+                    speedSlider.value = 70; spinSlider.value = 1500; angleSlider.value = 12; rollSlider.value = 5;
+                    btnRHBH.click();
+                    break;
+                case 'touch':
+                    speedSlider.value = 40; spinSlider.value = 800; angleSlider.value = 15; rollSlider.value = 0;
+                    btnRHBH.click();
+                    break;
+            }
+            // Trigger updates
+            speedSlider.oninput();
+            spinSlider.oninput();
+            angleSlider.oninput();
+            rollSlider.oninput();
+        };
+    });
+    
+    // Speed buttons
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            playbackSpeed = parseFloat(btn.dataset.speed);
+        };
+    });
+    
+    // Run simulation
+    runBtn.onclick = () => {
+        runBtn.disabled = true;
+        runBtn.textContent = 'Computing...';
+        
+        setTimeout(() => {
+            history = simulator.simulate({
+                V0_mph: parseInt(speedSlider.value),
+                spin_rpm: parseInt(spinSlider.value),
+                release_angle_deg: parseInt(angleSlider.value),
+                initial_roll_deg: parseInt(rollSlider.value),
+                spin_cw_from_above: spinCWFromAbove,
+                dt: 0.004,
+                max_time: 5.0
+            });
+            
+            currentFrame = 0;
+            isPlaying = false;
+            updatePlayButton();
+            
+            // Update stats
+            updateStats();
+            
+            // Draw charts
+            drawTrajectoryChart();
+            drawRollChart();
+            
+            // Draw first frame
+            drawFrame(0);
+            
+            runBtn.disabled = false;
+            runBtn.textContent = '▶ Run Simulation';
+        }, 50);
+    };
+    
+    // Play/pause
+    playBtn.onclick = () => {
+        if (!history) return;
+        isPlaying = !isPlaying;
+        updatePlayButton();
+        if (isPlaying) {
+            if (currentFrame >= history.time.length - 1) currentFrame = 0;
+            lastTimestamp = performance.now();
+            animate();
+        }
+    };
+    
+    function updatePlayButton() {
+        const icon = document.getElementById('playIcon');
+        if (isPlaying) {
+            icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        } else {
+            icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        }
+    }
+    
+    // Timeline click
+    document.getElementById('timelineBar').onclick = (e) => {
+        if (!history) return;
+        const rect = e.target.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        currentFrame = Math.floor(pct * (history.time.length - 1));
+        drawFrame(currentFrame);
+    };
+    
+    // Animation loop
+    function animate(timestamp) {
+        if (!isPlaying) return;
+        
+        const dt = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp;
+        
+        // Advance frames based on playback speed
+        const simDt = history.time[1] - history.time[0];
+        const framesToAdvance = Math.floor((dt * playbackSpeed) / simDt);
+        currentFrame = Math.min(currentFrame + Math.max(1, framesToAdvance), history.time.length - 1);
+        
+        drawFrame(currentFrame);
+        
+        if (currentFrame >= history.time.length - 1) {
+            isPlaying = false;
+            updatePlayButton();
+            return;
+        }
+        
+        animationId = requestAnimationFrame(animate);
+    }
+    
+    // ============================================================
+    // DRAWING FUNCTIONS
+    // ============================================================
+    
+    function drawFrame(frameIdx) {
+        if (!history || frameIdx >= history.time.length) return;
+        
+        const W = canvas.width / window.devicePixelRatio;
+        const H = canvas.height / window.devicePixelRatio;
+        
+        ctx.clearRect(0, 0, W, H);
+        
+        // State
+        const t = history.time[frameIdx];
+        const pos = history.pos[frameIdx];
+        const vel = history.vel[frameIdx];
+        const roll = history.roll[frameIdx];
+        const rollRate = history.roll_rate[frameIdx];
+        const alpha = history.alpha[frameIdx];
+        const CM = history.CM[frameIdx];
+        const vz = vel[2];
+        const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+        
+        // Determine phase
+        let phase = 'APEX';
+        let phaseColor = '#f4d03f';
+        if (vz > 0.5) {
+            phase = 'RISING';
+            phaseColor = '#58d68d';
+        } else if (vz < -0.5) {
+            phase = 'FALLING';
+            phaseColor = '#e74c3c';
+        }
+        
+        // Update HUD
+        document.getElementById('hudTime').textContent = t.toFixed(2) + ' s';
+        document.getElementById('hudHeight').textContent = pos[2].toFixed(1) + ' m';
+        document.getElementById('hudSpeed').textContent = vMag.toFixed(1) + ' m/s';
+        document.getElementById('hudAlpha').textContent = (alpha * 180 / Math.PI).toFixed(1) + '°';
+        document.getElementById('hudRoll').textContent = (roll * 180 / Math.PI).toFixed(1) + '°';
+        document.getElementById('hudCM').textContent = CM.toFixed(4);
+        
+        // Update phase indicator
+        const phaseEl = document.getElementById('phaseIndicator');
+        phaseEl.textContent = phase;
+        phaseEl.className = 'phase-indicator ' + phase.toLowerCase();
+        
+        // Update timeline
+        const pct = (frameIdx / (history.time.length - 1)) * 100;
+        document.getElementById('timelineProgress').style.width = pct + '%';
+        document.getElementById('timelineTime').textContent = 
+            t.toFixed(1) + ' / ' + history.time[history.time.length - 1].toFixed(1) + 's';
+        
+        // ============ DRAW SCENE ============
+        const cx = W / 2;
+        const cy = H * 0.4;
+        const scale = 80;
+        
+        // Air flow arrows (V∞)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.6;
+        
+        const airAngle = Math.atan2(vz, vel[0]);
+        for (let i = 0; i < 5; i++) {
+            const startX = cx - 80 + i * 40;
+            const startY = 80;
+            const len = 35;
+            const localAngle = Math.PI/2 + airAngle * 0.4;
+            const dx = len * Math.sin(localAngle - Math.PI/2);
+            const dy = -len * Math.cos(localAngle - Math.PI/2);
+            
+            drawArrow(ctx, startX, startY, startX + dx, startY + dy, 8);
+        }
+        ctx.globalAlpha = 1;
+        
+        // V∞ label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('V∞', cx, 55);
+        
+        // ============ DISC ============
+        const discY = cy;
+        const discWidth = 160;
+        const rollRad = roll;
+        
+        // Draw disc ellipse
+        ctx.beginPath();
+        ctx.ellipse(cx, discY, 
+            discWidth/2 * Math.cos(rollRad), 
+            20, 
+            rollRad * 0.15, 
+            0, 2 * Math.PI);
+        ctx.fillStyle = '#3498db';
+        ctx.fill();
+        ctx.strokeStyle = '#1a5276';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Spin arrow (ω)
+        ctx.strokeStyle = '#f39c12';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 4]);
+        
+        const spinR = 40;
+        const spinDir = spinCWFromAbove ? 1 : -1;
+        ctx.beginPath();
+        for (let i = 0; i <= 30; i++) {
+            const theta = (i / 30) * Math.PI * 1.4 - Math.PI * 0.7;
+            const x = cx + spinR * Math.cos(theta * spinDir) * Math.cos(rollRad);
+            const y = discY + spinR * Math.sin(theta * spinDir) * 0.3;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // ω label
+        ctx.fillStyle = '#f39c12';
+        ctx.font = 'bold 18px serif';
+        ctx.fillText('ω', cx, discY + 6);
+        
+        // ============ VORTICES ============
+        const leftX = cx - discWidth/2 * Math.cos(rollRad) - 25;
+        const leftY = discY + 70;
+        const rightX = cx + discWidth/2 * Math.cos(rollRad) + 25;
+        const rightY = discY + 70;
+        
+        const strength = vMag / 22;
+        
+        let leftVortexSize, rightVortexSize, leftColor, rightColor, leftLabel, rightLabel;
+        
+        if (spinCWFromAbove) {
+            // CW from above: right advances
+            leftVortexSize = 25 * strength;
+            rightVortexSize = 45 * strength;
+            leftLabel = 'retreating';
+            rightLabel = 'advancing';
+            leftColor = '#1abc9c';
+            rightColor = '#e74c3c';
+        } else {
+            // CCW from above: left advances
+            leftVortexSize = 45 * strength;
+            rightVortexSize = 25 * strength;
+            leftLabel = 'advancing';
+            rightLabel = 'retreating';
+            leftColor = '#e74c3c';
+            rightColor = '#1abc9c';
+        }
+        
+        // Draw vortex spirals
+        drawVortex(ctx, leftX, leftY, leftVortexSize, leftColor, t * 3, spinCWFromAbove ? 1 : -1);
+        drawVortex(ctx, rightX, rightY, rightVortexSize, rightColor, t * 3, spinCWFromAbove ? -1 : 1);
+        
+        // Vortex labels
+        ctx.font = 'italic 11px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = leftColor;
+        ctx.fillText(leftLabel, leftX, leftY + leftVortexSize + 25);
+        ctx.fillText('edge vortex', leftX, leftY + leftVortexSize + 40);
+        ctx.fillStyle = rightColor;
+        ctx.fillText(rightLabel, rightX, rightY + rightVortexSize + 25);
+        ctx.fillText('edge vortex', rightX, rightY + rightVortexSize + 40);
+        
+        // ============ ROLL INDICATOR ============
+        const indicatorY = H - 80;
+        
+        // Horizon line
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(cx - 150, indicatorY);
+        ctx.lineTo(cx + 150, indicatorY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Roll bar
+        const barLen = 100;
+        const barX1 = cx - barLen * Math.cos(rollRad);
+        const barX2 = cx + barLen * Math.cos(rollRad);
+        const barY1 = indicatorY - barLen * Math.sin(rollRad) * 0.4;
+        const barY2 = indicatorY + barLen * Math.sin(rollRad) * 0.4;
+        
+        ctx.strokeStyle = phaseColor;
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(barX1, barY1);
+        ctx.lineTo(barX2, barY2);
+        ctx.stroke();
+        
+        // End dots
+        ctx.fillStyle = phaseColor;
+        ctx.beginPath();
+        ctx.arc(barX1, barY1, 8, 0, Math.PI * 2);
+        ctx.arc(barX2, barY2, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Roll direction
+        let rollDir = '—';
+        if (spinCWFromAbove) {
+            rollDir = CM < -0.002 ? 'CCW' : CM > 0.002 ? 'CW' : '—';
+        } else {
+            rollDir = CM < -0.002 ? 'CW' : CM > 0.002 ? 'CCW' : '—';
+        }
+        
+        // Roll arc
+        if (rollDir !== '—') {
+            ctx.strokeStyle = phaseColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const arcR = 25;
+            const startAng = rollDir === 'CCW' ? Math.PI * 0.25 : Math.PI * 0.75;
+            const endAng = rollDir === 'CCW' ? Math.PI * 0.75 : Math.PI * 0.25;
+            ctx.arc(cx, indicatorY, arcR, startAng, endAng, rollDir === 'CW');
+            ctx.stroke();
+            
+            // Arrow head
+            const arrowAng = endAng;
+            const ax = cx + arcR * Math.cos(arrowAng);
+            const ay = indicatorY + arcR * Math.sin(arrowAng);
+            const tangent = rollDir === 'CCW' ? arrowAng + Math.PI/2 : arrowAng - Math.PI/2;
+            drawArrowHead(ctx, ax, ay, tangent, 8, phaseColor);
+        }
+        
+        // Roll text
+        ctx.fillStyle = phaseColor;
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Roll: ${rollDir}`, cx + 130, indicatorY + 5);
+        
+        // Physics annotation
+        const alphaDeg = (alpha * 180 / Math.PI).toFixed(1);
+        let physText = '';
+        if (vz > 0.3) {
+            physText = `Rising → α = ${alphaDeg}° (neg) → CM < 0`;
+        } else if (vz < -0.5) {
+            physText = `Falling → α = ${alphaDeg}° (pos) → CM > 0`;
+        } else {
+            physText = `Apex → α ≈ ${alphaDeg}° → CM ≈ 0`;
+        }
+        
+        ctx.fillStyle = '#888';
+        ctx.font = 'italic 11px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText(physText, cx, H - 20);
+        
+        // Highlight current position on charts
+        highlightChartPosition(frameIdx);
+    }
+    
+    function drawVortex(ctx, cx, cy, size, color, phase, dir) {
+        if (size < 5) return;
+        
+        for (let spiral = 0; spiral < 3; spiral++) {
+            const offset = spiral * 5;
+            const alpha = 0.7 - spiral * 0.2;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = alpha;
+            
+            ctx.beginPath();
+            const nPts = 50;
+            const turns = 2.5;
+            for (let i = 0; i < nPts; i++) {
+                const theta = (i / nPts) * turns * 2 * Math.PI + phase;
+                const r = (i / nPts) * size * (1 - spiral * 0.12);
+                const x = cx + offset * dir + r * Math.cos(theta * dir);
+                const y = cy + r * Math.sin(theta * dir);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    }
+    
+    function drawArrow(ctx, x1, y1, x2, y2, headLen) {
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI/6), y2 - headLen * Math.sin(angle - Math.PI/6));
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI/6), y2 - headLen * Math.sin(angle + Math.PI/6));
+        ctx.stroke();
+    }
+    
+    function drawArrowHead(ctx, x, y, angle, size, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - size * Math.cos(angle - Math.PI/6), y - size * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(x - size * Math.cos(angle + Math.PI/6), y - size * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // ============================================================
+    // CHARTS
+    // ============================================================
+    
+    function drawTrajectoryChart() {
+        if (!history) return;
+        
+        const c = trajectoryCanvas;
+        const ctx = trajCtx;
+        const W = c.width / window.devicePixelRatio;
+        const H = c.height / window.devicePixelRatio;
+        
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        
+        // Find bounds
+        let maxX = 0, minY = Infinity, maxY = -Infinity;
+        for (const p of history.pos) {
+            maxX = Math.max(maxX, p[0]);
+            minY = Math.min(minY, p[1]);
+            maxY = Math.max(maxY, p[1]);
+        }
+        
+        const padding = 30;
+        const plotW = W - padding * 2;
+        const plotH = H - padding * 2;
+        
+        // Scale
+        const scaleX = plotW / (maxX * 1.1);
+        const rangeY = Math.max(Math.abs(minY), Math.abs(maxY)) * 1.2;
+        const scaleY = plotH / (rangeY * 2);
+        
+        // Grid
+        ctx.strokeStyle = '#2a3444';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, H/2);
+        ctx.lineTo(W - padding, H/2);
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, H - padding);
+        ctx.stroke();
+        
+        // Labels
+        ctx.fillStyle = '#5a6a7a';
+        ctx.font = '10px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Distance (m)', W/2, H - 8);
+        ctx.save();
+        ctx.translate(12, H/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.fillText('Lateral (m)', 0, 0);
+        ctx.restore();
+        
+        // Trajectory path
+        ctx.beginPath();
+        ctx.strokeStyle = '#00d4ff';
+        ctx.lineWidth = 2;
+        
+        for (let i = 0; i < history.pos.length; i++) {
+            const p = history.pos[i];
+            const x = padding + p[0] * scaleX;
+            const y = H/2 - p[1] * scaleY;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        
+        // Landing point
+        const last = history.pos[history.pos.length - 1];
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.arc(padding + last[0] * scaleX, H/2 - last[1] * scaleY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Store for highlight
+        trajectoryCanvas.chartData = { padding, scaleX, scaleY, H };
+    }
+    
+    function drawRollChart() {
+        if (!history) return;
+        
+        const c = rollCanvas;
+        const ctx = rollCtx;
+        const W = c.width / window.devicePixelRatio;
+        const H = c.height / window.devicePixelRatio;
+        
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        
+        const padding = 30;
+        const plotW = W - padding * 2;
+        const plotH = H - padding * 2;
+        
+        const maxT = history.time[history.time.length - 1];
+        let maxRoll = 0;
+        for (const r of history.roll) {
+            maxRoll = Math.max(maxRoll, Math.abs(r));
+        }
+        maxRoll = Math.max(maxRoll * 180 / Math.PI, 30) * 1.2;
+        
+        const scaleX = plotW / maxT;
+        const scaleY = plotH / (maxRoll * 2);
+        
+        // Grid
+        ctx.strokeStyle = '#2a3444';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, H/2);
+        ctx.lineTo(W - padding, H/2);
+        ctx.stroke();
+        
+        // Zero line label
+        ctx.fillStyle = '#5a6a7a';
+        ctx.font = '9px JetBrains Mono';
+        ctx.textAlign = 'right';
+        ctx.fillText('0°', padding - 5, H/2 + 3);
+        
+        // Labels
+        ctx.textAlign = 'center';
+        ctx.fillText('Time (s)', W/2, H - 8);
+        
+        // Roll curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#f4d03f';
+        ctx.lineWidth = 2;
+        
+        for (let i = 0; i < history.time.length; i++) {
+            const t = history.time[i];
+            const rollDeg = history.roll[i] * 180 / Math.PI;
+            const x = padding + t * scaleX;
+            const y = H/2 - rollDeg * scaleY;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        
+        // Store for highlight
+        rollCanvas.chartData = { padding, scaleX, scaleY, H };
+    }
+    
+    function highlightChartPosition(frameIdx) {
+        // Redraw charts then add highlight
+        drawTrajectoryChart();
+        drawRollChart();
+        
+        if (!history) return;
+        
+        // Trajectory highlight
+        const td = trajectoryCanvas.chartData;
+        if (td) {
+            const trajCtx2 = trajectoryCanvas.getContext('2d');
+            trajCtx2.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+            const p = history.pos[frameIdx];
+            const x = td.padding + p[0] * td.scaleX;
+            const y = td.H/2 - p[1] * td.scaleY;
+            trajCtx2.fillStyle = '#fff';
+            trajCtx2.beginPath();
+            trajCtx2.arc(x, y, 4, 0, Math.PI * 2);
+            trajCtx2.fill();
+        }
+        
+        // Roll highlight
+        const rd = rollCanvas.chartData;
+        if (rd) {
+            const rollCtx2 = rollCanvas.getContext('2d');
+            rollCtx2.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+            const t = history.time[frameIdx];
+            const rollDeg = history.roll[frameIdx] * 180 / Math.PI;
+            const x = rd.padding + t * rd.scaleX;
+            const y = rd.H/2 - rollDeg * rd.scaleY;
+            rollCtx2.fillStyle = '#fff';
+            rollCtx2.beginPath();
+            rollCtx2.arc(x, y, 4, 0, Math.PI * 2);
+            rollCtx2.fill();
+        }
+    }
+    
+    function updateStats() {
+        if (!history) return;
+        
+        const lastPos = history.pos[history.pos.length - 1];
+        const distance = Math.sqrt(lastPos[0]*lastPos[0] + lastPos[1]*lastPos[1]);
+        let maxHeight = 0;
+        for (const p of history.pos) {
+            maxHeight = Math.max(maxHeight, p[2]);
+        }
+        const flightTime = history.time[history.time.length - 1];
+        const finalRoll = history.roll[history.roll.length - 1] * 180 / Math.PI;
+        
+        document.getElementById('statDistance').innerHTML = distance.toFixed(1) + '<span class="stat-unit">m</span>';
+        document.getElementById('statMaxHeight').innerHTML = maxHeight.toFixed(1) + '<span class="stat-unit">m</span>';
+        document.getElementById('statFlightTime').innerHTML = flightTime.toFixed(2) + '<span class="stat-unit">s</span>';
+        document.getElementById('statFinalRoll').innerHTML = finalRoll.toFixed(1) + '<span class="stat-unit">°</span>';
+    }
+    
+    // Initial draw
+    ctx.fillStyle = '#1a2230';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#5a6a7a';
+    ctx.font = '14px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText('Click "Run Simulation" to begin', canvas.width / window.devicePixelRatio / 2, canvas.height / window.devicePixelRatio / 2);
+    </script>
+</body>
+</html>
