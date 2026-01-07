@@ -352,24 +352,7 @@
             <h3>Physics-Informed Tensor Decomposition</h3>
             <p>Incorporating physical constraints (mass balance, energy conservation, monotonicity) into tensor decomposition ensures extracted patterns respect hydrological principles. This hybrid approach combines data-driven pattern extraction with physics-based guardrails.</p>
 
-            <h2>Case Studies</h2>
-
-            <div class="method-grid">
-                <div class="method-card">
-                    <h3>Colorado River Basin Climate Analysis</h3>
-                    <p>4D tensor [latitude × longitude × time × variable] from MERRA-2 reanalysis spanning 1980-2024. CP decomposition identified three dominant modes: ENSO teleconnection pattern, PDO influence on winter precipitation, and monsoon circulation impacts on summer convection.</p>
-                </div>
-
-                <div class="method-card">
-                    <h3>Multi-Model Ensemble Streamflow Forecasting</h3>
-                    <p>5D forecast ensemble tensor [location × time × predictor × model × ensemble_member]. Tucker decomposition reduced dimensionality while preserving forecast spread. Tensor regression outperformed traditional approaches by 15% in cross-validation skill.</p>
-                </div>
-
-                <div class="method-card">
-                    <h3>Groundwater Monitoring Network Optimization</h3>
-                    <p>3D tensor [x × y × time] from 150-well monitoring network. Tensor completion filled 30% missing data using spatial-temporal correlations. Hierarchical Tucker decomposition identified optimal well locations for network expansion.</p>
-                </div>
-            </div>
+            
 
             <h2>Technical Capabilities</h2>
 
