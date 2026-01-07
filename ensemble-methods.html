@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ensemble Methods | Fluid Tensor Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .method-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border-top: 4px solid #667eea;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .method-card h3 {
+            margin-top: 0;
+        }
+
+        .equation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .tech-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tech-list li {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            border-radius: 3px;
+        }
+
+        .tech-list li strong {
+            color: #764ba2;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Fluid Tensor Analytics</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="ensemble-methods.html">Ensemble Methods</a></li>
+                <li><a href="tensor-analysis.html">Tensor Analysis</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <h1>Ensemble Methods for Water Resources Forecasting</h1>
+            
+            <p>Ensemble forecasting represents a paradigm shift in hydrological prediction, moving beyond deterministic single-trajectory forecasts to probabilistic distributions that capture uncertainty inherent in complex climate-hydrology systems. At Fluid Tensor Analytics, we've developed advanced ensemble methodologies specifically optimized for water resources applications, from seasonal streamflow forecasting to long-term climate change scenario analysis.</p>
+
+            <div class="highlight-box">
+                <h3>Why Ensemble Methods?</h3>
+                <p>Traditional point forecasts fail to capture the full range of possible futures in chaotic, nonlinear hydrological systems. Ensemble methods provide probabilistic distributions that quantify uncertainty, enabling robust decision-making under risk. Our implementations leverage computational efficiency through GPU acceleration and advanced statistical techniques to generate actionable ensemble forecasts at operational timescales.</p>
+            </div>
+
+            <h2>Core Methodologies</h2>
+
+            <div class="method-grid">
+                <div class="method-card">
+                    <h3>Bootstrap Resampling</h3>
+                    <p>Non-parametric approach for uncertainty quantification through resampling historical data with replacement. Particularly effective for small-sample forecasting where distributional assumptions are questionable.</p>
+                    <p><strong>Applications:</strong> Seasonal forecast ensembles, predictor uncertainty propagation, cross-validation ensemble generation.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>K-Nearest Neighbors (KNN)</h3>
+                    <p>Analog-based forecasting leveraging historical climate-hydrology relationships. Our GPU-accelerated correlation engine enables real-time KNN ensemble generation across massive predictor spaces.</p>
+                    <p><strong>Applications:</strong> Seasonal streamflow forecasting, drought prediction, climate teleconnection analysis.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Quantile Mapping</h3>
+                    <p>Distribution transformation technique for bias correction and downscaling. Critical for climate change scenario development and GCM post-processing.</p>
+                    <p><strong>Applications:</strong> Climate change impact assessment, GCM bias correction, quantile delta mapping for future scenarios.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Markov Chain Monte Carlo</h3>
+                    <p>Bayesian inference framework for parameter uncertainty and ensemble generation. Enables incorporation of prior knowledge and hierarchical model structures.</p>
+                    <p><strong>Applications:</strong> Parameter uncertainty quantification, Bayesian model averaging, posterior predictive distributions.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Multi-Model Ensembles</h3>
+                    <p>Weighted combinations of multiple forecast models to capture structural uncertainty. Our implementations use Bayesian Model Averaging and information-theoretic criteria for optimal weighting.</p>
+                    <p><strong>Applications:</strong> Consensus forecasting, model uncertainty quantification, robust prediction under structural uncertainty.</p>
+                </div>
+
+                <div class="method-card">
+                    <h3>Stochastic Weather Generation</h3>
+                    <p>Synthetic time series generation preserving statistical properties of observed data. Essential for risk analysis and long-term planning under climate variability.</p>
+                    <p><strong>Applications:</strong> Risk assessment, synthetic hydrology for planning, climate variability analysis.</p>
+                </div>
+            </div>
+
+            <h2>Technical Implementation</h2>
+
+            <h3>GPU-Accelerated Ensemble Generation</h3>
+            <p>Our proprietary correlation engine leverages CUDA parallelization to achieve 25x speedups over traditional implementations. This enables real-time ensemble generation for operational forecasting systems where computational efficiency is critical.</p>
+
+            <div class="equation">
+                # Pseudocode for GPU-accelerated KNN ensemble
+                predictors_gpu = transfer_to_device(predictor_matrix)
+                correlations = gpu_correlate(predictors_gpu, targets)
+                neighbors = top_k(correlations, k=n_neighbors)
+                ensemble = resample(neighbors, n_members)
+            </div>
+
+            <h3>Small-Sample Ensemble Forecasting</h3>
+            <p>Conventional ensemble methods often fail in small-sample regimes common to hydrological forecasting (30-50 years of data). We've developed specialized techniques including:</p>
+
+            <ul class="tech-list">
+                <li><strong>Regularization methods:</strong> Ridge regression, LASSO, elastic net for high-dimensional predictor spaces with limited training data</li>
+                <li><strong>Leave-one-out cross-validation:</strong> Maximizing information extraction from limited samples while maintaining forecast skill assessment</li>
+                <li><strong>Bayesian priors:</strong> Incorporating physical constraints and expert knowledge to stabilize estimates</li>
+                <li><strong>Predictor screening:</strong> Automated selection from thousands of candidate predictors using information criteria and physical plausibility constraints</li>
+            </ul>
+
+            <h3>Climate Change Scenario Ensembles</h3>
+            <p>Our quantile delta mapping (QDM) implementation preserves distributional characteristics while applying climate change signals from GCM projections. This approach maintains observed variability structure while incorporating projected changes in mean, variance, and extremes.</p>
+
+            <div class="equation">
+                # Quantile delta mapping formulation
+                F_fut(x) = F_obs^(-1)[F_hist(x)] + [μ_fut - μ_hist]
+                
+                where:
+                F_fut = future period CDF
+                F_obs = observed historical CDF  
+                F_hist = modeled historical CDF
+                μ = distributional moments
+            </div>
+
+            <h2>Ensemble Verification and Skill Assessment</h2>
+
+            <p>Rigorous verification is essential for ensemble forecast credibility. Our verification frameworks include:</p>
+
+            <ul class="tech-list">
+                <li><strong>Rank histogram analysis:</strong> Assessing ensemble calibration and reliability</li>
+                <li><strong>Continuous Ranked Probability Score (CRPS):</strong> Comprehensive ensemble skill metric accounting for both accuracy and spread</li>
+                <li><strong>Reliability diagrams:</strong> Visual assessment of probabilistic forecast calibration</li>
+                <li><strong>Brier score decomposition:</strong> Separating reliability, resolution, and uncertainty components</li>
+                <li><strong>Spread-skill relationships:</strong> Evaluating ensemble spread as predictor of forecast error</li>
+            </ul>
+
+            <h2>Operational Applications</h2>
+
+            <h3>Seasonal Streamflow Forecasting</h3>
+            <p>Our ensemble methods have been deployed for operational seasonal forecasting across multiple river basins in the western United States. These systems generate probabilistic forecasts updated monthly, incorporating climate teleconnections, snowpack observations, and antecedent soil moisture conditions.</p>
+
+            <h3>Reservoir Operations Optimization</h3>
+            <p>Ensemble forecasts drive stochastic optimization for reservoir operations, enabling risk-informed decision-making under uncertainty. Our implementations interface directly with RiverWare and other water management platforms.</p>
+
+            <h3>Climate Change Impact Assessment</h3>
+            <p>Multi-model ensemble frameworks combining multiple GCMs and downscaling approaches provide robust climate change scenarios for long-term planning. These ensembles span the range of plausible futures while quantifying structural uncertainty across model formulations.</p>
+
+            <div class="highlight-box">
+                <h3>Case Study: Rio Chama Seasonal Forecasting</h3>
+                <p>Development of ensemble seasonal forecast system for the Rio Chama basin in New Mexico, incorporating ENSO teleconnections, PDO indices, and regional snowpack observations. The system generates 100-member ensembles updated monthly from January through July, providing probabilistic guidance for irrigation district planning and environmental flow management.</p>
+                <p><strong>Key innovations:</strong> GPU-accelerated KNN implementation enabling real-time ensemble generation; automated predictor screening from 500+ candidate indices; integration with existing water rights administration systems.</p>
+            </div>
+
+            <h2>Advantages Over Traditional Approaches</h2>
+
+            <ul class="tech-list">
+                <li><strong>Uncertainty quantification:</strong> Full probabilistic distributions rather than point estimates</li>
+                <li><strong>Risk-based decision making:</strong> Exceedance probabilities for critical thresholds</li>
+                <li><strong>Model uncertainty:</strong> Multi-model ensembles capture structural uncertainty</li>
+                <li><strong>Computational efficiency:</strong> GPU acceleration enables operational real-time systems</li>
+                <li><strong>Small-sample robustness:</strong> Specialized techniques for limited data regimes</li>
+                <li><strong>Climate change scenarios:</strong> Ensemble frameworks for long-term planning under deep uncertainty</li>
+            </ul>
+
+            <h2>Get Started</h2>
+
+            <p>Whether you need seasonal forecast ensembles for operational water management, climate change scenario development for long-term planning, or custom ensemble systems for unique applications, Fluid Tensor Analytics brings deep technical expertise and proven methodologies to your water resources challenges.</p>
+
+            <p><a href="contact.html" style="color: #667eea; font-weight: 600;">Contact us</a> to discuss how ensemble methods can enhance your forecasting and decision-making capabilities.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Fluid Tensor Analytics | Professional Water Resources Engineering</p>
+    </footer>
+</body>
+</html>
