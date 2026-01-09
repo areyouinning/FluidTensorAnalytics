@@ -423,6 +423,20 @@
                     <span class="control-value" id="angleValue">10.0°</span>
                 </div>
                 <input type="range" id="angle" min="-5" max="25" step="1" value="10">
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+                    Initial trajectory angle (up/down from horizontal)
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Hyzer Angle</label>
+                    <span class="control-value" id="hyzerValue">0.0°</span>
+                </div>
+                <input type="range" id="hyzer" min="-30" max="30" step="1" value="0">
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+                    Disc tilt at release: (-) Hyzer / (+) Anhyzer
+                </div>
             </div>
             
             <div class="control-group">
@@ -431,6 +445,40 @@
                     <span class="control-value" id="noseValue">-2.0°</span>
                 </div>
                 <input type="range" id="nose" min="-10" max="5" step="0.5" value="-2">
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+                    Front edge tilt: (-) nose down / (+) nose up. -2° is ideal.
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">
+                    Angle Guide
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-cyan);">Release Angle:</strong> Direction of throw (up/down)
+                        <br>10° = upward trajectory, 0° = flat, -5° = downward
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-green);">Hyzer Angle:</strong> Left/right tilt of disc
+                        <br>-20° = hyzer (RHBH tilted right), +20° = anhyzer (tilted left)
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent-yellow);">Nose Angle:</strong> Pitch of disc relative to flight
+                        <br>-2° = nose down (good), 0° = flat, +5° = nose up (bad)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Disc Stability</label>
+                    <span class="control-value" id="stabilityValue">0.0</span>
+                </div>
+                <input type="range" id="stability" min="-3" max="3" step="0.5" value="0">
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+                    Negative = Understable, Positive = Overstable
+                </div>
             </div>
             
             <div class="control-group">
@@ -464,7 +512,20 @@
 
         <main class="main-content">
             <div class="canvas-container">
-                <canvas id="mainCanvas"></canvas>
+                <div class="chart-title">View from Behind - Wingtip Vortices</div>
+                <canvas id="behindCanvas"></canvas>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                <div class="canvas-container">
+                    <div class="chart-title">Top View (XY Plane)</div>
+                    <canvas id="topCanvas"></canvas>
+                </div>
+                
+                <div class="canvas-container">
+                    <div class="chart-title">Side View (XZ Plane)</div>
+                    <canvas id="sideCanvas"></canvas>
+                </div>
             </div>
             
             <div class="time-slider-container" id="timeSliderContainer">
@@ -515,8 +576,12 @@
     // GLOBALS & INITIALIZATION
     // ============================================================
     
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
+    const behindCanvas = document.getElementById('behindCanvas');
+    const behindCtx = behindCanvas.getContext('2d');
+    const topCanvas = document.getElementById('topCanvas');
+    const topCtx = topCanvas.getContext('2d');
+    const sideCanvas = document.getElementById('sideCanvas');
+    const sideCtx = sideCanvas.getContext('2d');
     const trajectoryCanvas = document.getElementById('trajectoryChart');
     const trajCtx = trajectoryCanvas.getContext('2d');
     const rollCanvas = document.getElementById('rollChart');
@@ -525,9 +590,17 @@
     let dpr = window.devicePixelRatio || 1;
     
     function resizeCanvas() {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
+        const behindRect = behindCanvas.getBoundingClientRect();
+        behindCanvas.width = behindRect.width * dpr;
+        behindCanvas.height = behindRect.height * dpr;
+        
+        const topRect = topCanvas.getBoundingClientRect();
+        topCanvas.width = topRect.width * dpr;
+        topCanvas.height = topRect.height * dpr;
+        
+        const sideRect = sideCanvas.getBoundingClientRect();
+        sideCanvas.width = sideRect.width * dpr;
+        sideCanvas.height = sideRect.height * dpr;
         
         const trajRect = trajectoryCanvas.getBoundingClientRect();
         trajectoryCanvas.width = trajRect.width * dpr;
@@ -542,17 +615,26 @@
     window.addEventListener('resize', () => {
         resizeCanvas();
         if (history) {
-            drawFrame(currentFrame);
+            drawBehindView(currentFrame);
+            drawTopView(currentFrame);
+            drawSideView(currentFrame);
             drawTrajectoryChart();
             drawRollChart();
         }
     });
     
+    // Run initial simulation automatically
+    setTimeout(() => {
+        runSimulation();
+    }, 500);
+    
     // Parameters
     let params = {
         velocity: 25,
         angle: 10,
+        hyzer: 0,
         nose: -2,
+        stability: 0,
         spin: 150,
         wind: 0,
         throwType: 'RHBH'
@@ -577,9 +659,19 @@
         document.getElementById('angleValue').textContent = params.angle.toFixed(1) + '°';
     });
     
+    document.getElementById('hyzer').addEventListener('input', e => {
+        params.hyzer = parseFloat(e.target.value);
+        document.getElementById('hyzerValue').textContent = params.hyzer.toFixed(1) + '°';
+    });
+    
     document.getElementById('nose').addEventListener('input', e => {
         params.nose = parseFloat(e.target.value);
         document.getElementById('noseValue').textContent = params.nose.toFixed(1) + '°';
+    });
+    
+    document.getElementById('stability').addEventListener('input', e => {
+        params.stability = parseFloat(e.target.value);
+        document.getElementById('stabilityValue').textContent = params.stability.toFixed(1);
     });
     
     document.getElementById('spin').addEventListener('input', e => {
@@ -613,7 +705,9 @@
     timeSlider.addEventListener('input', e => {
         if (history) {
             currentFrame = parseInt(e.target.value);
-            drawFrame(currentFrame);
+            drawBehindView(currentFrame);
+            drawTopView(currentFrame);
+            drawSideView(currentFrame);
             highlightChartPosition(currentFrame);
             updateTimeDisplay();
         }
@@ -640,7 +734,9 @@
                 currentFrame++;
             }
             timeSlider.value = currentFrame;
-            drawFrame(currentFrame);
+            drawBehindView(currentFrame);
+            drawTopView(currentFrame);
+            drawSideView(currentFrame);
             highlightChartPosition(currentFrame);
             updateTimeDisplay();
         }, 50); // 20 fps
@@ -669,31 +765,51 @@
     function runSimulation() {
         stopPlayback();
         
+        // Release parameters
         const v0 = params.velocity;
-        const theta = params.angle * Math.PI / 180;
-        const alpha = params.nose * Math.PI / 180;
-        const omega = params.spin * 2 * Math.PI / 60; // rpm to rad/s
+        const theta = params.angle * Math.PI / 180;  // Release angle (up/down)
+        const hyzer = params.hyzer * Math.PI / 180;  // Hyzer angle (left/right tilt)
+        const alpha = params.nose * Math.PI / 180;   // Nose angle
+        const r = params.spin * 2 * Math.PI / 60;    // Spin rate (rad/s)
         const windSpeed = params.wind;
+        const stability = params.stability;          // Disc stability (-3 to +3)
         const isRHBH = params.throwType === 'RHBH';
         
-        const m = 0.175; // kg
-        const A = 0.0573; // m^2
-        const rho = 1.225; // kg/m^3
-        const g = 9.81; // m/s^2
-        const Cd = 0.3;
-        const Cl_alpha = 1.5;
+        // Physical constants from Immonen (2021) Section 2.1
+        const m = 0.175;      // Disc mass (kg)
+        const rho_a = 1.225;  // Air density (kg/m³)
+        const g = 9.81;       // Gravitational acceleration (m/s²)
+        const d = 0.21;       // Disc diameter (m)
         
-        // Initial conditions
-        let pos = [0, 0, 1.5];
+        // Aerodynamic areas
+        const AX = Math.PI * (d/2) * (d/2);
+        const AZ = AX;
+        
+        // Base aerodynamic coefficients
+        const cd_base = 0.32;
+        const cl_base = 0.18;
+        
+        // Moment of inertia
+        const IX = 0.0018;  // kg⋅m² about spin axis
+        
+        // Initial state
+        let pos = [0, 0, 1.5];  // [x, y, z] position (m)
+        
+        // Initial velocity with hyzer angle component
         let vel = [
-            v0 * Math.cos(theta),
-            0,
-            v0 * Math.sin(theta)
+            v0 * Math.cos(theta) * Math.cos(hyzer),  // Forward
+            v0 * Math.cos(theta) * Math.sin(hyzer),  // Lateral (from hyzer)
+            v0 * Math.sin(theta)                      // Vertical
         ];
-        let roll = 0;
+        
+        // Initial disc orientation
+        // phi = roll about X-axis (spin-induced roll)
+        // psi = tilt about Y-axis (hyzer angle)
+        let phi = 0;           // Roll angle (develops during flight)
+        let psi = hyzer;       // Initial hyzer/anhyzer tilt
         
         const dt = 0.01;
-        const maxTime = 10;
+        const maxTime = 15;
         
         history = {
             pos: [],
@@ -703,55 +819,131 @@
         };
         
         for (let t = 0; t < maxTime; t += dt) {
-            // Store current state first
+            // Store current state
             history.pos.push([...pos]);
             history.vel.push([...vel]);
-            history.roll.push(roll);
+            history.roll.push(phi);
             history.time.push(t);
             
-            // Check if disc has hit ground (stop before next step)
+            // Check if disc has hit ground
             if (pos[2] <= 0) break;
             
+            // Calculate velocity magnitude
             const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
             if (vMag < 0.1 || isNaN(vMag)) break;
             
-            const vDir = [vel[0]/vMag, vel[1]/vMag, vel[2]/vMag];
+            // Dynamic angle of attack (affected by nose angle and flight path)
+            const flight_path_angle = Math.atan2(vel[2], Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1]));
+            const effective_aoa = alpha - flight_path_angle;
             
-            // Drag
-            const Fd = 0.5 * rho * A * Cd * vMag * vMag;
-            const drag = [-Fd * vDir[0] / m, -Fd * vDir[1] / m, -Fd * vDir[2] / m];
+            // Modify coefficients based on angle of attack and disc tilt
+            const cd = cd_base * (1 + 0.3 * Math.abs(effective_aoa) + 0.2 * Math.abs(psi));
+            const cl = cl_base * (1 + 2.0 * effective_aoa); // Lift increases with positive AoA
             
-            // Lift
-            const aoa = alpha + Math.atan2(vel[2], Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1]));
-            const Cl = Cl_alpha * aoa;
-            const Fl = 0.5 * rho * A * Cl * vMag * vMag;
-            const liftDir = [-Math.sin(theta), 0, Math.cos(theta)];
-            const lift = [Fl * liftDir[0] / m, Fl * liftDir[1] / m, Fl * liftDir[2] / m];
+            // Drag force
+            const Fd = 0.5 * rho_a * vMag * vMag * cd * AZ;
+            const drag_x = -Fd * (vel[0] / vMag) / m;
+            const drag_y = -Fd * (vel[1] / vMag) / m;
+            const drag_z = -Fd * (vel[2] / vMag) / m;
             
-            // Magnus (gyroscopic precession)
-            const spinDir = isRHBH ? -1 : 1;
-            const magnus_y = spinDir * 0.15 * vMag * omega;
-            const rollRate = spinDir * 0.8 * (1 - Math.exp(-t * 0.5));
+            // Lift force (perpendicular to velocity, affected by disc tilt)
+            const Fl = 0.5 * rho_a * vMag * vMag * cl * AX;
+            const vel_xz_mag = Math.sqrt(vel[0]*vel[0] + vel[2]*vel[2]);
+            let lift_x = 0, lift_y = 0, lift_z = 0;
             
-            // Wind
-            const windForce = [windSpeed * 0.3, 0, 0];
+            if (vel_xz_mag > 0.01) {
+                // Lift direction modified by disc tilt (psi)
+                lift_x = -Fl * (vel[2] / vel_xz_mag) * Math.cos(psi) / m;
+                lift_y = Fl * Math.sin(psi) / m;  // Lateral component from tilt
+                lift_z = Fl * (vel[0] / vel_xz_mag) * Math.cos(psi) / m;
+            }
             
-            // Update
-            vel[0] += (drag[0] + lift[0] + windForce[0]) * dt;
-            vel[1] += magnus_y * dt;
-            vel[2] += (drag[2] + lift[2] - g) * dt;
+            // Magnus effect (depends on spin and velocity)
+            const spinDirection = isRHBH ? 1 : -1;
+            const magnus_coeff = 0.0015;
+            const F_magnus = spinDirection * magnus_coeff * r * vMag * rho_a * AX;
+            const magnus_y = F_magnus / m;
+            
+            // High-speed turn vs low-speed fade (disc stability)
+            // Understable discs (stability < 0) turn more at high speed
+            // Overstable discs (stability > 0) fade more at low speed
+            const speed_factor = vMag / v0;  // Current speed relative to release
+            
+            // Turn effect (high speed) - happens early in flight
+            // Negative stability = more turn (banks right for RHBH)
+            // Turn strength decreases as disc slows
+            const turn_threshold = 0.7; // Turn active above 70% of initial speed
+            let turn_y = 0;
+            if (speed_factor > turn_threshold) {
+                const turn_intensity = (speed_factor - turn_threshold) / (1 - turn_threshold);
+                const turn_coeff = -stability * 0.003 * turn_intensity * turn_intensity;
+                turn_y = turn_coeff * r * vMag / m;
+            }
+            
+            // Fade effect (low speed) - happens late in flight
+            // Positive stability = more fade (banks left for RHBH)
+            // Fade strength increases as disc slows
+            const fade_threshold = 0.6; // Fade active below 60% of initial speed
+            let fade_y = 0;
+            if (speed_factor < fade_threshold) {
+                const fade_intensity = (fade_threshold - speed_factor) / fade_threshold;
+                // Base fade increases with stability, all discs fade some amount
+                const base_fade = 0.5; // Even neutral discs have slight fade
+                const fade_coeff = (base_fade + stability) * 0.002 * fade_intensity;
+                fade_y = spinDirection * fade_coeff * r * vMag / m;
+            }
+            
+            // Gyroscopic precession (roll development)
+            // Hyzer flips: understable disc on hyzer angle will flip to flat then anhyzer
+            // Flex shots: overstable disc on anhyzer will flex back
+            const precession_rate = spinDirection * 0.5 * Math.exp(-t * 0.4);
+            
+            // Stability affects how disc orientation changes during flight
+            // Understable: fights to flatten out faster (hyzer flip behavior)
+            // Overstable: resists flattening, maintains tilt
+            const tilt_change_rate = -stability * 0.25 * Math.sin(psi) * speed_factor;
+            
+            // Hyzer flip: understable disc actively flips the angle
+            if (stability < -0.5 && psi < -0.1 && speed_factor > 0.6) {
+                // Flip up effect - understable disc wants to flip to anhyzer
+                const flip_rate = -stability * 0.4 * speed_factor;
+                tilt_rate = flip_rate;
+            } 
+            // Flex shot: overstable disc fights back against anhyzer
+            else if (stability > 0.5 && psi > 0.1 && speed_factor > 0.5) {
+                // Flex back effect - overstable disc wants to flatten/hyzer
+                const flex_rate = -stability * 0.35 * speed_factor;
+                tilt_rate = flex_rate;
+            }
+            else {
+                tilt_rate = tilt_change_rate;
+            }
+            
+            // Wind effect
+            const wind_x = windSpeed * 0.15;
+            
+            // Update velocities
+            vel[0] += (drag_x + lift_x + wind_x) * dt;
+            vel[1] += (drag_y + lift_y + magnus_y + turn_y + fade_y) * dt;
+            vel[2] += (drag_z + lift_z - g) * dt;
             
             // Check for NaN
             if (isNaN(vel[0]) || isNaN(vel[1]) || isNaN(vel[2])) break;
             
+            // Update position
             pos[0] += vel[0] * dt;
             pos[1] += vel[1] * dt;
             pos[2] += vel[2] * dt;
             
-            // Clamp height to ground
+            // Clamp to ground
             if (pos[2] < 0) pos[2] = 0;
             
-            roll += rollRate * dt;
+            // Update disc orientation
+            phi += precession_rate * dt;
+            psi += tilt_rate * dt;
+            
+            // Limit tilt angles
+            psi = Math.max(-Math.PI/2, Math.min(Math.PI/2, psi));
         }
         
         // Setup time slider
@@ -761,110 +953,660 @@
         document.getElementById('timeSliderContainer').classList.add('active');
         
         // Draw results
-        drawFrame(0);
+        drawBehindView(0);
+        drawTopView(0);
+        drawSideView(0);
         drawTrajectoryChart();
         drawRollChart();
         updateStats();
         updateTimeDisplay();
+        
+        // Auto-start playback
+        setTimeout(() => startPlayback(), 500);
     }
     
     // ============================================================
     // VISUALIZATION
     // ============================================================
     
-    function drawFrame(frameIdx) {
+    function drawBehindView(frameIdx) {
         if (!history || frameIdx >= history.pos.length) return;
         
-        const W = canvas.width / dpr;
-        const H = canvas.height / dpr;
+        const W = behindCanvas.width / dpr;
+        const H = behindCanvas.height / dpr;
         
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.clearRect(0, 0, W, H);
+        behindCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        behindCtx.clearRect(0, 0, W, H);
+        
+        // Dark background
+        behindCtx.fillStyle = '#0a0d12';
+        behindCtx.fillRect(0, 0, W, H);
+        
+        // Title
+        behindCtx.fillStyle = '#e8edf5';
+        behindCtx.font = '16px Outfit';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText('Disc Flight - View from Behind', W/2, 35);
+        
+        const pos = history.pos[frameIdx];
+        const vel = history.vel[frameIdx];
+        const roll = history.roll[frameIdx];
+        const time = history.time[frameIdx];
+        
+        const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+        
+        // Disc center position
+        const centerX = W / 2;
+        const centerY = H * 0.55;
+        const discRadius = 60;
+        
+        // Velocity indicator (V∞)
+        behindCtx.fillStyle = '#e8edf5';
+        behindCtx.font = '18px JetBrains Mono';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText('V∞', centerX, 80);
+        
+        // Velocity vector arrows
+        const arrowY = 100;
+        const arrowSpacing = 35;
+        behindCtx.strokeStyle = '#8a9bb0';
+        behindCtx.lineWidth = 2;
+        for (let i = 0; i < 6; i++) {
+            const x = centerX - arrowSpacing * 2.5 + i * arrowSpacing;
+            behindCtx.beginPath();
+            behindCtx.moveTo(x - 12, arrowY);
+            behindCtx.lineTo(x + 12, arrowY);
+            behindCtx.stroke();
+            drawArrowHead(behindCtx, x + 12, arrowY, 0, 6, '#8a9bb0');
+        }
+        
+        // Draw advancing (left) vortex
+        const numVortexRings = 8;
+        for (let i = 0; i < numVortexRings; i++) {
+            const age = i * 0.15;
+            const vortexX = centerX - discRadius * 1.2 - i * 25;
+            const vortexY = centerY + Math.sin(time * 4 + i * 0.8) * 15;
+            const vortexRadius = 12 + i * 4;
+            const alpha = (1 - age) * 0.6;
+            
+            // Multiple spiral rings
+            for (let j = 0; j < 3; j++) {
+                const offset = j * 0.3;
+                behindCtx.strokeStyle = `rgba(231, 76, 60, ${alpha * (1 - j * 0.3)})`;
+                behindCtx.lineWidth = 2;
+                behindCtx.beginPath();
+                behindCtx.arc(vortexX, vortexY + offset * 5, vortexRadius + offset * 3, 
+                             time * 2 + i * 0.5, time * 2 + i * 0.5 + Math.PI * 1.7);
+                behindCtx.stroke();
+            }
+        }
+        
+        // Draw trailing (right) vortex
+        for (let i = 0; i < numVortexRings; i++) {
+            const age = i * 0.15;
+            const vortexX = centerX + discRadius * 1.2 + i * 25;
+            const vortexY = centerY - Math.sin(time * 4 + i * 0.8) * 15;
+            const vortexRadius = 12 + i * 4;
+            const alpha = (1 - age) * 0.6;
+            
+            // Multiple spiral rings
+            for (let j = 0; j < 3; j++) {
+                const offset = j * 0.3;
+                behindCtx.strokeStyle = `rgba(88, 214, 141, ${alpha * (1 - j * 0.3)})`;
+                behindCtx.lineWidth = 2;
+                behindCtx.beginPath();
+                behindCtx.arc(vortexX, vortexY - offset * 5, vortexRadius + offset * 3,
+                             -time * 2 - i * 0.5, -time * 2 - i * 0.5 - Math.PI * 1.7);
+                behindCtx.stroke();
+            }
+        }
+        
+        // Draw disc (ellipse from behind)
+        behindCtx.save();
+        behindCtx.translate(centerX, centerY);
+        behindCtx.rotate(roll * 0.2);
+        
+        // Disc body
+        behindCtx.fillStyle = '#3498db';
+        behindCtx.strokeStyle = '#2980b9';
+        behindCtx.lineWidth = 4;
+        behindCtx.beginPath();
+        behindCtx.ellipse(0, 0, discRadius, discRadius * 0.25, 0, 0, Math.PI * 2);
+        behindCtx.fill();
+        behindCtx.stroke();
+        
+        // Center hub with rotation indicator
+        behindCtx.fillStyle = '#f4d03f';
+        behindCtx.font = '14px JetBrains Mono';
+        behindCtx.textAlign = 'center';
+        behindCtx.textBaseline = 'middle';
+        behindCtx.fillText('ω', 0, 0);
+        
+        behindCtx.restore();
+        
+        // Vortex labels
+        behindCtx.font = '12px Outfit';
+        behindCtx.fillStyle = '#e74c3c';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText('advancing', centerX - discRadius * 2, centerY + 90);
+        behindCtx.fillText('edge vortex', centerX - discRadius * 2, centerY + 105);
+        
+        behindCtx.fillStyle = '#58d68d';
+        behindCtx.fillText('trailing', centerX + discRadius * 2, centerY + 90);
+        behindCtx.fillText('edge vortex', centerX + discRadius * 2, centerY + 105);
+        
+        // Ground line
+        behindCtx.strokeStyle = '#5a6a7a';
+        behindCtx.lineWidth = 1;
+        behindCtx.setLineDash([5, 5]);
+        behindCtx.beginPath();
+        behindCtx.moveTo(50, H - 60);
+        behindCtx.lineTo(W - 50, H - 60);
+        behindCtx.stroke();
+        behindCtx.setLineDash([]);
+        
+        // APEX indicator (right side)
+        if (Math.abs(vel[2]) < 1.0 && pos[2] > 3) {
+            behindCtx.fillStyle = '#f4d03f';
+            behindCtx.font = 'bold 20px Outfit';
+            behindCtx.textAlign = 'right';
+            behindCtx.fillText('APEX', W - 40, 80);
+        }
+        
+        // Info panel (left side)
+        behindCtx.fillStyle = 'rgba(17, 24, 32, 0.8)';
+        behindCtx.fillRect(10, 70, 140, 85);
+        
+        behindCtx.fillStyle = '#e8edf5';
+        behindCtx.font = '11px JetBrains Mono';
+        behindCtx.textAlign = 'left';
+        behindCtx.fillText(`Time: ${time.toFixed(2)}s`, 20, 90);
+        behindCtx.fillText(`Height: ${pos[2].toFixed(1)}m`, 20, 105);
+        behindCtx.fillText(`Speed: ${vMag.toFixed(1)} m/s`, 20, 120);
+        behindCtx.fillText(`α: ${(params.nose).toFixed(1)}°`, 20, 135);
+        behindCtx.fillText(`Roll: ${(roll * 180 / Math.PI).toFixed(1)}°`, 20, 150);
+        
+        // Bottom caption
+        behindCtx.fillStyle = '#8a9bb0';
+        behindCtx.font = '12px Outfit';
+        behindCtx.textAlign = 'center';
+        const apexNote = Math.abs(vel[2]) < 1.0 && pos[2] > 3 ? 
+                        'Apex: α ≈ 0 → Transitioning' : 
+                        'Wingtip vortices shed due to lift generation';
+        behindCtx.fillText(apexNote, W/2, H - 30);
+    }
+    
+    function drawTopView(frameIdx) {
+        if (!history || frameIdx >= history.pos.length) return;
+        
+        const W = topCanvas.width / dpr;
+        const H = topCanvas.height / dpr;
+        
+        topCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        topCtx.clearRect(0, 0, W, H);
         
         // Background
-        ctx.fillStyle = '#1a2230';
-        ctx.fillRect(0, 0, W, H);
+        topCtx.fillStyle = '#0a0d12';
+        topCtx.fillRect(0, 0, W, H);
         
-        // Ground
-        ctx.fillStyle = '#0d1117';
-        ctx.fillRect(0, H * 0.65, W, H * 0.35);
-        
-        // Grid
-        ctx.strokeStyle = '#2a3444';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= 10; i++) {
-            const y = H * 0.65 + i * (H * 0.35 / 10);
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(W, y);
-            ctx.stroke();
+        // Find max extents for scaling
+        let maxX = 0, maxY = 0;
+        for (let i = 0; i < history.pos.length; i++) {
+            maxX = Math.max(maxX, Math.abs(history.pos[i][0]));
+            maxY = Math.max(maxY, Math.abs(history.pos[i][1]));
         }
+        const scale = Math.min((W - 80) / (2 * maxX), (H - 80) / (2 * maxY));
+        const originX = 40;
+        const originY = H / 2;
         
-        // Draw trail
-        const scale = 8;
-        const offsetY = H * 0.5;
-        
-        ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        for (let i = 0; i <= frameIdx; i++) {
-            const p = history.pos[i];
-            const x = 50 + p[0] * scale;
-            const y = offsetY - p[2] * scale;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+        // Draw full trajectory
+        topCtx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+        topCtx.lineWidth = 2;
+        topCtx.beginPath();
+        for (let i = 0; i < history.pos.length; i++) {
+            const x = originX + history.pos[i][0] * scale;
+            const y = originY - history.pos[i][1] * scale;
+            if (i === 0) topCtx.moveTo(x, y);
+            else topCtx.lineTo(x, y);
         }
-        ctx.stroke();
+        topCtx.stroke();
+        
+        // Highlight current position
+        topCtx.strokeStyle = '#00d4ff';
+        topCtx.lineWidth = 3;
+        topCtx.beginPath();
+        for (let i = 0; i <= Math.min(frameIdx, history.pos.length - 1); i++) {
+            const x = originX + history.pos[i][0] * scale;
+            const y = originY - history.pos[i][1] * scale;
+            if (i === 0) topCtx.moveTo(x, y);
+            else topCtx.lineTo(x, y);
+        }
+        topCtx.stroke();
         
         // Current disc position
         const pos = history.pos[frameIdx];
-        const x = 50 + pos[0] * scale;
-        const y = offsetY - pos[2] * scale;
-        const roll = history.roll[frameIdx];
+        const x = originX + pos[0] * scale;
+        const y = originY - pos[1] * scale;
         
-        // Draw disc
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(roll);
+        topCtx.fillStyle = '#3498db';
+        topCtx.beginPath();
+        topCtx.arc(x, y, 6, 0, Math.PI * 2);
+        topCtx.fill();
         
-        // Disc body
-        const discRadius = 15;
-        ctx.fillStyle = '#00d4ff';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, discRadius, discRadius * 0.3, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Axes
+        topCtx.strokeStyle = '#5a6a7a';
+        topCtx.lineWidth = 1;
+        topCtx.setLineDash([3, 3]);
+        topCtx.beginPath();
+        topCtx.moveTo(originX, 20);
+        topCtx.lineTo(originX, H - 20);
+        topCtx.stroke();
+        topCtx.setLineDash([]);
         
-        // Disc rim
-        ctx.strokeStyle = '#0099cc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        // Labels
+        topCtx.fillStyle = '#8a9bb0';
+        topCtx.font = '11px JetBrains Mono';
+        topCtx.textAlign = 'center';
+        topCtx.fillText('Forward (X) →', W / 2, H - 10);
+        topCtx.save();
+        topCtx.translate(15, H / 2);
+        topCtx.rotate(-Math.PI / 2);
+        topCtx.fillText('← Lateral (Y)', 0, 0);
+        topCtx.restore();
         
-        // Spin indicator
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(discRadius * 0.6, 0, 2, 0, Math.PI * 2);
-        ctx.fill();
+        // Distance marker
+        topCtx.fillText(`${pos[0].toFixed(1)}m`, x, y - 15);
+    }
+    
+    function drawSideView(frameIdx) {
+        if (!history || frameIdx >= history.pos.length) return;
         
-        ctx.restore();
+        const W = sideCanvas.width / dpr;
+        const H = sideCanvas.height / dpr;
         
-        // Velocity vector
-        const vel = history.vel[frameIdx];
-        const velMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
-        const velScale = 3;
-        ctx.strokeStyle = '#58d68d';
-        ctx.lineWidth = 2;
+        sideCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        sideCtx.clearRect(0, 0, W, H);
+        
+        // Background
+        sideCtx.fillStyle = '#0a0d12';
+        sideCtx.fillRect(0, 0, W, H);
+        
+        // Find max extents
+        let maxX = 0, maxZ = 0;
+        for (let i = 0; i < history.pos.length; i++) {
+            maxX = Math.max(maxX, history.pos[i][0]);
+            maxZ = Math.max(maxZ, history.pos[i][2]);
+        }
+        const scale = Math.min((W - 80) / maxX, (H - 80) / maxZ);
+        const originX = 40;
+        const originY = H - 40;
+        
+        // Draw ground
+        sideCtx.strokeStyle = '#5a6a7a';
+        sideCtx.lineWidth = 2;
+        sideCtx.beginPath();
+        sideCtx.moveTo(originX, originY);
+        sideCtx.lineTo(W - 20, originY);
+        sideCtx.stroke();
+        
+        // Draw full trajectory
+        sideCtx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+        sideCtx.lineWidth = 2;
+        sideCtx.beginPath();
+        for (let i = 0; i < history.pos.length; i++) {
+            const x = originX + history.pos[i][0] * scale;
+            const y = originY - history.pos[i][2] * scale;
+            if (i === 0) sideCtx.moveTo(x, y);
+            else sideCtx.lineTo(x, y);
+        }
+        sideCtx.stroke();
+        
+        // Highlight current position
+        sideCtx.strokeStyle = '#00d4ff';
+        sideCtx.lineWidth = 3;
+        sideCtx.beginPath();
+        for (let i = 0; i <= Math.min(frameIdx, history.pos.length - 1); i++) {
+            const x = originX + history.pos[i][0] * scale;
+            const y = originY - history.pos[i][2] * scale;
+            if (i === 0) sideCtx.moveTo(x, y);
+            else sideCtx.lineTo(x, y);
+        }
+        sideCtx.stroke();
+        
+        // Current disc position
+        const pos = history.pos[frameIdx];
+        const x = originX + pos[0] * scale;
+        const y = originY - pos[2] * scale;
+        
+        sideCtx.fillStyle = '#3498db';
+        sideCtx.beginPath();
+        sideCtx.arc(x, y, 6, 0, Math.PI * 2);
+        sideCtx.fill();
+        
+        // Labels
+        sideCtx.fillStyle = '#8a9bb0';
+        sideCtx.font = '11px JetBrains Mono';
+        sideCtx.textAlign = 'center';
+        sideCtx.fillText('Distance (X) →', W / 2, H - 10);
+        sideCtx.save();
+        sideCtx.translate(15, H / 2);
+        sideCtx.rotate(-Math.PI / 2);
+        sideCtx.fillText('Height (Z) ↑', 0, 0);
+        sideCtx.restore();
+        
+        // Height marker
+        sideCtx.fillText(`${pos[2].toFixed(1)}m`, x, y - 15);
+    }
+    
+    function drawArrowHead(ctx, x, y, angle, size, color) {
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + vel[0] * velScale, y - vel[2] * velScale);
-        ctx.stroke();
+        ctx.lineTo(x - size * Math.cos(angle - Math.PI/6), y - size * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(x - size * Math.cos(angle + Math.PI/6), y - size * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    function drawFrame(frameIdx) {
+        if (!history || frameIdx >= history.pos.length) return;
         
-        // Info overlay
-        ctx.fillStyle = '#e8edf5';
-        ctx.font = '12px JetBrains Mono';
-        ctx.fillText(`Frame: ${frameIdx + 1}/${history.pos.length}`, 20, 30);
-        ctx.fillText(`Pos: (${pos[0].toFixed(1)}, ${pos[1].toFixed(1)}, ${pos[2].toFixed(1)}) m`, 20, 50);
-        ctx.fillText(`Vel: ${velMag.toFixed(1)} m/s`, 20, 70);
-        ctx.fillText(`Roll: ${(roll * 180 / Math.PI).toFixed(1)}°`, 20, 90);
+        const W = behindCanvas.width / dpr;
+        const H = behindCanvas.height / dpr;
+        
+        behindCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        behindCtx.clearRect(0, 0, W, H);
+        
+        // Background
+        behindCtx.fillStyle = '#1a2230';
+        behindCtx.fillRect(0, 0, W, H);
+        
+        // Title
+        behindCtx.fillStyle = '#00d4ff';
+        behindCtx.font = 'bold 16px JetBrains Mono';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText('Free Body Diagram', W/2, 30);
+        
+        const pos = history.pos[frameIdx];
+        const vel = history.vel[frameIdx];
+        const roll = history.roll[frameIdx];
+        const time = history.time[frameIdx];
+        
+        // Physical constants (from simulation)
+        const m = 0.175;
+        const rho_a = 1.225;
+        const g = 9.81;
+        const d = 0.21;
+        const AX = Math.PI * (d/2) * (d/2);
+        const cd = 0.32;
+        const cl = 0.18;
+        
+        // Calculate forces
+        const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+        
+        // Drag force
+        const Fd = 0.5 * rho_a * vMag * vMag * cd * AX;
+        
+        // Lift force
+        const Fl = 0.5 * rho_a * vMag * vMag * cl * AX;
+        
+        // Weight
+        const W_force = m * g;
+        
+        // Magnus force (lateral)
+        const isRHBH = params.throwType === 'RHBH';
+        const r = params.spin * 2 * Math.PI / 60;
+        const spinDirection = isRHBH ? 1 : -1;
+        const magnus_coeff = 0.0015;
+        const F_magnus = Math.abs(spinDirection * magnus_coeff * r * vMag * rho_a * AX);
+        
+        // Center of diagram
+        const centerX = W / 2;
+        const centerY = H / 2;
+        const discRadius = 40;
+        
+        // Draw coordinate system axes
+        const axisLen = 60;
+        
+        // X-axis (forward, along flight path)
+        behindCtx.strokeStyle = '#ff6b35';
+        behindCtx.lineWidth = 2;
+        behindCtx.beginPath();
+        behindCtx.moveTo(centerX, centerY);
+        behindCtx.lineTo(centerX + axisLen, centerY);
+        behindCtx.stroke();
+        drawArrowHead(behindCtx, centerX + axisLen, centerY, 0, 8, '#ff6b35');
+        behindCtx.fillStyle = '#ff6b35';
+        behindCtx.font = '14px JetBrains Mono';
+        behindCtx.textAlign = 'left';
+        behindCtx.fillText('X (fwd)', centerX + axisLen + 10, centerY + 5);
+        
+        // Y-axis (lateral)
+        behindCtx.strokeStyle = '#58d68d';
+        behindCtx.lineWidth = 2;
+        behindCtx.beginPath();
+        behindCtx.moveTo(centerX, centerY);
+        behindCtx.lineTo(centerX, centerY - axisLen);
+        behindCtx.stroke();
+        drawArrowHead(behindCtx, centerX, centerY - axisLen, -Math.PI/2, 8, '#58d68d');
+        behindCtx.fillStyle = '#58d68d';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText('Y (lat)', centerX, centerY - axisLen - 10);
+        
+        // Z-axis (vertical)
+        behindCtx.strokeStyle = '#f4d03f';
+        behindCtx.lineWidth = 2;
+        behindCtx.beginPath();
+        behindCtx.moveTo(centerX, centerY);
+        behindCtx.lineTo(centerX - axisLen * 0.5, centerY + axisLen * 0.866);
+        behindCtx.stroke();
+        drawArrowHead(behindCtx, centerX - axisLen * 0.5, centerY + axisLen * 0.866, Math.PI * 2/3, 8, '#f4d03f');
+        behindCtx.fillStyle = '#f4d03f';
+        behindCtx.textAlign = 'right';
+        behindCtx.fillText('Z (up)', centerX - axisLen * 0.5 - 10, centerY + axisLen * 0.866);
+        
+        // Draw disc (side view)
+        behindCtx.save();
+        behindCtx.translate(centerX, centerY);
+        behindCtx.rotate(roll * 0.3); // Show roll angle (reduced for visibility)
+        
+        behindCtx.fillStyle = '#00d4ff';
+        behindCtx.strokeStyle = '#0099cc';
+        behindCtx.lineWidth = 3;
+        behindCtx.beginPath();
+        behindCtx.ellipse(0, 0, discRadius, discRadius * 0.25, 0, 0, Math.PI * 2);
+        behindCtx.fill();
+        behindCtx.stroke();
+        
+        // Center of mass
+        behindCtx.fillStyle = '#fff';
+        behindCtx.beginPath();
+        behindCtx.arc(0, 0, 3, 0, Math.PI * 2);
+        behindCtx.fill();
+        
+        behindCtx.restore();
+        
+        // Force scale factor (for visualization)
+        const forceScale = 50;
+        
+        // Draw Drag force (opposite to velocity direction)
+        const vel_xz_mag = Math.sqrt(vel[0]*vel[0] + vel[2]*vel[2]);
+        if (vel_xz_mag > 0.1) {
+            const drag_angle = Math.atan2(-vel[2], -vel[0]);
+            const drag_len = Math.min(Fd * forceScale, 80);
+            
+            behindCtx.strokeStyle = '#e74c3c';
+            behindCtx.lineWidth = 3;
+            behindCtx.beginPath();
+            behindCtx.moveTo(centerX, centerY);
+            behindCtx.lineTo(centerX + drag_len * Math.cos(drag_angle), 
+                           centerY + drag_len * Math.sin(drag_angle));
+            behindCtx.stroke();
+            drawArrowHead(behindCtx, 
+                         centerX + drag_len * Math.cos(drag_angle),
+                         centerY + drag_len * Math.sin(drag_angle),
+                         drag_angle, 10, '#e74c3c');
+            
+            behindCtx.fillStyle = '#e74c3c';
+            behindCtx.font = '12px JetBrains Mono';
+            behindCtx.textAlign = 'center';
+            behindCtx.fillText(`F_d=${Fd.toFixed(2)}N`, 
+                             centerX + (drag_len + 30) * Math.cos(drag_angle),
+                             centerY + (drag_len + 30) * Math.sin(drag_angle));
+        }
+        
+        // Draw Lift force (perpendicular to velocity, upward)
+        if (vel_xz_mag > 0.1) {
+            const lift_angle = Math.atan2(-vel[0], vel[2]);
+            const lift_len = Math.min(Fl * forceScale, 80);
+            
+            behindCtx.strokeStyle = '#58d68d';
+            behindCtx.lineWidth = 3;
+            behindCtx.beginPath();
+            behindCtx.moveTo(centerX, centerY);
+            behindCtx.lineTo(centerX + lift_len * Math.cos(lift_angle),
+                           centerY + lift_len * Math.sin(lift_angle));
+            behindCtx.stroke();
+            drawArrowHead(behindCtx,
+                         centerX + lift_len * Math.cos(lift_angle),
+                         centerY + lift_len * Math.sin(lift_angle),
+                         lift_angle, 10, '#58d68d');
+            
+            behindCtx.fillStyle = '#58d68d';
+            behindCtx.font = '12px JetBrains Mono';
+            behindCtx.textAlign = 'center';
+            behindCtx.fillText(`F_l=${Fl.toFixed(2)}N`,
+                             centerX + (lift_len + 30) * Math.cos(lift_angle),
+                             centerY + (lift_len + 30) * Math.sin(lift_angle));
+        }
+        
+        // Draw Weight (downward)
+        const weight_len = Math.min(W_force * forceScale / 3, 60);
+        behindCtx.strokeStyle = '#f4d03f';
+        behindCtx.lineWidth = 3;
+        behindCtx.beginPath();
+        behindCtx.moveTo(centerX, centerY);
+        behindCtx.lineTo(centerX, centerY + weight_len);
+        behindCtx.stroke();
+        drawArrowHead(behindCtx, centerX, centerY + weight_len, Math.PI/2, 10, '#f4d03f');
+        
+        behindCtx.fillStyle = '#f4d03f';
+        behindCtx.font = '12px JetBrains Mono';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText(`W=${W_force.toFixed(2)}N`, centerX - 40, centerY + weight_len);
+        
+        // Draw Magnus force (lateral)
+        if (F_magnus > 0.01) {
+            const magnus_len = Math.min(F_magnus * forceScale * 3, 60);
+            const magnus_dir = spinDirection;
+            
+            behindCtx.strokeStyle = '#9b59b6';
+            behindCtx.lineWidth = 3;
+            behindCtx.beginPath();
+            behindCtx.moveTo(centerX, centerY);
+            behindCtx.lineTo(centerX - magnus_len * magnus_dir, centerY);
+            behindCtx.stroke();
+            drawArrowHead(behindCtx, centerX - magnus_len * magnus_dir, centerY, 
+                         magnus_dir > 0 ? Math.PI : 0, 10, '#9b59b6');
+            
+            behindCtx.fillStyle = '#9b59b6';
+            behindCtx.font = '12px JetBrains Mono';
+            behindCtx.textAlign = 'center';
+            behindCtx.fillText(`F_m=${F_magnus.toFixed(2)}N`,
+                             centerX - (magnus_len + 35) * magnus_dir,
+                             centerY - 15);
+        }
+        
+        // Draw spin vector (rotation about X-axis)
+        const spin_radius = discRadius + 15;
+        behindCtx.strokeStyle = '#00d4ff';
+        behindCtx.lineWidth = 2;
+        behindCtx.setLineDash([5, 5]);
+        behindCtx.beginPath();
+        behindCtx.arc(centerX, centerY, spin_radius, -Math.PI/4, Math.PI * 5/4);
+        behindCtx.stroke();
+        behindCtx.setLineDash([]);
+        
+        // Arrow showing spin direction
+        const spin_angle = time * 3; // Animated
+        const arrow_x = centerX + spin_radius * Math.cos(spin_angle);
+        const arrow_y = centerY + spin_radius * Math.sin(spin_angle);
+        drawArrowHead(behindCtx, arrow_x, arrow_y, spin_angle + Math.PI/2, 8, '#00d4ff');
+        
+        behindCtx.fillStyle = '#00d4ff';
+        behindCtx.font = '12px JetBrains Mono';
+        behindCtx.textAlign = 'center';
+        behindCtx.fillText(`ω=${(r * 60 / (2*Math.PI)).toFixed(0)} rpm`, centerX, centerY - spin_radius - 15);
+        
+        // Draw roll angle indicator
+        const roll_indicator_radius = discRadius + 35;
+        behindCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        behindCtx.lineWidth = 1;
+        behindCtx.beginPath();
+        behindCtx.arc(centerX, centerY, roll_indicator_radius, 0, Math.PI * 2);
+        behindCtx.stroke();
+        
+        behindCtx.strokeStyle = '#ff6b35';
+        behindCtx.lineWidth = 2;
+        behindCtx.beginPath();
+        behindCtx.moveTo(centerX, centerY);
+        behindCtx.lineTo(centerX + roll_indicator_radius * Math.cos(roll * 0.3 - Math.PI/2),
+                       centerY + roll_indicator_radius * Math.sin(roll * 0.3 - Math.PI/2));
+        behindCtx.stroke();
+        
+        // Info panel
+        behindCtx.fillStyle = '#e8edf5';
+        behindCtx.font = '11px JetBrains Mono';
+        behindCtx.textAlign = 'left';
+        const infoX = 10;
+        let infoY = H - 120;
+        
+        behindCtx.fillText(`Velocity: ${vMag.toFixed(2)} m/s`, infoX, infoY);
+        infoY += 18;
+        behindCtx.fillText(`Roll: ${(roll * 180 / Math.PI).toFixed(1)}°`, infoX, infoY);
+        infoY += 18;
+        behindCtx.fillText(`Height: ${pos[2].toFixed(2)} m`, infoX, infoY);
+        infoY += 18;
+        behindCtx.fillText(`Lateral: ${pos[1].toFixed(2)} m`, infoX, infoY);
+        infoY += 18;
+        behindCtx.fillText(`Distance: ${pos[0].toFixed(2)} m`, infoX, infoY);
+        infoY += 18;
+        behindCtx.fillText(`Time: ${time.toFixed(2)} s`, infoX, infoY);
+        
+        // Legend
+        behindCtx.font = '10px JetBrains Mono';
+        behindCtx.textAlign = 'right';
+        let legendY = H - 100;
+        const legendX = W - 10;
+        
+        behindCtx.fillStyle = '#e74c3c';
+        behindCtx.fillText('● Drag', legendX, legendY);
+        legendY += 15;
+        
+        behindCtx.fillStyle = '#58d68d';
+        behindCtx.fillText('● Lift', legendX, legendY);
+        legendY += 15;
+        
+        behindCtx.fillStyle = '#f4d03f';
+        behindCtx.fillText('● Weight', legendX, legendY);
+        legendY += 15;
+        
+        behindCtx.fillStyle = '#9b59b6';
+        behindCtx.fillText('● Magnus', legendX, legendY);
+        legendY += 15;
+        
+        behindCtx.fillStyle = '#00d4ff';
+        behindCtx.fillText('● Spin', legendX, legendY);
+    }
+    
+    function drawArrowHead(ctx, x, y, angle, size, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - size * Math.cos(angle - Math.PI/6), y - size * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(x - size * Math.cos(angle + Math.PI/6), y - size * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
     }
     
     function drawTrajectoryChart() {
