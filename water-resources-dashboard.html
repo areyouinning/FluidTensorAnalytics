@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intermountain Water Resources Dashboard</title>
+    <title>Water Resources Dashboard Demo</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -370,7 +370,11 @@
                         <div class="layer-category-title">Streamflow</div>
                         <div class="layer-item">
                             <input type="checkbox" id="layer-streamflow" onchange="toggleLayer('streamflow')">
-                            <label for="layer-streamflow">Current Conditions (USGS)</label>
+                            <label for="layer-streamflow">Current Conditions (CDSS)</label>
+                        </div>
+                        <div class="layer-item">
+                            <input type="checkbox" id="layer-reservoirs" onchange="toggleLayer('reservoirs')">
+                            <label for="layer-reservoirs">Reservoir Storage (CDSS)</label>
                         </div>
                     </div>
                     
@@ -448,15 +452,16 @@
         }
 
         function initializeLayers() {
-            // NOHRSC Snow Water Equivalent
+            // NOHRSC Snow Water Equivalent (proper endpoint)
             layers.swe = L.tileLayer.wms(
-                'https://mapservices.weather.noaa.gov/raster/rest/services/snow/NOHRSC_Snow_Analysis/MapServer/export',
+                'https://id pgis.ncep.noaa.gov/arcgis/services/NWS_Observations/NOHRSC_Snow_Analysis/MapServer/WMSServer',
                 {
-                    layers: 'show:3',
+                    layers: '3',
                     format: 'image/png',
                     transparent: true,
                     opacity: 0.7,
-                    attribution: 'NOAA NOHRSC'
+                    attribution: 'NOAA NOHRSC',
+                    version: '1.3.0'
                 }
             );
             
@@ -468,19 +473,21 @@
                     format: 'image/png',
                     transparent: true,
                     opacity: 0.7,
-                    attribution: 'NOAA NOHRSC'
+                    attribution: 'NOAA NOHRSC',
+                    version: '1.3.0'
                 }
             );
             
-            // NOAA MRMS 24-hour QPE
+            // NOHRSC 24-Hour QPE (Quantitative Precipitation Estimate)
             layers.precip24 = L.tileLayer.wms(
-                'https://opengeo.ncep.noaa.gov/geoserver/mrms/MultiSensor_QPE_24H_Pass2/ows',
+                'https://idpgis.ncep.noaa.gov/arcgis/services/NWS_Observations/rfc_qpe/MapServer/WMSServer',
                 {
-                    layers: 'MultiSensor_QPE_24H_Pass2',
+                    layers: '0',
                     format: 'image/png',
                     transparent: true,
                     opacity: 0.7,
-                    attribution: 'NOAA MRMS'
+                    attribution: 'NOAA',
+                    version: '1.3.0'
                 }
             );
             
@@ -492,7 +499,8 @@
                     format: 'image/png',
                     transparent: true,
                     opacity: 0.7,
-                    attribution: 'NOAA NOHRSC'
+                    attribution: 'NOAA NOHRSC',
+                    version: '1.3.0'
                 }
             );
             
@@ -504,14 +512,16 @@
                     format: 'image/png',
                     transparent: true,
                     opacity: 0.6,
-                    attribution: 'US Drought Monitor'
+                    attribution: 'US Drought Monitor',
+                    version: '1.3.0'
                 }
             );
             
-            // Initialize layer groups
+            // Initialize layer groups for point data
             layers.streamflow = L.layerGroup();
             layers.snotel = L.layerGroup();
             layers.radar = L.layerGroup();
+            layers.reservoirs = L.layerGroup();
         }
 
         async function loadRadarData() {
@@ -555,6 +565,9 @@
                 } else if (layerName === 'streamflow') {
                     loadStreamflowData();
                     layers.streamflow.addTo(map);
+                } else if (layerName === 'reservoirs') {
+                    loadReservoirData();
+                    layers.reservoirs.addTo(map);
                 } else if (layerName === 'snotel') {
                     loadSnotelData();
                     layers.snotel.addTo(map);
@@ -610,43 +623,146 @@
         }
 
         async function loadStreamflowData() {
-            // Load USGS streamflow data for Colorado
+            // Load streamflow data from Colorado CDSS REST API
             try {
-                const bounds = map.getBounds();
-                const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+                showStatus('Loading Colorado streamflow stations...', 'loading');
                 
                 const response = await fetch(
-                    `https://waterservices.usgs.gov/nwis/iv/?format=json&bBox=${bbox}&parameterCd=00060&siteStatus=active`
+                    'https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrystation?' +
+                    'format=json&abbrev=*&includeThirdParty=true'
                 );
                 
-                const data = await response.json();
+                if (!response.ok) {
+                    console.error('CDSS API error:', response.status);
+                    return;
+                }
                 
+                const data = await response.json();
                 layers.streamflow.clearLayers();
                 
-                if (data.value && data.value.timeSeries) {
-                    data.value.timeSeries.forEach(site => {
-                        const lat = site.sourceInfo.geoLocation.geogLocation.latitude;
-                        const lon = site.sourceInfo.geoLocation.geogLocation.longitude;
-                        const name = site.sourceInfo.siteName;
-                        
-                        if (site.values[0] && site.values[0].value.length > 0) {
-                            const flow = site.values[0].value[0].value;
+                if (data.ResultList && data.ResultList.length > 0) {
+                    // Filter for stations near user location and active streamflow stations
+                    const nearbyStations = data.ResultList.filter(station => {
+                        const lat = station.latitude;
+                        const lon = station.longitude;
+                        const distance = Math.sqrt(
+                            Math.pow(lat - userLocation.lat, 2) + 
+                            Math.pow(lon - userLocation.lon, 2)
+                        );
+                        return distance < 3 && station.stationStatus === 'Active'; // Within ~3 degrees
+                    }).slice(0, 50); // Limit to 50 stations
+                    
+                    for (const station of nearbyStations) {
+                        try {
+                            // Get latest streamflow data for this station
+                            const tsResponse = await fetch(
+                                `https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesraw/` +
+                                `?format=json&abbrev=${station.abbrev}&parameter=DISCHRG`
+                            );
                             
-                            const marker = L.circleMarker([lat, lon], {
-                                radius: 6,
-                                fillColor: '#2563eb',
+                            if (tsResponse.ok) {
+                                const tsData = await tsResponse.json();
+                                if (tsData.ResultList && tsData.ResultList.length > 0) {
+                                    const latest = tsData.ResultList[tsData.ResultList.length - 1];
+                                    const flow = latest.measValue;
+                                    
+                                    // Color based on flow magnitude
+                                    let color = '#2563eb';
+                                    if (flow > 1000) color = '#dc2626';
+                                    else if (flow > 100) color = '#f59e0b';
+                                    
+                                    const marker = L.circleMarker([station.latitude, station.longitude], {
+                                        radius: 6,
+                                        fillColor: color,
+                                        color: 'white',
+                                        weight: 2,
+                                        opacity: 1,
+                                        fillOpacity: 0.8
+                                    }).bindPopup(
+                                        `<strong>${station.stationName}</strong><br>` +
+                                        `Flow: ${flow} cfs<br>` +
+                                        `Updated: ${new Date(latest.measDate).toLocaleString()}`
+                                    );
+                                    
+                                    layers.streamflow.addLayer(marker);
+                                }
+                            }
+                        } catch (e) {
+                            console.log('Error loading station data:', station.abbrev);
+                        }
+                    }
+                    
+                    showStatus(`Loaded ${nearbyStations.length} streamflow stations`, 'success');
+                }
+            } catch (error) {
+                console.error('Error loading CDSS streamflow data:', error);
+                showStatus('Error loading streamflow data', 'error');
+            }
+        }
+
+        async function loadReservoirData() {
+            // Load reservoir data from Colorado CDSS
+            try {
+                showStatus('Loading reservoir data...', 'loading');
+                
+                const response = await fetch(
+                    'https://dwr.state.co.us/Rest/GET/api/v2/structures/divrec/divrecday?' +
+                    'format=json&structureType=RESERVOIR'
+                );
+                
+                if (!response.ok) {
+                    console.error('CDSS reservoir API error:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                layers.reservoirs.clearLayers();
+                
+                if (data.ResultList && data.ResultList.length > 0) {
+                    // Get unique reservoirs and their latest data
+                    const reservoirMap = new Map();
+                    
+                    data.ResultList.forEach(record => {
+                        if (record.structureName && record.waterClassNum === 1) {
+                            if (!reservoirMap.has(record.wdid) || 
+                                new Date(record.dataMeasDate) > new Date(reservoirMap.get(record.wdid).dataMeasDate)) {
+                                reservoirMap.set(record.wdid, record);
+                            }
+                        }
+                    });
+                    
+                    // Place markers for reservoirs with location data
+                    for (const record of reservoirMap.values()) {
+                        if (record.latitude && record.longitude) {
+                            const storage = record.dataValue || 0;
+                            
+                            // Size marker based on storage
+                            let radius = 8;
+                            if (storage > 100000) radius = 12;
+                            else if (storage > 10000) radius = 10;
+                            
+                            const marker = L.circleMarker([record.latitude, record.longitude], {
+                                radius: radius,
+                                fillColor: '#0ea5e9',
                                 color: 'white',
                                 weight: 2,
                                 opacity: 1,
-                                fillOpacity: 0.8
-                            }).bindPopup(`<strong>${name}</strong><br>Flow: ${flow} cfs`);
+                                fillOpacity: 0.7
+                            }).bindPopup(
+                                `<strong>${record.structureName}</strong><br>` +
+                                `Storage: ${storage.toLocaleString()} AF<br>` +
+                                `Updated: ${new Date(record.dataMeasDate).toLocaleDateString()}`
+                            );
                             
-                            layers.streamflow.addLayer(marker);
+                            layers.reservoirs.addLayer(marker);
                         }
-                    });
+                    }
+                    
+                    showStatus(`Loaded ${reservoirMap.size} reservoirs`, 'success');
                 }
             } catch (error) {
-                console.error('Error loading streamflow data:', error);
+                console.error('Error loading reservoir data:', error);
+                showStatus('Error loading reservoir data', 'error');
             }
         }
 
