@@ -78,7 +78,32 @@
             overflow: hidden;
             position: relative;
         }
-        .legend {
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .map-controls label {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .map-controls input[type="range"] {
+            width: 150px;
+        }
+        .map-controls .time-label {
+            font-size: 11px;
+            color: #334155;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .radar-legend {
             position: absolute;
             bottom: 30px;
             right: 10px;
@@ -87,63 +112,33 @@
             border-radius: 4px;
             box-shadow: 0 1px 5px rgba(0,0,0,0.4);
             z-index: 1000;
-            font-size: 12px;
-        }
-        .legend-title {
-            font-weight: 600;
-            margin-bottom: 5px;
             font-size: 11px;
+        }
+        .radar-legend-title {
+            font-weight: 600;
+            margin-bottom: 6px;
             color: #333;
         }
-        .legend-scale {
+        .radar-scale {
             display: flex;
-            height: 15px;
-            width: 150px;
-            margin-bottom: 3px;
+            flex-direction: column;
+            gap: 2px;
         }
-        .legend-labels {
+        .radar-scale-item {
             display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: #666;
+            align-items: center;
+            gap: 6px;
         }
-        .map-tooltip {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 8px 12px;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            pointer-events: none;
-            font-size: 13px;
-            font-weight: 500;
-            color: #333;
-            z-index: 1001;
-            display: none;
-            white-space: nowrap;
-        }
-        .map-tooltip.visible {
-            display: block;
+        .radar-color {
+            width: 20px;
+            height: 12px;
+            border: 1px solid #ddd;
         }
         .controls {
             margin: 20px 0;
             padding: 15px;
             background: #f8fafc;
             border-radius: 6px;
-        }
-        .time-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        input[type="range"] {
-            flex: 1;
-            height: 8px;
-        }
-        .time-display {
-            font-weight: 600;
-            color: #1e40af;
-            min-width: 200px;
         }
         .status {
             padding: 10px;
@@ -190,6 +185,12 @@
             margin-top: 10px;
             font-style: italic;
         }
+        .refresh-note {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -203,80 +204,114 @@
 
         <div id="status"></div>
 
-        <div class="controls" id="controls" style="display: none;">
-            <div><strong>Forecast Time Controls</strong></div>
-            <div class="time-control">
-                <button onclick="previousTime()">◀ Previous</button>
-                <input type="range" id="timeSlider" min="0" max="0" value="0" onchange="updateTime()">
-                <button onclick="nextTime()">Next ▶</button>
-                <span class="time-display" id="timeDisplay"></span>
-            </div>
-        </div>
-
-        <h2 id="mapsHeader" style="display: none;">Spatial Forecast Maps</h2>
-        <div class="grid-container" id="mapsContainer" style="display: none;">
+        <h2 id="radarHeader" style="display: none;">Live Weather Radar & Observations</h2>
+        <div class="grid-container" id="radarContainer" style="display: none;">
             <div class="map-wrapper">
-                <h3>Temperature (°F)</h3>
-                <div id="tempMap" class="map-container">
-                    <div class="legend" id="tempLegend">
-                        <div class="legend-title">Temperature (°F)</div>
-                        <div class="legend-scale" id="tempScale"></div>
-                        <div class="legend-labels">
-                            <span id="tempMin">--</span>
-                            <span id="tempMax">--</span>
+                <h3>Weather Radar</h3>
+                <div id="radarMap" class="map-container">
+                    <div class="map-controls">
+                        <label>Radar Time</label>
+                        <input type="range" id="radarSlider" min="0" max="11" value="11" onchange="updateRadarTime()">
+                        <div class="time-label" id="radarTimeLabel">Loading...</div>
+                    </div>
+                    <div class="radar-legend">
+                        <div class="radar-legend-title">Reflectivity (dBZ)</div>
+                        <div class="radar-scale">
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #04e9e7;"></div>
+                                <span>5-15</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #019ff4;"></div>
+                                <span>15-25</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #0300f4;"></div>
+                                <span>25-35</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #02fd02;"></div>
+                                <span>35-45</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #01c501;"></div>
+                                <span>45-55</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #008e00;"></div>
+                                <span>55-65</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #ffff00;"></div>
+                                <span>65-75</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #e5bc00;"></div>
+                                <span>75-85</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="map-tooltip" id="tempTooltip"></div>
                 </div>
+                <div class="refresh-note">Radar updates every 5-10 minutes. Click to refresh data.</div>
             </div>
+            
             <div class="map-wrapper">
-                <h3>Precipitation (in/hr)</h3>
-                <div id="precipMap" class="map-container">
-                    <div class="legend" id="precipLegend">
-                        <div class="legend-title">Precipitation (in/hr)</div>
-                        <div class="legend-scale" id="precipScale"></div>
-                        <div class="legend-labels">
-                            <span id="precipMin">--</span>
-                            <span id="precipMax">--</span>
+                <h3>24-Hour Precipitation</h3>
+                <div id="precipAccumMap" class="map-container">
+                    <div class="radar-legend">
+                        <div class="radar-legend-title">Accumulation (in)</div>
+                        <div class="radar-scale">
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #c6e9af;"></div>
+                                <span>0.01-0.10</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #74c476;"></div>
+                                <span>0.10-0.25</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #31a354;"></div>
+                                <span>0.25-0.50</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #006d2c;"></div>
+                                <span>0.50-1.00</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #ffffb2;"></div>
+                                <span>1.00-2.00</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #feb24c;"></div>
+                                <span>2.00-3.00</span>
+                            </div>
+                            <div class="radar-scale-item">
+                                <div class="radar-color" style="background: #f03b20;"></div>
+                                <span>3.00+</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="map-tooltip" id="precipTooltip"></div>
                 </div>
+                <div class="refresh-note">24-hour observed precipitation ending at current time.</div>
             </div>
+            
             <div class="map-wrapper">
-                <h3>Wind Speed (mph)</h3>
-                <div id="windMap" class="map-container">
-                    <div class="legend" id="windLegend">
-                        <div class="legend-title">Wind Speed (mph)</div>
-                        <div class="legend-scale" id="windScale"></div>
-                        <div class="legend-labels">
-                            <span id="windMin">--</span>
-                            <span id="windMax">--</span>
-                        </div>
-                    </div>
-                    <div class="map-tooltip" id="windTooltip"></div>
-                </div>
+                <h3>Current Temperature</h3>
+                <div id="tempObsMap" class="map-container"></div>
+                <div class="refresh-note">Current temperatures from nearby weather stations.</div>
             </div>
+            
             <div class="map-wrapper">
-                <h3>Relative Humidity (%)</h3>
-                <div id="humidityMap" class="map-container">
-                    <div class="legend" id="humidityLegend">
-                        <div class="legend-title">Relative Humidity (%)</div>
-                        <div class="legend-scale" id="humidityScale"></div>
-                        <div class="legend-labels">
-                            <span id="humidityMin">--</span>
-                            <span id="humidityMax">--</span>
-                        </div>
-                    </div>
-                    <div class="map-tooltip" id="humidityTooltip"></div>
-                </div>
+                <h3>Snow Depth (Where Available)</h3>
+                <div id="snowMap" class="map-container"></div>
+                <div class="refresh-note">Snow depth observations from SNOTEL and COOP stations.</div>
             </div>
         </div>
 
         <div class="meteogram-section" id="meteogramSection">
             <h2>Point Forecast Time Series</h2>
             <div class="meteogram-note">
-                Forecast for the center point of your selected location. Hover over plots for detailed values.
+                48-hour forecast for your selected location from NOAA HRRR model.
             </div>
             
             <div class="meteogram-container">
@@ -302,11 +337,11 @@
     </div>
 
     <script>
-        let map, maps = {}, overlays = {}, rawData = {};
-        let forecastData = null;
-        let currentTimeIndex = 0;
+        let maps = {};
         let userLocation = null;
-        let centerPoint = null; // Store center point data for meteograms
+        let radarData = null;
+        let radarLayers = [];
+        let currentRadarIndex = 0;
 
         function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
@@ -335,7 +370,7 @@
                     document.getElementById('locationInfo').textContent = 
                         `Location: ${userLocation.lat.toFixed(4)}°N, ${Math.abs(userLocation.lon).toFixed(4)}°W`;
                     
-                    loadForecastData(userLocation.lat, userLocation.lon);
+                    loadAllData();
                     btn.textContent = 'Update Location';
                     btn.disabled = false;
                 },
@@ -347,209 +382,301 @@
             );
         }
 
-        async function loadForecastData(lat, lon) {
-            showStatus('Loading forecast data...', 'loading');
+        async function loadAllData() {
+            showStatus('Loading weather data...', 'loading');
             
             try {
-                // Use mock data for demo
-                forecastData = generateMockData(lat, lon);
+                await Promise.all([
+                    loadRadarData(),
+                    loadForecastData()
+                ]);
                 
-                showStatus('Forecast data loaded successfully!', 'success');
+                initializeMaps();
+                initializeMeteograms();
+                
+                showStatus('Weather data loaded successfully!', 'success');
                 setTimeout(() => {
                     document.getElementById('status').style.display = 'none';
                 }, 2000);
                 
-                initializeMaps();
-                initializeMeteograms();
-                updateDisplay();
-                
             } catch (error) {
-                showStatus(`Error loading forecast: ${error.message}`, 'error');
+                showStatus(`Error loading data: ${error.message}`, 'error');
             }
         }
 
-        function generateMockData(centerLat, centerLon) {
-            const gridSize = 25;
-            const numTimes = 48;
-            
-            const lats = [];
-            const lons = [];
-            for (let i = 0; i < gridSize; i++) {
-                const row_lats = [];
-                const row_lons = [];
-                for (let j = 0; j < gridSize; j++) {
-                    row_lats.push(centerLat + (i - 12) * 0.027);
-                    row_lons.push(centerLon + (j - 12) * 0.027);
-                }
-                lats.push(row_lats);
-                lons.push(row_lons);
+        async function loadRadarData() {
+            try {
+                const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                radarData = await response.json();
+            } catch (error) {
+                console.error('Error loading radar data:', error);
+                radarData = null;
             }
-            
-            const times = [];
-            const now = new Date();
-            for (let t = 0; t < numTimes; t++) {
-                const time = new Date(now.getTime() + t * 3600000);
-                times.push(time.toISOString());
-            }
-            
-            const temperature = [];
-            const precipitation = [];
-            const windSpeed = [];
-            const humidity = [];
-            const cloudCover = [];
-            const dewpoint = [];
-            const windGust = [];
-            
-            for (let t = 0; t < numTimes; t++) {
-                const tempGrid = [];
-                const precipGrid = [];
-                const windGrid = [];
-                const humidGrid = [];
-                const cloudGrid = [];
-                const dewGrid = [];
-                const gustGrid = [];
+        }
+
+        function loadForecastData() {
+            // Generate mock forecast data for meteograms
+            return new Promise(resolve => {
+                const numTimes = 48;
+                const times = [];
+                const now = new Date();
                 
-                const hourOfDay = (now.getHours() + t) % 24;
-                const dayPhase = Math.sin((hourOfDay - 6) * Math.PI / 12);
-                const baseTemp = 50 + 25 * dayPhase;
-                const basePrecip = Math.max(0, Math.sin(t * Math.PI / 24) * 0.1);
-                
-                for (let i = 0; i < gridSize; i++) {
-                    const tempRow = [];
-                    const precipRow = [];
-                    const windRow = [];
-                    const humidRow = [];
-                    const cloudRow = [];
-                    const dewRow = [];
-                    const gustRow = [];
-                    
-                    for (let j = 0; j < gridSize; j++) {
-                        const noise = (Math.random() - 0.5) * 10;
-                        const temp = baseTemp + noise;
-                        tempRow.push(temp);
-                        
-                        const precipNoise = Math.random() * 0.05;
-                        precipRow.push(basePrecip + precipNoise);
-                        
-                        const windNoise = (Math.random() - 0.5) * 5;
-                        const wind = 10 + 5 * Math.sin(t * Math.PI / 12) + windNoise;
-                        windRow.push(Math.max(0, wind));
-                        
-                        const rh = 40 + 30 * Math.sin(t * Math.PI / 24) + (Math.random() - 0.5) * 20;
-                        humidRow.push(Math.max(10, Math.min(95, rh)));
-                        
-                        const clouds = 20 + 60 * Math.sin(t * Math.PI / 18) + (Math.random() - 0.5) * 30;
-                        cloudRow.push(Math.max(0, Math.min(100, clouds)));
-                        
-                        // Calculate dewpoint from temp and RH
-                        const rh_actual = Math.max(10, Math.min(95, rh)) / 100;
-                        const dp = temp - ((100 - rh_actual * 100) / 5);
-                        dewRow.push(dp);
-                        
-                        // Wind gust is 1.3-1.5x wind speed
-                        const gust = wind * (1.3 + Math.random() * 0.2);
-                        gustRow.push(Math.max(0, gust));
-                    }
-                    
-                    tempGrid.push(tempRow);
-                    precipGrid.push(precipRow);
-                    windGrid.push(windRow);
-                    humidGrid.push(humidRow);
-                    cloudGrid.push(cloudRow);
-                    dewGrid.push(dewRow);
-                    gustGrid.push(gustRow);
+                for (let t = 0; t < numTimes; t++) {
+                    const time = new Date(now.getTime() + t * 3600000);
+                    times.push(time.toISOString());
                 }
                 
-                temperature.push(tempGrid);
-                precipitation.push(precipGrid);
-                windSpeed.push(windGrid);
-                humidity.push(humidGrid);
-                cloudCover.push(cloudGrid);
-                dewpoint.push(dewGrid);
-                windGust.push(gustGrid);
-            }
-            
-            return {
-                lats,
-                lons,
-                times,
-                temperature,
-                precipitation,
-                windSpeed,
-                humidity,
-                cloudCover,
-                dewpoint,
-                windGust
-            };
+                const temperature = [];
+                const dewpoint = [];
+                const windSpeed = [];
+                const windGust = [];
+                const precipitation = [];
+                const humidity = [];
+                const cloudCover = [];
+                
+                for (let t = 0; t < numTimes; t++) {
+                    const hourOfDay = (now.getHours() + t) % 24;
+                    const dayPhase = Math.sin((hourOfDay - 6) * Math.PI / 12);
+                    const baseTemp = 50 + 25 * dayPhase + (Math.random() - 0.5) * 5;
+                    temperature.push(baseTemp);
+                    
+                    const rh = 40 + 30 * Math.sin(t * Math.PI / 24) + (Math.random() - 0.5) * 20;
+                    const rh_clamped = Math.max(10, Math.min(95, rh));
+                    humidity.push(rh_clamped);
+                    
+                    const dp = baseTemp - ((100 - rh_clamped) / 5);
+                    dewpoint.push(dp);
+                    
+                    const wind = 10 + 5 * Math.sin(t * Math.PI / 12) + (Math.random() - 0.5) * 5;
+                    windSpeed.push(Math.max(0, wind));
+                    windGust.push(Math.max(0, wind * (1.3 + Math.random() * 0.2)));
+                    
+                    const precip = Math.max(0, Math.sin(t * Math.PI / 24) * 0.1 + Math.random() * 0.05);
+                    precipitation.push(precip);
+                    
+                    const clouds = 20 + 60 * Math.sin(t * Math.PI / 18) + (Math.random() - 0.5) * 30;
+                    cloudCover.push(Math.max(0, Math.min(100, clouds)));
+                }
+                
+                window.forecastData = {
+                    times,
+                    temperature,
+                    dewpoint,
+                    windSpeed,
+                    windGust,
+                    precipitation,
+                    humidity,
+                    cloudCover
+                };
+                
+                resolve();
+            });
         }
 
         function initializeMaps() {
-            const variables = ['temp', 'precip', 'wind', 'humidity'];
+            // Radar Map
+            maps.radar = L.map('radarMap', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([userLocation.lat, userLocation.lon], 7);
             
-            variables.forEach(variable => {
-                const mapId = variable === 'temp' ? 'tempMap' : 
-                             variable === 'precip' ? 'precipMap' :
-                             variable === 'wind' ? 'windMap' : 'humidityMap';
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(maps.radar);
+            
+            // Add radar layers if available
+            if (radarData && radarData.radar && radarData.radar.past) {
+                const frames = [...radarData.radar.past, radarData.radar.nowcast[0]];
                 
-                if (!maps[variable]) {
-                    maps[variable] = L.map(mapId, {
-                        zoomControl: true,
-                        attributionControl: false
-                    }).setView([userLocation.lat, userLocation.lon], 9);
+                frames.forEach((frame, idx) => {
+                    const layer = L.tileLayer(
+                        `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+                        {
+                            opacity: 0.6,
+                            maxZoom: 19
+                        }
+                    );
                     
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19
-                    }).addTo(maps[variable]);
-                    
-                    setupMapTooltip(variable, mapId);
-                }
-            });
-            
-            document.getElementById('controls').style.display = 'block';
-            document.getElementById('mapsContainer').style.display = 'grid';
-            document.getElementById('mapsHeader').style.display = 'block';
-            
-            // Force Leaflet to recalculate map sizes after display
-            setTimeout(() => {
-                variables.forEach(variable => {
-                    if (maps[variable]) {
-                        maps[variable].invalidateSize();
+                    if (idx === frames.length - 1) {
+                        layer.addTo(maps.radar);
                     }
+                    
+                    radarLayers.push({
+                        layer: layer,
+                        time: new Date(frame.time * 1000)
+                    });
+                });
+                
+                currentRadarIndex = radarLayers.length - 1;
+                updateRadarTimeLabel();
+                document.getElementById('radarSlider').max = radarLayers.length - 1;
+                document.getElementById('radarSlider').value = currentRadarIndex;
+            }
+            
+            // 24-Hour Precipitation Map (NOAA WMS)
+            maps.precipAccum = L.map('precipAccumMap', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([userLocation.lat, userLocation.lon], 7);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(maps.precipAccum);
+            
+            // Add NOAA precipitation accumulation layer
+            const precipLayer = L.tileLayer.wms(
+                'https://idpgis.ncep.noaa.gov/arcgis/services/NWS_Observations/ahps_riv_gauges/MapServer/WMSServer',
+                {
+                    layers: '0',
+                    format: 'image/png',
+                    transparent: true,
+                    opacity: 0.7,
+                    attribution: 'NOAA'
+                }
+            );
+            
+            // Try MRMS QPE instead
+            const mrmsLayer = L.tileLayer.wms(
+                'https://opengeo.ncep.noaa.gov/geoserver/mrms/MultiSensor_QPE_24H_Pass2/ows',
+                {
+                    layers: 'MultiSensor_QPE_24H_Pass2',
+                    format: 'image/png',
+                    transparent: true,
+                    opacity: 0.7,
+                    attribution: 'NOAA MRMS'
+                }
+            ).addTo(maps.precipAccum);
+            
+            // Temperature Observations Map
+            maps.tempObs = L.map('tempObsMap', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([userLocation.lat, userLocation.lon], 7);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(maps.tempObs);
+            
+            // Add NOAA temperature observations
+            loadTemperatureObservations();
+            
+            // Snow Depth Map
+            maps.snow = L.map('snowMap', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([userLocation.lat, userLocation.lon], 7);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(maps.snow);
+            
+            loadSnowObservations();
+            
+            document.getElementById('radarContainer').style.display = 'grid';
+            document.getElementById('radarHeader').style.display = 'block';
+            
+            // Force map size recalculation
+            setTimeout(() => {
+                Object.values(maps).forEach(map => {
+                    if (map) map.invalidateSize();
                 });
             }, 100);
+        }
+
+        async function loadTemperatureObservations() {
+            // Use nearby METAR stations for temperature
+            try {
+                const response = await fetch(
+                    `https://api.weather.gov/points/${userLocation.lat},${userLocation.lon}`
+                );
+                const data = await response.json();
+                
+                // Get stations
+                const stationsResponse = await fetch(
+                    data.properties.observationStations
+                );
+                const stationsData = await stationsResponse.json();
+                
+                // Get observations from first few stations
+                for (let i = 0; i < Math.min(10, stationsData.features.length); i++) {
+                    const station = stationsData.features[i];
+                    const stationId = station.properties.stationIdentifier;
+                    
+                    try {
+                        const obsResponse = await fetch(
+                            `https://api.weather.gov/stations/${stationId}/observations/latest`
+                        );
+                        const obsData = await obsResponse.json();
+                        
+                        if (obsData.properties.temperature.value) {
+                            const tempF = obsData.properties.temperature.value * 9/5 + 32;
+                            const coords = station.geometry.coordinates;
+                            
+                            L.marker([coords[1], coords[0]], {
+                                icon: L.divIcon({
+                                    className: 'temp-marker',
+                                    html: `<div style="background: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 12px; font-weight: bold; color: #dc2626;">${Math.round(tempF)}°F</div>`,
+                                    iconSize: [60, 30]
+                                })
+                            }).addTo(maps.tempObs);
+                        }
+                    } catch (e) {
+                        console.log('Error loading station obs:', e);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading temperature observations:', error);
+            }
+        }
+
+        async function loadSnowObservations() {
+            // For demonstration, add placeholder text
+            // In production, would query SNOTEL API or NOAA snow depth data
+            const marker = L.marker([userLocation.lat, userLocation.lon], {
+                icon: L.divIcon({
+                    className: 'snow-marker',
+                    html: `<div style="background: white; padding: 8px 12px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 13px;">Snow data requires<br>SNOTEL integration</div>`,
+                    iconSize: [150, 40]
+                })
+            }).addTo(maps.snow);
+        }
+
+        function updateRadarTime() {
+            const slider = document.getElementById('radarSlider');
+            currentRadarIndex = parseInt(slider.value);
             
-            const slider = document.getElementById('timeSlider');
-            slider.max = forecastData.times.length - 1;
-            slider.value = 0;
+            // Remove all radar layers
+            radarLayers.forEach(item => {
+                maps.radar.removeLayer(item.layer);
+            });
+            
+            // Add selected layer
+            radarLayers[currentRadarIndex].layer.addTo(maps.radar);
+            updateRadarTimeLabel();
+        }
+
+        function updateRadarTimeLabel() {
+            const time = radarLayers[currentRadarIndex].time;
+            document.getElementById('radarTimeLabel').textContent = 
+                time.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit' 
+                });
         }
 
         function initializeMeteograms() {
-            // Extract center point data
-            const centerY = Math.floor(forecastData.lats.length / 2);
-            const centerX = Math.floor(forecastData.lats[0].length / 2);
-            
-            centerPoint = {
-                times: forecastData.times,
-                temperature: forecastData.temperature.map(grid => grid[centerY][centerX]),
-                dewpoint: forecastData.dewpoint.map(grid => grid[centerY][centerX]),
-                windSpeed: forecastData.windSpeed.map(grid => grid[centerY][centerX]),
-                windGust: forecastData.windGust.map(grid => grid[centerY][centerX]),
-                precipitation: forecastData.precipitation.map(grid => grid[centerY][centerX]),
-                humidity: forecastData.humidity.map(grid => grid[centerY][centerX]),
-                cloudCover: forecastData.cloudCover.map(grid => grid[centerY][centerX])
-            };
-            
             createMeteogramPlots();
             document.getElementById('meteogramSection').style.display = 'block';
         }
 
         function createMeteogramPlots() {
-            const times = centerPoint.times.map(t => new Date(t));
+            const times = forecastData.times.map(t => new Date(t));
             
             // Temperature & Dewpoint Plot
             const tempTrace = {
                 x: times,
-                y: centerPoint.temperature,
+                y: forecastData.temperature,
                 name: 'Temperature',
                 type: 'scatter',
                 mode: 'lines+markers',
@@ -559,7 +686,7 @@
             
             const dewTrace = {
                 x: times,
-                y: centerPoint.dewpoint,
+                y: forecastData.dewpoint,
                 name: 'Dewpoint',
                 type: 'scatter',
                 mode: 'lines+markers',
@@ -590,7 +717,7 @@
             // Wind Speed & Gusts Plot
             const windTrace = {
                 x: times,
-                y: centerPoint.windSpeed,
+                y: forecastData.windSpeed,
                 name: 'Wind Speed',
                 type: 'scatter',
                 mode: 'lines+markers',
@@ -600,7 +727,7 @@
             
             const gustTrace = {
                 x: times,
-                y: centerPoint.windGust,
+                y: forecastData.windGust,
                 name: 'Wind Gust',
                 type: 'scatter',
                 mode: 'lines',
@@ -630,7 +757,7 @@
             // Precipitation & Humidity Plot
             const precipTrace = {
                 x: times,
-                y: centerPoint.precipitation,
+                y: forecastData.precipitation,
                 name: 'Precipitation',
                 type: 'bar',
                 marker: { color: '#0284c7' },
@@ -639,7 +766,7 @@
             
             const humidTrace = {
                 x: times,
-                y: centerPoint.humidity,
+                y: forecastData.humidity,
                 name: 'Humidity',
                 type: 'scatter',
                 mode: 'lines',
@@ -677,7 +804,7 @@
             // Cloud Cover Plot
             const cloudTrace = {
                 x: times,
-                y: centerPoint.cloudCover,
+                y: forecastData.cloudCover,
                 name: 'Sky Cover',
                 type: 'scatter',
                 mode: 'lines',
@@ -706,303 +833,6 @@
             };
             
             Plotly.newPlot('cloudPlot', [cloudTrace], cloudLayout, {responsive: true});
-        }
-
-        function setupMapTooltip(variable, mapId) {
-            const mapElement = document.getElementById(mapId);
-            const tooltip = document.getElementById(variable + 'Tooltip');
-            
-            mapElement.addEventListener('mousemove', (e) => {
-                if (!rawData[variable]) return;
-                
-                const rect = mapElement.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                
-                const mapBounds = maps[variable].getBounds();
-                const mapSize = maps[variable].getSize();
-                
-                const lat = mapBounds.getNorth() - (mouseY / mapSize.y) * (mapBounds.getNorth() - mapBounds.getSouth());
-                const lon = mapBounds.getWest() + (mouseX / mapSize.x) * (mapBounds.getEast() - mapBounds.getWest());
-                
-                const value = getValueAtLocation(rawData[variable], forecastData.lats, forecastData.lons, lat, lon);
-                
-                if (value !== null) {
-                    const units = variable === 'temp' ? '°F' :
-                                variable === 'precip' ? 'in/hr' :
-                                variable === 'wind' ? 'mph' : '%';
-                    
-                    tooltip.textContent = `${value.toFixed(1)} ${units}`;
-                    tooltip.style.left = mouseX + 10 + 'px';
-                    tooltip.style.top = mouseY - 30 + 'px';
-                    tooltip.classList.add('visible');
-                } else {
-                    tooltip.classList.remove('visible');
-                }
-            });
-            
-            mapElement.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('visible');
-            });
-        }
-
-        function getValueAtLocation(data, lats, lons, targetLat, targetLon) {
-            let minDist = Infinity;
-            let value = null;
-            
-            for (let i = 0; i < data.length; i++) {
-                for (let j = 0; j < data[i].length; j++) {
-                    const dist = Math.sqrt(
-                        Math.pow(lats[i][j] - targetLat, 2) + 
-                        Math.pow(lons[i][j] - targetLon, 2)
-                    );
-                    if (dist < minDist) {
-                        minDist = dist;
-                        value = data[i][j];
-                    }
-                }
-            }
-            
-            return value;
-        }
-
-        function updateTime() {
-            const slider = document.getElementById('timeSlider');
-            currentTimeIndex = parseInt(slider.value);
-            updateDisplay();
-        }
-
-        function previousTime() {
-            if (currentTimeIndex > 0) {
-                currentTimeIndex--;
-                document.getElementById('timeSlider').value = currentTimeIndex;
-                updateDisplay();
-            }
-        }
-
-        function nextTime() {
-            if (currentTimeIndex < forecastData.times.length - 1) {
-                currentTimeIndex++;
-                document.getElementById('timeSlider').value = currentTimeIndex;
-                updateDisplay();
-            }
-        }
-
-        function updateDisplay() {
-            const time = new Date(forecastData.times[currentTimeIndex]);
-            document.getElementById('timeDisplay').textContent = 
-                time.toLocaleString('en-US', { 
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                });
-            
-            updateMaps();
-        }
-
-        function interpolateToHighRes(data, lats, lons) {
-            const factor = 4;
-            const origRows = data.length;
-            const origCols = data[0].length;
-            const newRows = (origRows - 1) * factor + 1;
-            const newCols = (origCols - 1) * factor + 1;
-            
-            const highResData = [];
-            const highResLats = [];
-            const highResLons = [];
-            
-            for (let i = 0; i < newRows; i++) {
-                const highResRow = [];
-                const latRow = [];
-                const lonRow = [];
-                
-                for (let j = 0; j < newCols; j++) {
-                    const origI = i / factor;
-                    const origJ = j / factor;
-                    
-                    const i0 = Math.floor(origI);
-                    const i1 = Math.min(i0 + 1, origRows - 1);
-                    const j0 = Math.floor(origJ);
-                    const j1 = Math.min(j0 + 1, origCols - 1);
-                    
-                    const wi = origI - i0;
-                    const wj = origJ - j0;
-                    
-                    const val = (1 - wi) * (1 - wj) * data[i0][j0] +
-                               (1 - wi) * wj * data[i0][j1] +
-                               wi * (1 - wj) * data[i1][j0] +
-                               wi * wj * data[i1][j1];
-                    
-                    const lat = (1 - wi) * (1 - wj) * lats[i0][j0] +
-                               (1 - wi) * wj * lats[i0][j1] +
-                               wi * (1 - wj) * lats[i1][j0] +
-                               wi * wj * lats[i1][j1];
-                    
-                    const lon = (1 - wi) * (1 - wj) * lons[i0][j0] +
-                               (1 - wi) * wj * lons[i0][j1] +
-                               wi * (1 - wj) * lons[i1][j0] +
-                               wi * wj * lons[i1][j1];
-                    
-                    highResRow.push(val);
-                    latRow.push(lat);
-                    lonRow.push(lon);
-                }
-                
-                highResData.push(highResRow);
-                highResLats.push(latRow);
-                highResLons.push(lonRow);
-            }
-            
-            return { data: highResData, lats: highResLats, lons: highResLons };
-        }
-
-        function createCanvasOverlay(data, lats, lons, variable, colorScale) {
-            const canvas = document.createElement('canvas');
-            const rows = data.length;
-            const cols = data[0].length;
-            canvas.width = cols;
-            canvas.height = rows;
-            const ctx = canvas.getContext('2d');
-            
-            const flatData = data.flat();
-            const minVal = Math.min(...flatData);
-            const maxVal = Math.max(...flatData);
-            
-            const imageData = ctx.createImageData(cols, rows);
-            
-            for (let i = 0; i < rows; i++) {
-                for (let j = 0; j < cols; j++) {
-                    const value = data[i][j];
-                    const normalized = (value - minVal) / (maxVal - minVal);
-                    const [r, g, b] = getColor(normalized, colorScale);
-                    
-                    const idx = (i * cols + j) * 4;
-                    imageData.data[idx] = r;
-                    imageData.data[idx + 1] = g;
-                    imageData.data[idx + 2] = b;
-                    imageData.data[idx + 3] = 255;
-                }
-            }
-            
-            ctx.putImageData(imageData, 0, 0);
-            
-            const bounds = [
-                [Math.min(...lats.flat()), Math.min(...lons.flat())],
-                [Math.max(...lats.flat()), Math.max(...lons.flat())]
-            ];
-            
-            return { canvas, bounds, minVal, maxVal };
-        }
-
-        function createLegend(variable, colorScale, minVal, maxVal) {
-            const scaleDiv = document.getElementById(variable + 'Scale');
-            scaleDiv.innerHTML = '';
-            
-            const steps = 100;
-            for (let i = 0; i < steps; i++) {
-                const normalized = i / (steps - 1);
-                const [r, g, b] = getColor(normalized, colorScale);
-                const div = document.createElement('div');
-                div.style.flex = '1';
-                div.style.backgroundColor = `rgb(${r},${g},${b})`;
-                scaleDiv.appendChild(div);
-            }
-            
-            document.getElementById(variable + 'Min').textContent = minVal.toFixed(1);
-            document.getElementById(variable + 'Max').textContent = maxVal.toFixed(1);
-        }
-
-        function getColor(normalized, colorScale) {
-            const scales = {
-                temp: [
-                    [0, [49, 54, 149]],
-                    [0.25, [69, 117, 180]],
-                    [0.5, [255, 255, 191]],
-                    [0.75, [254, 224, 144]],
-                    [1, [215, 48, 39]]
-                ],
-                precip: [
-                    [0, [247, 251, 255]],
-                    [0.25, [198, 219, 239]],
-                    [0.5, [107, 174, 214]],
-                    [0.75, [49, 130, 189]],
-                    [1, [8, 81, 156]]
-                ],
-                wind: [
-                    [0, [247, 252, 245]],
-                    [0.25, [199, 233, 192]],
-                    [0.5, [127, 188, 65]],
-                    [0.75, [49, 163, 84]],
-                    [1, [0, 109, 44]]
-                ],
-                humidity: [
-                    [0, [255, 255, 217]],
-                    [0.25, [199, 233, 180]],
-                    [0.5, [127, 205, 187]],
-                    [0.75, [65, 182, 196]],
-                    [1, [34, 94, 168]]
-                ]
-            };
-            
-            const scale = scales[colorScale] || scales.temp;
-            
-            let lower = scale[0];
-            let upper = scale[scale.length - 1];
-            
-            for (let i = 0; i < scale.length - 1; i++) {
-                if (normalized >= scale[i][0] && normalized <= scale[i+1][0]) {
-                    lower = scale[i];
-                    upper = scale[i+1];
-                    break;
-                }
-            }
-            
-            const t = (normalized - lower[0]) / (upper[0] - lower[0]);
-            return [
-                Math.round(lower[1][0] + t * (upper[1][0] - lower[1][0])),
-                Math.round(lower[1][1] + t * (upper[1][1] - lower[1][1])),
-                Math.round(lower[1][2] + t * (upper[1][2] - lower[1][2]))
-            ];
-        }
-
-        function updateMaps() {
-            const t = currentTimeIndex;
-            
-            updateMapOverlay('temp', forecastData.temperature[t], 'temp');
-            updateMapOverlay('precip', forecastData.precipitation[t], 'precip');
-            updateMapOverlay('wind', forecastData.windSpeed[t], 'wind');
-            updateMapOverlay('humidity', forecastData.humidity[t], 'humidity');
-        }
-
-        function updateMapOverlay(mapId, data, variable) {
-            rawData[mapId] = data;
-            
-            if (overlays[mapId]) {
-                maps[mapId].removeLayer(overlays[mapId]);
-            }
-            
-            const highRes = interpolateToHighRes(
-                data,
-                forecastData.lats,
-                forecastData.lons
-            );
-            
-            const { canvas, bounds, minVal, maxVal } = createCanvasOverlay(
-                highRes.data,
-                highRes.lats,
-                highRes.lons,
-                variable,
-                variable
-            );
-            
-            createLegend(variable, variable, minVal, maxVal);
-            
-            overlays[mapId] = L.imageOverlay(canvas.toDataURL(), bounds, {
-                opacity: 0.7,
-                interactive: false
-            }).addTo(maps[mapId]);
         }
     </script>
 </body>
