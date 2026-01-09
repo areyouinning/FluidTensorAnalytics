@@ -407,7 +407,7 @@
         <div class="main-content">
             <div class="simulation-panel">
                 <div class="visualization-modes">
-                    <button class="mode-btn active" data-mode="velocity" title="Shows velocity magnitude and direction using color. Hue indicates flow direction, brightness shows speed.">Velocity Field</button>
+                    <button class="mode-btn active" data-mode="velocity" title="Streamlines traced through the velocity field using RK4 integration. Color indicates flow speed (blue=slow, red=fast). Arrows show flow direction.">Streamlines</button>
                     <button class="mode-btn" data-mode="pressure" title="Pressure field from solving ∇²p = -∇·(u·∇u). Enforces incompressibility via Helmholtz-Hodge decomposition.">Pressure</button>
                     <button class="mode-btn" data-mode="vorticity" title="Vorticity ω = ∇×u measures local fluid rotation. Cyan = counterclockwise (positive), Magenta = clockwise (negative).">Vorticity (∇×u)</button>
                     <button class="mode-btn" data-mode="divergence" title="Divergence ∇·u measures expansion/compression. Should be ~0 for incompressible flow (mass conservation).">Divergence (∇·u)</button>
@@ -937,11 +937,85 @@
                 }
             }
             
+            // Bilinear interpolation of velocity at arbitrary position
+            getVelocityAt(x, y) {
+                const N = this.fluid.N;
+                
+                // Clamp to valid range
+                x = Math.max(1, Math.min(N, x));
+                y = Math.max(1, Math.min(N, y));
+                
+                const i = Math.floor(x);
+                const j = Math.floor(y);
+                const s = x - i;
+                const t = y - j;
+                
+                const i1 = Math.min(i + 1, N);
+                const j1 = Math.min(j + 1, N);
+                
+                const u00 = this.fluid.u[this.fluid.IX(i, j)];
+                const u10 = this.fluid.u[this.fluid.IX(i1, j)];
+                const u01 = this.fluid.u[this.fluid.IX(i, j1)];
+                const u11 = this.fluid.u[this.fluid.IX(i1, j1)];
+                
+                const v00 = this.fluid.v[this.fluid.IX(i, j)];
+                const v10 = this.fluid.v[this.fluid.IX(i1, j)];
+                const v01 = this.fluid.v[this.fluid.IX(i, j1)];
+                const v11 = this.fluid.v[this.fluid.IX(i1, j1)];
+                
+                const u = (1 - s) * (1 - t) * u00 + s * (1 - t) * u10 + (1 - s) * t * u01 + s * t * u11;
+                const v = (1 - s) * (1 - t) * v00 + s * (1 - t) * v10 + (1 - s) * t * v01 + s * t * v11;
+                
+                return { u, v };
+            }
+            
+            // Trace a single streamline using RK4 integration
+            traceStreamline(startX, startY, maxSteps, stepSize, maxVel) {
+                const N = this.fluid.N;
+                const points = [];
+                let x = startX;
+                let y = startY;
+                
+                for (let step = 0; step < maxSteps; step++) {
+                    if (x < 1 || x > N || y < 1 || y > N) break;
+                    
+                    // Get velocity at current position
+                    const vel = this.getVelocityAt(x, y);
+                    const speed = Math.sqrt(vel.u * vel.u + vel.v * vel.v);
+                    
+                    if (speed < maxVel * 0.001) break; // Stop in stagnant regions
+                    
+                    points.push({ x, y, speed });
+                    
+                    // RK4 integration
+                    const k1 = this.getVelocityAt(x, y);
+                    const k2 = this.getVelocityAt(x + k1.u * stepSize * 0.5, y + k1.v * stepSize * 0.5);
+                    const k3 = this.getVelocityAt(x + k2.u * stepSize * 0.5, y + k2.v * stepSize * 0.5);
+                    const k4 = this.getVelocityAt(x + k3.u * stepSize, y + k3.v * stepSize);
+                    
+                    // Normalize by speed to get unit step in flow direction
+                    const dx = (k1.u + 2*k2.u + 2*k3.u + k4.u) / 6;
+                    const dy = (k1.v + 2*k2.v + 2*k3.v + k4.v) / 6;
+                    const mag = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (mag < 1e-10) break;
+                    
+                    x += (dx / mag) * stepSize;
+                    y += (dy / mag) * stepSize;
+                }
+                
+                return points;
+            }
+            
             renderVelocityField(cellSize) {
                 const N = this.fluid.N;
-                const imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
-                const data = imageData.data;
+                const scale = this.canvas.width / N;
                 
+                // Clear with dark background
+                this.ctx.fillStyle = '#0a0e17';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Find max velocity for normalization
                 let maxVel = 0;
                 for (let j = 1; j <= N; j++) {
                     for (let i = 1; i <= N; i++) {
@@ -952,36 +1026,121 @@
                     }
                 }
                 
-                for (let j = 1; j <= N; j++) {
-                    for (let i = 1; i <= N; i++) {
-                        const u = this.fluid.u[this.fluid.IX(i, j)];
-                        const v = this.fluid.v[this.fluid.IX(i, j)];
-                        const vel = Math.sqrt(u*u + v*v);
+                if (maxVel < 1e-10) {
+                    this.drawLegend('velocity');
+                    return;
+                }
+                
+                // Generate seed points on a grid with some jitter
+                const seedSpacing = 8; // Grid cells between seeds
+                const seeds = [];
+                for (let j = seedSpacing/2; j <= N; j += seedSpacing) {
+                    for (let i = seedSpacing/2; i <= N; i += seedSpacing) {
+                        // Add small random offset for more organic look
+                        const jitterX = (Math.random() - 0.5) * seedSpacing * 0.5;
+                        const jitterY = (Math.random() - 0.5) * seedSpacing * 0.5;
+                        seeds.push({ x: i + jitterX, y: j + jitterY });
+                    }
+                }
+                
+                // Streamline parameters
+                const maxSteps = 80;
+                const stepSize = 0.5;
+                
+                // Draw streamlines
+                for (const seed of seeds) {
+                    // Trace forward
+                    const forwardPoints = this.traceStreamline(seed.x, seed.y, maxSteps, stepSize, maxVel);
+                    // Trace backward
+                    const backwardPoints = this.traceStreamline(seed.x, seed.y, maxSteps, -stepSize, maxVel);
+                    
+                    // Combine points (backward reversed + forward)
+                    const allPoints = [...backwardPoints.reverse(), ...forwardPoints.slice(1)];
+                    
+                    if (allPoints.length < 2) continue;
+                    
+                    // Draw the streamline with varying color based on speed
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.lineJoin = 'round';
+                    
+                    for (let i = 0; i < allPoints.length - 1; i++) {
+                        const p1 = allPoints[i];
+                        const p2 = allPoints[i + 1];
                         
-                        const intensity = Math.min(1, vel / (maxVel * 0.5 || 1));
+                        // Color based on local velocity magnitude
+                        const avgSpeed = (p1.speed + p2.speed) / 2;
+                        const intensity = Math.min(1, avgSpeed / (maxVel * 0.5));
                         
-                        // Color based on direction and magnitude
-                        const angle = Math.atan2(v, u);
-                        const hue = (angle + Math.PI) / (2 * Math.PI) * 360;
+                        // Use a cool-to-warm colormap (blue -> cyan -> green -> yellow -> red)
+                        let r, g, b;
+                        if (intensity < 0.25) {
+                            const t = intensity / 0.25;
+                            r = 0;
+                            g = Math.floor(t * 150);
+                            b = Math.floor(139 + t * 116);
+                        } else if (intensity < 0.5) {
+                            const t = (intensity - 0.25) / 0.25;
+                            r = 0;
+                            g = Math.floor(150 + t * 105);
+                            b = Math.floor(255 - t * 55);
+                        } else if (intensity < 0.75) {
+                            const t = (intensity - 0.5) / 0.25;
+                            r = Math.floor(t * 255);
+                            g = Math.floor(255 - t * 90);
+                            b = Math.floor(200 - t * 200);
+                        } else {
+                            const t = (intensity - 0.75) / 0.25;
+                            r = 255;
+                            g = Math.floor(165 - t * 145);
+                            b = 0;
+                        }
                         
-                        const rgb = this.hslToRgb(hue / 360, 1, intensity * 0.5);
+                        // Alpha based on intensity for visual hierarchy
+                        const alpha = 0.4 + intensity * 0.5;
                         
-                        for (let dy = 0; dy < cellSize; dy++) {
-                            for (let dx = 0; dx < cellSize; dx++) {
-                                const px = Math.floor((i-1) * cellSize + dx);
-                                const py = Math.floor((j-1) * cellSize + dy);
-                                const idx = (py * this.canvas.width + px) * 4;
-                                
-                                data[idx] = rgb[0];
-                                data[idx + 1] = rgb[1];
-                                data[idx + 2] = rgb[2];
-                                data[idx + 3] = 255;
-                            }
+                        this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo((p1.x - 0.5) * scale, (p1.y - 0.5) * scale);
+                        this.ctx.lineTo((p2.x - 0.5) * scale, (p2.y - 0.5) * scale);
+                        this.ctx.stroke();
+                    }
+                    
+                    // Draw small arrowhead at midpoint to show direction
+                    if (allPoints.length > 10) {
+                        const midIdx = Math.floor(allPoints.length / 2);
+                        const p1 = allPoints[midIdx - 1];
+                        const p2 = allPoints[midIdx + 1];
+                        const pm = allPoints[midIdx];
+                        
+                        const dx = p2.x - p1.x;
+                        const dy = p2.y - p1.y;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (len > 0.1) {
+                            const nx = dx / len;
+                            const ny = dy / len;
+                            
+                            const arrowSize = 3;
+                            const ax = (pm.x - 0.5) * scale;
+                            const ay = (pm.y - 0.5) * scale;
+                            
+                            const intensity = Math.min(1, pm.speed / (maxVel * 0.5));
+                            const alpha = 0.5 + intensity * 0.4;
+                            
+                            this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(ax + nx * arrowSize, ay + ny * arrowSize);
+                            this.ctx.lineTo(ax - nx * arrowSize * 0.5 - ny * arrowSize * 0.6, 
+                                           ay - ny * arrowSize * 0.5 + nx * arrowSize * 0.6);
+                            this.ctx.lineTo(ax - nx * arrowSize * 0.5 + ny * arrowSize * 0.6, 
+                                           ay - ny * arrowSize * 0.5 - nx * arrowSize * 0.6);
+                            this.ctx.closePath();
+                            this.ctx.fill();
                         }
                     }
                 }
                 
-                this.ctx.putImageData(imageData, 0, 0);
                 this.drawLegend('velocity');
             }
             
@@ -1354,12 +1513,13 @@
                                    legendWidth + 2*padding, boxHeight);
                 
                 if (mode === 'velocity' || mode === 'speed') {
-                    // Velocity gradient (blue to red)
+                    // Velocity streamline gradient (cool to warm: blue -> cyan -> green -> yellow -> red)
                     const gradient = this.ctx.createLinearGradient(legendX, 0, legendX + legendWidth, 0);
                     gradient.addColorStop(0, 'rgb(0, 0, 139)');
-                    gradient.addColorStop(0.33, 'rgb(0, 191, 255)');
-                    gradient.addColorStop(0.67, 'rgb(255, 165, 0)');
-                    gradient.addColorStop(1, 'rgb(220, 20, 60)');
+                    gradient.addColorStop(0.25, 'rgb(0, 150, 255)');
+                    gradient.addColorStop(0.5, 'rgb(0, 255, 200)');
+                    gradient.addColorStop(0.75, 'rgb(255, 165, 0)');
+                    gradient.addColorStop(1, 'rgb(255, 20, 0)');
                     
                     this.ctx.fillStyle = gradient;
                     this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
@@ -1367,9 +1527,9 @@
                     // Labels
                     this.ctx.font = '10px JetBrains Mono';
                     this.ctx.fillStyle = 'rgba(224, 230, 237, 0.9)';
-                    this.ctx.fillText('0', legendX, legendY + legendHeight + 15);
-                    this.ctx.fillText('Max', legendX + legendWidth - 25, legendY + legendHeight + 15);
-                    this.ctx.fillText('Velocity |u|', legendX + 55, legendY + legendHeight + 32);
+                    this.ctx.fillText('Slow', legendX, legendY + legendHeight + 15);
+                    this.ctx.fillText('Fast', legendX + legendWidth - 28, legendY + legendHeight + 15);
+                    this.ctx.fillText('Streamlines |u|', legendX + 45, legendY + legendHeight + 32);
                     
                 } else if (mode === 'vorticity') {
                     // Vorticity gradient
