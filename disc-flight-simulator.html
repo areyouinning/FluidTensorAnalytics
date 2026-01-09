@@ -703,15 +703,17 @@
         };
         
         for (let t = 0; t < maxTime; t += dt) {
-            if (pos[2] < 0) break;
-            
+            // Store current state first
             history.pos.push([...pos]);
             history.vel.push([...vel]);
             history.roll.push(roll);
             history.time.push(t);
             
+            // Check if disc has hit ground (stop before next step)
+            if (pos[2] <= 0) break;
+            
             const vMag = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
-            if (vMag < 0.1) break;
+            if (vMag < 0.1 || isNaN(vMag)) break;
             
             const vDir = [vel[0]/vMag, vel[1]/vMag, vel[2]/vMag];
             
@@ -739,9 +741,15 @@
             vel[1] += magnus_y * dt;
             vel[2] += (drag[2] + lift[2] - g) * dt;
             
+            // Check for NaN
+            if (isNaN(vel[0]) || isNaN(vel[1]) || isNaN(vel[2])) break;
+            
             pos[0] += vel[0] * dt;
             pos[1] += vel[1] * dt;
             pos[2] += vel[2] * dt;
+            
+            // Clamp height to ground
+            if (pos[2] < 0) pos[2] = 0;
             
             roll += rollRate * dt;
         }
