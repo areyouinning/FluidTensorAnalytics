@@ -3320,7 +3320,11 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                renderer.mode = btn.dataset.mode;
+                // Update all 4 renderers
+                const mode = btn.dataset.mode;
+                for (let i = 0; i < 4; i++) {
+                    renderers[i].mode = mode;
+                }
             });
         });
         
