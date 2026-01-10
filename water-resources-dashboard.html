@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script>
+        // Wait for DOM and Leaflet to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof L === 'undefined') {
+                console.error('Leaflet failed to load');
+                document.getElementById('status').innerHTML = '<div class="status error">Error: Map library failed to load. Please refresh the page.</div>';
+                return;
+            }
+            initMap();
+            showStatus('Map initialized. Select layers to display data.', 'success');
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -306,7 +318,7 @@
                         <div class="layer-category-title">Snow Analysis</div>
                         <div class="layer-item">
                             <input type="checkbox" id="layer-swe" onchange="toggleLayer('swe')">
-                            <label for="layer-swe">Snow Water Equivalent</label>
+                            <label for="layer-swe">Snow Water Equivalent (click for values)</label>
                         </div>
                         <div class="opacity-control">
                             <span>Opacity:</span>
@@ -315,18 +327,6 @@
                         <div class="layer-item">
                             <input type="checkbox" id="layer-snotel" onchange="toggleLayer('snotel')">
                             <label for="layer-snotel">SNOTEL Stations</label>
-                        </div>
-                    </div>
-                    
-                    <div class="layer-category">
-                        <div class="layer-category-title">Drought</div>
-                        <div class="layer-item">
-                            <input type="checkbox" id="layer-drought" onchange="toggleLayer('drought')">
-                            <label for="layer-drought">US Drought Monitor</label>
-                        </div>
-                        <div class="opacity-control">
-                            <span>Opacity:</span>
-                            <input type="range" min="0" max="100" value="60" onchange="setLayerOpacity('drought', this.value)">
                         </div>
                     </div>
                     
@@ -437,7 +437,6 @@
             layers.radar = L.layerGroup();
             layers.reservoirs = L.layerGroup();
             layers.swe = L.layerGroup();
-            layers.drought = L.layerGroup();
         }
 
         async function loadRadarData() {
@@ -474,19 +473,13 @@
             try {
                 showStatus('Loading snow data...', 'loading');
                 
-                // Try using NOAA's operational snow analysis via a working WMS endpoint
-                // NOHRSC provides WMS through their NSIDC-hosted services
-                const sweLayer = L.tileLayer.wms(
-                    'https://mapservices.weather.noaa.gov/eventdriven/rest/services/snow/NOHRSC_Snow_Analysis/MapServer/export',
+                // Use NOHRSC via ArcGIS REST with GetFeatureInfo support
+                const sweLayer = L.tileLayer(
+                    'https://mapservices.weather.noaa.gov/eventdriven/rest/services/snow/NOHRSC_Snow_Analysis/MapServer/export?' +
+                    'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&dpi=96&format=png32&transparent=true&f=image&layers=show:3',
                     {
-                        layers: '3', // Layer 3 is SWE
-                        format: 'png',
-                        transparent: true,
                         opacity: 0.7,
-                        attribution: 'NOAA NOHRSC',
-                        f: 'image',
-                        bboxSR: 4326,
-                        imageSR: 4326
+                        attribution: 'NOAA NOHRSC'
                     }
                 );
                 
@@ -494,77 +487,58 @@
                 layers.swe.addLayer(sweLayer);
                 layers.swe.addTo(map);
                 
-                showStatus('Snow data loaded', 'success');
+                // Setup click/hover handler for SWE values
+                map.on('click', async function(e) {
+                    if (document.getElementById('layer-swe').checked) {
+                        const latlng = e.latlng;
+                        const sweValue = await querySWEValue(latlng);
+                        if (sweValue !== null) {
+                            L.popup()
+                                .setLatLng(latlng)
+                                .setContent(`<strong>Snow Water Equivalent</strong><br>${sweValue.toFixed(1)} inches`)
+                                .openOn(map);
+                        }
+                    }
+                });
+                
+                showStatus('Snow data loaded - click map to see values', 'success');
             } catch (error) {
                 console.error('Error loading SWE:', error);
-                
-                // Fallback: try loading today's static image from NOHRSC website
-                try {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                    const day = String(today.getDate()).padStart(2, '0');
-                    const dateStr = `${year}${month}${day}`;
-                    
-                    const bounds = [[24.5, -125], [49.5, -66.5]];
-                    
-                    // Try current date's image
-                    const imgUrl = `https://www.nohrsc.noaa.gov/snow_model/images/full/National/nsm_swe/${year}${month}/nsm_swe_${dateStr}.jpg`;
-                    
-                    const sweImageLayer = L.imageOverlay(
-                        imgUrl,
-                        bounds,
-                        {
-                            opacity: 0.7,
-                            attribution: 'NOAA NOHRSC',
-                            errorOverlayUrl: null
-                        }
-                    );
-                    
-                    sweImageLayer.on('load', () => {
-                        showStatus('Snow data loaded (static image)', 'success');
-                    });
-                    
-                    sweImageLayer.on('error', () => {
-                        showStatus('Snow data unavailable - try SNOTEL stations', 'error');
-                    });
-                    
-                    layers.swe.clearLayers();
-                    layers.swe.addLayer(sweImageLayer);
-                    layers.swe.addTo(map);
-                    
-                } catch (fallbackError) {
-                    showStatus('Snow data unavailable - check NOHRSC.noaa.gov', 'error');
-                }
+                showStatus('Snow data unavailable', 'error');
             }
         }
-
-        async function loadDroughtLayer() {
+        
+        async function querySWEValue(latlng) {
             try {
-                showStatus('Loading drought data...', 'loading');
+                // Query NOHRSC ArcGIS service for SWE value at point
+                const point = map.latLngToContainerPoint(latlng);
+                const bounds = map.getBounds();
+                const size = map.getSize();
                 
-                // US Drought Monitor - proper lat/lon bounds for Leaflet
-                // Note: Leaflet uses [south, west], [north, east] format
-                const bounds = [[24.5, -125], [49.5, -66.5]];
+                const url = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/snow/NOHRSC_Snow_Analysis/MapServer/identify?' +
+                    `geometry=${latlng.lng},${latlng.lat}&` +
+                    `geometryType=esriGeometryPoint&` +
+                    `sr=4326&` +
+                    `layers=all:3&` +
+                    `tolerance=1&` +
+                    `mapExtent=${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}&` +
+                    `imageDisplay=${size.x},${size.y},96&` +
+                    `returnGeometry=false&` +
+                    `f=json`;
                 
-                const droughtLayer = L.imageOverlay(
-                    'https://droughtmonitor.unl.edu/data/png/current/current_usdm.png',
-                    bounds,
-                    {
-                        opacity: 0.6,
-                        attribution: 'US Drought Monitor'
-                    }
-                );
+                const response = await fetch(url);
+                const data = await response.json();
                 
-                layers.drought.clearLayers();
-                layers.drought.addLayer(droughtLayer);
-                layers.drought.addTo(map);
-                
-                showStatus('Drought data loaded', 'success');
+                if (data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    // SWE is typically in millimeters, convert to inches
+                    const sweInches = result.attributes.Pixel_Value / 25.4;
+                    return sweInches;
+                }
             } catch (error) {
-                console.error('Error loading drought:', error);
-                showStatus('Drought data unavailable', 'error');
+                console.error('Error querying SWE value:', error);
             }
+            return null;
         }
 
         async function loadStreamflowData() {
@@ -591,12 +565,37 @@
                                 if (stationInfo && stationInfo.latitude && stationInfo.longitude) {
                                     const flow = parseFloat(latest.measValue);
                                     
-                                    let color = '#2563eb';
-                                    if (flow > 1000) color = '#dc2626';
-                                    else if (flow > 100) color = '#f59e0b';
+                                    // Color scale based on flow magnitude
+                                    let color = '#3b82f6'; // Blue for low flow
+                                    let flowCategory = 'Low';
+                                    if (flow > 5000) {
+                                        color = '#7c2d12'; // Dark red for very high
+                                        flowCategory = 'Very High';
+                                    } else if (flow > 2000) {
+                                        color = '#dc2626'; // Red for high
+                                        flowCategory = 'High';
+                                    } else if (flow > 500) {
+                                        color = '#f59e0b'; // Orange for moderate-high
+                                        flowCategory = 'Moderate-High';
+                                    } else if (flow > 100) {
+                                        color = '#fbbf24'; // Yellow for moderate
+                                        flowCategory = 'Moderate';
+                                    }
+                                    
+                                    // Parse date properly from CDSS format
+                                    const dateStr = latest.measDate;
+                                    let formattedDate = dateStr;
+                                    try {
+                                        const date = new Date(dateStr);
+                                        if (!isNaN(date.getTime())) {
+                                            formattedDate = date.toLocaleString();
+                                        }
+                                    } catch (e) {
+                                        // Use raw date string if parsing fails
+                                    }
                                     
                                     const marker = L.circleMarker([stationInfo.latitude, stationInfo.longitude], {
-                                        radius: 6,
+                                        radius: 7,
                                         fillColor: color,
                                         color: 'white',
                                         weight: 2,
@@ -604,8 +603,10 @@
                                         fillOpacity: 0.8
                                     }).bindPopup(
                                         `<strong>${stationInfo.stationName}</strong><br>` +
-                                        `Flow: ${flow.toFixed(1)} cfs<br>` +
-                                        `Updated: ${new Date(latest.measDate).toLocaleString()}`
+                                        `<strong>Flow: ${flow.toFixed(1)} cfs</strong><br>` +
+                                        `Category: ${flowCategory}<br>` +
+                                        `Updated: ${formattedDate}<br>` +
+                                        `Station: ${abbrev}`
                                     );
                                     
                                     layers.streamflow.addLayer(marker);
@@ -623,10 +624,46 @@
                 
                 layers.streamflow.addTo(map);
                 showStatus(`Loaded ${loadedCount} streamflow stations`, 'success');
+                
+                // Show legend for streamflow
+                if (loadedCount > 0) {
+                    showStreamflowLegend();
+                }
             } catch (error) {
                 console.error('Error loading streamflow:', error);
                 showStatus('Error loading streamflow data', 'error');
             }
+        }
+
+        function showStreamflowLegend() {
+            const legendDiv = document.getElementById('activeLegend');
+            const legendTitle = document.getElementById('legendTitle');
+            const legendContent = document.getElementById('legendContent');
+            
+            legendTitle.textContent = 'Streamflow (cfs)';
+            legendContent.innerHTML = `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #7c2d12;"></div>
+                    <span>> 5,000 (Very High)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #dc2626;"></div>
+                    <span>2,000 - 5,000 (High)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f59e0b;"></div>
+                    <span>500 - 2,000 (Mod-High)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fbbf24;"></div>
+                    <span>100 - 500 (Moderate)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3b82f6;"></div>
+                    <span>< 100 (Low)</span>
+                </div>
+            `;
+            legendDiv.style.display = 'block';
         }
 
         async function getStationInfo(abbrev) {
@@ -654,43 +691,55 @@
                 
                 layers.reservoirs.clearLayers();
                 let loadedCount = 0;
+                let failedCount = 0;
                 
                 for (const abbrev of MAJOR_RESERVOIRS) {
                     try {
-                        // Get structure info by abbreviation
-                        const infoResponse = await fetch(
-                            `https://dwr.state.co.us/Rest/GET/api/v2/structures/structure/` +
+                        // First, get telemetry station info which has coordinates
+                        const stationResponse = await fetch(
+                            `https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrystation/` +
                             `?format=json&abbrev=${abbrev}`
                         );
                         
-                        if (infoResponse.ok) {
-                            const infoData = await infoResponse.json();
+                        if (stationResponse.ok) {
+                            const stationData = await stationResponse.json();
                             
-                            if (infoData.ResultList && infoData.ResultList.length > 0) {
-                                const structure = infoData.ResultList[0];
-                                const wdid = structure.wdid;
+                            if (stationData.ResultList && stationData.ResultList.length > 0) {
+                                const station = stationData.ResultList[0];
                                 
-                                // Get latest reservoir measurement
+                                // Get latest storage data
                                 const dataResponse = await fetch(
-                                    `https://dwr.state.co.us/Rest/GET/api/v2/structures/divrec/divrecday/` +
-                                    `?format=json&wdid=${wdid}&endDate=01%2F09%2F2026`
+                                    `https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesraw/` +
+                                    `?format=json&abbrev=${abbrev}&parameter=STORAGE`
                                 );
                                 
                                 if (dataResponse.ok) {
                                     const dataData = await dataResponse.json();
                                     
                                     if (dataData.ResultList && dataData.ResultList.length > 0) {
-                                        // Get the most recent measurement
                                         const latest = dataData.ResultList[dataData.ResultList.length - 1];
-                                        const storage = parseFloat(latest.dataValue) || 0;
+                                        const storage = parseFloat(latest.measValue) || 0;
                                         
-                                        if (structure.latitude && structure.longitude && storage >= 0) {
+                                        if (station.latitude && station.longitude) {
                                             let radius = 8;
-                                            if (storage > 100000) radius = 14;
+                                            if (storage > 200000) radius = 16;
+                                            else if (storage > 100000) radius = 14;
                                             else if (storage > 50000) radius = 12;
                                             else if (storage > 10000) radius = 10;
                                             
-                                            const marker = L.circleMarker([structure.latitude, structure.longitude], {
+                                            // Parse date
+                                            const dateStr = latest.measDate;
+                                            let formattedDate = dateStr;
+                                            try {
+                                                const date = new Date(dateStr);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedDate = date.toLocaleDateString();
+                                                }
+                                            } catch (e) {
+                                                // Use raw date string
+                                            }
+                                            
+                                            const marker = L.circleMarker([station.latitude, station.longitude], {
                                                 radius: radius,
                                                 fillColor: '#0ea5e9',
                                                 color: 'white',
@@ -698,10 +747,10 @@
                                                 opacity: 1,
                                                 fillOpacity: 0.7
                                             }).bindPopup(
-                                                `<strong>${structure.structureName}</strong><br>` +
-                                                `Storage: ${storage.toLocaleString()} AF<br>` +
-                                                `Date: ${latest.dataMeasDate}<br>` +
-                                                `WDID: ${wdid}`
+                                                `<strong>${station.stationName}</strong><br>` +
+                                                `<strong>Storage: ${storage.toLocaleString()} AF</strong><br>` +
+                                                `Updated: ${formattedDate}<br>` +
+                                                `Station: ${abbrev}`
                                             );
                                             
                                             layers.reservoirs.addLayer(marker);
@@ -713,13 +762,14 @@
                         }
                     } catch (e) {
                         console.log(`Error loading reservoir ${abbrev}:`, e.message);
+                        failedCount++;
                     }
                     
                     await new Promise(resolve => setTimeout(resolve, 150));
                 }
                 
                 layers.reservoirs.addTo(map);
-                showStatus(`Loaded ${loadedCount} reservoirs`, 'success');
+                showStatus(`Loaded ${loadedCount} reservoirs (${failedCount} failed)`, loadedCount > 0 ? 'success' : 'error');
             } catch (error) {
                 console.error('Error loading reservoirs:', error);
                 showStatus('Error loading reservoir data', 'error');
@@ -799,8 +849,6 @@
                     loadSnotelData();
                 } else if (layerName === 'swe') {
                     loadSWELayer();
-                } else if (layerName === 'drought') {
-                    loadDroughtLayer();
                 } else if (layers[layerName]) {
                     layers[layerName].addTo(map);
                 }
@@ -851,17 +899,23 @@
 
         function setupHoverTooltip() {
             const tooltip = document.getElementById('hoverTooltip');
+            const mapContainer = document.getElementById('mainMap');
             
             map.on('mousemove', function(e) {
-                // Show tooltip with lat/lon for now
-                // In production, would query raster values at cursor position
+                // Show tooltip with lat/lon
                 const lat = e.latlng.lat.toFixed(4);
                 const lon = e.latlng.lng.toFixed(4);
                 
                 tooltip.textContent = `${lat}°N, ${Math.abs(lon)}°W`;
                 tooltip.style.display = 'block';
-                tooltip.style.left = e.originalEvent.pageX + 10 + 'px';
-                tooltip.style.top = e.originalEvent.pageY - 30 + 'px';
+                
+                // Position relative to map container
+                const mapRect = mapContainer.getBoundingClientRect();
+                const mouseX = e.originalEvent.clientX - mapRect.left;
+                const mouseY = e.originalEvent.clientY - mapRect.top;
+                
+                tooltip.style.left = mouseX + 10 + 'px';
+                tooltip.style.top = mouseY - 30 + 'px';
             });
             
             map.on('mouseout', function() {
@@ -903,13 +957,6 @@
                 }, 3000);
             }
         }
-
-        // Initialize on load
-        window.onload = function() {
-            initMap();
-            showStatus('Map initialized. Select layers to display data.', 'success');
-        };
     </script>
 </body>
 </html>
- 
