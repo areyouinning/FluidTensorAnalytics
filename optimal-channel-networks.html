@@ -325,10 +325,21 @@
 
                 <div class="control-section">
                     <h3>Algorithm Racing</h3>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <button class="btn" id="sprint-mode" style="flex: 1; background: rgba(0, 217, 255, 0.2); border-color: var(--accent-primary);">🏃 Sprint (1K)</button>
+                        <button class="btn" id="marathon-mode" style="flex: 1;">🏃‍♂️ Marathon (10K)</button>
+                    </div>
                     <button class="btn" id="race-btn">🏁 Start 10-Way Race</button>
                     <button class="btn" id="clear-scoreboard-btn">Clear Scoreboard</button>
                     <div id="race-status" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; display: none;">
                         Racing... <span id="race-progress">0%</span>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>🏇 Live Race Progress</h3>
+                    <div style="border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--bg-secondary);">
+                        <canvas id="raceCanvas" width="300" height="200"></canvas>
                     </div>
                 </div>
 
@@ -1793,13 +1804,31 @@
                         for (let j = 0; j < this.size; j++) {
                             network[j] = this.downstream[j];
                         }
-                        // Mutate
-                        for (let j = 0; j < this.size * 0.1; j++) {
+                        // Mutate - validate each mutation
+                        let mutations = 0;
+                        const maxMutations = Math.floor(this.size * 0.1);
+                        while (mutations < maxMutations) {
                             const idx = Math.floor(Math.random() * this.size);
                             if (idx !== this.outletIdx) {
+                                const oldVal = network[idx];
+                                
+                                // Set network temporarily
+                                for (let k = 0; k < this.size; k++) {
+                                    this.downstream[k] = network[k];
+                                }
+                                
                                 const neighbors = this.getValidNeighbors(idx);
                                 if (neighbors.length > 0) {
-                                    network[idx] = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                    const newVal = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                    network[idx] = newVal;
+                                    this.downstream[idx] = newVal;
+                                    
+                                    // Validate
+                                    if (!this.isNetworkValid()) {
+                                        network[idx] = oldVal;
+                                    } else {
+                                        mutations++;
+                                    }
                                 }
                             }
                         }
@@ -1813,6 +1842,12 @@
                     // Set network
                     for (let i = 0; i < this.size; i++) {
                         this.downstream[i] = individual[i];
+                    }
+                    
+                    // Validate before local search
+                    if (!this.isNetworkValid()) {
+                        fitness.push(Infinity);
+                        continue;
                     }
                     
                     // Local search
@@ -1901,13 +1936,31 @@
                         for (let j = 0; j < this.size; j++) {
                             network[j] = this.downstream[j];
                         }
-                        // Mutate to create diversity
-                        for (let j = 0; j < this.size * 0.15; j++) {
+                        // Mutate to create diversity - validate each mutation
+                        let mutations = 0;
+                        const maxMutations = Math.floor(this.size * 0.15);
+                        while (mutations < maxMutations) {
                             const idx = Math.floor(Math.random() * this.size);
                             if (idx !== this.outletIdx) {
+                                const oldVal = network[idx];
+                                
+                                // Set network temporarily
+                                for (let k = 0; k < this.size; k++) {
+                                    this.downstream[k] = network[k];
+                                }
+                                
                                 const neighbors = this.getValidNeighbors(idx);
                                 if (neighbors.length > 0) {
-                                    network[idx] = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                    const newVal = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                    network[idx] = newVal;
+                                    this.downstream[idx] = newVal;
+                                    
+                                    // Validate
+                                    if (!this.isNetworkValid()) {
+                                        network[idx] = oldVal;
+                                    } else {
+                                        mutations++;
+                                    }
                                 }
                             }
                         }
@@ -1921,10 +1974,16 @@
                     for (let i = 0; i < this.size; i++) {
                         this.downstream[i] = individual[i];
                     }
-                    this.computeFlowAccumulation();
-                    this.computeDistances();
-                    this.computeEnergy();
-                    fitness.push(this.totalEnergy);
+                    
+                    // Validate before evaluating
+                    if (!this.isNetworkValid()) {
+                        fitness.push(Infinity); // Invalid network gets worst fitness
+                    } else {
+                        this.computeFlowAccumulation();
+                        this.computeDistances();
+                        this.computeEnergy();
+                        fitness.push(this.totalEnergy);
+                    }
                     this.evaluationCount++;
                 }
                 
@@ -1969,14 +2028,18 @@
                         }
                     }
                     
-                    // Evaluate trial
+                    // Evaluate trial - validate first
                     for (let j = 0; j < this.size; j++) {
                         this.downstream[j] = trial[j];
                     }
-                    this.computeFlowAccumulation();
-                    this.computeDistances();
-                    this.computeEnergy();
-                    const trialFitness = this.totalEnergy;
+                    
+                    let trialFitness = Infinity;
+                    if (this.isNetworkValid()) {
+                        this.computeFlowAccumulation();
+                        this.computeDistances();
+                        this.computeEnergy();
+                        trialFitness = this.totalEnergy;
+                    }
                     this.evaluationCount++;
                     
                     // Selection
@@ -3167,6 +3230,116 @@
         
         // Scoreboard data
         let raceResults = [];
+        let raceMode = 'sprint'; // 'sprint' or 'marathon'
+        let raceDistance = 1000; // Number of iterations
+        
+        // Live race visualization
+        const raceCanvas = document.getElementById('raceCanvas');
+        const raceCtx = raceCanvas.getContext('2d');
+        let raceData = {}; // { algorithm: [{eval: X, energy: Y}, ...] }
+        
+        function drawRaceProgress() {
+            const width = raceCanvas.width;
+            const height = raceCanvas.height;
+            const padding = { top: 20, right: 10, bottom: 30, left: 50 };
+            
+            // Clear
+            raceCtx.fillStyle = '#141923';
+            raceCtx.fillRect(0, 0, width, height);
+            
+            if (Object.keys(raceData).length === 0) {
+                raceCtx.fillStyle = '#8b95a5';
+                raceCtx.font = '11px JetBrains Mono';
+                raceCtx.textAlign = 'center';
+                raceCtx.fillText('Start a race to see live progress', width/2, height/2);
+                return;
+            }
+            
+            // Find min/max for scaling
+            let maxEval = 0;
+            let minEnergy = Infinity;
+            let maxEnergy = -Infinity;
+            
+            for (const algo in raceData) {
+                for (const point of raceData[algo]) {
+                    maxEval = Math.max(maxEval, point.eval);
+                    minEnergy = Math.min(minEnergy, point.energy);
+                    maxEnergy = Math.max(maxEnergy, point.energy);
+                }
+            }
+            
+            const plotWidth = width - padding.left - padding.right;
+            const plotHeight = height - padding.top - padding.bottom;
+            
+            // Draw axes
+            raceCtx.strokeStyle = '#2a3441';
+            raceCtx.lineWidth = 1;
+            raceCtx.beginPath();
+            raceCtx.moveTo(padding.left, padding.top);
+            raceCtx.lineTo(padding.left, height - padding.bottom);
+            raceCtx.lineTo(width - padding.right, height - padding.bottom);
+            raceCtx.stroke();
+            
+            // Draw grid lines
+            raceCtx.strokeStyle = '#1a2332';
+            raceCtx.lineWidth = 0.5;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (plotHeight * i / 5);
+                raceCtx.beginPath();
+                raceCtx.moveTo(padding.left, y);
+                raceCtx.lineTo(width - padding.right, y);
+                raceCtx.stroke();
+            }
+            
+            // Y-axis label
+            raceCtx.fillStyle = '#8b95a5';
+            raceCtx.font = '9px JetBrains Mono';
+            raceCtx.textAlign = 'right';
+            raceCtx.fillText(minEnergy.toFixed(0), padding.left - 5, height - padding.bottom);
+            raceCtx.fillText(maxEnergy.toFixed(0), padding.left - 5, padding.top + 5);
+            
+            // X-axis label
+            raceCtx.textAlign = 'center';
+            raceCtx.fillText('0', padding.left, height - padding.bottom + 15);
+            raceCtx.fillText(maxEval.toString(), width - padding.right, height - padding.bottom + 15);
+            
+            // Draw lines for each algorithm
+            const colors = {
+                hto: '#00d9ff',
+                sa: '#ff006e',
+                gradient: '#8b5cf6',
+                adam: '#10b981',
+                tabu: '#f59e0b',
+                vns: '#06b6d4',
+                grasp: '#ec4899',
+                ga: '#6366f1',
+                memetic: '#84cc16',
+                de: '#f97316'
+            };
+            
+            for (const algo in raceData) {
+                const data = raceData[algo];
+                if (data.length < 2) continue;
+                
+                raceCtx.strokeStyle = colors[algo] || '#00d9ff';
+                raceCtx.lineWidth = 1.5;
+                raceCtx.beginPath();
+                
+                for (let i = 0; i < data.length; i++) {
+                    const point = data[i];
+                    const x = padding.left + (point.eval / maxEval) * plotWidth;
+                    const y = padding.top + (1 - (point.energy - minEnergy) / (maxEnergy - minEnergy)) * plotHeight;
+                    
+                    if (i === 0) {
+                        raceCtx.moveTo(x, y);
+                    } else {
+                        raceCtx.lineTo(x, y);
+                    }
+                }
+                
+                raceCtx.stroke();
+            }
+        }
         
         function updateScoreboard() {
             const scoreboard = document.getElementById('scoreboard');
@@ -3238,9 +3411,33 @@
             });
         }
         
+        document.getElementById('sprint-mode').addEventListener('click', (e) => {
+            raceMode = 'sprint';
+            raceDistance = 1000;
+            document.querySelectorAll('#sprint-mode, #marathon-mode').forEach(btn => {
+                btn.style.background = 'var(--bg-tertiary)';
+                btn.style.borderColor = 'var(--border)';
+            });
+            e.target.style.background = 'rgba(0, 217, 255, 0.2)';
+            e.target.style.borderColor = 'var(--accent-primary)';
+        });
+        
+        document.getElementById('marathon-mode').addEventListener('click', (e) => {
+            raceMode = 'marathon';
+            raceDistance = 10000;
+            document.querySelectorAll('#sprint-mode, #marathon-mode').forEach(btn => {
+                btn.style.background = 'var(--bg-tertiary)';
+                btn.style.borderColor = 'var(--border)';
+            });
+            e.target.style.background = 'rgba(0, 217, 255, 0.2)';
+            e.target.style.borderColor = 'var(--accent-primary)';
+        });
+        
         document.getElementById('clear-scoreboard-btn').addEventListener('click', () => {
             raceResults = [];
+            raceData = {};
             updateScoreboard();
+            drawRaceProgress();
         });
         
         document.getElementById('race-btn').addEventListener('click', async () => {
@@ -3279,8 +3476,11 @@
             }
             const originalMode = network.optimizationMode;
             
-            const maxIterations = 1000; // Total iterations per algorithm
+            const maxIterations = raceDistance; // Use selected distance
             const results = [];
+            
+            // Clear race data for new race
+            raceData = {};
             
             for (let algoIdx = 0; algoIdx < algorithms.length; algoIdx++) {
                 const algo = algorithms[algoIdx];
@@ -3298,8 +3498,31 @@
                 
                 const startEnergy = network.totalEnergy;
                 
-                // Run optimization
-                network.optimizeNetwork(maxIterations);
+                // Initialize race data for this algorithm
+                raceData[algo] = [{eval: 0, energy: startEnergy}];
+                
+                // Run optimization in chunks to collect data
+                const chunkSize = 100;
+                const numChunks = Math.ceil(maxIterations / chunkSize);
+                
+                for (let chunk = 0; chunk < numChunks; chunk++) {
+                    network.optimizeNetwork(chunkSize);
+                    
+                    // Record progress
+                    raceData[algo].push({
+                        eval: network.evaluationCount,
+                        energy: network.totalEnergy
+                    });
+                    
+                    // Update live plot periodically
+                    if (chunk % 5 === 0) {
+                        drawRaceProgress();
+                        await new Promise(resolve => setTimeout(resolve, 1));
+                    }
+                }
+                
+                // Final update for this algorithm
+                drawRaceProgress();
                 
                 // Save the resulting network
                 const resultNetwork = new Int32Array(network.size);
@@ -3351,6 +3574,7 @@
         });
         
         animate();
+        drawRaceProgress(); // Initialize race canvas
     </script>
 </body>
 </html>
