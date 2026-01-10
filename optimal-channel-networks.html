@@ -324,6 +324,24 @@
                 </div>
 
                 <div class="control-section">
+                    <h3>Algorithm Racing</h3>
+                    <button class="btn" id="race-btn">🏁 Start 10-Way Race</button>
+                    <button class="btn" id="clear-scoreboard-btn">Clear Scoreboard</button>
+                    <div id="race-status" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; display: none;">
+                        Racing... <span id="race-progress">0%</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🏆 Scoreboard</h3>
+                    <div id="scoreboard" style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">
+                        <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            No races completed yet
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
                     <h3>Optimization Algorithm</h3>
                     <button class="btn" id="hto-mode" style="background: rgba(0, 217, 255, 0.2); border-color: var(--accent-primary);">Hill Tunneling (HTO)</button>
                     <button class="btn" id="sa-mode">Simulated Annealing (SA)</button>
@@ -349,6 +367,9 @@
                 <div class="control-section">
                     <h3>Algorithm Parameters</h3>
                     <div id="hto-params">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Hill Tunneling (HTO):</strong> Makes k sequential swaps before evaluating. Learns successful k values over time. Phase 1 uses uniform random k, Phase 2 uses learned distribution.
+                        </div>
                         <div class="control-group">
                             <label>
                                 α (Max Changes)
@@ -372,6 +393,9 @@
                         </div>
                     </div>
                     <div id="sa-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Simulated Annealing:</strong> Accepts worse solutions probabilistically (P = e^(-ΔE/T)). Temperature decreases over time, making it more selective. Escapes local minima early, converges late.
+                        </div>
                         <div class="control-group">
                             <label>
                                 Initial Temperature
@@ -395,9 +419,15 @@
                         </div>
                     </div>
                     <div id="gradient-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Greedy Gradient:</strong> Evaluates ALL possible single swaps and picks the best. Deterministic and thorough but computationally expensive. Gets stuck in local minima.
+                        </div>
                         <p style="color: #8b95a5; font-size: 11px;">No tunable parameters</p>
                     </div>
                     <div id="adam-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Adam Optimizer:</strong> Maintains per-cell momentum (β1) and RMS (β2) estimates. Adapts learning rates automatically. Sample-based gradient estimation with bias correction.
+                        </div>
                         <div class="control-group">
                             <label>Learning Rate (α): <span id="adam-lr-value">0.1</span></label>
                             <input type="range" id="adam-lr" min="0.01" max="1.0" step="0.01" value="0.1">
@@ -416,24 +446,36 @@
                         </div>
                     </div>
                     <div id="tabu-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Tabu Search:</strong> Keeps a list of recently visited moves that are forbidden (tabu). Explores aggressively while preventing cycles. Can accept worse moves to escape local minima.
+                        </div>
                         <div class="control-group">
                             <label>Tabu Tenure: <span id="tabu-tenure-value">10</span></label>
                             <input type="range" id="tabu-tenure" min="5" max="50" step="5" value="10">
                         </div>
                     </div>
                     <div id="vns-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Variable Neighborhood:</strong> Systematically varies neighborhood size k. Starts with k=1 swaps. When stuck, increases k to jump farther. Resets to k=1 on improvement.
+                        </div>
                         <div class="control-group">
                             <label>Max k (swaps): <span id="vns-maxk-value">5</span></label>
                             <input type="range" id="vns-maxk" min="1" max="15" step="1" value="5">
                         </div>
                     </div>
                     <div id="grasp-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>GRASP:</strong> Greedy Randomized Adaptive Search. Builds solutions greedily with randomness via Restricted Candidate List (RCL). α=0 is pure greedy, α=1 is pure random.
+                        </div>
                         <div class="control-group">
                             <label>Alpha (greediness): <span id="grasp-alpha-value">0.3</span></label>
                             <input type="range" id="grasp-alpha" min="0.0" max="1.0" step="0.1" value="0.3">
                         </div>
                     </div>
                     <div id="ga-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Genetic Algorithm:</strong> Population evolves via selection, crossover, and mutation. Tournament selection picks parents. One-point crossover combines networks. Mutation randomly changes connections.
+                        </div>
                         <div class="control-group">
                             <label>Population Size: <span id="ga-popsize-value">20</span></label>
                             <input type="range" id="ga-popsize" min="10" max="50" step="5" value="20">
@@ -444,6 +486,9 @@
                         </div>
                     </div>
                     <div id="memetic-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Memetic Algorithm:</strong> Genetic algorithm + local search. Each individual is locally optimized before evaluation. "Cultural evolution" - combines global (GA) and local search.
+                        </div>
                         <div class="control-group">
                             <label>Population Size: <span id="memetic-popsize-value">10</span></label>
                             <input type="range" id="memetic-popsize" min="5" max="30" step="5" value="10">
@@ -454,6 +499,9 @@
                         </div>
                     </div>
                     <div id="de-params" style="display: none;">
+                        <div class="info-box" style="font-size: 0.65rem; margin-bottom: 0.75rem;">
+                            <strong>Differential Evolution:</strong> Uses differences between population members for mutation. Trial = target + F×(r1-r2). CR controls crossover rate. Adapted for discrete networks.
+                        </div>
                         <div class="control-group">
                             <label>Population Size: <span id="de-popsize-value">15</span></label>
                             <input type="range" id="de-popsize" min="10" max="40" step="5" value="15">
@@ -473,6 +521,18 @@
                     <h3>Grid Size</h3>
                     <button class="btn" id="grid-10" style="background: rgba(0, 217, 255, 0.2); border-color: var(--accent-primary);">10×10</button>
                     <button class="btn" id="grid-20">20×20</button>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <input type="number" id="custom-grid-size" min="5" max="50" value="15" 
+                               style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">
+                        <button class="btn" id="grid-custom" style="flex: 1;">Custom</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Import/Export</h3>
+                    <button class="btn" id="export-csv-btn">📥 Export Network CSV</button>
+                    <button class="btn" id="import-csv-btn">📤 Import Network CSV</button>
+                    <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
                 </div>
 
                 <div class="control-section">
@@ -767,6 +827,12 @@
                 }
                 
                 return result;
+            }
+            
+            isNetworkValid() {
+                // Check if all cells are connected to outlet
+                const connected = this.topologicalSort();
+                return connected.length === this.size;
             }
             
             computeDistances() {
@@ -1623,23 +1689,56 @@
                     if (i + 1 < this.gaPopSize && Math.random() < 0.7) {
                         const parent1 = newPop[i];
                         const parent2 = newPop[i + 1];
-                        const crossPoint = Math.floor(Math.random() * this.size);
                         
-                        const child1 = new Int32Array(this.size);
-                        const child2 = new Int32Array(this.size);
+                        // Try crossover multiple times until valid
+                        let attempts = 0;
+                        let validCrossover = false;
                         
-                        for (let j = 0; j < this.size; j++) {
-                            if (j < crossPoint) {
-                                child1[j] = parent1[j];
-                                child2[j] = parent2[j];
-                            } else {
-                                child1[j] = parent2[j];
-                                child2[j] = parent1[j];
+                        while (attempts < 5 && !validCrossover) {
+                            const crossPoint = Math.floor(Math.random() * this.size);
+                            
+                            const child1 = new Int32Array(this.size);
+                            const child2 = new Int32Array(this.size);
+                            
+                            for (let j = 0; j < this.size; j++) {
+                                if (j < crossPoint) {
+                                    child1[j] = parent1[j];
+                                    child2[j] = parent2[j];
+                                } else {
+                                    child1[j] = parent2[j];
+                                    child2[j] = parent1[j];
+                                }
                             }
+                            
+                            // Validate connectivity
+                            const oldDownstream = new Int32Array(this.size);
+                            for (let k = 0; k < this.size; k++) {
+                                oldDownstream[k] = this.downstream[k];
+                            }
+                            
+                            for (let k = 0; k < this.size; k++) {
+                                this.downstream[k] = child1[k];
+                            }
+                            const valid1 = this.isNetworkValid();
+                            
+                            for (let k = 0; k < this.size; k++) {
+                                this.downstream[k] = child2[k];
+                            }
+                            const valid2 = this.isNetworkValid();
+                            
+                            // Restore
+                            for (let k = 0; k < this.size; k++) {
+                                this.downstream[k] = oldDownstream[k];
+                            }
+                            
+                            if (valid1 && valid2) {
+                                newPop[i] = child1;
+                                newPop[i + 1] = child2;
+                                validCrossover = true;
+                            }
+                            
+                            attempts++;
                         }
-                        
-                        newPop[i] = child1;
-                        newPop[i + 1] = child2;
                     }
                 }
                 
@@ -1648,12 +1747,30 @@
                     if (Math.random() < this.gaMutationRate) {
                         const idx = Math.floor(Math.random() * this.size);
                         if (idx !== this.outletIdx) {
+                            const oldVal = individual[idx];
+                            
+                            // Save current network
+                            const oldDownstream = new Int32Array(this.size);
                             for (let i = 0; i < this.size; i++) {
+                                oldDownstream[i] = this.downstream[i];
                                 this.downstream[i] = individual[i];
                             }
+                            
                             const neighbors = this.getValidNeighbors(idx);
                             if (neighbors.length > 0) {
-                                individual[idx] = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                const newVal = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                individual[idx] = newVal;
+                                this.downstream[idx] = newVal;
+                                
+                                // Validate
+                                if (!this.isNetworkValid()) {
+                                    individual[idx] = oldVal;
+                                }
+                            }
+                            
+                            // Restore
+                            for (let i = 0; i < this.size; i++) {
+                                this.downstream[i] = oldDownstream[i];
                             }
                         }
                     }
@@ -2632,7 +2749,7 @@
             const newNetwork = new ChannelNetwork(10);
             Object.assign(network, newNetwork);
             network.setOptimizationMode(currentMode);
-            document.querySelectorAll('#grid-10, #grid-20').forEach(btn => {
+            document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
                 btn.style.background = 'var(--bg-tertiary)';
                 btn.style.borderColor = 'var(--border)';
             });
@@ -2646,13 +2763,129 @@
             const newNetwork = new ChannelNetwork(20);
             Object.assign(network, newNetwork);
             network.setOptimizationMode(currentMode);
-            document.querySelectorAll('#grid-10, #grid-20').forEach(btn => {
+            document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
                 btn.style.background = 'var(--bg-tertiary)';
                 btn.style.borderColor = 'var(--border)';
             });
             e.target.style.background = 'rgba(0, 217, 255, 0.2)';
             e.target.style.borderColor = 'var(--accent-primary)';
             document.getElementById('grid-size-display').textContent = '20×20';
+        });
+        
+        document.getElementById('grid-custom').addEventListener('click', (e) => {
+            const size = parseInt(document.getElementById('custom-grid-size').value);
+            if (size < 5 || size > 50) {
+                alert('Grid size must be between 5 and 50');
+                return;
+            }
+            const currentMode = network.optimizationMode;
+            const newNetwork = new ChannelNetwork(size);
+            Object.assign(network, newNetwork);
+            network.setOptimizationMode(currentMode);
+            document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
+                btn.style.background = 'var(--bg-tertiary)';
+                btn.style.borderColor = 'var(--border)';
+            });
+            e.target.style.background = 'rgba(0, 217, 255, 0.2)';
+            e.target.style.borderColor = 'var(--accent-primary)';
+            document.getElementById('grid-size-display').textContent = `${size}×${size}`;
+        });
+        
+        // CSV Export
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            let csv = 'i,j,downstream_i,downstream_j,flow,distance,energy\n';
+            
+            for (let idx = 0; idx < network.size; idx++) {
+                const i = idx % network.N;
+                const j = Math.floor(idx / network.N);
+                const down = network.downstream[idx];
+                const down_i = down % network.N;
+                const down_j = Math.floor(down / network.N);
+                
+                csv += `${i},${j},${down_i},${down_j},${network.flowAccum[idx]},${network.distToOutlet[idx]},${network.energy[idx]}\n`;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `network_${network.N}x${network.N}_E${network.totalEnergy.toFixed(1)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        // CSV Import
+        document.getElementById('import-csv-btn').addEventListener('click', () => {
+            document.getElementById('csv-file-input').click();
+        });
+        
+        document.getElementById('csv-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const lines = event.target.result.split('\n');
+                    const data = [];
+                    
+                    // Skip header
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim()) {
+                            const parts = lines[i].split(',');
+                            data.push({
+                                i: parseInt(parts[0]),
+                                j: parseInt(parts[1]),
+                                down_i: parseInt(parts[2]),
+                                down_j: parseInt(parts[3])
+                            });
+                        }
+                    }
+                    
+                    if (data.length === 0) {
+                        alert('No data found in CSV');
+                        return;
+                    }
+                    
+                    // Determine grid size
+                    const N = Math.sqrt(data.length);
+                    if (!Number.isInteger(N)) {
+                        alert('CSV does not represent a square grid');
+                        return;
+                    }
+                    
+                    // Create new network
+                    const currentMode = network.optimizationMode;
+                    const newNetwork = new ChannelNetwork(N);
+                    
+                    // Load network structure
+                    for (const row of data) {
+                        const idx = row.i + row.j * N;
+                        const downIdx = row.down_i + row.down_j * N;
+                        newNetwork.downstream[idx] = downIdx;
+                    }
+                    
+                    Object.assign(network, newNetwork);
+                    network.setOptimizationMode(currentMode);
+                    network.computeFlowAccumulation();
+                    network.computeDistances();
+                    network.computeEnergy();
+                    
+                    document.getElementById('grid-size-display').textContent = `${N}×${N}`;
+                    document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
+                        btn.style.background = 'var(--bg-tertiary)';
+                        btn.style.borderColor = 'var(--border)';
+                    });
+                    
+                    alert(`Network loaded: ${N}×${N} grid, E=${network.totalEnergy.toFixed(1)}`);
+                } catch (err) {
+                    alert('Error parsing CSV: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset input
+            e.target.value = '';
         });
         
         // HTO parameter controls
@@ -2930,6 +3163,183 @@
             } else {
                 clearInterval(autoOptimizeInterval);
             }
+        });
+        
+        // Scoreboard data
+        let raceResults = [];
+        
+        function updateScoreboard() {
+            const scoreboard = document.getElementById('scoreboard');
+            
+            if (raceResults.length === 0) {
+                scoreboard.innerHTML = '<div style="color: var(--text-secondary); margin-bottom: 0.5rem;">No races completed yet</div>';
+                return;
+            }
+            
+            // Sort by final energy (lower is better)
+            const sorted = [...raceResults].sort((a, b) => a.finalEnergy - b.finalEnergy);
+            
+            let html = '<div style="font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Click to load network</div>';
+            html += '<div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.5rem; align-items: center;">';
+            
+            sorted.forEach((result, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+                const color = i === 0 ? 'var(--accent-green)' : i === 1 ? 'var(--accent-primary)' : i === 2 ? 'var(--accent-secondary)' : 'var(--text-secondary)';
+                
+                html += `
+                    <div style="color: ${color}; font-size: 0.9rem;">${medal}</div>
+                    <div class="scoreboard-entry" data-algo="${result.algo}" style="color: var(--text-primary); cursor: pointer; text-decoration: underline;">${result.name}</div>
+                    <div style="color: var(--text-secondary); text-align: right;">E=${result.finalEnergy.toFixed(1)}</div>
+                    <div style="color: var(--text-secondary); text-align: right;">${result.evaluations} evals</div>
+                `;
+            });
+            
+            html += '</div>';
+            scoreboard.innerHTML = html;
+            
+            // Add click handlers to scoreboard entries
+            document.querySelectorAll('.scoreboard-entry').forEach(entry => {
+                entry.addEventListener('click', () => {
+                    const algo = entry.dataset.algo;
+                    const result = raceResults.find(r => r.algo === algo);
+                    
+                    if (result && result.network) {
+                        // Load the saved network
+                        for (let i = 0; i < network.size; i++) {
+                            network.downstream[i] = result.network[i];
+                        }
+                        network.computeFlowAccumulation();
+                        network.computeDistances();
+                        network.computeEnergy();
+                        
+                        // Show notification
+                        const notification = document.createElement('div');
+                        notification.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: var(--accent-green);
+                            color: var(--bg-primary);
+                            padding: 1rem;
+                            border-radius: 4px;
+                            font-family: 'JetBrains Mono', monospace;
+                            font-size: 0.75rem;
+                            z-index: 1000;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        `;
+                        notification.textContent = `Loaded ${result.name} network (E=${result.finalEnergy.toFixed(1)})`;
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 2000);
+                    }
+                });
+            });
+        }
+        
+        document.getElementById('clear-scoreboard-btn').addEventListener('click', () => {
+            raceResults = [];
+            updateScoreboard();
+        });
+        
+        document.getElementById('race-btn').addEventListener('click', async () => {
+            const raceBtn = document.getElementById('race-btn');
+            const raceStatus = document.getElementById('race-status');
+            const raceProgress = document.getElementById('race-progress');
+            
+            // Disable button during race
+            raceBtn.disabled = true;
+            raceBtn.style.opacity = '0.5';
+            raceStatus.style.display = 'block';
+            
+            // Stop auto-optimize if running
+            if (isAutoOptimizing) {
+                document.getElementById('auto-btn').click();
+            }
+            
+            const algorithms = ['hto', 'sa', 'gradient', 'adam', 'tabu', 'vns', 'grasp', 'ga', 'memetic', 'de'];
+            const algorithmNames = {
+                hto: 'HTO',
+                sa: 'SA',
+                gradient: 'Gradient',
+                adam: 'Adam',
+                tabu: 'Tabu',
+                vns: 'VNS',
+                grasp: 'GRASP',
+                ga: 'GA',
+                memetic: 'Memetic',
+                de: 'DE'
+            };
+            
+            // Save current network state
+            const originalNetwork = new Int32Array(network.size);
+            for (let i = 0; i < network.size; i++) {
+                originalNetwork[i] = network.downstream[i];
+            }
+            const originalMode = network.optimizationMode;
+            
+            const maxIterations = 1000; // Total iterations per algorithm
+            const results = [];
+            
+            for (let algoIdx = 0; algoIdx < algorithms.length; algoIdx++) {
+                const algo = algorithms[algoIdx];
+                
+                raceProgress.textContent = `${Math.round((algoIdx / algorithms.length) * 100)}%`;
+                
+                // Reset to original network
+                for (let i = 0; i < network.size; i++) {
+                    network.downstream[i] = originalNetwork[i];
+                }
+                network.setOptimizationMode(algo);
+                network.computeFlowAccumulation();
+                network.computeDistances();
+                network.computeEnergy();
+                
+                const startEnergy = network.totalEnergy;
+                
+                // Run optimization
+                network.optimizeNetwork(maxIterations);
+                
+                // Save the resulting network
+                const resultNetwork = new Int32Array(network.size);
+                for (let i = 0; i < network.size; i++) {
+                    resultNetwork[i] = network.downstream[i];
+                }
+                
+                results.push({
+                    name: algorithmNames[algo],
+                    algo: algo,
+                    startEnergy: startEnergy,
+                    finalEnergy: network.totalEnergy,
+                    evaluations: network.evaluationCount,
+                    improvement: startEnergy - network.totalEnergy,
+                    improvementPct: ((startEnergy - network.totalEnergy) / startEnergy * 100).toFixed(1),
+                    network: resultNetwork
+                });
+                
+                // Allow UI to update
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            
+            // Add results to scoreboard
+            raceResults = results;
+            updateScoreboard();
+            
+            // Restore original network and mode
+            for (let i = 0; i < network.size; i++) {
+                network.downstream[i] = originalNetwork[i];
+            }
+            network.setOptimizationMode(originalMode);
+            network.computeFlowAccumulation();
+            network.computeDistances();
+            network.computeEnergy();
+            
+            // Re-enable button
+            raceBtn.disabled = false;
+            raceBtn.style.opacity = '1';
+            raceStatus.style.display = 'none';
+            raceProgress.textContent = '100%';
         });
         
         // Mouse interaction - set outlet
