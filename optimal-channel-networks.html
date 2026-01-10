@@ -310,8 +310,23 @@
                     <button class="mode-btn" data-mode="energy">Energy Dissipation</button>
                     <button class="mode-btn" data-mode="slope">Slope Field</button>
                 </div>
-                <div class="canvas-container">
-                    <canvas id="networkCanvas"></canvas>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; flex: 1;">
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="networkCanvas1"></canvas>
+                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 0.3rem 0.5rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-primary);" id="racer1-label">Racer 1</div>
+                    </div>
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="networkCanvas2"></canvas>
+                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 0.3rem 0.5rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-secondary);" id="racer2-label">Racer 2</div>
+                    </div>
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="networkCanvas3"></canvas>
+                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 0.3rem 0.5rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-tertiary);" id="racer3-label">Racer 3</div>
+                    </div>
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="networkCanvas4"></canvas>
+                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 0.3rem 0.5rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-green);" id="racer4-label">Racer 4</div>
+                    </div>
                 </div>
                 <div class="canvas-container" style="height: 200px;">
                     <canvas id="energyPlot"></canvas>
@@ -325,11 +340,64 @@
 
                 <div class="control-section">
                     <h3>Algorithm Racing</h3>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        Select 4 competitors:
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
+                        <select id="racer-1" class="racer-select" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">
+                            <option value="hto">HTO</option>
+                            <option value="sa">SA</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="adam">Adam</option>
+                            <option value="tabu">Tabu</option>
+                            <option value="vns">VNS</option>
+                            <option value="grasp">GRASP</option>
+                            <option value="ga">GA</option>
+                            <option value="memetic">Memetic</option>
+                            <option value="de">DE</option>
+                        </select>
+                        <select id="racer-2" class="racer-select" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">
+                            <option value="hto">HTO</option>
+                            <option value="sa" selected>SA</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="adam">Adam</option>
+                            <option value="tabu">Tabu</option>
+                            <option value="vns">VNS</option>
+                            <option value="grasp">GRASP</option>
+                            <option value="ga">GA</option>
+                            <option value="memetic">Memetic</option>
+                            <option value="de">DE</option>
+                        </select>
+                        <select id="racer-3" class="racer-select" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">
+                            <option value="hto">HTO</option>
+                            <option value="sa">SA</option>
+                            <option value="gradient" selected>Gradient</option>
+                            <option value="adam">Adam</option>
+                            <option value="tabu">Tabu</option>
+                            <option value="vns">VNS</option>
+                            <option value="grasp">GRASP</option>
+                            <option value="ga">GA</option>
+                            <option value="memetic">Memetic</option>
+                            <option value="de">DE</option>
+                        </select>
+                        <select id="racer-4" class="racer-select" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">
+                            <option value="hto">HTO</option>
+                            <option value="sa">SA</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="adam" selected>Adam</option>
+                            <option value="tabu">Tabu</option>
+                            <option value="vns">VNS</option>
+                            <option value="grasp">GRASP</option>
+                            <option value="ga">GA</option>
+                            <option value="memetic">Memetic</option>
+                            <option value="de">DE</option>
+                        </select>
+                    </div>
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <button class="btn" id="sprint-mode" style="flex: 1; background: rgba(0, 217, 255, 0.2); border-color: var(--accent-primary);">🏃 Sprint (1K)</button>
                         <button class="btn" id="marathon-mode" style="flex: 1;">🏃‍♂️ Marathon (10K)</button>
                     </div>
-                    <button class="btn" id="race-btn">🏁 Start 10-Way Race</button>
+                    <button class="btn" id="race-btn">🏁 Start 4-Way Race</button>
                     <button class="btn" id="clear-scoreboard-btn">Clear Scoreboard</button>
                     <div id="race-status" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; display: none;">
                         Racing... <span id="race-progress">0%</span>
@@ -2752,15 +2820,47 @@
         }
         
         // Application
-        const canvas = document.getElementById('networkCanvas');
+        // Application
         const energyCanvas = document.getElementById('energyPlot');
-        const network = new ChannelNetwork(10); // 10×10 grid as in thesis
         
-        const renderer = new NetworkRenderer(canvas, network);
+        // Create first network
+        const baseNetwork = new ChannelNetwork(10);
+        
+        // Create 4 networks for racing - all starting with same configuration
+        const networks = [
+            baseNetwork,
+            new ChannelNetwork(10),
+            new ChannelNetwork(10),
+            new ChannelNetwork(10)
+        ];
+        
+        // Copy base network configuration to all others
+        for (let i = 1; i < 4; i++) {
+            for (let j = 0; j < baseNetwork.size; j++) {
+                networks[i].downstream[j] = baseNetwork.downstream[j];
+            }
+            networks[i].computeFlowAccumulation();
+            networks[i].computeDistances();
+            networks[i].computeEnergy();
+        }
+        
+        // Main network for single-player mode
+        const network = networks[0];
+        
+        // Create 4 renderers
+        const renderers = [
+            new NetworkRenderer(document.getElementById('networkCanvas1'), networks[0]),
+            new NetworkRenderer(document.getElementById('networkCanvas2'), networks[1]),
+            new NetworkRenderer(document.getElementById('networkCanvas3'), networks[2]),
+            new NetworkRenderer(document.getElementById('networkCanvas4'), networks[3])
+        ];
+        
+        const renderer = renderers[0]; // Compatibility
         const energyPlotter = new EnergyPlotter(energyCanvas, network);
         
         let isAutoOptimizing = false;
         let autoOptimizeInterval = null;
+        let isRacing = false;
         
         function updateStats() {
             const stats = network.getNetworkStats();
@@ -2800,18 +2900,27 @@
         }
         
         function animate() {
-            renderer.render();
+            // Render all 4 networks
+            for (let i = 0; i < 4; i++) {
+                renderers[i].render();
+            }
             energyPlotter.render();
-            updateStats();
+            if (!isRacing) {
+                updateStats();
+            }
             requestAnimationFrame(animate);
         }
         
         // Grid size selection
         document.getElementById('grid-10').addEventListener('click', (e) => {
-            const currentMode = network.optimizationMode;
-            const newNetwork = new ChannelNetwork(10);
-            Object.assign(network, newNetwork);
-            network.setOptimizationMode(currentMode);
+            // Update all 4 networks
+            for (let i = 0; i < 4; i++) {
+                const currentMode = networks[i].optimizationMode;
+                const newNetwork = new ChannelNetwork(10);
+                Object.assign(networks[i], newNetwork);
+                networks[i].setOptimizationMode(currentMode);
+            }
+            
             document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
                 btn.style.background = 'var(--bg-tertiary)';
                 btn.style.borderColor = 'var(--border)';
@@ -2822,10 +2931,14 @@
         });
         
         document.getElementById('grid-20').addEventListener('click', (e) => {
-            const currentMode = network.optimizationMode;
-            const newNetwork = new ChannelNetwork(20);
-            Object.assign(network, newNetwork);
-            network.setOptimizationMode(currentMode);
+            // Update all 4 networks
+            for (let i = 0; i < 4; i++) {
+                const currentMode = networks[i].optimizationMode;
+                const newNetwork = new ChannelNetwork(20);
+                Object.assign(networks[i], newNetwork);
+                networks[i].setOptimizationMode(currentMode);
+            }
+            
             document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
                 btn.style.background = 'var(--bg-tertiary)';
                 btn.style.borderColor = 'var(--border)';
@@ -2841,10 +2954,15 @@
                 alert('Grid size must be between 5 and 50');
                 return;
             }
-            const currentMode = network.optimizationMode;
-            const newNetwork = new ChannelNetwork(size);
-            Object.assign(network, newNetwork);
-            network.setOptimizationMode(currentMode);
+            
+            // Update all 4 networks
+            for (let i = 0; i < 4; i++) {
+                const currentMode = networks[i].optimizationMode;
+                const newNetwork = new ChannelNetwork(size);
+                Object.assign(networks[i], newNetwork);
+                networks[i].setOptimizationMode(currentMode);
+            }
+            
             document.querySelectorAll('#grid-10, #grid-20, #grid-custom').forEach(btn => {
                 btn.style.background = 'var(--bg-tertiary)';
                 btn.style.borderColor = 'var(--border)';
@@ -3303,26 +3421,23 @@
             raceCtx.fillText('0', padding.left, height - padding.bottom + 15);
             raceCtx.fillText(maxEval.toString(), width - padding.right, height - padding.bottom + 15);
             
-            // Draw lines for each algorithm
-            const colors = {
-                hto: '#00d9ff',
-                sa: '#ff006e',
-                gradient: '#8b5cf6',
-                adam: '#10b981',
-                tabu: '#f59e0b',
-                vns: '#06b6d4',
-                grasp: '#ec4899',
-                ga: '#6366f1',
-                memetic: '#84cc16',
-                de: '#f97316'
-            };
+            // Draw lines for each racer - use fixed colors per position
+            const racerColors = [
+                '#00d9ff',  // Cyan - Racer 1
+                '#ff006e',  // Pink - Racer 2
+                '#8b5cf6',  // Purple - Racer 3
+                '#10b981'   // Green - Racer 4
+            ];
             
-            for (const algo in raceData) {
-                const data = raceData[algo];
+            for (const algoKey in raceData) {
+                const data = raceData[algoKey];
                 if (data.length < 2) continue;
                 
-                raceCtx.strokeStyle = colors[algo] || '#00d9ff';
-                raceCtx.lineWidth = 1.5;
+                // Extract racer index from key (e.g., "hto_0" -> 0)
+                const racerIndex = parseInt(algoKey.split('_')[1]);
+                
+                raceCtx.strokeStyle = racerColors[racerIndex] || '#00d9ff';
+                raceCtx.lineWidth = 2;
                 raceCtx.beginPath();
                 
                 for (let i = 0; i < data.length; i++) {
@@ -3455,7 +3570,16 @@
                 document.getElementById('auto-btn').click();
             }
             
-            const algorithms = ['hto', 'sa', 'gradient', 'adam', 'tabu', 'vns', 'grasp', 'ga', 'memetic', 'de'];
+            isRacing = true;
+            
+            // Get selected racers
+            const selectedRacers = [
+                document.getElementById('racer-1').value,
+                document.getElementById('racer-2').value,
+                document.getElementById('racer-3').value,
+                document.getElementById('racer-4').value
+            ];
+            
             const algorithmNames = {
                 hto: 'HTO',
                 sa: 'SA',
@@ -3469,94 +3593,97 @@
                 de: 'DE'
             };
             
-            // Save current network state
-            const originalNetwork = new Int32Array(network.size);
-            for (let i = 0; i < network.size; i++) {
-                originalNetwork[i] = network.downstream[i];
+            // Update racer labels
+            for (let i = 0; i < 4; i++) {
+                const label = document.getElementById(`racer${i+1}-label`);
+                label.textContent = algorithmNames[selectedRacers[i]];
             }
-            const originalMode = network.optimizationMode;
             
-            const maxIterations = raceDistance; // Use selected distance
+            // Save current network state to use as starting point for all racers
+            const startingNetwork = new Int32Array(networks[0].size);
+            for (let i = 0; i < networks[0].size; i++) {
+                startingNetwork[i] = networks[0].downstream[i];
+            }
+            
+            // Initialize all 4 networks with same starting configuration
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < networks[i].size; j++) {
+                    networks[i].downstream[j] = startingNetwork[j];
+                }
+                networks[i].setOptimizationMode(selectedRacers[i]);
+                networks[i].computeFlowAccumulation();
+                networks[i].computeDistances();
+                networks[i].computeEnergy();
+            }
+            
+            const maxIterations = raceDistance;
             const results = [];
             
             // Clear race data for new race
             raceData = {};
             
-            for (let algoIdx = 0; algoIdx < algorithms.length; algoIdx++) {
-                const algo = algorithms[algoIdx];
+            // Initialize race data
+            for (let i = 0; i < 4; i++) {
+                const algo = selectedRacers[i];
+                raceData[algo + '_' + i] = [{eval: 0, energy: networks[i].totalEnergy}];
+            }
+            
+            // Run all 4 racers simultaneously in chunks
+            const chunkSize = 10; // Smaller chunks for more frequent visual updates
+            const numChunks = Math.ceil(maxIterations / chunkSize);
+            
+            for (let chunk = 0; chunk < numChunks; chunk++) {
+                raceProgress.textContent = `${Math.round((chunk / numChunks) * 100)}%`;
                 
-                raceProgress.textContent = `${Math.round((algoIdx / algorithms.length) * 100)}%`;
-                
-                // Reset to original network
-                for (let i = 0; i < network.size; i++) {
-                    network.downstream[i] = originalNetwork[i];
-                }
-                network.setOptimizationMode(algo);
-                network.computeFlowAccumulation();
-                network.computeDistances();
-                network.computeEnergy();
-                
-                const startEnergy = network.totalEnergy;
-                
-                // Initialize race data for this algorithm
-                raceData[algo] = [{eval: 0, energy: startEnergy}];
-                
-                // Run optimization in chunks to collect data
-                const chunkSize = 100;
-                const numChunks = Math.ceil(maxIterations / chunkSize);
-                
-                for (let chunk = 0; chunk < numChunks; chunk++) {
-                    network.optimizeNetwork(chunkSize);
+                // Optimize all 4 networks
+                for (let i = 0; i < 4; i++) {
+                    networks[i].optimizeNetwork(chunkSize);
                     
                     // Record progress
-                    raceData[algo].push({
-                        eval: network.evaluationCount,
-                        energy: network.totalEnergy
+                    const algo = selectedRacers[i];
+                    raceData[algo + '_' + i].push({
+                        eval: networks[i].evaluationCount,
+                        energy: networks[i].totalEnergy
                     });
-                    
-                    // Update live plot periodically
-                    if (chunk % 5 === 0) {
-                        drawRaceProgress();
-                        await new Promise(resolve => setTimeout(resolve, 1));
-                    }
                 }
                 
-                // Final update for this algorithm
+                // Update live plot and give browser time to render
                 drawRaceProgress();
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            
+            // Final update
+            drawRaceProgress();
+            
+            // Collect results
+            for (let i = 0; i < 4; i++) {
+                const algo = selectedRacers[i];
+                const startEnergy = raceData[algo + '_' + i][0].energy;
                 
-                // Save the resulting network
-                const resultNetwork = new Int32Array(network.size);
-                for (let i = 0; i < network.size; i++) {
-                    resultNetwork[i] = network.downstream[i];
+                // Save network state
+                const resultNetwork = new Int32Array(networks[i].size);
+                for (let j = 0; j < networks[i].size; j++) {
+                    resultNetwork[j] = networks[i].downstream[j];
                 }
                 
                 results.push({
                     name: algorithmNames[algo],
                     algo: algo,
+                    racerIndex: i,
                     startEnergy: startEnergy,
-                    finalEnergy: network.totalEnergy,
-                    evaluations: network.evaluationCount,
-                    improvement: startEnergy - network.totalEnergy,
-                    improvementPct: ((startEnergy - network.totalEnergy) / startEnergy * 100).toFixed(1),
+                    finalEnergy: networks[i].totalEnergy,
+                    evaluations: networks[i].evaluationCount,
+                    improvement: startEnergy - networks[i].totalEnergy,
+                    improvementPct: ((startEnergy - networks[i].totalEnergy) / startEnergy * 100).toFixed(1),
                     network: resultNetwork
                 });
-                
-                // Allow UI to update
-                await new Promise(resolve => setTimeout(resolve, 10));
             }
             
             // Add results to scoreboard
             raceResults = results;
             updateScoreboard();
             
-            // Restore original network and mode
-            for (let i = 0; i < network.size; i++) {
-                network.downstream[i] = originalNetwork[i];
-            }
-            network.setOptimizationMode(originalMode);
-            network.computeFlowAccumulation();
-            network.computeDistances();
-            network.computeEnergy();
+            isRacing = false;
             
             // Re-enable button
             raceBtn.disabled = false;
@@ -3566,12 +3693,20 @@
         });
         
         // Mouse interaction - set outlet
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
-            const y = (e.clientY - rect.top) / rect.height;
-            network.setOutlet(x, y);
-        });
+        // Mouse interaction - set outlet on any canvas click
+        for (let i = 0; i < 4; i++) {
+            const canvasElement = document.getElementById(`networkCanvas${i+1}`);
+            canvasElement.addEventListener('click', (e) => {
+                const rect = canvasElement.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                
+                // Update all networks to have the same outlet
+                for (let j = 0; j < 4; j++) {
+                    networks[j].setOutlet(x, y);
+                }
+            });
+        }
         
         animate();
         drawRaceProgress(); // Initialize race canvas
