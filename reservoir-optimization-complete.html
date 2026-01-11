@@ -518,6 +518,44 @@
                         <strong>Operating Policy:</strong> Rules defining when to implement water restrictions based on reservoir levels. Optimized to balance reliability and shortage severity.
                     </div>
                 </div>
+
+                <div class="control-section">
+                    <h3>Algorithms</h3>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
+                        <strong>NSGA-II:</strong> Non-dominated Sorting Genetic Algorithm. Uses tournament selection, crossover, and mutation to evolve solutions. Proven baseline for multi-objective optimization.
+                    </div>
+                    <div class="info-box" style="background: rgba(255, 0, 110, 0.1); border-color: rgba(255, 0, 110, 0.3);">
+                        <strong>MO-Adam:</strong> Multi-Objective Adam optimizer. Uses gradient descent with adaptive learning rates to search for Pareto-optimal solutions. Includes random exploration to escape local optima.
+                    </div>
+                    <div class="info-box" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <strong>MOEA/D:</strong> Multi-Objective Evolutionary Algorithm based on Decomposition. Divides the problem into subproblems using weight vectors, optimizing each with gradient descent and crossover.
+                    </div>
+                    <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <strong>MGDA:</strong> Multiple Gradient Descent Algorithm. Finds compromise gradients that improve multiple objectives simultaneously by averaging normalized objective gradients.
+                    </div>
+                    <div class="info-box" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <strong>Pareto-Adam:</strong> Hybrid approach combining gradient descent when far from Pareto front and genetic operators when near it for fine-tuning.
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Parameters</h3>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Population Size:</strong> Number of candidate solutions maintained each generation. Larger populations explore more diverse solutions but take longer.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Generations:</strong> Number of evolution cycles. More generations allow convergence to better solutions but increase computation time.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Crossover Rate:</strong> Probability of combining two parent solutions. Higher rates increase exploration but may disrupt good solutions.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Mutation Rate:</strong> Probability of random changes to solutions. Helps escape local optima and maintain diversity.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Learning Rate:</strong> Step size for gradient-based methods (Adam). Higher rates converge faster but may overshoot optimal solutions.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1730,6 +1768,13 @@
                 this.colors = ['#00d9ff', '#ff006e', '#8b5cf6', '#10b981'];
                 this.selectedSolution = null;
                 
+                // Zoom parameters
+                this.yieldMin = 0;
+                this.yieldMax = 100;
+                this.stage2Min = 0;
+                this.stage2Max = 10000;
+                this.autoZoom = false;
+                
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
                 this.canvas.addEventListener('click', (e) => this.handleClick(e));
@@ -1741,8 +1786,28 @@
                 this.canvas.height = rect.height;
             }
             
-            update(fronts) {
+            update(fronts, enableAutoZoom = false) {
                 this.fronts = fronts;
+                
+                // Auto-zoom when optimization completes
+                if (enableAutoZoom) {
+                    const allSolutions = fronts.flat();
+                    if (allSolutions.length > 0) {
+                        const yields = allSolutions.map(s => s.yieldPct);
+                        const stage2s = allSolutions.map(s => s.stage2Days);
+                        
+                        const yieldRange = Math.max(...yields) - Math.min(...yields);
+                        const stage2Range = Math.max(...stage2s) - Math.min(...stage2s);
+                        
+                        this.yieldMin = Math.max(0, Math.min(...yields) - yieldRange * 0.1);
+                        this.yieldMax = Math.min(100, Math.max(...yields) + yieldRange * 0.1);
+                        this.stage2Min = Math.max(0, Math.min(...stage2s) - stage2Range * 0.1);
+                        this.stage2Max = Math.max(...stage2s) + stage2Range * 0.1;
+                        
+                        this.autoZoom = true;
+                    }
+                }
+                
                 this.render();
             }
             
@@ -1790,9 +1855,14 @@
                 const h = this.canvas.height;
                 const padding = 50;
                 
-                const x = padding + (solution.yieldPct / 100) * (w - 2 * padding);
-                const maxStage2 = currentProblem ? currentProblem.simLength * 365 : 10000;
-                const y = h - padding - (solution.stage2Days / maxStage2) * (h - 2 * padding);
+                // Use zoom ranges if auto-zoom is enabled
+                const yieldRange = this.autoZoom ? (this.yieldMax - this.yieldMin) : 100;
+                const yieldOffset = this.autoZoom ? this.yieldMin : 0;
+                const stage2Range = this.autoZoom ? (this.stage2Max - this.stage2Min) : (currentProblem ? currentProblem.simLength * 365 : 10000);
+                const stage2Offset = this.autoZoom ? this.stage2Min : 0;
+                
+                const x = padding + ((solution.yieldPct - yieldOffset) / yieldRange) * (w - 2 * padding);
+                const y = h - padding - ((solution.stage2Days - stage2Offset) / stage2Range) * (h - 2 * padding);
                 
                 return {x, y};
             }
@@ -1837,9 +1907,23 @@
                     ctx.lineTo(x, padding);
                     ctx.stroke();
                     
+                    // Use zoom range for labels
+                    const yieldValue = this.autoZoom ? 
+                        this.yieldMin + (i / 10) * (this.yieldMax - this.yieldMin) :
+                        i * 10;
+                    
                     ctx.fillStyle = '#8b95a5';
                     ctx.font = '9px monospace';
-                    ctx.fillText((i * 10).toString(), x - 8, h - padding + 15);
+                    ctx.fillText(yieldValue.toFixed(0), x - 8, h - padding + 15);
+                }
+                
+                // Add zoom indicator
+                if (this.autoZoom) {
+                    ctx.fillStyle = '#00d9ff';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('ZOOMED', w - padding - 5, padding + 15);
+                    ctx.textAlign = 'left';
                 }
                 
                 // Plot all fronts
@@ -2046,6 +2130,12 @@
                             ctx.globalAlpha = 0.8;
                             ctx.fillRect(x + offset + 2, barY, algoBarWidth - 4, barHeight);
                             ctx.globalAlpha = 1.0;
+                            
+                            // Add value label on top of bar
+                            ctx.fillStyle = '#e6edf3';
+                            ctx.font = '8px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(value.toFixed(0), x + offset + algoBarWidth/2, barY - 3);
                         }
                         offset += algoBarWidth;
                     }
@@ -2283,6 +2373,25 @@
                         await new Promise(resolve => setTimeout(resolve, 1));
                     }
                 }
+            }
+            
+            // Trigger auto-zoom on combined Pareto front
+            if (optimizationMode === 'compare') {
+                const allFronts = algorithms.map((a, i) => getParetoFront(a.getParetoFront()));
+                const globalByAlgo = [[], [], [], []];
+                for (const sol of getParetoFront(allFronts.flat())) {
+                    for (let i = 0; i < 4; i++) {
+                        if (allFronts[i].includes(sol)) {
+                            globalByAlgo[i].push(sol);
+                            break;
+                        }
+                    }
+                }
+                combinedParetoPlotter.update(globalByAlgo, true); // Enable auto-zoom
+            } else {
+                let front = algorithms ? algorithms[0].getParetoFront() : [];
+                front = getParetoFront(front);
+                combinedParetoPlotter.update([front, [], [], []], true); // Enable auto-zoom
             }
             
             console.log('=== Optimization complete');
