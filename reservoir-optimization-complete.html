@@ -1195,10 +1195,21 @@
             }
             
             update(flows, capacity) {
-                this.flows = flows;
-                this.capacity = capacity;
-                this.render();
-            }
+				this.capacity = capacity;
+				
+				// Annualize the flows
+				const monthlyFlows = flows;
+				const years = Math.floor(monthlyFlows.length / 12);
+				this.flows = [];
+				
+				for (let y = 0; y < years; y++) {
+					const yearlySum = monthlyFlows.slice(y * 12, (y + 1) * 12)
+						.reduce((sum, val) => sum + val, 0);
+					this.flows.push(yearlySum);
+				}
+				
+				this.render();
+			}
             
             render() {
                 const width = this.canvas.width;
@@ -1237,8 +1248,8 @@
                 this.ctx.stroke();
                 
                 // Draw capacity line (dotted)
-                const avgMonthlyCapacity = this.capacity / 12;
-                const capacityY = mapY(avgMonthlyCapacity);
+                const avgAnnualCapacity = this.capacity;
+                const capacityY = mapY(avgAnnualCapacity);
                 
                 this.ctx.strokeStyle = '#ff006e';
                 this.ctx.lineWidth = 2;
@@ -1258,7 +1269,7 @@
                     const y1 = mapY(this.flows[i]);
                     const y2 = mapY(this.flows[i + 1]);
                     
-                    if (this.flows[i] > avgMonthlyCapacity || this.flows[i + 1] > avgMonthlyCapacity) {
+                    if (this.flows[i] > avgAnnualCapacity || this.flows[i + 1] > avgAnnualCapacity) {
                         // Wet period - fill above capacity line
                         this.ctx.fillStyle = '#00d9ff';
                         this.ctx.beginPath();
@@ -1304,7 +1315,7 @@
                 this.ctx.fillStyle = '#8b95a5';
                 this.ctx.font = '10px sans-serif';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillText('Time (months)', width/2, height - 5);
+                this.ctx.fillText('Year', width/2, height - 5);
                 
                 this.ctx.save();
                 this.ctx.translate(15, height/2);
@@ -1628,8 +1639,8 @@
                 let closest = null;
                 
                 for (const solution of this.paretoFront) {
-                    const px = this.mapX(solution.objectives[0]);
-                    const py = this.mapY(-solution.objectives[1]); // Negate for yield
+                    const px = this.mapX(solution.stage2Days);
+                    const py = this.mapY(-solution.yieldPct); // Negate for yield
                     const dist = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
                     if (dist < 10 && dist < minDist) {
                         minDist = dist;
@@ -1691,8 +1702,8 @@
                 const plotHeight = height - padding.top - padding.bottom;
                 
                 // Get data ranges
-                const stage2Values = this.paretoFront.map(s => s.stage2Days || s.objectives[0]);
-                const yieldValues = this.paretoFront.map(s => s.yieldPct || -s.objectives[1]);
+                const stage2Values = this.paretoFront.map(s => s.stage2Days || s.stage2Days);
+                const yieldValues = this.paretoFront.map(s => s.yieldPct || -s.yieldPct);
                 
                 const minStage2 = Math.min(...stage2Values);
                 const maxStage2 = Math.max(...stage2Values);
@@ -1838,134 +1849,184 @@
         });
         
         function updateSolutionStats(solution) {
-            if (!solution) return;
-            
-            document.getElementById('sol-yield').textContent = solution.yieldPct.toFixed(1);
-            document.getElementById('sol-stage2').textContent = solution.stage2Days;
-            document.getElementById('sol-stage3').textContent = solution.stage3Days;
-            document.getElementById('sol-storage').textContent = solution.avgStoragePct.toFixed(1);
-            
-            // Update optimized policy parameters
-            if (solution.policy) {
-                document.getElementById('sol-s1-thresh').textContent = solution.policy.stage1Threshold.toFixed(0);
-                document.getElementById('sol-s1-cut').textContent = solution.policy.stage1Cutback.toFixed(0);
-                document.getElementById('sol-s2-thresh').textContent = solution.policy.stage2Threshold.toFixed(0);
-                document.getElementById('sol-s2-cut').textContent = solution.policy.stage2Cutback.toFixed(0);
-                document.getElementById('sol-s3-thresh').textContent = solution.policy.stage3Threshold.toFixed(0);
-            }
-        }
+			if (!solution) return;
+			
+			document.getElementById('sol-yield').textContent = solution.yieldPct.toFixed(1);
+			document.getElementById('sol-stage2').textContent = solution.stage2Days;
+			document.getElementById('sol-stage3').textContent = solution.stage3Days;
+			document.getElementById('sol-storage').textContent = solution.avgStoragePct.toFixed(1);
+			
+			// Add policy parameters display
+			if (solution.policy) {
+				console.log('Selected policy:', {
+					'Stage 1 Threshold': solution.policy.stage1Threshold.toFixed(1) + '%',
+					'Stage 2 Threshold': solution.policy.stage2Threshold.toFixed(1) + '%',
+					'Stage 3 Threshold': solution.policy.stage3Threshold.toFixed(1) + '%',
+					'Stage 1 Cutback': solution.policy.stage1Cutback.toFixed(1) + '%',
+					'Stage 2 Cutback': solution.policy.stage2Cutback.toFixed(1) + '%'
+				});
+			}
+		}
         
         async function runOptimization() {
-            if (isOptimizing) return;
-            
-            isOptimizing = true;
-            document.getElementById('optimize-btn').disabled = true;
-            document.getElementById('stop-btn').disabled = false;
-            document.getElementById('progress-status').style.display = 'block';
-            
-            // Get parameters
-            const params = {
-                capacity: parseFloat(document.getElementById('capacity').value),
-                simLength: parseInt(document.getElementById('sim-length').value),
-                skew: parseFloat(document.getElementById('skew').value),
-                municipal: parseFloat(document.getElementById('municipal').value),
-                irrigation: parseFloat(document.getElementById('irrigation').value)
-            };
-            
-            const popSize = parseInt(document.getElementById('popsize').value);
-            const generations = parseInt(document.getElementById('generations').value);
-            
-            // Create problem
-            currentProblem = new ReservoirOptimizationProblem(params);
-            
-            // Update hydrology plot with generated flows
-            hydrologyPlotter.update(currentProblem.flows, currentProblem.capacity);
-            
-            // Get selected algorithms
-            const algoSelections = [
-                document.getElementById('algo-1').value,
-                document.getElementById('algo-2').value,
-                document.getElementById('algo-3').value,
-                document.getElementById('algo-4').value
-            ];
-            
-            const algoNames = {
-                'nsga2': 'NSGA-II',
-                'moadam': 'MO-Adam',
-                'moead': 'MOEA/D-Adam',
-                'mgda': 'MGDA-Adam',
-                'paretoadam': 'Pareto-Adam'
-            };
-            
-            // Update labels
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`algo${i+1}-label`).textContent = algoNames[algoSelections[i]];
-            }
-            
-            // Create algorithms
-            algorithms = algoSelections.map(algo => {
-                switch(algo) {
-                    case 'nsga2': return new NSGAII(currentProblem, popSize, generations);
-                    case 'moadam': return new MOAdam(currentProblem, popSize, generations);
-                    case 'moead': return new MOEADAdam(currentProblem, popSize, generations);
-                    case 'mgda': return new MGDAAdam(currentProblem, popSize, generations);
-                    case 'paretoadam': return new ParetoAdam(currentProblem, popSize, generations);
-                }
-            });
-            
-            // Initialize
-            algorithms.forEach(algo => algo.initialize());
-            
-            // Evolve
-            for (let gen = 0; gen < generations && isOptimizing; gen++) {
-                currentGeneration = gen;
-                
-                // Evolve all algorithms
-                for (let i = 0; i < 4; i++) {
-                    algorithms[i].evolve();
-                    const front = algorithms[i].getParetoFront();
-                    plotters[i].update(front);
-                    
-                    // Update storage plotter with best solution from this algorithm
-                    if (front.length > 0) {
-                        const bestYield = front.reduce((best, curr) => 
-                            curr.yieldPct > best.yieldPct ? curr : best
-                        );
-                        storagePlotters[i].update(bestYield.storage, currentProblem.capacity, bestYield.policy);
-                    }
-                }
-                
-                // Update combined Pareto front
-                const allFronts = algorithms.map(a => a.getParetoFront());
-                combinedParetoPlotter.update(allFronts);
-                
-                // Update stats
-                document.getElementById('generation').textContent = gen + 1;
-                document.getElementById('progress-text').textContent = 
-                    `${Math.round(((gen + 1) / generations) * 100)}%`;
-                
-                // Update best metrics from all algorithms
-                const allSolutions = allFronts.flat();
-                if (allSolutions.length > 0) {
-                    const bestYield = Math.max(...allSolutions.map(s => s.yieldPct));
-                    const minStage2 = Math.min(...allSolutions.map(s => s.stage2Days));
-                    document.getElementById('best-yield').textContent = bestYield.toFixed(1) + '%';
-                    document.getElementById('min-stage2').textContent = minStage2;
-                    
-                    const paretoCount = allSolutions.length;
-                    document.getElementById('pareto-count').textContent = paretoCount;
-                }
-                
-                // Yield to browser every few generations
-                if (gen % 2 === 0) {
-                    await new Promise(resolve => setTimeout(resolve, 10));
-                }
-            }
-            
-            isOptimizing = false;
-            document.getElementById('optimize-btn').disabled = false;
-            document.getElementById('stop-btn').disabled = true;
-        }
+			if (isOptimizing) return;
+			
+			isOptimizing = true;
+			document.getElementById('optimize-btn').disabled = true;
+			document.getElementById('stop-btn').disabled = false;
+			document.getElementById('progress-status').style.display = 'block';
+			
+			console.log('=== Starting optimization, mode:', optimizationMode);
+			
+			const params = {
+				capacity: parseFloat(document.getElementById('capacity').value),
+				simLength: parseInt(document.getElementById('sim-length').value),
+				skew: parseFloat(document.getElementById('skew').value),
+				municipal: parseFloat(document.getElementById('municipal').value),
+				irrigation: parseFloat(document.getElementById('irrigation').value)
+			};
+			
+			const popSize = parseInt(document.getElementById('popsize').value);
+			const generations = parseInt(document.getElementById('generations').value);
+			
+			currentProblem = new ReservoirOptimizationProblem(params);
+			hydrologyPlotter.update(currentProblem.flows, currentProblem.capacity);
+			
+			const algoNames = {
+				'nsga2': 'NSGA-II',
+				'moadam': 'MO-Adam',
+				'moead': 'MOEA/D-Adam',
+				'mgda': 'MGDA-Adam',
+				'paretoadam': 'Pareto-Adam'
+			};
+			
+			// ===== MODE CHECK ADDED HERE =====
+			if (optimizationMode === 'single') {
+				console.log('Running SINGLE optimizer mode');
+				const algoType = document.getElementById('single-algo').value;
+				
+				let algorithm;
+				switch(algoType) {
+					case 'nsga2': algorithm = new NSGAII(currentProblem, popSize, generations); break;
+					case 'moadam': algorithm = new MOAdam(currentProblem, popSize, generations); break;
+					case 'moead': algorithm = new MOEADAdam(currentProblem, popSize, generations); break;
+					case 'mgda': algorithm = new MGDAAdam(currentProblem, popSize, generations); break;
+					case 'paretoadam': algorithm = new ParetoAdam(currentProblem, popSize, generations); break;
+				}
+				
+				algorithm.initialize();
+				
+				for (let gen = 0; gen < generations && isOptimizing; gen++) {
+					algorithm.evolve();
+					
+					// Get front and RE-FILTER to ensure no dominated solutions
+					let front = algorithm.getParetoFront();
+					front = getParetoFront(front); // Double filter
+					
+					plotters[0].update(front);
+					combinedParetoPlotter.update([front, [], [], []]);
+					
+					if (front.length > 0) {
+						const bestYield = front.reduce((best, curr) => 
+							curr.yieldPct > best.yieldPct ? curr : best
+						);
+						storagePlotters[0].update(bestYield.storage, currentProblem.capacity, bestYield.policy);
+						
+						document.getElementById('best-yield').textContent = Math.max(...front.map(s => s.yieldPct)).toFixed(1) + '%';
+						document.getElementById('min-stage2').textContent = Math.min(...front.map(s => s.stage2Days));
+						document.getElementById('pareto-count').textContent = front.length;
+					}
+					
+					document.getElementById('generation').textContent = gen + 1;
+					document.getElementById('progress-text').textContent = `${Math.round(((gen + 1) / generations) * 100)}%`;
+					
+					await new Promise(resolve => setTimeout(resolve, 1));
+				}
+				
+			} else {
+				console.log('Running COMPARE 4 mode');
+				const algoSelections = [
+					document.getElementById('algo-1').value,
+					document.getElementById('algo-2').value,
+					document.getElementById('algo-3').value,
+					document.getElementById('algo-4').value
+				];
+				
+				// Update labels
+				const labelIds = ['pareto1-label', 'pareto2-label', 'pareto3-label', 'pareto4-label'];
+				for (let i = 0; i < 4; i++) {
+					document.getElementById(labelIds[i]).textContent = algoNames[algoSelections[i]];
+				}
+				
+				algorithms = algoSelections.map(algo => {
+					switch(algo) {
+						case 'nsga2': return new NSGAII(currentProblem, popSize, generations);
+						case 'moadam': return new MOAdam(currentProblem, popSize, generations);
+						case 'moead': return new MOEADAdam(currentProblem, popSize, generations);
+						case 'mgda': return new MGDAAdam(currentProblem, popSize, generations);
+						case 'paretoadam': return new ParetoAdam(currentProblem, popSize, generations);
+					}
+				});
+				
+				algorithms.forEach(algo => algo.initialize());
+				
+				for (let gen = 0; gen < generations && isOptimizing; gen++) {
+					// Evolve all 4
+					for (let i = 0; i < 4; i++) {
+						algorithms[i].evolve();
+						let front = algorithms[i].getParetoFront();
+						front = getParetoFront(front); // Re-filter
+						plotters[i].update(front);
+						
+						if (front.length > 0) {
+							const bestYield = front.reduce((best, curr) => 
+								curr.yieldPct > best.yieldPct ? curr : best
+							);
+							storagePlotters[i].update(bestYield.storage, currentProblem.capacity, bestYield.policy);
+						}
+					}
+					
+					// ===== GLOBAL PARETO FILTERING =====
+					const allFronts = algorithms.map((a, i) => getParetoFront(a.getParetoFront()));
+					const allSolutions = allFronts.flat();
+					const globalFront = getParetoFront(allSolutions); // Only globally non-dominated
+					
+					console.log(`Gen ${gen+1}: Global Pareto = ${globalFront.length} from ${allSolutions.length} total`);
+					
+					// Split back by algorithm for colored display
+					const globalByAlgo = [[], [], [], []];
+					for (const sol of globalFront) {
+						for (let i = 0; i < 4; i++) {
+							if (allFronts[i].includes(sol)) {
+								globalByAlgo[i].push(sol);
+								break;
+							}
+						}
+					}
+					
+					combinedParetoPlotter.update(globalByAlgo); // Only show global front
+					
+					// Update stats from global front
+					document.getElementById('generation').textContent = gen + 1;
+					document.getElementById('progress-text').textContent = `${Math.round(((gen + 1) / generations) * 100)}%`;
+					
+					if (globalFront.length > 0) {
+						document.getElementById('best-yield').textContent = Math.max(...globalFront.map(s => s.yieldPct)).toFixed(1) + '%';
+						document.getElementById('min-stage2').textContent = Math.min(...globalFront.map(s => s.stage2Days));
+						document.getElementById('pareto-count').textContent = globalFront.length;
+					}
+					
+					if (gen % 2 === 0) {
+						await new Promise(resolve => setTimeout(resolve, 1));
+					}
+				}
+			}
+			
+			console.log('=== Optimization complete');
+			isOptimizing = false;
+			document.getElementById('optimize-btn').disabled = false;
+			document.getElementById('stop-btn').disabled = true;
+		}
         
         // ====================================================================
         // UI EVENT HANDLERS
