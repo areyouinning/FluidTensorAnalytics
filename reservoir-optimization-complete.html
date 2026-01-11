@@ -288,6 +288,14 @@
                     </div>
                 </div>
 
+                <!-- Policy Parameters Comparison -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">SELECTED POLICY PARAMETERS</h3>
+                    <div class="canvas-container" style="height: 200px;">
+                        <canvas id="policy-params-canvas"></canvas>
+                    </div>
+                </div>
+
                 <!-- Storage Time Series Grid -->
                 <div>
                     <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">STORAGE TRAJECTORIES</h3>
@@ -468,12 +476,24 @@
                 <div class="control-section">
                     <h3>Algorithm Settings</h3>
                     <div class="control-group">
-                        <label>Population Size: <span class="value-display" id="popsize-value">50</span></label>
-                        <input type="range" id="popsize" min="20" max="200" value="50" step="10">
+                        <label>Population Size: <span class="value-display" id="popsize-value">60</span></label>
+                        <input type="range" id="popsize" min="20" max="200" value="60" step="10">
                     </div>
                     <div class="control-group">
-                        <label>Generations: <span class="value-display" id="generations-value">100</span></label>
-                        <input type="range" id="generations" min="50" max="500" value="100" step="50">
+                        <label>Generations: <span class="value-display" id="generations-value">150</span></label>
+                        <input type="range" id="generations" min="50" max="500" value="150" step="50">
+                    </div>
+                    <div class="control-group">
+                        <label>Crossover Rate: <span class="value-display" id="crossover-value">0.9</span></label>
+                        <input type="range" id="crossover" min="0" max="1" value="0.9" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label>Mutation Rate: <span class="value-display" id="mutation-value">0.2</span></label>
+                        <input type="range" id="mutation" min="0" max="1" value="0.2" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label>Learning Rate (Adam): <span class="value-display" id="learning-rate-value">0.3</span></label>
+                        <input type="range" id="learning-rate" min="0.1" max="1" value="0.3" step="0.1">
                     </div>
                 </div>
 
@@ -884,7 +904,7 @@
                 this.beta1 = 0.9;
                 this.beta2 = 0.999;
                 this.eps = 1e-8;
-                this.alpha = 0.8; // Increased learning rate
+                this.alpha = 0.3; // Reduced learning rate for stability
             }
             
             initialize() {
@@ -892,29 +912,40 @@
                 this.m = [];
                 this.v = [];
                 
-                // Diverse initialization: spread across yield-stage2 space
+                // VERY diverse initialization across entire feasible space
                 for (let i = 0; i < this.popSize; i++) {
                     let solution;
-                    if (i < this.popSize / 3) {
-                        // High yield bias
+                    const strategy = i / this.popSize;
+                    
+                    if (strategy < 0.25) {
+                        // High yield, low cutbacks
                         solution = [
-                            70 + Math.random() * 15,  // stage1: 70-85
-                            50 + Math.random() * 15,  // stage2: 50-65
-                            20 + Math.random() * 15,  // stage3: 20-35
+                            65 + Math.random() * 20,  // stage1: 65-85
+                            45 + Math.random() * 20,  // stage2: 45-65
+                            15 + Math.random() * 20,  // stage3: 15-35
                             5 + Math.random() * 10,   // cutback1: 5-15
-                            20 + Math.random() * 20   // cutback2: 20-40
+                            15 + Math.random() * 20   // cutback2: 15-35
                         ];
-                    } else if (i < 2 * this.popSize / 3) {
-                        // Low stage2 bias
+                    } else if (strategy < 0.5) {
+                        // Low stage2, high cutbacks
                         solution = [
                             75 + Math.random() * 10,  // stage1: 75-85
-                            55 + Math.random() * 15,  // stage2: 55-70
-                            25 + Math.random() * 15,  // stage3: 25-40
-                            15 + Math.random() * 20,  // cutback1: 15-35
-                            40 + Math.random() * 30   // cutback2: 40-70
+                            60 + Math.random() * 15,  // stage2: 60-75
+                            30 + Math.random() * 20,  // stage3: 30-50
+                            20 + Math.random() * 20,  // cutback1: 20-40
+                            50 + Math.random() * 35   // cutback2: 50-85
+                        ];
+                    } else if (strategy < 0.75) {
+                        // Balanced
+                        solution = [
+                            70 + Math.random() * 15,
+                            50 + Math.random() * 20,
+                            20 + Math.random() * 20,
+                            10 + Math.random() * 20,
+                            30 + Math.random() * 40
                         ];
                     } else {
-                        // Random exploration
+                        // Fully random
                         solution = this.problem.randomSolution();
                     }
                     
@@ -930,9 +961,24 @@
                 for (let i = 0; i < this.popSize; i++) {
                     const current = this.population[i].solution;
                     
+                    // 20% chance of random mutation for exploration
+                    if (Math.random() < 0.2) {
+                        const mutated = [...current];
+                        for (let j = 0; j < 5; j++) {
+                            if (Math.random() < 0.3) {
+                                mutated[j] += (Math.random() - 0.5) * 15;
+                            }
+                        }
+                        const newEval = this.problem.evaluate(this.ensureValid(mutated));
+                        if (!dominates(this.population[i], newEval)) {
+                            this.population[i] = newEval;
+                        }
+                        continue;
+                    }
+                    
                     // Compute NORMALIZED gradients for both objectives
-                    const grad1 = new Array(5); // For objective 1 (stage2)
-                    const grad2 = new Array(5); // For objective 2 (yield)
+                    const grad1 = new Array(5); // stage2 gradient
+                    const grad2 = new Array(5); // yield gradient
                     
                     for (let j = 0; j < 5; j++) {
                         const delta = 0.5;
@@ -943,49 +989,36 @@
                         perturbed[j] = current[j] - delta;
                         const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
                         
-                        // Use NORMALIZED objectives
                         grad1[j] = (fPlus.normObjectives[0] - fMinus.normObjectives[0]) / (2 * delta);
                         grad2[j] = (fPlus.normObjectives[1] - fMinus.normObjectives[1]) / (2 * delta);
                     }
                     
-                    // Create TWO candidate solutions
-                    const solution1 = [...current]; // Optimize stage2
-                    const solution2 = [...current]; // Optimize yield
+                    // Try multiple directions
+                    const candidates = [this.population[i]];
                     
+                    // Candidate 1: Minimize stage2
+                    const sol1 = [...current];
                     for (let j = 0; j < 5; j++) {
-                        // Update moments for stage2 gradient
                         this.m[i][j] = this.beta1 * this.m[i][j] + (1 - this.beta1) * grad1[j];
                         this.v[i][j] = this.beta2 * this.v[i][j] + (1 - this.beta2) * grad1[j] * grad1[j];
                         
                         const mHat = this.m[i][j] / (1 - Math.pow(this.beta1, this.t));
                         const vHat = this.v[i][j] / (1 - Math.pow(this.beta2, this.t));
                         
-                        // Solution 1: descend stage2 gradient
-                        solution1[j] = current[j] - this.alpha * mHat / (Math.sqrt(vHat) + this.eps);
-                        
-                        // Solution 2: descend yield gradient (negative direction for maximization)
-                        solution2[j] = current[j] - this.alpha * grad2[j];
+                        sol1[j] = current[j] - this.alpha * mHat / (Math.sqrt(vHat) + this.eps);
                     }
+                    candidates.push(this.problem.evaluate(this.ensureValid(sol1)));
                     
-                    // Evaluate both candidates
-                    const eval1 = this.problem.evaluate(this.ensureValid(solution1));
-                    const eval2 = this.problem.evaluate(this.ensureValid(solution2));
-                    const evalCurr = this.population[i];
-                    
-                    // Keep best non-dominated solution
-                    if (dominates(eval1, evalCurr)) {
-                        this.population[i] = eval1;
-                    } else if (dominates(eval2, evalCurr)) {
-                        this.population[i] = eval2;
-                    } else if (dominates(eval1, eval2)) {
-                        this.population[i] = eval1;
-                    } else if (dominates(eval2, eval1)) {
-                        this.population[i] = eval2;
-                    } else if (Math.random() < 0.5) {
-                        this.population[i] = eval1;
-                    } else {
-                        this.population[i] = eval2;
+                    // Candidate 2: Maximize yield
+                    const sol2 = [...current];
+                    for (let j = 0; j < 5; j++) {
+                        sol2[j] = current[j] - this.alpha * grad2[j];
                     }
+                    candidates.push(this.problem.evaluate(this.ensureValid(sol2)));
+                    
+                    // Select best non-dominated
+                    const front = getParetoFront(candidates);
+                    this.population[i] = front[Math.floor(Math.random() * front.length)];
                 }
             }
             
@@ -1070,41 +1103,67 @@
                 for (let i = 0; i < this.popSize; i++) {
                     const weight = this.weights[i];
                     const current = this.population[i].solution;
-                    const grad = new Array(5);
                     
-                    // Compute gradient of Tchebycheff scalarization with NORMALIZED objectives
-                    for (let j = 0; j < 5; j++) {
-                        const delta = 0.5;
-                        const perturbed = [...current];
-                        perturbed[j] += delta;
-                        
-                        const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
-                        perturbed[j] = current[j] - delta;
-                        const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
-                        
-                        // Tchebycheff with normalized objectives
-                        const tchebPlus = Math.max(
-                            weight[0] * fPlus.normObjectives[0],
-                            weight[1] * fPlus.normObjectives[1]
-                        );
-                        const tchebMinus = Math.max(
-                            weight[0] * fMinus.normObjectives[0],
-                            weight[1] * fMinus.normObjectives[1]
-                        );
-                        
-                        grad[j] = (tchebPlus - tchebMinus) / (2 * delta);
-                    }
+                    let newSolution;
                     
-                    // Adam update
-                    const newSolution = [...current];
-                    for (let j = 0; j < 5; j++) {
-                        this.m[i][j] = 0.9 * this.m[i][j] + 0.1 * grad[j];
-                        this.v[i][j] = 0.999 * this.v[i][j] + 0.001 * grad[j] * grad[j];
+                    // 30% crossover with neighbor, 70% gradient descent
+                    if (Math.random() < 0.3) {
+                        // Find neighbor with similar weight
+                        let neighborIdx = i;
+                        let minDist = Infinity;
+                        for (let k = 0; k < this.popSize; k++) {
+                            if (k === i) continue;
+                            const dist = Math.abs(this.weights[k][0] - weight[0]);
+                            if (dist < minDist && dist < 0.2) {
+                                minDist = dist;
+                                neighborIdx = k;
+                            }
+                        }
                         
-                        const mHat = this.m[i][j] / (1 - Math.pow(0.9, this.t));
-                        const vHat = this.v[i][j] / (1 - Math.pow(0.999, this.t));
+                        // Crossover
+                        const neighbor = this.population[neighborIdx].solution;
+                        newSolution = [];
+                        for (let j = 0; j < 5; j++) {
+                            newSolution.push(Math.random() < 0.5 ? current[j] : neighbor[j]);
+                            if (Math.random() < 0.2) {
+                                newSolution[j] += (Math.random() - 0.5) * 10;
+                            }
+                        }
+                    } else {
+                        // Gradient descent
+                        const grad = new Array(5);
                         
-                        newSolution[j] = current[j] - 0.6 * mHat / (Math.sqrt(vHat) + 1e-8);
+                        for (let j = 0; j < 5; j++) {
+                            const delta = 0.5;
+                            const perturbed = [...current];
+                            perturbed[j] += delta;
+                            
+                            const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
+                            perturbed[j] = current[j] - delta;
+                            const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
+                            
+                            const tchebPlus = Math.max(
+                                weight[0] * fPlus.normObjectives[0],
+                                weight[1] * fPlus.normObjectives[1]
+                            );
+                            const tchebMinus = Math.max(
+                                weight[0] * fMinus.normObjectives[0],
+                                weight[1] * fMinus.normObjectives[1]
+                            );
+                            
+                            grad[j] = (tchebPlus - tchebMinus) / (2 * delta);
+                        }
+                        
+                        newSolution = [...current];
+                        for (let j = 0; j < 5; j++) {
+                            this.m[i][j] = 0.9 * this.m[i][j] + 0.1 * grad[j];
+                            this.v[i][j] = 0.999 * this.v[i][j] + 0.001 * grad[j] * grad[j];
+                            
+                            const mHat = this.m[i][j] / (1 - Math.pow(0.9, this.t));
+                            const vHat = this.v[i][j] / (1 - Math.pow(0.999, this.t));
+                            
+                            newSolution[j] = current[j] - 0.3 * mHat / (Math.sqrt(vHat) + 1e-8);
+                        }
                     }
                     
                     const newEval = this.problem.evaluate(this.ensureValid(newSolution));
@@ -1524,10 +1583,11 @@
         }
         
         class ParetoPlotter {
-            constructor(canvas, color) {
+            constructor(canvas, color, algoIndex) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
                 this.color = color;
+                this.algoIndex = algoIndex;
                 this.solutions = [];
                 this.selectedSolution = null;
                 
@@ -1577,7 +1637,10 @@
                 
                 if (closest) {
                     this.selectedSolution = closest;
+                    selectedSolutions[this.algoIndex] = closest;
                     showSolutionDetails(closest);
+                    storagePlotters[this.algoIndex].update(closest.storage, currentProblem.capacity, closest.policy);
+                    policyParamsPlotter.update(this.algoIndex, closest);
                     this.render();
                 }
             }
@@ -1821,9 +1884,10 @@
         }
         
         class StoragePlotter {
-            constructor(canvas) {
+            constructor(canvas, color) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
+                this.color = color || '#10b981';
                 this.storage = [];
                 this.capacity = 100;
                 this.policy = null;
@@ -1882,8 +1946,8 @@
                 }
                 
                 // Storage line
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 for (let i = 0; i < this.storage.length; i++) {
                     const x = padding + (i / (this.storage.length - 1)) * plotW;
@@ -1905,6 +1969,100 @@
             }
         }
         
+        class PolicyParametersPlotter {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.solutions = [null, null, null, null];
+                this.colors = ['#00d9ff', '#ff006e', '#8b5cf6', '#10b981'];
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(algoIndex, solution) {
+                this.solutions[algoIndex] = solution;
+                this.render();
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                const params = ['S1 Thresh', 'S2 Thresh', 'S3 Thresh', 'S1 Cut', 'S2 Cut'];
+                const padding = {left: 70, right: 20, top: 20, bottom: 30};
+                const plotW = w - padding.left - padding.right;
+                const plotH = h - padding.top - padding.bottom;
+                const barWidth = plotW / params.length;
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, padding.top);
+                ctx.lineTo(padding.left, h - padding.bottom);
+                ctx.lineTo(w - padding.right, h - padding.bottom);
+                ctx.stroke();
+                
+                // Draw bars for each parameter
+                for (let p = 0; p < params.length; p++) {
+                    const x = padding.left + p * barWidth;
+                    
+                    // Parameter label
+                    ctx.fillStyle = '#8b95a5';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(params[p], x + barWidth/2, h - 5);
+                    
+                    // Draw bars for each algorithm
+                    let offset = 0;
+                    const algoBarWidth = barWidth / 5;
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (this.solutions[i] && this.solutions[i].policy) {
+                            const policy = this.solutions[i].policy;
+                            let value;
+                            
+                            if (p === 0) value = policy.stage1Threshold;
+                            else if (p === 1) value = policy.stage2Threshold;
+                            else if (p === 2) value = policy.stage3Threshold;
+                            else if (p === 3) value = policy.stage1Cutback;
+                            else value = policy.stage2Cutback;
+                            
+                            const barHeight = (value / 100) * plotH;
+                            const barY = h - padding.bottom - barHeight;
+                            
+                            ctx.fillStyle = this.colors[i];
+                            ctx.globalAlpha = 0.8;
+                            ctx.fillRect(x + offset + 2, barY, algoBarWidth - 4, barHeight);
+                            ctx.globalAlpha = 1.0;
+                        }
+                        offset += algoBarWidth;
+                    }
+                }
+                
+                // Y-axis label
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '10px sans-serif';
+                ctx.save();
+                ctx.translate(15, h/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.textAlign = 'center';
+                ctx.fillText('Value (%)', 0, 0);
+                ctx.restore();
+            }
+        }
+        
         // ====================================================================
         // INITIALIZE PLOTTERS
         // ====================================================================
@@ -1914,18 +2072,23 @@
         const combinedParetoPlotter = new CombinedParetoPlotter(document.getElementById('combined-pareto-canvas'));
         
         const plotters = [
-            new ParetoPlotter(document.getElementById('pareto1-canvas'), '#00d9ff'),
-            new ParetoPlotter(document.getElementById('pareto2-canvas'), '#ff006e'),
-            new ParetoPlotter(document.getElementById('pareto3-canvas'), '#8b5cf6'),
-            new ParetoPlotter(document.getElementById('pareto4-canvas'), '#10b981')
+            new ParetoPlotter(document.getElementById('pareto1-canvas'), '#00d9ff', 0),
+            new ParetoPlotter(document.getElementById('pareto2-canvas'), '#ff006e', 1),
+            new ParetoPlotter(document.getElementById('pareto3-canvas'), '#8b5cf6', 2),
+            new ParetoPlotter(document.getElementById('pareto4-canvas'), '#10b981', 3)
         ];
         
         const storagePlotters = [
-            new StoragePlotter(document.getElementById('storage1-canvas')),
-            new StoragePlotter(document.getElementById('storage2-canvas')),
-            new StoragePlotter(document.getElementById('storage3-canvas')),
-            new StoragePlotter(document.getElementById('storage4-canvas'))
+            new StoragePlotter(document.getElementById('storage1-canvas'), '#00d9ff'),
+            new StoragePlotter(document.getElementById('storage2-canvas'), '#ff006e'),
+            new StoragePlotter(document.getElementById('storage3-canvas'), '#8b5cf6'),
+            new StoragePlotter(document.getElementById('storage4-canvas'), '#10b981')
         ];
+        
+        const policyParamsPlotter = new PolicyParametersPlotter(document.getElementById('policy-params-canvas'));
+        
+        // Track selected solutions for each algorithm
+        const selectedSolutions = [null, null, null, null];
         
         // Convergence plotters disabled - canvas elements not in HTML
         const convergencePlotters = [{update: () => {}, reset: () => {}, render: () => {}}, 
@@ -1940,17 +2103,23 @@
         function showSolutionDetails(solution) {
             document.getElementById('selected-solution').style.display = 'block';
             document.getElementById('sol-yield').textContent = solution.yieldPct.toFixed(1) + '%';
-            document.getElementById('sol-stage2').textContent = solution.stage2Days;
-            document.getElementById('sol-storage').textContent = solution.avgStoragePct.toFixed(1);
+            
+            // Convert stage2Days to percentage of simulation time
+            const totalMonths = currentProblem ? currentProblem.simLength * 12 : 360;
+            const stage2Pct = (solution.stage2Days / (totalMonths * 30)) * 100;
+            document.getElementById('sol-stage2').textContent = stage2Pct.toFixed(1) + '%';
+            
+            const stage3Pct = (solution.stage3Days / (totalMonths * 30)) * 100;
+            document.getElementById('sol-stage3').textContent = stage3Pct.toFixed(1) + '%';
+            
+            document.getElementById('sol-storage').textContent = solution.avgStoragePct.toFixed(1) + '%';
             
             if (solution.policy) {
-                console.log('Selected policy:', {
-                    'Stage 1 Threshold': solution.policy.stage1Threshold.toFixed(1) + '%',
-                    'Stage 2 Threshold': solution.policy.stage2Threshold.toFixed(1) + '%',
-                    'Stage 3 Threshold': solution.policy.stage3Threshold.toFixed(1) + '%',
-                    'Stage 1 Cutback': solution.policy.stage1Cutback.toFixed(1) + '%',
-                    'Stage 2 Cutback': solution.policy.stage2Cutback.toFixed(1) + '%'
-                });
+                document.getElementById('pol-s1t').textContent = solution.policy.stage1Threshold.toFixed(1);
+                document.getElementById('pol-s1c').textContent = solution.policy.stage1Cutback.toFixed(1);
+                document.getElementById('pol-s2t').textContent = solution.policy.stage2Threshold.toFixed(1);
+                document.getElementById('pol-s2c').textContent = solution.policy.stage2Cutback.toFixed(1);
+                document.getElementById('pol-s3t').textContent = solution.policy.stage3Threshold.toFixed(1);
             }
         }
         
@@ -2154,6 +2323,18 @@
             document.getElementById('generations-value').textContent = e.target.value;
         });
         
+        document.getElementById('crossover').addEventListener('input', (e) => {
+            document.getElementById('crossover-value').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        
+        document.getElementById('mutation').addEventListener('input', (e) => {
+            document.getElementById('mutation-value').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+        
+        document.getElementById('learning-rate').addEventListener('input', (e) => {
+            document.getElementById('learning-rate-value').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        
         document.getElementById('optimize-btn').addEventListener('click', () => {
             runOptimization();
         });
@@ -2180,6 +2361,7 @@
         plotters.forEach(p => p.render());
         storagePlotters.forEach(p => p.render());
         convergencePlotters.forEach(p => p.render());
+        policyParamsPlotter.render();
         
         console.log('=== SYSTEM READY ===');
     </script>
