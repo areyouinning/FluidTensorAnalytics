@@ -360,44 +360,59 @@
                 </div>
 
                 <div class="control-section">
-                    <h3>Algorithm Selection</h3>
-                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                        Select 4 algorithms to compare:
+                    <h3>Optimization Mode</h3>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <button class="btn" id="mode-single" style="flex: 1; background: rgba(0, 217, 255, 0.2); border-color: var(--accent-primary);">Single Optimizer</button>
+                        <button class="btn" id="mode-compare" style="flex: 1;">Compare 4</button>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
-                        <select id="algo-1" class="algo-select">
+                    <div id="single-algo-select" style="margin-bottom: 0.5rem;">
+                        <select id="single-algo" style="width: 100%;">
                             <option value="nsga2" selected>NSGA-II</option>
                             <option value="moadam">MO-Adam</option>
                             <option value="moead">MOEA/D-Adam</option>
                             <option value="mgda">MGDA-Adam</option>
                             <option value="paretoadam">Pareto-Adam</option>
                         </select>
-                        <select id="algo-2" class="algo-select">
-                            <option value="nsga2">NSGA-II</option>
-                            <option value="moadam" selected>MO-Adam</option>
-                            <option value="moead">MOEA/D-Adam</option>
-                            <option value="mgda">MGDA-Adam</option>
-                            <option value="paretoadam">Pareto-Adam</option>
-                        </select>
-                        <select id="algo-3" class="algo-select">
-                            <option value="nsga2">NSGA-II</option>
-                            <option value="moadam">MO-Adam</option>
-                            <option value="moead" selected>MOEA/D-Adam</option>
-                            <option value="mgda">MGDA-Adam</option>
-                            <option value="paretoadam">Pareto-Adam</option>
-                        </select>
-                        <select id="algo-4" class="algo-select">
-                            <option value="nsga2">NSGA-II</option>
-                            <option value="moadam">MO-Adam</option>
-                            <option value="moead">MOEA/D-Adam</option>
-                            <option value="mgda" selected>MGDA-Adam</option>
-                            <option value="paretoadam">Pareto-Adam</option>
-                        </select>
+                    </div>
+                    <div id="multi-algo-select" style="display: none;">
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            Select 4 algorithms to compare:
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                            <select id="algo-1" class="algo-select">
+                                <option value="nsga2" selected>NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead">MOEA/D-Adam</option>
+                                <option value="mgda">MGDA-Adam</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                            <select id="algo-2" class="algo-select">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam" selected>MO-Adam</option>
+                                <option value="moead">MOEA/D-Adam</option>
+                                <option value="mgda">MGDA-Adam</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                            <select id="algo-3" class="algo-select">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead" selected>MOEA/D-Adam</option>
+                                <option value="mgda">MGDA-Adam</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                            <select id="algo-4" class="algo-select">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead">MOEA/D-Adam</option>
+                                <option value="mgda" selected>MGDA-Adam</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Optimization Settings</h3>
+                    <h3>Algorithm Selection</h3>
                     <div class="control-group">
                         <label>Population Size: <span class="value-display" id="popsize-value">50</span></label>
                         <input type="range" id="popsize" min="20" max="200" step="10" value="50">
@@ -1797,6 +1812,30 @@
         let isOptimizing = false;
         let currentGeneration = 0;
         let currentProblem = null;
+        let optimizationMode = 'single'; // 'single' or 'compare'
+        
+        // Mode switching
+        document.getElementById('mode-single').addEventListener('click', () => {
+            optimizationMode = 'single';
+            document.getElementById('mode-single').style.background = 'rgba(0, 217, 255, 0.2)';
+            document.getElementById('mode-single').style.borderColor = 'var(--accent-primary)';
+            document.getElementById('mode-compare').style.background = 'var(--bg-tertiary)';
+            document.getElementById('mode-compare').style.borderColor = 'var(--border)';
+            document.getElementById('single-algo-select').style.display = 'block';
+            document.getElementById('multi-algo-select').style.display = 'none';
+            document.getElementById('optimize-btn').textContent = '🚀 Run Optimization';
+        });
+        
+        document.getElementById('mode-compare').addEventListener('click', () => {
+            optimizationMode = 'compare';
+            document.getElementById('mode-compare').style.background = 'rgba(0, 217, 255, 0.2)';
+            document.getElementById('mode-compare').style.borderColor = 'var(--accent-primary)';
+            document.getElementById('mode-single').style.background = 'var(--bg-tertiary)';
+            document.getElementById('mode-single').style.borderColor = 'var(--border)';
+            document.getElementById('single-algo-select').style.display = 'none';
+            document.getElementById('multi-algo-select').style.display = 'block';
+            document.getElementById('optimize-btn').textContent = '🚀 Run 4-Way Optimization';
+        });
         
         function updateSolutionStats(solution) {
             if (!solution) return;
@@ -1830,12 +1869,7 @@
                 simLength: parseInt(document.getElementById('sim-length').value),
                 skew: parseFloat(document.getElementById('skew').value),
                 municipal: parseFloat(document.getElementById('municipal').value),
-                irrigation: parseFloat(document.getElementById('irrigation').value),
-                restrictions: {
-                    stage1: parseFloat(document.getElementById('stage1').value),
-                    stage2: parseFloat(document.getElementById('stage2').value),
-                    stage3: parseFloat(document.getElementById('stage3').value)
-                }
+                irrigation: parseFloat(document.getElementById('irrigation').value)
             };
             
             const popSize = parseInt(document.getElementById('popsize').value);
@@ -1978,6 +2012,24 @@
         combinedParetoPlotter.render();
         plotters.forEach(p => p.render());
         storagePlotters.forEach(p => p.render());
+        
+        // Diagnostic test
+        console.log('=== DIAGNOSTIC TEST ===');
+        try {
+            const testProb = new ReservoirOptimizationProblem({
+                capacity: 100, simLength: 10, skew: 0, municipal: 40, irrigation: 60
+            });
+            console.log('✓ Problem created, flows:', testProb.flows.length);
+            
+            const testSol = testProb.randomSolution();
+            console.log('✓ Random solution:', testSol);
+            
+            const testEval = testProb.evaluate(testSol);
+            console.log('✓ Evaluation:', testEval);
+            console.log('=== SYSTEM READY ===');
+        } catch(e) {
+            console.error('!!! ERROR:', e);
+        }
     </script>
 </body>
 </html>
