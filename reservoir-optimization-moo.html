@@ -259,7 +259,7 @@
 
                 <!-- Combined Pareto Front -->
                 <div>
-                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">COMBINED PARETO FRONT</h3>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">MULTI-OBJECTIVE TRADEOFFS</h3>
                     <div class="canvas-container" style="height: 280px;">
                         <canvas id="combined-pareto-canvas"></canvas>
                     </div>
@@ -870,7 +870,16 @@
             return betterInOne;
         }
         
-        function getParetoFront(population) {
+        function epsilonDominates(a, b, epsilon = 0.01) {
+            // a epsilon-dominates b if a is epsilon-better in all objectives
+            for (let i = 0; i < a.objectives.length; i++) {
+                if (a.objectives[i] > b.objectives[i] - epsilon) return false;
+            }
+            return true;
+        }
+        
+        function getParetoFront(population, maxSize = null) {
+            // First, get non-dominated solutions
             const front = [];
             for (const individual of population) {
                 let isDominated = false;
@@ -884,7 +893,38 @@
                     front.push(individual);
                 }
             }
-            return front;
+            
+            // If no max size specified, return full front
+            if (!maxSize || front.length <= maxSize) {
+                return front;
+            }
+            
+            // Prune using crowding distance to maintain diversity
+            const numObjectives = front[0].objectives.length;
+            const distances = new Array(front.length).fill(0);
+            
+            // Calculate crowding distance for each solution
+            for (let m = 0; m < numObjectives; m++) {
+                const sorted = front.map((ind, idx) => ({ind, idx}))
+                    .sort((a, b) => a.ind.objectives[m] - b.ind.objectives[m]);
+                
+                distances[sorted[0].idx] = Infinity;
+                distances[sorted[front.length - 1].idx] = Infinity;
+                
+                const range = sorted[front.length - 1].ind.objectives[m] - sorted[0].ind.objectives[m];
+                if (range > 0) {
+                    for (let i = 1; i < front.length - 1; i++) {
+                        distances[sorted[i].idx] += 
+                            (sorted[i + 1].ind.objectives[m] - sorted[i - 1].ind.objectives[m]) / range;
+                    }
+                }
+            }
+            
+            // Select maxSize solutions with highest crowding distance
+            const withDistances = front.map((ind, idx) => ({ind, dist: distances[idx]}));
+            withDistances.sort((a, b) => b.dist - a.dist);
+            
+            return withDistances.slice(0, maxSize).map(item => item.ind);
         }
         
         function crowdingDistance(front) {
@@ -1573,54 +1613,134 @@
                 if (this.flows.length === 0) return;
                 
                 const maxFlow = Math.max(...this.flows);
-                const padding = 40;
-                const plotW = w - 2 * padding;
-                const plotH = h - 2 * padding;
+                const avgFlow = this.flows.reduce((a, b) => a + b, 0) / this.flows.length;
+                const padding = {left: 60, right: 20, top: 30, bottom: 40};
+                const plotW = w - padding.left - padding.right;
+                const plotH = h - padding.top - padding.bottom;
+                
+                // Background shading for above/below average
+                for (let i = 0; i < this.flows.length; i++) {
+                    const x = padding.left + (i / (this.flows.length - 1)) * plotW;
+                    const nextX = i < this.flows.length - 1 ? 
+                        padding.left + ((i + 1) / (this.flows.length - 1)) * plotW : w - padding.right;
+                    
+                    if (this.flows[i] > avgFlow) {
+                        // Wet year - blue tint
+                        ctx.fillStyle = 'rgba(0, 217, 255, 0.08)';
+                    } else {
+                        // Dry year - orange tint
+                        ctx.fillStyle = 'rgba(255, 100, 50, 0.08)';
+                    }
+                    ctx.fillRect(x, padding.top, nextX - x, plotH);
+                }
+                
+                // Gridlines
+                ctx.strokeStyle = 'rgba(42, 52, 65, 0.3)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 4; i++) {
+                    const y = padding.top + (i / 4) * plotH;
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(w - padding.right, y);
+                    ctx.stroke();
+                    
+                    // Y-axis labels
+                    const flowValue = maxFlow * (1 - i / 4);
+                    ctx.fillStyle = '#8b95a5';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(flowValue.toFixed(0), padding.left - 5, y + 3);
+                }
                 
                 // Axes
                 ctx.strokeStyle = '#2a3441';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(padding, padding);
-                ctx.lineTo(padding, h - padding);
-                ctx.lineTo(w - padding, h - padding);
+                ctx.moveTo(padding.left, padding.top);
+                ctx.lineTo(padding.left, h - padding.bottom);
+                ctx.lineTo(w - padding.right, h - padding.bottom);
                 ctx.stroke();
                 
+                // Average flow line
+                const avgY = h - padding.bottom - (avgFlow / maxFlow) * plotH;
+                ctx.strokeStyle = '#8b95a5';
+                ctx.setLineDash([3, 3]);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, avgY);
+                ctx.lineTo(w - padding.right, avgY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText('Average', w - padding.right - 50, avgY - 3);
+                
                 // Capacity line
-                const capY = h - padding - (this.capacity * 12 / maxFlow) * plotH;
+                const capY = h - padding.bottom - (this.capacity * 12 / maxFlow) * plotH;
                 ctx.strokeStyle = '#ff006e';
                 ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.moveTo(padding, capY);
-                ctx.lineTo(w - padding, capY);
+                ctx.moveTo(padding.left, capY);
+                ctx.lineTo(w - padding.right, capY);
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
                 ctx.fillStyle = '#ff006e';
-                ctx.font = '10px monospace';
-                ctx.fillText('Annual Capacity', w - padding - 100, capY - 5);
+                ctx.font = '9px monospace';
+                ctx.fillText('Annual Capacity', w - padding.right - 95, capY - 3);
                 
                 // Flow line
                 ctx.strokeStyle = '#00d9ff';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 for (let i = 0; i < this.flows.length; i++) {
-                    const x = padding + (i / (this.flows.length - 1)) * plotW;
-                    const y = h - padding - (this.flows[i] / maxFlow) * plotH;
+                    const x = padding.left + (i / (this.flows.length - 1)) * plotW;
+                    const y = h - padding.bottom - (this.flows[i] / maxFlow) * plotH;
                     if (i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
                 }
                 ctx.stroke();
                 
-                // Labels
+                // Year labels (every 5 years)
                 ctx.fillStyle = '#8b95a5';
-                ctx.font = '10px monospace';
-                ctx.fillText('Year', w / 2, h - 10);
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'center';
+                for (let i = 0; i < this.flows.length; i += 5) {
+                    const x = padding.left + (i / (this.flows.length - 1)) * plotW;
+                    ctx.fillText(i + 1, x, h - padding.bottom + 15);
+                }
+                
+                // Axis labels
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '11px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Year', w / 2, h - 5);
+                
                 ctx.save();
                 ctx.translate(15, h / 2);
                 ctx.rotate(-Math.PI / 2);
+                ctx.textAlign = 'center';
                 ctx.fillText('Annual Flow (ac-ft)', 0, 0);
                 ctx.restore();
+                
+                // Legend
+                const legendX = padding.left + 10;
+                const legendY = padding.top + 10;
+                
+                ctx.fillStyle = 'rgba(0, 217, 255, 0.15)';
+                ctx.fillRect(legendX, legendY, 12, 12);
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText('Wet (above avg)', legendX + 16, legendY + 9);
+                
+                ctx.fillStyle = 'rgba(255, 100, 50, 0.15)';
+                ctx.fillRect(legendX, legendY + 16, 12, 12);
+                ctx.fillStyle = '#8b95a5';
+                ctx.fillText('Dry (below avg)', legendX + 16, legendY + 25);
             }
         }
         
@@ -1864,10 +1984,15 @@
                 this.selectedSolution = null;
                 this.objectiveNames = ['Stage 2 Days', 'Yield', 'Avg Storage'];
                 this.fourthObjective = 'none';
+                this.algorithmNames = ['NSGA-II', 'MO-Adam', 'MOEA/D', 'MGDA']; // Default
                 
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
                 this.canvas.addEventListener('click', (e) => this.handleClick(e));
+            }
+            
+            setAlgorithmNames(names) {
+                this.algorithmNames = names;
             }
             
             resizeCanvas() {
@@ -2031,6 +2156,19 @@
                 ctx.strokeStyle = '#2a3441';
                 ctx.lineWidth = 2;
                 
+                // Optimal direction mapping
+                const optimalDirections = {
+                    'Stage 2 Days': 'lower',
+                    'Stage 1 Days': 'lower',
+                    'Stage 3 Days': 'lower',
+                    'Total Restriction Days': 'lower',
+                    'Max Drawdown': 'lower',
+                    'Yield': 'higher',
+                    'Avg Storage': 'higher',
+                    'Reliability': 'higher',
+                    'Storage CV': 'lower'
+                };
+                
                 for (let i = 0; i < numAxes; i++) {
                     const x = padding.left + i * axisSpacing;
                     ctx.beginPath();
@@ -2043,6 +2181,16 @@
                     ctx.font = '11px monospace';
                     ctx.textAlign = 'center';
                     ctx.fillText(this.objectiveNames[i], x, h - padding.bottom + 25);
+                    
+                    // Optimal direction indicator
+                    const direction = optimalDirections[this.objectiveNames[i]] || 'lower';
+                    ctx.fillStyle = '#00d9ff';
+                    ctx.font = '9px monospace';
+                    if (direction === 'lower') {
+                        ctx.fillText('↓ optimal', x, h - padding.bottom + 38);
+                    } else {
+                        ctx.fillText('↑ optimal', x, h - padding.bottom + 38);
+                    }
                 }
                 
                 // Draw solutions as polylines
@@ -2067,18 +2215,20 @@
                 }
                 ctx.globalAlpha = 1.0;
                 
-                // Legend
+                // Legend - use actual algorithm names
                 const legendX = w - 120;
                 const legendY = 20;
-                const labels = ['NSGA-II', 'MO-Adam', 'MOEA/D', 'MGDA'];
                 
                 for (let i = 0; i < 4; i++) {
-                    ctx.fillStyle = this.colors[i];
-                    ctx.fillRect(legendX, legendY + i * 20, 15, 3);
-                    ctx.fillStyle = '#e6edf3';
-                    ctx.font = '10px monospace';
-                    ctx.textAlign = 'left';
-                    ctx.fillText(labels[i], legendX + 20, legendY + i * 20 + 5);
+                    // Only show if this front has solutions
+                    if (this.fronts[i].length > 0) {
+                        ctx.fillStyle = this.colors[i];
+                        ctx.fillRect(legendX, legendY + i * 20, 15, 3);
+                        ctx.fillStyle = '#e6edf3';
+                        ctx.font = '10px monospace';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(this.algorithmNames[i], legendX + 20, legendY + i * 20 + 5);
+                    }
                 }
             }
         }
@@ -2379,10 +2529,15 @@
                 
                 algorithm.initialize();
                 
+                // Set algorithm name for legend
+                const singleAlgoName = algoNames[algoType];
+                parallelCoordinatesPlotter.setAlgorithmNames([singleAlgoName, '', '', '']);
+                
                 for (let gen = 0; gen < generations && isOptimizing; gen++) {
                     algorithm.evolve();
                     
                     let front = algorithm.getParetoFront();
+                    // No artificial limit - show true Pareto front
                     front = getParetoFront(front);
                     
                     plotters[0].update(front);
@@ -2439,10 +2594,15 @@
                 
                 algorithms.forEach(algo => algo.initialize());
                 
+                // Set algorithm names for legend
+                const fourAlgoNames = algoSelections.map(algo => algoNames[algo]);
+                parallelCoordinatesPlotter.setAlgorithmNames(fourAlgoNames);
+                
                 for (let gen = 0; gen < generations && isOptimizing; gen++) {
                     for (let i = 0; i < 4; i++) {
                         algorithms[i].evolve();
                         let front = algorithms[i].getParetoFront();
+                        // No artificial limit - show true Pareto front
                         front = getParetoFront(front);
                         plotters[i].update(front);
                         convergencePlotters[i].update(front);
@@ -2457,6 +2617,7 @@
                     
                     const allFronts = algorithms.map((a, i) => getParetoFront(a.getParetoFront()));
                     const allSolutions = allFronts.flat();
+                    // No artificial limit - show true global Pareto front
                     const globalFront = getParetoFront(allSolutions);
                     
                     const globalByAlgo = [[], [], [], []];
