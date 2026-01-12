@@ -268,6 +268,39 @@
                 <!-- Individual Pareto Fronts Grid -->
                 <div>
                     <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">ALGORITHM FRONTS</h3>
+                    
+                    <!-- Axis selectors -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.7rem;">
+                        <div>
+                            <label style="color: var(--text-secondary);">X-Axis: </label>
+                            <select id="pareto-x-axis" style="padding: 0.25rem; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 3px; font-size: 0.7rem;">
+                                <option value="yieldPct" selected>Yield (%)</option>
+                                <option value="stage2Days">Stage 2 Days</option>
+                                <option value="avgStoragePct">Avg Storage (%)</option>
+                                <option value="stage1Days">Stage 1 Days</option>
+                                <option value="stage3Days">Stage 3 Days</option>
+                                <option value="totalRestrictionDays">Total Restriction Days</option>
+                                <option value="maxDrawdown">Max Drawdown (%)</option>
+                                <option value="reliabilityPct">Reliability (%)</option>
+                                <option value="storageCV">Storage CV</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color: var(--text-secondary);">Y-Axis: </label>
+                            <select id="pareto-y-axis" style="padding: 0.25rem; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 3px; font-size: 0.7rem;">
+                                <option value="yieldPct">Yield (%)</option>
+                                <option value="stage2Days" selected>Stage 2 Days</option>
+                                <option value="avgStoragePct">Avg Storage (%)</option>
+                                <option value="stage1Days">Stage 1 Days</option>
+                                <option value="stage3Days">Stage 3 Days</option>
+                                <option value="totalRestrictionDays">Total Restriction Days</option>
+                                <option value="maxDrawdown">Max Drawdown (%)</option>
+                                <option value="reliabilityPct">Reliability (%)</option>
+                                <option value="storageCV">Storage CV</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                         <div class="canvas-container" style="height: 200px;">
                             <div class="algorithm-label" id="pareto1-label">NSGA-II</div>
@@ -894,7 +927,15 @@
                 }
             }
             
-            // If no max size specified, return full front
+            // Auto-calculate max size based on number of objectives if not specified
+            if (maxSize === null && front.length > 0) {
+                const nObj = front[0].objectives.length;
+                // Formula: (n-1)! + n
+                const factorial = (n) => n <= 1 ? 1 : n * factorial(n - 1);
+                maxSize = factorial(nObj - 1) + nObj;
+            }
+            
+            // If no max size or front is small enough, return full front
             if (!maxSize || front.length <= maxSize) {
                 return front;
             }
@@ -1903,9 +1944,36 @@
                 const h = this.canvas.height;
                 const padding = 40;
                 
-                const x = padding + (solution.yieldPct / 100) * (w - 2 * padding);
-                const maxStage2 = currentProblem ? currentProblem.simLength * 365 : 10000;
-                const y = h - padding - (solution.stage2Days / maxStage2) * (h - 2 * padding);
+                // Get axis selections from dropdowns
+                const xAxis = document.getElementById('pareto-x-axis').value;
+                const yAxis = document.getElementById('pareto-y-axis').value;
+                
+                // Get value for x-axis
+                let xValue = solution[xAxis] || 0;
+                let xMax = 100; // Default
+                
+                if (xAxis === 'stage2Days' || xAxis === 'stage1Days' || xAxis === 'stage3Days') {
+                    xMax = currentProblem ? currentProblem.simLength * 365 : 10000;
+                } else if (xAxis === 'totalRestrictionDays') {
+                    xMax = currentProblem ? currentProblem.simLength * 365 * 3 : 30000;
+                } else if (xAxis === 'storageCV') {
+                    xMax = 2.0;
+                }
+                
+                // Get value for y-axis
+                let yValue = solution[yAxis] || 0;
+                let yMax = 100; // Default
+                
+                if (yAxis === 'stage2Days' || yAxis === 'stage1Days' || yAxis === 'stage3Days') {
+                    yMax = currentProblem ? currentProblem.simLength * 365 : 10000;
+                } else if (yAxis === 'totalRestrictionDays') {
+                    yMax = currentProblem ? currentProblem.simLength * 365 * 3 : 30000;
+                } else if (yAxis === 'storageCV') {
+                    yMax = 2.0;
+                }
+                
+                const x = padding + (xValue / xMax) * (w - 2 * padding);
+                const y = h - padding - (yValue / yMax) * (h - 2 * padding);
                 
                 return {x, y};
             }
@@ -1918,9 +1986,28 @@
                 ctx.fillStyle = '#0a0e14';
                 ctx.fillRect(0, 0, w, h);
                 
+                if (this.solutions.length === 0) return;
+                
                 const padding = 40;
                 const plotW = w - 2 * padding;
                 const plotH = h - 2 * padding;
+                
+                // Get axis selections
+                const xAxis = document.getElementById('pareto-x-axis').value;
+                const yAxis = document.getElementById('pareto-y-axis').value;
+                
+                // Axis labels mapping
+                const axisLabels = {
+                    'yieldPct': 'Yield (%)',
+                    'stage2Days': 'Stage 2 Days',
+                    'avgStoragePct': 'Avg Storage (%)',
+                    'stage1Days': 'Stage 1 Days',
+                    'stage3Days': 'Stage 3 Days',
+                    'totalRestrictionDays': 'Total Restriction Days',
+                    'maxDrawdown': 'Max Drawdown (%)',
+                    'reliabilityPct': 'Reliability (%)',
+                    'storageCV': 'Storage CV'
+                };
                 
                 // Axes
                 ctx.strokeStyle = '#2a3441';
@@ -1933,12 +2020,14 @@
                 
                 // Labels
                 ctx.fillStyle = '#8b95a5';
-                ctx.font = '10px monospace';
-                ctx.fillText('Yield (%)', w / 2 - 20, h - 5);
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(axisLabels[xAxis], w / 2, h - 5);
                 ctx.save();
-                ctx.translate(12, h / 2 + 40);
+                ctx.translate(12, h / 2 + 30);
                 ctx.rotate(-Math.PI / 2);
-                ctx.fillText('Stage 2 Days', 0, 0);
+                ctx.textAlign = 'center';
+                ctx.fillText(axisLabels[yAxis], 0, 0);
                 ctx.restore();
                 
                 // Grid
@@ -1950,9 +2039,6 @@
                     ctx.moveTo(x, h - padding);
                     ctx.lineTo(x, padding);
                     ctx.stroke();
-                    
-                    ctx.fillStyle = '#8b95a5';
-                    ctx.fillText((i * 10).toString(), x - 8, h - padding + 15);
                 }
                 
                 // Plot solutions
@@ -2728,6 +2814,14 @@
         document.getElementById('fourth-objective').addEventListener('change', (e) => {
             parallelCoordinatesPlotter.setFourthObjective(e.target.value);
             parallelCoordinatesPlotter.render();
+        });
+        
+        document.getElementById('pareto-x-axis').addEventListener('change', (e) => {
+            plotters.forEach(p => p.render());
+        });
+        
+        document.getElementById('pareto-y-axis').addEventListener('change', (e) => {
+            plotters.forEach(p => p.render());
         });
         
         document.getElementById('optimize-btn').addEventListener('click', () => {
