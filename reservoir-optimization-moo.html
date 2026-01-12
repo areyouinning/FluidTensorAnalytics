@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Objective Reservoir Optimization - Parallel Coordinates</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #141923;
+            --bg-tertiary: #1f2531;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b95a5;
+            --border: #2a3441;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #ff006e;
+            --accent-tertiary: #8b5cf6;
+            --accent-green: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1.5rem;
+        }
+
+        .simulation-panel {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .controls-panel {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .control-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        .control-section h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .control-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .stats {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stats > div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .stats-value {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .value-display {
+            color: var(--accent-primary);
+            font-weight: 600;
+            float: right;
+        }
+
+        .pareto-point {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pareto-point:hover {
+            transform: scale(1.3);
+        }
+
+        select {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .algorithm-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.7);
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Multi-Objective Reservoir Optimization</h1>
+            <div class="subtitle">Parallel Coordinates Visualization | 3-4 Configurable Objectives</div>
+        </header>
+
+        <div class="main-content">
+            <div class="simulation-panel">
+                <!-- Hydrology -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">SYNTHETIC HYDROLOGY</h3>
+                    <div class="canvas-container" style="height: 180px;">
+                        <canvas id="hydrology-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Combined Pareto Front -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">COMBINED PARETO FRONT</h3>
+                    <div class="canvas-container" style="height: 280px;">
+                        <canvas id="combined-pareto-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Individual Pareto Fronts Grid -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">ALGORITHM FRONTS</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="canvas-container" style="height: 200px;">
+                            <div class="algorithm-label" id="pareto1-label">NSGA-II</div>
+                            <canvas id="pareto1-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 200px;">
+                            <div class="algorithm-label" id="pareto2-label">MO-Adam</div>
+                            <canvas id="pareto2-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 200px;">
+                            <div class="algorithm-label" id="pareto3-label">MOEA/D</div>
+                            <canvas id="pareto3-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 200px;">
+                            <div class="algorithm-label" id="pareto4-label">MGDA</div>
+                            <canvas id="pareto4-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Policy Parameters Comparison -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">SELECTED POLICY PARAMETERS</h3>
+                    <div class="canvas-container" style="height: 200px;">
+                        <canvas id="policy-params-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Storage Time Series Grid -->
+                <div>
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">STORAGE TRAJECTORIES</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="canvas-container" style="height: 150px;">
+                            <canvas id="storage1-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 150px;">
+                            <canvas id="storage2-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 150px;">
+                            <canvas id="storage3-canvas"></canvas>
+                        </div>
+                        <div class="canvas-container" style="height: 150px;">
+                            <canvas id="storage4-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div id="progress-status" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 0.25rem;">
+                        <span>Generation: <span id="generation" class="stats-value">0</span></span>
+                        <span id="progress-text" class="stats-value">0%</span>
+                    </div>
+                    <div style="height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;">
+                        <div id="progress-bar" style="height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Status (4-algo mode) -->
+                <div id="algo-status" style="display: none;">
+                    <h3 style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">ALGORITHM STATUS</h3>
+                    <div class="stats" style="font-size: 0.65rem;">
+                        <div>
+                            <span style="color: #00d9ff;">■</span> <span id="algo1-name">Algo 1</span>: 
+                            <span id="algo1-front" class="stats-value">-</span> solutions
+                        </div>
+                        <div>
+                            <span style="color: #ff006e;">■</span> <span id="algo2-name">Algo 2</span>: 
+                            <span id="algo2-front" class="stats-value">-</span> solutions
+                        </div>
+                        <div>
+                            <span style="color: #8b5cf6;">■</span> <span id="algo3-name">Algo 3</span>: 
+                            <span id="algo3-front" class="stats-value">-</span> solutions
+                        </div>
+                        <div>
+                            <span style="color: #10b981;">■</span> <span id="algo4-name">Algo 4</span>: 
+                            <span id="algo4-front" class="stats-value">-</span> solutions
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats">
+                    <div><span>Best Yield:</span> <span id="best-yield" class="stats-value">-</span></div>
+                    <div><span>Best Avg Storage:</span> <span id="best-storage" class="stats-value">-</span></div>
+                    <div><span>Min Stage 2 Days:</span> <span id="min-stage2" class="stats-value">-</span></div>
+                    <div><span>Global Pareto Count:</span> <span id="pareto-count" class="stats-value">-</span></div>
+                </div>
+
+                <!-- Selected Solution -->
+                <div id="selected-solution" style="display: none;">
+                    <h3 style="font-size: 0.75rem; color: var(--accent-green); margin-bottom: 0.5rem;">SELECTED SOLUTION</h3>
+                    <div class="stats">
+                        <div><span>Yield:</span> <span id="sol-yield" class="stats-value">-</span></div>
+                        <div><span>Stage 2 Days:</span> <span id="sol-stage2" class="stats-value">-</span></div>
+                        <div><span>Stage 3 Days:</span> <span id="sol-stage3" class="stats-value">-</span></div>
+                        <div><span>Avg Storage:</span> <span id="sol-storage" class="stats-value">-</span></div>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.65rem; color: var(--text-secondary);">
+                        <strong>Policy Parameters:</strong><br>
+                        Stage 1 @ <span id="pol-s1t" class="stats-value">-</span>% → <span id="pol-s1c" class="stats-value">-</span>% cutback<br>
+                        Stage 2 @ <span id="pol-s2t" class="stats-value">-</span>% → <span id="pol-s2c" class="stats-value">-</span>% cutback<br>
+                        Stage 3 @ <span id="pol-s3t" class="stats-value">-</span>%
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <!-- Mode Selection -->
+                <div class="control-section">
+                    <h3>Optimization Mode</h3>
+                    <div class="control-group">
+                        <label>
+                            <input type="radio" name="opt-mode" value="single" checked> Single Algorithm
+                        </label>
+                        <label style="margin-top: 0.25rem;">
+                            <input type="radio" name="opt-mode" value="compare"> Compare 4 Algorithms
+                        </label>
+                    </div>
+                    
+                    <div id="single-algo-select" class="control-group">
+                        <label>Algorithm:</label>
+                        <select id="single-algo">
+                            <option value="nsga2">NSGA-II</option>
+                            <option value="moadam">MO-Adam (Normalized)</option>
+                            <option value="moead">MOEA/D-Adam (Normalized)</option>
+                            <option value="mgda">MGDA-Adam (Normalized)</option>
+                            <option value="paretoadam">Pareto-Adam (Hybrid)</option>
+                        </select>
+                    </div>
+
+                    <div id="multi-algo-select" style="display: none;">
+                        <div class="control-group">
+                            <label>Algorithm 1:</label>
+                            <select id="algo-1">
+                                <option value="nsga2" selected>NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead">MOEA/D</option>
+                                <option value="mgda">MGDA</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Algorithm 2:</label>
+                            <select id="algo-2">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam" selected>MO-Adam</option>
+                                <option value="moead">MOEA/D</option>
+                                <option value="mgda">MGDA</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Algorithm 3:</label>
+                            <select id="algo-3">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead" selected>MOEA/D</option>
+                                <option value="mgda">MGDA</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Algorithm 4:</label>
+                            <select id="algo-4">
+                                <option value="nsga2">NSGA-II</option>
+                                <option value="moadam">MO-Adam</option>
+                                <option value="moead">MOEA/D</option>
+                                <option value="mgda" selected>MGDA</option>
+                                <option value="paretoadam">Pareto-Adam</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservoir Parameters -->
+                <div class="control-section">
+                    <h3>Reservoir Parameters</h3>
+                    <div class="control-group">
+                        <label>Capacity (ac-ft): <span class="value-display" id="capacity-value">100</span></label>
+                        <input type="range" id="capacity" min="50" max="500" value="100" step="10">
+                    </div>
+                    <div class="control-group">
+                        <label>Simulation Length (years): <span class="value-display" id="sim-length-value">30</span></label>
+                        <input type="range" id="sim-length" min="10" max="100" value="30" step="5">
+                    </div>
+                    <div class="control-group">
+                        <label>Flow Skewness: <span class="value-display" id="skew-value">0.5</span></label>
+                        <input type="range" id="skew" min="-2" max="2" value="0.5" step="0.1">
+                    </div>
+                </div>
+
+                <!-- Demand -->
+                <div class="control-section">
+                    <h3>Demand (% of capacity/year)</h3>
+                    <div class="control-group">
+                        <label>Municipal: <span class="value-display" id="municipal-value">40</span>%</label>
+                        <input type="range" id="municipal" min="0" max="80" value="40" step="5">
+                    </div>
+                    <div class="control-group">
+                        <label>Irrigation: <span class="value-display" id="irrigation-value">50</span>%</label>
+                        <input type="range" id="irrigation" min="0" max="100" value="50" step="5">
+                    </div>
+                </div>
+
+                <!-- 4th Objective Selection -->
+                <div class="control-section">
+                    <h3>4th Objective (Optional)</h3>
+                    <div class="control-group">
+                        <label>Select 4th Objective:</label>
+                        <select id="fourth-objective" style="width: 100%; padding: 0.5rem; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;">
+                            <option value="none">None (3 objectives)</option>
+                            <option value="stage1Days">Minimize Stage 1 Days</option>
+                            <option value="stage3Days">Minimize Stage 3 Days</option>
+                            <option value="totalRestrictionDays">Minimize Total Restriction Days</option>
+                            <option value="maxDrawdown">Minimize Maximum Drawdown</option>
+                            <option value="reliability">Maximize Reliability (% months meeting demand)</option>
+                            <option value="storageVariability">Minimize Storage Variability (CV)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Algorithm Settings -->
+                <div class="control-section">
+                    <h3>Algorithm Settings</h3>
+                    <div class="control-group">
+                        <label>Population Size: <span class="value-display" id="popsize-value">60</span></label>
+                        <input type="range" id="popsize" min="20" max="200" value="60" step="10">
+                    </div>
+                    <div class="control-group">
+                        <label>Generations: <span class="value-display" id="generations-value">150</span></label>
+                        <input type="range" id="generations" min="50" max="500" value="150" step="50">
+                    </div>
+                    <div class="control-group">
+                        <label>Crossover Rate: <span class="value-display" id="crossover-value">0.9</span></label>
+                        <input type="range" id="crossover" min="0" max="1" value="0.9" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label>Mutation Rate: <span class="value-display" id="mutation-value">0.2</span></label>
+                        <input type="range" id="mutation" min="0" max="1" value="0.2" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label>Learning Rate (Adam): <span class="value-display" id="learning-rate-value">0.3</span></label>
+                        <input type="range" id="learning-rate" min="0.1" max="1" value="0.3" step="0.1">
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="control-section">
+                    <button id="optimize-btn" class="btn">Run Optimization</button>
+                    <button id="stop-btn" class="btn" disabled>Stop</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>Key Concepts (3 Objectives)</h3>
+                    <div class="info-box" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <strong>Pareto Front:</strong> The set of all non-dominated solutions where you can't improve one objective without making another worse. With 3 objectives, forms a surface in 3D space.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
+                        <strong>Yield:</strong> Percentage of water demand that can be reliably met over the simulation period. Higher is better.
+                    </div>
+                    <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <strong>Average Storage:</strong> Mean reservoir level as percentage of capacity over simulation. Higher storage provides buffer against droughts. Higher is better.
+                    </div>
+                    <div class="info-box" style="background: rgba(255, 0, 110, 0.1); border-color: rgba(255, 0, 110, 0.3);">
+                        <strong>Stage 2 Restrictions:</strong> Days when reservoir storage drops below a threshold, triggering demand cutbacks. Lower is better.
+                    </div>
+                    <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <strong>Operating Policy:</strong> Rules defining when to implement water restrictions based on reservoir levels. Optimized to balance reliability, shortage severity, and storage levels.
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Algorithms</h3>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
+                        <strong>NSGA-II:</strong> Non-dominated Sorting Genetic Algorithm. Uses tournament selection, crossover, and mutation to evolve solutions. Proven baseline for multi-objective optimization.
+                    </div>
+                    <div class="info-box" style="background: rgba(255, 0, 110, 0.1); border-color: rgba(255, 0, 110, 0.3);">
+                        <strong>MO-Adam:</strong> Multi-Objective Adam optimizer. Uses gradient descent with adaptive learning rates to search for Pareto-optimal solutions. Includes random exploration to escape local optima.
+                    </div>
+                    <div class="info-box" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <strong>MOEA/D:</strong> Multi-Objective Evolutionary Algorithm based on Decomposition. Divides the problem into subproblems using weight vectors, optimizing each with gradient descent and crossover.
+                    </div>
+                    <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <strong>MGDA:</strong> Multiple Gradient Descent Algorithm. Finds compromise gradients that improve multiple objectives simultaneously by averaging normalized objective gradients.
+                    </div>
+                    <div class="info-box" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <strong>Pareto-Adam:</strong> Hybrid approach combining gradient descent when far from Pareto front and genetic operators when near it for fine-tuning.
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Parameters</h3>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Population Size:</strong> Number of candidate solutions maintained each generation. Larger populations explore more diverse solutions but take longer.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Generations:</strong> Number of evolution cycles. More generations allow convergence to better solutions but increase computation time.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Crossover Rate:</strong> Probability of combining two parent solutions. Higher rates increase exploration but may disrupt good solutions.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Mutation Rate:</strong> Probability of random changes to solutions. Helps escape local optima and maintain diversity.
+                    </div>
+                    <div class="info-box" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2); font-size: 0.7rem;">
+                        <strong>Learning Rate:</strong> Step size for gradient-based methods (Adam). Higher rates converge faster but may overshoot optimal solutions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================================================
+        // GLOBAL STATE
+        // ====================================================================
+        
+        let isOptimizing = false;
+        let currentProblem = null;
+        let algorithms = [];
+        let optimizationMode = 'single';
+        
+        // ====================================================================
+        // STOCHASTIC HYDROLOGY GENERATION
+        // ====================================================================
+        
+        function generateLogPearsonIII(n, mean, cv, skew) {
+            const flows = [];
+            const stdDev = mean * cv;
+            
+            // Box-Muller transform for normal random variables
+            for (let i = 0; i < n; i++) {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                
+                // Wilson-Hilferty transformation for Log-Pearson Type III
+                const k = skew;
+                const y = k !== 0 
+                    ? mean + stdDev * (Math.pow(1 + k * z / 6, 3) - 1) / k
+                    : mean + stdDev * z;
+                
+                flows.push(Math.max(0, y));
+            }
+            
+            return flows;
+        }
+        
+        // ====================================================================
+        // RESERVOIR SIMULATION (Sequent Peak Algorithm)
+        // ====================================================================
+        
+        class ReservoirSimulation {
+            constructor(capacity, inflows, demands, policy) {
+                this.capacity = capacity;
+                this.inflows = inflows;
+                this.demands = demands; // {municipal, irrigation}
+                this.policy = policy;
+                this.n = inflows.length;
+            }
+            
+            simulate() {
+                const storage = new Array(this.n);
+                storage[0] = this.capacity * 0.5; // Start at 50%
+                
+                let stage1Days = 0;
+                let stage2Days = 0;
+                let stage3Days = 0;
+                let totalRelease = 0;
+                let totalDemand = 0;
+                let monthsMeetingDemand = 0;
+                
+                const stage1Threshold = this.capacity * this.policy.stage1Threshold / 100;
+                const stage2Threshold = this.capacity * this.policy.stage2Threshold / 100;
+                const stage3Threshold = this.capacity * this.policy.stage3Threshold / 100;
+                
+                for (let t = 0; t < this.n - 1; t++) {
+                    const monthlyDemand = this.demands.municipal + 
+                        (t % 12 >= 4 && t % 12 <= 9 ? this.demands.irrigation : 0);
+                    
+                    totalDemand += monthlyDemand;
+                    
+                    let release = monthlyDemand;
+                    
+                    // Apply policy based on storage
+                    if (storage[t] < stage3Threshold) {
+                        stage3Days += 30;
+                        release = monthlyDemand * (1 - this.policy.stage2Cutback / 100) * 0.5;
+                    } else if (storage[t] < stage2Threshold) {
+                        stage2Days += 30;
+                        release = monthlyDemand * (1 - this.policy.stage2Cutback / 100);
+                    } else if (storage[t] < stage1Threshold) {
+                        stage1Days += 30;
+                        release = monthlyDemand * (1 - this.policy.stage1Cutback / 100);
+                    }
+                    
+                    // Track reliability
+                    if (release >= monthlyDemand * 0.95) {
+                        monthsMeetingDemand++;
+                    }
+                    
+                    totalRelease += release;
+                    
+                    // Water balance
+                    storage[t + 1] = storage[t] + this.inflows[t] - release;
+                    
+                    // Spill if over capacity
+                    if (storage[t + 1] > this.capacity) {
+                        storage[t + 1] = this.capacity;
+                    }
+                    
+                    // Cannot release more than available
+                    if (storage[t + 1] < 0) {
+                        totalRelease -= storage[t + 1]; // Adjust
+                        storage[t + 1] = 0;
+                    }
+                }
+                
+                const yieldPct = (totalRelease / totalDemand) * 100;
+                const avgStoragePct = (storage.reduce((a, b) => a + b, 0) / this.n / this.capacity) * 100;
+                
+                // Additional metrics
+                const totalRestrictionDays = stage1Days + stage2Days + stage3Days;
+                const maxDrawdown = 100 - Math.min(...storage.map(s => (s / this.capacity) * 100));
+                const reliabilityPct = (monthsMeetingDemand / this.n) * 100;
+                
+                // Storage variability (coefficient of variation)
+                const storagePcts = storage.map(s => (s / this.capacity) * 100);
+                const mean = avgStoragePct;
+                const variance = storagePcts.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / this.n;
+                const stdDev = Math.sqrt(variance);
+                const storageCV = mean > 0 ? stdDev / mean : 0;
+                
+                return {
+                    storage,
+                    yieldPct: Math.min(100, yieldPct),
+                    stage1Days,
+                    stage2Days,
+                    stage3Days,
+                    avgStoragePct,
+                    totalRestrictionDays,
+                    maxDrawdown,
+                    reliabilityPct,
+                    storageCV
+                };
+            }
+        }
+        
+        // ====================================================================
+        // OPTIMIZATION PROBLEM
+        // ====================================================================
+        
+        class ReservoirOptimizationProblem {
+            constructor(params) {
+                this.capacity = params.capacity;
+                this.simLength = params.simLength;
+                this.skew = params.skew;
+                this.municipal = params.municipal;
+                this.irrigation = params.irrigation;
+                this.fourthObjective = params.fourthObjective || 'none';
+                
+                // Generate synthetic flows (mean = capacity)
+                this.flows = generateLogPearsonIII(
+                    this.simLength * 12, // Monthly timesteps
+                    this.capacity / 12, // Monthly mean flow
+                    0.6, // CV
+                    this.skew
+                );
+                
+                // Normalization scales
+                this.maxYield = 100;
+                this.maxStage2 = this.simLength * 365;
+                this.maxStorage = 100;
+                this.maxStage1 = this.simLength * 365;
+                this.maxStage3 = this.simLength * 365;
+                this.maxTotalRestriction = this.simLength * 365 * 3;
+                this.maxDrawdown = 100;
+                this.maxReliability = 100;
+                this.maxStorageCV = 2.0; // Typical max CV
+            }
+            
+            evaluate(solution) {
+                // Solution is 5-dimensional:
+                // [stage1Threshold, stage2Threshold, stage3Threshold, stage1Cutback, stage2Cutback]
+                
+                const policy = {
+                    stage1Threshold: solution[0],
+                    stage2Threshold: solution[1],
+                    stage3Threshold: solution[2],
+                    stage1Cutback: solution[3],
+                    stage2Cutback: solution[4]
+                };
+                
+                const sim = new ReservoirSimulation(
+                    this.capacity,
+                    this.flows,
+                    {
+                        municipal: this.municipal * this.capacity / 100 / 12, // Monthly
+                        irrigation: this.irrigation * this.capacity / 100 / 12
+                    },
+                    policy
+                );
+                
+                const result = sim.simulate();
+                
+                // Normalized base objectives [0, 1] - ALL FOR MINIMIZATION
+                const normStage2 = result.stage2Days / this.maxStage2;
+                const normYield = result.yieldPct / this.maxYield;
+                const normStorage = result.avgStoragePct / this.maxStorage;
+                
+                // Three base objectives (all minimization):
+                const obj1 = normStage2 + (result.stage3Days / this.maxStage3) * 10; // Huge penalty for stage 3
+                const obj2 = 1 - normYield; // Maximize yield
+                const obj3 = 1 - normStorage; // Maximize storage
+                
+                const objectives = [obj1, obj2, obj3];
+                const normObjectives = [normStage2, 1 - normYield, 1 - normStorage];
+                
+                // Add 4th objective if selected
+                if (this.fourthObjective !== 'none') {
+                    let obj4, norm4;
+                    
+                    switch (this.fourthObjective) {
+                        case 'stage1Days':
+                            norm4 = result.stage1Days / this.maxStage1;
+                            obj4 = norm4; // Minimize
+                            break;
+                        case 'stage3Days':
+                            norm4 = result.stage3Days / this.maxStage3;
+                            obj4 = norm4; // Minimize
+                            break;
+                        case 'totalRestrictionDays':
+                            norm4 = result.totalRestrictionDays / this.maxTotalRestriction;
+                            obj4 = norm4; // Minimize
+                            break;
+                        case 'maxDrawdown':
+                            norm4 = result.maxDrawdown / this.maxDrawdown;
+                            obj4 = norm4; // Minimize
+                            break;
+                        case 'reliability':
+                            norm4 = result.reliabilityPct / this.maxReliability;
+                            obj4 = 1 - norm4; // Maximize reliability
+                            break;
+                        case 'storageVariability':
+                            norm4 = Math.min(result.storageCV, this.maxStorageCV) / this.maxStorageCV;
+                            obj4 = norm4; // Minimize
+                            break;
+                        default:
+                            norm4 = 0;
+                            obj4 = 0;
+                    }
+                    
+                    objectives.push(obj4);
+                    normObjectives.push(norm4);
+                }
+                
+                return {
+                    objectives,
+                    normObjectives,
+                    stage2Days: result.stage2Days,
+                    stage3Days: result.stage3Days,
+                    stage1Days: result.stage1Days,
+                    yieldPct: result.yieldPct,
+                    avgStoragePct: result.avgStoragePct,
+                    totalRestrictionDays: result.totalRestrictionDays,
+                    maxDrawdown: result.maxDrawdown,
+                    reliabilityPct: result.reliabilityPct,
+                    storageCV: result.storageCV,
+                    storage: result.storage,
+                    solution: solution,
+                    policy: policy
+                };
+            }
+            
+            randomSolution() {
+                // Generate valid random solution
+                const stage1 = 50 + Math.random() * 30; // 50-80%
+                const stage2 = 30 + Math.random() * (stage1 - 30);
+                const stage3 = 10 + Math.random() * (stage2 - 10);
+                
+                const cutback1 = 10 + Math.random() * 30; // 10-40%
+                const cutback2 = cutback1 + 10 + Math.random() * 30;
+                
+                return [stage1, stage2, stage3, cutback1, Math.min(cutback2, 90)];
+            }
+        }
+        
+        // ====================================================================
+        // PARETO DOMINANCE
+        // ====================================================================
+        
+        function dominates(a, b) {
+            // a dominates b if a is no worse in all objectives and better in at least one
+            let betterInOne = false;
+            for (let i = 0; i < a.objectives.length; i++) {
+                if (a.objectives[i] > b.objectives[i]) return false;
+                if (a.objectives[i] < b.objectives[i]) betterInOne = true;
+            }
+            return betterInOne;
+        }
+        
+        function getParetoFront(population) {
+            const front = [];
+            for (const individual of population) {
+                let isDominated = false;
+                for (const other of population) {
+                    if (dominates(other, individual)) {
+                        isDominated = true;
+                        break;
+                    }
+                }
+                if (!isDominated) {
+                    front.push(individual);
+                }
+            }
+            return front;
+        }
+        
+        function crowdingDistance(front) {
+            const n = front.length;
+            if (n === 0) return front;
+            
+            const distances = new Array(n).fill(0);
+            const m = front[0].objectives.length;
+            
+            for (let obj = 0; obj < m; obj++) {
+                const sorted = front.map((ind, idx) => ({ind, idx}))
+                    .sort((a, b) => a.ind.objectives[obj] - b.ind.objectives[obj]);
+                
+                distances[sorted[0].idx] = Infinity;
+                distances[sorted[n-1].idx] = Infinity;
+                
+                const range = sorted[n-1].ind.objectives[obj] - sorted[0].ind.objectives[obj];
+                if (range > 0) {
+                    for (let i = 1; i < n - 1; i++) {
+                        distances[sorted[i].idx] += 
+                            (sorted[i+1].ind.objectives[obj] - sorted[i-1].ind.objectives[obj]) / range;
+                    }
+                }
+            }
+            
+            return front.map((ind, idx) => ({...ind, crowding: distances[idx]}));
+        }
+        
+        // ====================================================================
+        // NSGA-II ALGORITHM (BASELINE - UNCHANGED)
+        // ====================================================================
+        
+        class NSGAII {
+            constructor(problem, popSize, generations) {
+                this.problem = problem;
+                this.popSize = popSize;
+                this.generations = generations;
+                this.population = [];
+                this.paretoFronts = [];
+            }
+            
+            initialize() {
+                this.population = [];
+                for (let i = 0; i < this.popSize; i++) {
+                    const solution = this.problem.randomSolution();
+                    const result = this.problem.evaluate(solution);
+                    this.population.push(result);
+                }
+            }
+            
+            evolve() {
+                const offspring = [];
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const parent1 = this.tournamentSelect();
+                    const parent2 = this.tournamentSelect();
+                    const child = this.crossover(parent1, parent2);
+                    const mutated = this.mutate(child);
+                    offspring.push(this.problem.evaluate(mutated));
+                }
+                
+                const combined = [...this.population, ...offspring];
+                this.population = this.selectNextGeneration(combined);
+            }
+            
+            tournamentSelect() {
+                const i1 = Math.floor(Math.random() * this.population.length);
+                const i2 = Math.floor(Math.random() * this.population.length);
+                
+                if (dominates(this.population[i1], this.population[i2])) {
+                    return this.population[i1].solution;
+                } else if (dominates(this.population[i2], this.population[i1])) {
+                    return this.population[i2].solution;
+                } else {
+                    return Math.random() < 0.5 ? this.population[i1].solution : this.population[i2].solution;
+                }
+            }
+            
+            crossover(parent1, parent2) {
+                const child = [];
+                for (let i = 0; i < parent1.length; i++) {
+                    child.push(Math.random() < 0.5 ? parent1[i] : parent2[i]);
+                }
+                return child;
+            }
+            
+            mutate(solution) {
+                const mutated = [...solution];
+                for (let i = 0; i < mutated.length; i++) {
+                    if (Math.random() < 0.2) {
+                        mutated[i] += (Math.random() - 0.5) * 10;
+                    }
+                }
+                return this.ensureValid(mutated);
+            }
+            
+            selectNextGeneration(combined) {
+                const fronts = [];
+                let remaining = [...combined];
+                
+                while (remaining.length > 0) {
+                    const front = getParetoFront(remaining);
+                    fronts.push(crowdingDistance(front));
+                    remaining = remaining.filter(ind => !front.includes(ind));
+                }
+                
+                this.paretoFronts = fronts;
+                
+                const selected = [];
+                for (const front of fronts) {
+                    if (selected.length + front.length <= this.popSize) {
+                        selected.push(...front);
+                    } else {
+                        const sorted = front.sort((a, b) => b.crowding - a.crowding);
+                        selected.push(...sorted.slice(0, this.popSize - selected.length));
+                        break;
+                    }
+                }
+                
+                return selected;
+            }
+            
+            ensureValid(solution) {
+                solution[0] = Math.max(40, Math.min(90, solution[0]));
+                solution[1] = Math.max(20, Math.min(solution[0] - 5, solution[1]));
+                solution[2] = Math.max(5, Math.min(solution[1] - 5, solution[2]));
+                solution[3] = Math.max(5, Math.min(50, solution[3]));
+                solution[4] = Math.max(solution[3] + 5, Math.min(95, solution[4]));
+                return solution;
+            }
+            
+            getParetoFront() {
+                return this.paretoFronts[0] || [];
+            }
+        }
+        
+        // ====================================================================
+        // MO-ADAM ALGORITHM (CORRECTED WITH NORMALIZATION)
+        // ====================================================================
+        
+        class MOAdam {
+            constructor(problem, popSize, generations) {
+                this.problem = problem;
+                this.popSize = popSize;
+                this.generations = generations;
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                this.t = 0;
+                this.beta1 = 0.9;
+                this.beta2 = 0.999;
+                this.eps = 1e-8;
+                this.alpha = 0.3; // Reduced learning rate for stability
+            }
+            
+            initialize() {
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                
+                // VERY diverse initialization across entire feasible space
+                for (let i = 0; i < this.popSize; i++) {
+                    let solution;
+                    const strategy = i / this.popSize;
+                    
+                    if (strategy < 0.25) {
+                        // High yield, low cutbacks
+                        solution = [
+                            65 + Math.random() * 20,  // stage1: 65-85
+                            45 + Math.random() * 20,  // stage2: 45-65
+                            15 + Math.random() * 20,  // stage3: 15-35
+                            5 + Math.random() * 10,   // cutback1: 5-15
+                            15 + Math.random() * 20   // cutback2: 15-35
+                        ];
+                    } else if (strategy < 0.5) {
+                        // Low stage2, high cutbacks
+                        solution = [
+                            75 + Math.random() * 10,  // stage1: 75-85
+                            60 + Math.random() * 15,  // stage2: 60-75
+                            30 + Math.random() * 20,  // stage3: 30-50
+                            20 + Math.random() * 20,  // cutback1: 20-40
+                            50 + Math.random() * 35   // cutback2: 50-85
+                        ];
+                    } else if (strategy < 0.75) {
+                        // Balanced
+                        solution = [
+                            70 + Math.random() * 15,
+                            50 + Math.random() * 20,
+                            20 + Math.random() * 20,
+                            10 + Math.random() * 20,
+                            30 + Math.random() * 40
+                        ];
+                    } else {
+                        // Fully random
+                        solution = this.problem.randomSolution();
+                    }
+                    
+                    this.population.push(this.problem.evaluate(this.ensureValid(solution)));
+                    this.m.push(new Array(5).fill(0));
+                    this.v.push(new Array(5).fill(0));
+                }
+            }
+            
+            evolve() {
+                this.t++;
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const current = this.population[i].solution;
+                    
+                    // 20% chance of random mutation for exploration
+                    if (Math.random() < 0.2) {
+                        const mutated = [...current];
+                        for (let j = 0; j < 5; j++) {
+                            if (Math.random() < 0.3) {
+                                mutated[j] += (Math.random() - 0.5) * 15;
+                            }
+                        }
+                        const newEval = this.problem.evaluate(this.ensureValid(mutated));
+                        if (!dominates(this.population[i], newEval)) {
+                            this.population[i] = newEval;
+                        }
+                        continue;
+                    }
+                    
+                    // Compute NORMALIZED gradients for both objectives
+                    const grad1 = new Array(5); // stage2 gradient
+                    const grad2 = new Array(5); // yield gradient
+                    
+                    for (let j = 0; j < 5; j++) {
+                        const delta = 0.5;
+                        const perturbed = [...current];
+                        perturbed[j] += delta;
+                        
+                        const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
+                        perturbed[j] = current[j] - delta;
+                        const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
+                        
+                        grad1[j] = (fPlus.normObjectives[0] - fMinus.normObjectives[0]) / (2 * delta);
+                        grad2[j] = (fPlus.normObjectives[1] - fMinus.normObjectives[1]) / (2 * delta);
+                    }
+                    
+                    // Try multiple directions
+                    const candidates = [this.population[i]];
+                    
+                    // Candidate 1: Minimize stage2
+                    const sol1 = [...current];
+                    for (let j = 0; j < 5; j++) {
+                        this.m[i][j] = this.beta1 * this.m[i][j] + (1 - this.beta1) * grad1[j];
+                        this.v[i][j] = this.beta2 * this.v[i][j] + (1 - this.beta2) * grad1[j] * grad1[j];
+                        
+                        const mHat = this.m[i][j] / (1 - Math.pow(this.beta1, this.t));
+                        const vHat = this.v[i][j] / (1 - Math.pow(this.beta2, this.t));
+                        
+                        sol1[j] = current[j] - this.alpha * mHat / (Math.sqrt(vHat) + this.eps);
+                    }
+                    candidates.push(this.problem.evaluate(this.ensureValid(sol1)));
+                    
+                    // Candidate 2: Maximize yield
+                    const sol2 = [...current];
+                    for (let j = 0; j < 5; j++) {
+                        sol2[j] = current[j] - this.alpha * grad2[j];
+                    }
+                    candidates.push(this.problem.evaluate(this.ensureValid(sol2)));
+                    
+                    // Select best non-dominated
+                    const front = getParetoFront(candidates);
+                    this.population[i] = front[Math.floor(Math.random() * front.length)];
+                }
+            }
+            
+            ensureValid(solution) {
+                solution[0] = Math.max(40, Math.min(90, solution[0]));
+                solution[1] = Math.max(20, Math.min(solution[0] - 5, solution[1]));
+                solution[2] = Math.max(5, Math.min(solution[1] - 5, solution[2]));
+                solution[3] = Math.max(5, Math.min(50, solution[3]));
+                solution[4] = Math.max(solution[3] + 5, Math.min(95, solution[4]));
+                return solution;
+            }
+            
+            getParetoFront() {
+                return getParetoFront(this.population);
+            }
+        }
+        
+        // ====================================================================
+        // MOEA/D-ADAM ALGORITHM (CORRECTED WITH NORMALIZED SCALARIZATION)
+        // ====================================================================
+        
+        class MOEADAdam {
+            constructor(problem, popSize, generations) {
+                this.problem = problem;
+                this.popSize = popSize;
+                this.generations = generations;
+                this.population = [];
+                this.weights = [];
+                this.m = [];
+                this.v = [];
+                this.t = 0;
+                
+                // Generate uniformly distributed weight vectors
+                for (let i = 0; i < popSize; i++) {
+                    const w1 = i / (popSize - 1);
+                    const w2 = 1 - w1;
+                    this.weights.push([w1, w2]);
+                }
+            }
+            
+            initialize() {
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                
+                // Initialize each solution according to its weight vector
+                for (let i = 0; i < this.popSize; i++) {
+                    let solution;
+                    const w = this.weights[i];
+                    
+                    if (w[0] > 0.7) {
+                        // Emphasize low stage2 (obj1)
+                        solution = [
+                            75 + Math.random() * 10,
+                            55 + Math.random() * 15,
+                            25 + Math.random() * 15,
+                            15 + Math.random() * 25,
+                            40 + Math.random() * 40
+                        ];
+                    } else if (w[1] > 0.7) {
+                        // Emphasize high yield (obj2)
+                        solution = [
+                            70 + Math.random() * 15,
+                            50 + Math.random() * 15,
+                            20 + Math.random() * 15,
+                            5 + Math.random() * 15,
+                            20 + Math.random() * 30
+                        ];
+                    } else {
+                        solution = this.problem.randomSolution();
+                    }
+                    
+                    this.population.push(this.problem.evaluate(this.ensureValid(solution)));
+                    this.m.push(new Array(5).fill(0));
+                    this.v.push(new Array(5).fill(0));
+                }
+            }
+            
+            evolve() {
+                this.t++;
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const weight = this.weights[i];
+                    const current = this.population[i].solution;
+                    
+                    let newSolution;
+                    
+                    // 30% crossover with neighbor, 70% gradient descent
+                    if (Math.random() < 0.3) {
+                        // Find neighbor with similar weight
+                        let neighborIdx = i;
+                        let minDist = Infinity;
+                        for (let k = 0; k < this.popSize; k++) {
+                            if (k === i) continue;
+                            const dist = Math.abs(this.weights[k][0] - weight[0]);
+                            if (dist < minDist && dist < 0.2) {
+                                minDist = dist;
+                                neighborIdx = k;
+                            }
+                        }
+                        
+                        // Crossover
+                        const neighbor = this.population[neighborIdx].solution;
+                        newSolution = [];
+                        for (let j = 0; j < 5; j++) {
+                            newSolution.push(Math.random() < 0.5 ? current[j] : neighbor[j]);
+                            if (Math.random() < 0.2) {
+                                newSolution[j] += (Math.random() - 0.5) * 10;
+                            }
+                        }
+                    } else {
+                        // Gradient descent
+                        const grad = new Array(5);
+                        
+                        for (let j = 0; j < 5; j++) {
+                            const delta = 0.5;
+                            const perturbed = [...current];
+                            perturbed[j] += delta;
+                            
+                            const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
+                            perturbed[j] = current[j] - delta;
+                            const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
+                            
+                            const tchebPlus = Math.max(
+                                weight[0] * fPlus.normObjectives[0],
+                                weight[1] * fPlus.normObjectives[1]
+                            );
+                            const tchebMinus = Math.max(
+                                weight[0] * fMinus.normObjectives[0],
+                                weight[1] * fMinus.normObjectives[1]
+                            );
+                            
+                            grad[j] = (tchebPlus - tchebMinus) / (2 * delta);
+                        }
+                        
+                        newSolution = [...current];
+                        for (let j = 0; j < 5; j++) {
+                            this.m[i][j] = 0.9 * this.m[i][j] + 0.1 * grad[j];
+                            this.v[i][j] = 0.999 * this.v[i][j] + 0.001 * grad[j] * grad[j];
+                            
+                            const mHat = this.m[i][j] / (1 - Math.pow(0.9, this.t));
+                            const vHat = this.v[i][j] / (1 - Math.pow(0.999, this.t));
+                            
+                            newSolution[j] = current[j] - 0.3 * mHat / (Math.sqrt(vHat) + 1e-8);
+                        }
+                    }
+                    
+                    const newEval = this.problem.evaluate(this.ensureValid(newSolution));
+                    
+                    // Replace if better according to Tchebycheff
+                    const currentTcheb = Math.max(
+                        weight[0] * this.population[i].normObjectives[0],
+                        weight[1] * this.population[i].normObjectives[1]
+                    );
+                    const newTcheb = Math.max(
+                        weight[0] * newEval.normObjectives[0],
+                        weight[1] * newEval.normObjectives[1]
+                    );
+                    
+                    if (newTcheb < currentTcheb) {
+                        this.population[i] = newEval;
+                    }
+                }
+            }
+            
+            ensureValid(solution) {
+                solution[0] = Math.max(40, Math.min(90, solution[0]));
+                solution[1] = Math.max(20, Math.min(solution[0] - 5, solution[1]));
+                solution[2] = Math.max(5, Math.min(solution[1] - 5, solution[2]));
+                solution[3] = Math.max(5, Math.min(50, solution[3]));
+                solution[4] = Math.max(solution[3] + 5, Math.min(95, solution[4]));
+                return solution;
+            }
+            
+            getParetoFront() {
+                return getParetoFront(this.population);
+            }
+        }
+        
+        // ====================================================================
+        // MGDA-ADAM ALGORITHM (CORRECTED WITH NORMALIZED GRADIENTS)
+        // ====================================================================
+        
+        class MGDAAdam {
+            constructor(problem, popSize, generations) {
+                this.problem = problem;
+                this.popSize = popSize;
+                this.generations = generations;
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                this.t = 0;
+            }
+            
+            initialize() {
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const solution = this.problem.randomSolution();
+                    this.population.push(this.problem.evaluate(solution));
+                    this.m.push(new Array(5).fill(0));
+                    this.v.push(new Array(5).fill(0));
+                }
+            }
+            
+            evolve() {
+                this.t++;
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const current = this.population[i].solution;
+                    const grad1 = new Array(5);
+                    const grad2 = new Array(5);
+                    
+                    // Compute NORMALIZED gradients for both objectives
+                    for (let j = 0; j < 5; j++) {
+                        const delta = 0.5;
+                        const perturbed = [...current];
+                        perturbed[j] += delta;
+                        
+                        const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
+                        perturbed[j] = current[j] - delta;
+                        const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
+                        
+                        grad1[j] = (fPlus.normObjectives[0] - fMinus.normObjectives[0]) / (2 * delta);
+                        grad2[j] = (fPlus.normObjectives[1] - fMinus.normObjectives[1]) / (2 * delta);
+                    }
+                    
+                    // MGDA: find minimum-norm point in convex hull of gradients
+                    // Simplified: use equal weighting (true MGDA requires QP solver)
+                    const compromiseGrad = new Array(5);
+                    for (let j = 0; j < 5; j++) {
+                        compromiseGrad[j] = (grad1[j] + grad2[j]) / 2;
+                    }
+                    
+                    // Adam update with compromise gradient
+                    const newSolution = [...current];
+                    for (let j = 0; j < 5; j++) {
+                        this.m[i][j] = 0.9 * this.m[i][j] + 0.1 * compromiseGrad[j];
+                        this.v[i][j] = 0.999 * this.v[i][j] + 0.001 * compromiseGrad[j] * compromiseGrad[j];
+                        
+                        const mHat = this.m[i][j] / (1 - Math.pow(0.9, this.t));
+                        const vHat = this.v[i][j] / (1 - Math.pow(0.999, this.t));
+                        
+                        newSolution[j] = current[j] - 0.5 * mHat / (Math.sqrt(vHat) + 1e-8);
+                    }
+                    
+                    this.population[i] = this.problem.evaluate(this.ensureValid(newSolution));
+                }
+            }
+            
+            ensureValid(solution) {
+                solution[0] = Math.max(40, Math.min(90, solution[0]));
+                solution[1] = Math.max(20, Math.min(solution[0] - 5, solution[1]));
+                solution[2] = Math.max(5, Math.min(solution[1] - 5, solution[2]));
+                solution[3] = Math.max(5, Math.min(50, solution[3]));
+                solution[4] = Math.max(solution[3] + 5, Math.min(95, solution[4]));
+                return solution;
+            }
+            
+            getParetoFront() {
+                return getParetoFront(this.population);
+            }
+        }
+        
+        // ====================================================================
+        // PARETO-ADAM ALGORITHM (HYBRID: GRADIENT + GENETIC)
+        // ====================================================================
+        
+        class ParetoAdam {
+            constructor(problem, popSize, generations) {
+                this.problem = problem;
+                this.popSize = popSize;
+                this.generations = generations;
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                this.t = 0;
+            }
+            
+            initialize() {
+                this.population = [];
+                this.m = [];
+                this.v = [];
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    const solution = this.problem.randomSolution();
+                    this.population.push(this.problem.evaluate(solution));
+                    this.m.push(new Array(5).fill(0));
+                    this.v.push(new Array(5).fill(0));
+                }
+            }
+            
+            evolve() {
+                this.t++;
+                const front = getParetoFront(this.population);
+                
+                for (let i = 0; i < this.popSize; i++) {
+                    // Strategy selection based on distance to Pareto front
+                    let minDist = Infinity;
+                    for (const member of front) {
+                        const dist = Math.sqrt(
+                            Math.pow(this.population[i].normObjectives[0] - member.normObjectives[0], 2) +
+                            Math.pow(this.population[i].normObjectives[1] - member.normObjectives[1], 2)
+                        );
+                        minDist = Math.min(minDist, dist);
+                    }
+                    
+                    const current = this.population[i].solution;
+                    let newSolution;
+                    
+                    if (minDist < 0.1) {
+                        // Close to front: use genetic operators for exploration
+                        const parent1 = front[Math.floor(Math.random() * front.length)].solution;
+                        const parent2 = front[Math.floor(Math.random() * front.length)].solution;
+                        newSolution = [];
+                        for (let j = 0; j < 5; j++) {
+                            newSolution.push(Math.random() < 0.5 ? parent1[j] : parent2[j]);
+                            if (Math.random() < 0.3) {
+                                newSolution[j] += (Math.random() - 0.5) * 8;
+                            }
+                        }
+                    } else {
+                        // Far from front: use gradient descent
+                        const grad = new Array(5);
+                        for (let j = 0; j < 5; j++) {
+                            const delta = 0.5;
+                            const perturbed = [...current];
+                            perturbed[j] += delta;
+                            
+                            const fPlus = this.problem.evaluate(this.ensureValid(perturbed));
+                            perturbed[j] = current[j] - delta;
+                            const fMinus = this.problem.evaluate(this.ensureValid(perturbed));
+                            
+                            // Combined normalized gradient
+                            grad[j] = ((fPlus.normObjectives[0] + fPlus.normObjectives[1]) - 
+                                      (fMinus.normObjectives[0] + fMinus.normObjectives[1])) / (2 * delta);
+                        }
+                        
+                        newSolution = [...current];
+                        for (let j = 0; j < 5; j++) {
+                            this.m[i][j] = 0.9 * this.m[i][j] + 0.1 * grad[j];
+                            this.v[i][j] = 0.999 * this.v[i][j] + 0.001 * grad[j] * grad[j];
+                            
+                            const mHat = this.m[i][j] / (1 - Math.pow(0.9, this.t));
+                            const vHat = this.v[i][j] / (1 - Math.pow(0.999, this.t));
+                            
+                            newSolution[j] = current[j] - 0.7 * mHat / (Math.sqrt(vHat) + 1e-8);
+                        }
+                    }
+                    
+                    const newEval = this.problem.evaluate(this.ensureValid(newSolution));
+                    
+                    // Replace if non-dominated
+                    if (dominates(newEval, this.population[i]) || !dominates(this.population[i], newEval)) {
+                        this.population[i] = newEval;
+                    }
+                }
+            }
+            
+            ensureValid(solution) {
+                solution[0] = Math.max(40, Math.min(90, solution[0]));
+                solution[1] = Math.max(20, Math.min(solution[0] - 5, solution[1]));
+                solution[2] = Math.max(5, Math.min(solution[1] - 5, solution[2]));
+                solution[3] = Math.max(5, Math.min(50, solution[3]));
+                solution[4] = Math.max(solution[3] + 5, Math.min(95, solution[4]));
+                return solution;
+            }
+            
+            getParetoFront() {
+                return getParetoFront(this.population);
+            }
+        }
+        
+        // ====================================================================
+        // VISUALIZATION
+        // ====================================================================
+        
+        class HydrologyPlotter {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.flows = [];
+                this.capacity = 100;
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(flows, capacity) {
+                this.capacity = capacity;
+                
+                // Annualize the flows
+                const annualFlows = [];
+                for (let i = 0; i < flows.length; i += 12) {
+                    const yearFlow = flows.slice(i, i + 12).reduce((a, b) => a + b, 0);
+                    annualFlows.push(yearFlow);
+                }
+                
+                this.flows = annualFlows;
+                this.render();
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                if (this.flows.length === 0) return;
+                
+                const maxFlow = Math.max(...this.flows);
+                const padding = 40;
+                const plotW = w - 2 * padding;
+                const plotH = h - 2 * padding;
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, h - padding);
+                ctx.lineTo(w - padding, h - padding);
+                ctx.stroke();
+                
+                // Capacity line
+                const capY = h - padding - (this.capacity * 12 / maxFlow) * plotH;
+                ctx.strokeStyle = '#ff006e';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(padding, capY);
+                ctx.lineTo(w - padding, capY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#ff006e';
+                ctx.font = '10px monospace';
+                ctx.fillText('Annual Capacity', w - padding - 100, capY - 5);
+                
+                // Flow line
+                ctx.strokeStyle = '#00d9ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < this.flows.length; i++) {
+                    const x = padding + (i / (this.flows.length - 1)) * plotW;
+                    const y = h - padding - (this.flows[i] / maxFlow) * plotH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '10px monospace';
+                ctx.fillText('Year', w / 2, h - 10);
+                ctx.save();
+                ctx.translate(15, h / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Annual Flow (ac-ft)', 0, 0);
+                ctx.restore();
+            }
+        }
+        
+        class ConvergencePlotter {
+            constructor(canvas, color) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.color = color;
+                this.history = { stage2: [], yield: [] };
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(front) {
+                if (front.length === 0) return;
+                
+                const bestYield = Math.max(...front.map(s => s.yieldPct));
+                const minStage2 = Math.min(...front.map(s => s.stage2Days));
+                
+                this.history.yield.push(bestYield);
+                this.history.stage2.push(minStage2);
+                
+                this.render();
+            }
+            
+            reset() {
+                this.history = { stage2: [], yield: [] };
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                if (this.history.yield.length === 0) return;
+                
+                const padding = 30;
+                const plotW = w - 2 * padding;
+                const plotH = h - 2 * padding;
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, h - padding);
+                ctx.lineTo(w - padding, h - padding);
+                ctx.stroke();
+                
+                const maxGen = this.history.yield.length;
+                const maxStage2 = Math.max(...this.history.stage2, 1);
+                
+                // Stage2 line (red)
+                ctx.strokeStyle = '#ff006e';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (let i = 0; i < this.history.stage2.length; i++) {
+                    const x = padding + (i / (maxGen - 1)) * plotW;
+                    const y = h - padding - (this.history.stage2[i] / maxStage2) * plotH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                
+                // Yield line (cyan)
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (let i = 0; i < this.history.yield.length; i++) {
+                    const x = padding + (i / (maxGen - 1)) * plotW;
+                    const y = h - padding - (this.history.yield[i] / 100) * plotH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '8px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Gen', w/2, h - 5);
+            }
+        }
+        
+        class ParetoPlotter {
+            constructor(canvas, color, algoIndex) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.color = color;
+                this.algoIndex = algoIndex;
+                this.solutions = [];
+                this.selectedSolution = null;
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Click handler
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(solutions) {
+                this.solutions = solutions;
+                this.render();
+            }
+            
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                const canvasX = x * scaleX;
+                const canvasY = y * scaleY;
+                
+                // Find closest solution
+                let minDist = Infinity;
+                let closest = null;
+                
+                for (const sol of this.solutions) {
+                    const plotData = this.getPlotCoordinates(sol);
+                    const dist = Math.sqrt(
+                        Math.pow(canvasX - plotData.x, 2) + 
+                        Math.pow(canvasY - plotData.y, 2)
+                    );
+                    if (dist < 15 && dist < minDist) {
+                        minDist = dist;
+                        closest = sol;
+                    }
+                }
+                
+                if (closest) {
+                    this.selectedSolution = closest;
+                    selectedSolutions[this.algoIndex] = closest;
+                    showSolutionDetails(closest);
+                    storagePlotters[this.algoIndex].update(closest.storage, currentProblem.capacity, closest.policy);
+                    policyParamsPlotter.update(this.algoIndex, closest);
+                    this.render();
+                }
+            }
+            
+            getPlotCoordinates(solution) {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const padding = 40;
+                
+                const x = padding + (solution.yieldPct / 100) * (w - 2 * padding);
+                const maxStage2 = currentProblem ? currentProblem.simLength * 365 : 10000;
+                const y = h - padding - (solution.stage2Days / maxStage2) * (h - 2 * padding);
+                
+                return {x, y};
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                const padding = 40;
+                const plotW = w - 2 * padding;
+                const plotH = h - 2 * padding;
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, h - padding);
+                ctx.lineTo(w - padding, h - padding);
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '10px monospace';
+                ctx.fillText('Yield (%)', w / 2 - 20, h - 5);
+                ctx.save();
+                ctx.translate(12, h / 2 + 40);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Stage 2 Days', 0, 0);
+                ctx.restore();
+                
+                // Grid
+                ctx.strokeStyle = 'rgba(42, 52, 65, 0.3)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 10; i++) {
+                    const x = padding + (i / 10) * plotW;
+                    ctx.beginPath();
+                    ctx.moveTo(x, h - padding);
+                    ctx.lineTo(x, padding);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#8b95a5';
+                    ctx.fillText((i * 10).toString(), x - 8, h - padding + 15);
+                }
+                
+                // Plot solutions
+                for (const sol of this.solutions) {
+                    const coords = this.getPlotCoordinates(sol);
+                    
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = sol === this.selectedSolution ? 1.0 : 0.7;
+                    ctx.beginPath();
+                    ctx.arc(coords.x, coords.y, sol === this.selectedSolution ? 6 : 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    if (sol === this.selectedSolution) {
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = 1.0;
+            }
+        }
+        
+        class ParallelCoordinatesPlotter {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.fronts = [[], [], [], []];
+                this.colors = ['#00d9ff', '#ff006e', '#8b5cf6', '#10b981'];
+                this.selectedSolution = null;
+                this.objectiveNames = ['Stage 2 Days', 'Yield', 'Avg Storage'];
+                this.fourthObjective = 'none';
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            setFourthObjective(fourthObj) {
+                this.fourthObjective = fourthObj;
+                
+                // Update objective names
+                const objMap = {
+                    'none': [],
+                    'stage1Days': ['Stage 1 Days'],
+                    'stage3Days': ['Stage 3 Days'],
+                    'totalRestrictionDays': ['Total Restriction Days'],
+                    'maxDrawdown': ['Max Drawdown'],
+                    'reliability': ['Reliability'],
+                    'storageVariability': ['Storage CV']
+                };
+                
+                this.objectiveNames = ['Stage 2 Days', 'Yield', 'Avg Storage'];
+                if (fourthObj !== 'none') {
+                    this.objectiveNames.push(objMap[fourthObj][0]);
+                }
+            }
+            
+            update(fronts, enableAutoZoom = false) {
+                this.fronts = fronts;
+                this.render();
+            }
+            
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                const canvasX = x * scaleX;
+                const canvasY = y * scaleY;
+                
+                let minDist = Infinity;
+                let closest = null;
+                
+                // Check distance to each line
+                for (const front of this.fronts) {
+                    for (const sol of front) {
+                        const dist = this.distanceToLine(canvasX, canvasY, sol);
+                        if (dist < 10 && dist < minDist) {
+                            minDist = dist;
+                            closest = sol;
+                        }
+                    }
+                }
+                
+                if (closest) {
+                    this.selectedSolution = closest;
+                    showSolutionDetails(closest);
+                    this.render();
+                    
+                    // Update individual plotters
+                    for (const plotter of storagePlotters) {
+                        plotter.update(closest.storage, currentProblem.capacity, closest.policy);
+                    }
+                }
+            }
+            
+            distanceToLine(px, py, solution) {
+                // Approximate distance by checking midpoint of first segment
+                const coords = this.getLineCoordinates(solution);
+                if (coords.length < 2) return Infinity;
+                
+                const mx = (coords[0].x + coords[1].x) / 2;
+                const my = (coords[0].y + coords[1].y) / 2;
+                
+                return Math.sqrt(Math.pow(px - mx, 2) + Math.pow(py - my, 2));
+            }
+            
+            getLineCoordinates(solution) {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const padding = {left: 60, right: 40, top: 40, bottom: 60};
+                const plotH = h - padding.top - padding.bottom;
+                
+                const numAxes = this.objectiveNames.length;
+                const axisSpacing = (w - padding.left - padding.right) / (numAxes - 1);
+                
+                const coords = [];
+                
+                // Get values for each axis
+                const values = [
+                    solution.stage2Days,
+                    solution.yieldPct,
+                    solution.avgStoragePct
+                ];
+                
+                if (this.fourthObjective !== 'none') {
+                    const objMap = {
+                        'stage1Days': solution.stage1Days,
+                        'stage3Days': solution.stage3Days,
+                        'totalRestrictionDays': solution.totalRestrictionDays,
+                        'maxDrawdown': solution.maxDrawdown,
+                        'reliability': solution.reliabilityPct,
+                        'storageVariability': solution.storageCV
+                    };
+                    values.push(objMap[this.fourthObjective] || 0);
+                }
+                
+                // Normalize each value to [0, 1] for plotting
+                const allSolutions = this.fronts.flat();
+                
+                for (let i = 0; i < values.length; i++) {
+                    const allVals = allSolutions.map(s => {
+                        if (i === 0) return s.stage2Days;
+                        if (i === 1) return s.yieldPct;
+                        if (i === 2) return s.avgStoragePct;
+                        if (i === 3) {
+                            const objMap = {
+                                'stage1Days': s.stage1Days,
+                                'stage3Days': s.stage3Days,
+                                'totalRestrictionDays': s.totalRestrictionDays,
+                                'maxDrawdown': s.maxDrawdown,
+                                'reliability': s.reliabilityPct,
+                                'storageVariability': s.storageCV
+                            };
+                            return objMap[this.fourthObjective] || 0;
+                        }
+                        return 0;
+                    });
+                    
+                    const min = Math.min(...allVals);
+                    const max = Math.max(...allVals);
+                    const range = max - min || 1;
+                    const normalized = (values[i] - min) / range;
+                    
+                    const x = padding.left + i * axisSpacing;
+                    const y = padding.top + plotH - (normalized * plotH);
+                    
+                    coords.push({x, y});
+                }
+                
+                return coords;
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                const padding = {left: 60, right: 40, top: 40, bottom: 60};
+                const plotH = h - padding.top - padding.bottom;
+                const numAxes = this.objectiveNames.length;
+                const axisSpacing = (w - padding.left - padding.right) / (numAxes - 1);
+                
+                // Draw axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 2;
+                
+                for (let i = 0; i < numAxes; i++) {
+                    const x = padding.left + i * axisSpacing;
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding.top);
+                    ctx.lineTo(x, h - padding.bottom);
+                    ctx.stroke();
+                    
+                    // Axis label
+                    ctx.fillStyle = '#8b95a5';
+                    ctx.font = '11px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.objectiveNames[i], x, h - padding.bottom + 25);
+                }
+                
+                // Draw solutions as polylines
+                for (let f = 0; f < this.fronts.length; f++) {
+                    const front = this.fronts[f];
+                    const color = this.colors[f];
+                    
+                    for (const sol of front) {
+                        const coords = this.getLineCoordinates(sol);
+                        
+                        ctx.strokeStyle = color;
+                        ctx.globalAlpha = sol === this.selectedSolution ? 1.0 : 0.3;
+                        ctx.lineWidth = sol === this.selectedSolution ? 3 : 1.5;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(coords[0].x, coords[0].y);
+                        for (let i = 1; i < coords.length; i++) {
+                            ctx.lineTo(coords[i].x, coords[i].y);
+                        }
+                        ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = 1.0;
+                
+                // Legend
+                const legendX = w - 120;
+                const legendY = 20;
+                const labels = ['NSGA-II', 'MO-Adam', 'MOEA/D', 'MGDA'];
+                
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillStyle = this.colors[i];
+                    ctx.fillRect(legendX, legendY + i * 20, 15, 3);
+                    ctx.fillStyle = '#e6edf3';
+                    ctx.font = '10px monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(labels[i], legendX + 20, legendY + i * 20 + 5);
+                }
+            }
+        }
+        
+        class StoragePlotter {
+            constructor(canvas, color) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.color = color || '#10b981';
+                this.storage = [];
+                this.capacity = 100;
+                this.policy = null;
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(storage, capacity, policy) {
+                this.storage = storage || [];
+                this.capacity = capacity;
+                this.policy = policy;
+                this.render();
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                if (this.storage.length === 0) return;
+                
+                const padding = 30;
+                const plotW = w - 2 * padding;
+                const plotH = h - 2 * padding;
+                
+                // Draw threshold lines if policy exists
+                if (this.policy) {
+                    const thresholds = [
+                        {pct: this.policy.stage1Threshold, color: '#00d9ff'},
+                        {pct: this.policy.stage2Threshold, color: '#ff006e'},
+                        {pct: this.policy.stage3Threshold, color: '#8b5cf6'}
+                    ];
+                    
+                    ctx.setLineDash([3, 3]);
+                    for (const thresh of thresholds) {
+                        const y = h - padding - (thresh.pct / 100) * plotH;
+                        ctx.strokeStyle = thresh.color;
+                        ctx.globalAlpha = 0.3;
+                        ctx.beginPath();
+                        ctx.moveTo(padding, y);
+                        ctx.lineTo(w - padding, y);
+                        ctx.stroke();
+                    }
+                    ctx.setLineDash([]);
+                    ctx.globalAlpha = 1.0;
+                }
+                
+                // Storage line
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < this.storage.length; i++) {
+                    const x = padding + (i / (this.storage.length - 1)) * plotW;
+                    const pct = (this.storage[i] / this.capacity) * 100;
+                    const y = h - padding - (pct / 100) * plotH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, h - padding);
+                ctx.lineTo(w - padding, h - padding);
+                ctx.stroke();
+            }
+        }
+        
+        class PolicyParametersPlotter {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.solutions = [null, null, null, null];
+                this.colors = ['#00d9ff', '#ff006e', '#8b5cf6', '#10b981'];
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+            
+            update(algoIndex, solution) {
+                this.solutions[algoIndex] = solution;
+                this.render();
+            }
+            
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = '#0a0e14';
+                ctx.fillRect(0, 0, w, h);
+                
+                const params = ['S1 Thresh', 'S2 Thresh', 'S3 Thresh', 'S1 Cut', 'S2 Cut'];
+                const padding = {left: 70, right: 20, top: 20, bottom: 30};
+                const plotW = w - padding.left - padding.right;
+                const plotH = h - padding.top - padding.bottom;
+                const barWidth = plotW / params.length;
+                
+                // Axes
+                ctx.strokeStyle = '#2a3441';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, padding.top);
+                ctx.lineTo(padding.left, h - padding.bottom);
+                ctx.lineTo(w - padding.right, h - padding.bottom);
+                ctx.stroke();
+                
+                // Draw bars for each parameter
+                for (let p = 0; p < params.length; p++) {
+                    const x = padding.left + p * barWidth;
+                    
+                    // Parameter label
+                    ctx.fillStyle = '#8b95a5';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(params[p], x + barWidth/2, h - 5);
+                    
+                    // Draw bars for each algorithm
+                    let offset = 0;
+                    const algoBarWidth = barWidth / 5;
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (this.solutions[i] && this.solutions[i].policy) {
+                            const policy = this.solutions[i].policy;
+                            let value;
+                            
+                            if (p === 0) value = policy.stage1Threshold;
+                            else if (p === 1) value = policy.stage2Threshold;
+                            else if (p === 2) value = policy.stage3Threshold;
+                            else if (p === 3) value = policy.stage1Cutback;
+                            else value = policy.stage2Cutback;
+                            
+                            const barHeight = (value / 100) * plotH;
+                            const barY = h - padding.bottom - barHeight;
+                            
+                            ctx.fillStyle = this.colors[i];
+                            ctx.globalAlpha = 0.8;
+                            ctx.fillRect(x + offset + 2, barY, algoBarWidth - 4, barHeight);
+                            ctx.globalAlpha = 1.0;
+                            
+                            // Add value label on top of bar
+                            ctx.fillStyle = '#e6edf3';
+                            ctx.font = '8px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(value.toFixed(0), x + offset + algoBarWidth/2, barY - 3);
+                        }
+                        offset += algoBarWidth;
+                    }
+                }
+                
+                // Y-axis label
+                ctx.fillStyle = '#8b95a5';
+                ctx.font = '10px sans-serif';
+                ctx.save();
+                ctx.translate(15, h/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.textAlign = 'center';
+                ctx.fillText('Value (%)', 0, 0);
+                ctx.restore();
+            }
+        }
+        
+        // ====================================================================
+        // INITIALIZE PLOTTERS
+        // ====================================================================
+        
+        const hydrologyPlotter = new HydrologyPlotter(document.getElementById('hydrology-canvas'));
+        
+        const parallelCoordinatesPlotter = new ParallelCoordinatesPlotter(document.getElementById('combined-pareto-canvas'));
+        
+        const plotters = [
+            new ParetoPlotter(document.getElementById('pareto1-canvas'), '#00d9ff', 0),
+            new ParetoPlotter(document.getElementById('pareto2-canvas'), '#ff006e', 1),
+            new ParetoPlotter(document.getElementById('pareto3-canvas'), '#8b5cf6', 2),
+            new ParetoPlotter(document.getElementById('pareto4-canvas'), '#10b981', 3)
+        ];
+        
+        const storagePlotters = [
+            new StoragePlotter(document.getElementById('storage1-canvas'), '#00d9ff'),
+            new StoragePlotter(document.getElementById('storage2-canvas'), '#ff006e'),
+            new StoragePlotter(document.getElementById('storage3-canvas'), '#8b5cf6'),
+            new StoragePlotter(document.getElementById('storage4-canvas'), '#10b981')
+        ];
+        
+        const policyParamsPlotter = new PolicyParametersPlotter(document.getElementById('policy-params-canvas'));
+        
+        // Track selected solutions for each algorithm
+        const selectedSolutions = [null, null, null, null];
+        
+        // Convergence plotters disabled - canvas elements not in HTML
+        const convergencePlotters = [{update: () => {}, reset: () => {}, render: () => {}}, 
+                                      {update: () => {}, reset: () => {}, render: () => {}},
+                                      {update: () => {}, reset: () => {}, render: () => {}},
+                                      {update: () => {}, reset: () => {}, render: () => {}}];
+        
+        // ====================================================================
+        // UI HELPERS
+        // ====================================================================
+        
+        function showSolutionDetails(solution) {
+            document.getElementById('selected-solution').style.display = 'block';
+            document.getElementById('sol-yield').textContent = solution.yieldPct.toFixed(1) + '%';
+            
+            // Convert stage2Days to percentage of simulation time
+            const totalMonths = currentProblem ? currentProblem.simLength * 12 : 360;
+            const stage2Pct = (solution.stage2Days / (totalMonths * 30)) * 100;
+            document.getElementById('sol-stage2').textContent = stage2Pct.toFixed(1) + '%';
+            
+            const stage3Pct = (solution.stage3Days / (totalMonths * 30)) * 100;
+            document.getElementById('sol-stage3').textContent = stage3Pct.toFixed(1) + '%';
+            
+            document.getElementById('sol-storage').textContent = solution.avgStoragePct.toFixed(1) + '%';
+            
+            if (solution.policy) {
+                document.getElementById('pol-s1t').textContent = solution.policy.stage1Threshold.toFixed(1);
+                document.getElementById('pol-s1c').textContent = solution.policy.stage1Cutback.toFixed(1);
+                document.getElementById('pol-s2t').textContent = solution.policy.stage2Threshold.toFixed(1);
+                document.getElementById('pol-s2c').textContent = solution.policy.stage2Cutback.toFixed(1);
+                document.getElementById('pol-s3t').textContent = solution.policy.stage3Threshold.toFixed(1);
+            }
+        }
+        
+        async function runOptimization() {
+            if (isOptimizing) return;
+            
+            isOptimizing = true;
+            document.getElementById('optimize-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+            document.getElementById('progress-status').style.display = 'block';
+            
+            console.log('=== Starting optimization, mode:', optimizationMode);
+            
+            const params = {
+                capacity: parseFloat(document.getElementById('capacity').value),
+                simLength: parseInt(document.getElementById('sim-length').value),
+                skew: parseFloat(document.getElementById('skew').value),
+                municipal: parseFloat(document.getElementById('municipal').value),
+                irrigation: parseFloat(document.getElementById('irrigation').value),
+                fourthObjective: document.getElementById('fourth-objective').value
+            };
+            
+            const popSize = parseInt(document.getElementById('popsize').value);
+            const generations = parseInt(document.getElementById('generations').value);
+            
+            currentProblem = new ReservoirOptimizationProblem(params);
+            parallelCoordinatesPlotter.setFourthObjective(params.fourthObjective);
+            hydrologyPlotter.update(currentProblem.flows, currentProblem.capacity);
+            
+            const algoNames = {
+                'nsga2': 'NSGA-II',
+                'moadam': 'MO-Adam',
+                'moead': 'MOEA/D',
+                'mgda': 'MGDA',
+                'paretoadam': 'Pareto-Adam'
+            };
+            
+            if (optimizationMode === 'single') {
+                console.log('Running SINGLE optimizer mode');
+                document.getElementById('algo-status').style.display = 'none';
+                const algoType = document.getElementById('single-algo').value;
+                
+                let algorithm;
+                switch(algoType) {
+                    case 'nsga2': algorithm = new NSGAII(currentProblem, popSize, generations); break;
+                    case 'moadam': algorithm = new MOAdam(currentProblem, popSize, generations); break;
+                    case 'moead': algorithm = new MOEADAdam(currentProblem, popSize, generations); break;
+                    case 'mgda': algorithm = new MGDAAdam(currentProblem, popSize, generations); break;
+                    case 'paretoadam': algorithm = new ParetoAdam(currentProblem, popSize, generations); break;
+                }
+                
+                algorithm.initialize();
+                
+                for (let gen = 0; gen < generations && isOptimizing; gen++) {
+                    algorithm.evolve();
+                    
+                    let front = algorithm.getParetoFront();
+                    front = getParetoFront(front);
+                    
+                    plotters[0].update(front);
+                    parallelCoordinatesPlotter.update([front, [], [], []]);
+                    convergencePlotters[0].update(front);
+                    
+                    if (front.length > 0) {
+                        const bestYield = front.reduce((best, curr) => 
+                            curr.yieldPct > best.yieldPct ? curr : best
+                        );
+                        storagePlotters[0].update(bestYield.storage, currentProblem.capacity, bestYield.policy);
+                        
+                        document.getElementById('best-yield').textContent = Math.max(...front.map(s => s.yieldPct)).toFixed(1) + '%';
+                        document.getElementById('best-storage').textContent = Math.max(...front.map(s => s.avgStoragePct)).toFixed(1) + '%';
+                        document.getElementById('min-stage2').textContent = Math.min(...front.map(s => s.stage2Days));
+                        document.getElementById('pareto-count').textContent = front.length;
+                    }
+                    
+                    document.getElementById('generation').textContent = gen + 1;
+                    const progressPct = Math.round(((gen + 1) / generations) * 100);
+                    document.getElementById('progress-text').textContent = `${progressPct}%`;
+                    document.getElementById('progress-bar').style.width = `${progressPct}%`;
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+                
+            } else {
+                console.log('Running COMPARE 4 mode');
+                document.getElementById('algo-status').style.display = 'block';
+                
+                const algoSelections = [
+                    document.getElementById('algo-1').value,
+                    document.getElementById('algo-2').value,
+                    document.getElementById('algo-3').value,
+                    document.getElementById('algo-4').value
+                ];
+                
+                const labelIds = ['pareto1-label', 'pareto2-label', 'pareto3-label', 'pareto4-label'];
+                const algoNameIds = ['algo1-name', 'algo2-name', 'algo3-name', 'algo4-name'];
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(labelIds[i]).textContent = algoNames[algoSelections[i]];
+                    document.getElementById(algoNameIds[i]).textContent = algoNames[algoSelections[i]];
+                }
+                
+                algorithms = algoSelections.map(algo => {
+                    switch(algo) {
+                        case 'nsga2': return new NSGAII(currentProblem, popSize, generations);
+                        case 'moadam': return new MOAdam(currentProblem, popSize, generations);
+                        case 'moead': return new MOEADAdam(currentProblem, popSize, generations);
+                        case 'mgda': return new MGDAAdam(currentProblem, popSize, generations);
+                        case 'paretoadam': return new ParetoAdam(currentProblem, popSize, generations);
+                    }
+                });
+                
+                algorithms.forEach(algo => algo.initialize());
+                
+                for (let gen = 0; gen < generations && isOptimizing; gen++) {
+                    for (let i = 0; i < 4; i++) {
+                        algorithms[i].evolve();
+                        let front = algorithms[i].getParetoFront();
+                        front = getParetoFront(front);
+                        plotters[i].update(front);
+                        convergencePlotters[i].update(front);
+                        
+                        if (front.length > 0) {
+                            const bestYield = front.reduce((best, curr) => 
+                                curr.yieldPct > best.yieldPct ? curr : best
+                            );
+                            storagePlotters[i].update(bestYield.storage, currentProblem.capacity, bestYield.policy);
+                        }
+                    }
+                    
+                    const allFronts = algorithms.map((a, i) => getParetoFront(a.getParetoFront()));
+                    const allSolutions = allFronts.flat();
+                    const globalFront = getParetoFront(allSolutions);
+                    
+                    const globalByAlgo = [[], [], [], []];
+                    for (const sol of globalFront) {
+                        for (let i = 0; i < 4; i++) {
+                            if (allFronts[i].includes(sol)) {
+                                globalByAlgo[i].push(sol);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    parallelCoordinatesPlotter.update(globalByAlgo);
+                    
+                    // Update algorithm status
+                    const algoFrontIds = ['algo1-front', 'algo2-front', 'algo3-front', 'algo4-front'];
+                    for (let i = 0; i < 4; i++) {
+                        document.getElementById(algoFrontIds[i]).textContent = allFronts[i].length;
+                    }
+                    
+                    document.getElementById('generation').textContent = gen + 1;
+                    const progressPct = Math.round(((gen + 1) / generations) * 100);
+                    document.getElementById('progress-text').textContent = `${progressPct}%`;
+                    document.getElementById('progress-bar').style.width = `${progressPct}%`;
+                    
+                    if (globalFront.length > 0) {
+                        document.getElementById('best-yield').textContent = Math.max(...globalFront.map(s => s.yieldPct)).toFixed(1) + '%';
+                        document.getElementById('best-storage').textContent = Math.max(...globalFront.map(s => s.avgStoragePct)).toFixed(1) + '%';
+                        document.getElementById('min-stage2').textContent = Math.min(...globalFront.map(s => s.stage2Days));
+                        document.getElementById('pareto-count').textContent = globalFront.length;
+                    }
+                    
+                    if (gen % 2 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1));
+                    }
+                }
+            }
+            
+            // Trigger auto-zoom on combined Pareto front
+            if (optimizationMode === 'compare') {
+                const allFronts = algorithms.map((a, i) => getParetoFront(a.getParetoFront()));
+                const globalByAlgo = [[], [], [], []];
+                for (const sol of getParetoFront(allFronts.flat())) {
+                    for (let i = 0; i < 4; i++) {
+                        if (allFronts[i].includes(sol)) {
+                            globalByAlgo[i].push(sol);
+                            break;
+                        }
+                    }
+                }
+                parallelCoordinatesPlotter.update(globalByAlgo, true); // Enable auto-zoom
+            } else {
+                let front = algorithms ? algorithms[0].getParetoFront() : [];
+                front = getParetoFront(front);
+                parallelCoordinatesPlotter.update([front, [], [], []], true); // Enable auto-zoom
+            }
+            
+            console.log('=== Optimization complete');
+            isOptimizing = false;
+            document.getElementById('optimize-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+        
+        // ====================================================================
+        // UI EVENT HANDLERS
+        // ====================================================================
+        
+        document.getElementById('capacity').addEventListener('input', (e) => {
+            document.getElementById('capacity-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('sim-length').addEventListener('input', (e) => {
+            document.getElementById('sim-length-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('skew').addEventListener('input', (e) => {
+            document.getElementById('skew-value').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        
+        document.getElementById('municipal').addEventListener('input', (e) => {
+            document.getElementById('municipal-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('irrigation').addEventListener('input', (e) => {
+            document.getElementById('irrigation-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('popsize').addEventListener('input', (e) => {
+            document.getElementById('popsize-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('generations').addEventListener('input', (e) => {
+            document.getElementById('generations-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('crossover').addEventListener('input', (e) => {
+            document.getElementById('crossover-value').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        
+        document.getElementById('mutation').addEventListener('input', (e) => {
+            document.getElementById('mutation-value').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+        
+        document.getElementById('learning-rate').addEventListener('input', (e) => {
+            document.getElementById('learning-rate-value').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        
+        document.getElementById('fourth-objective').addEventListener('change', (e) => {
+            parallelCoordinatesPlotter.setFourthObjective(e.target.value);
+            parallelCoordinatesPlotter.render();
+        });
+        
+        document.getElementById('optimize-btn').addEventListener('click', () => {
+            runOptimization();
+        });
+        
+        document.getElementById('stop-btn').addEventListener('click', () => {
+            isOptimizing = false;
+        });
+        
+        document.querySelectorAll('input[name="opt-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                optimizationMode = e.target.value;
+                if (optimizationMode === 'single') {
+                    document.getElementById('single-algo-select').style.display = 'block';
+                    document.getElementById('multi-algo-select').style.display = 'none';
+                } else {
+                    document.getElementById('single-algo-select').style.display = 'none';
+                    document.getElementById('multi-algo-select').style.display = 'block';
+                }
+            });
+        });
+        
+        hydrologyPlotter.render();
+        parallelCoordinatesPlotter.render();
+        plotters.forEach(p => p.render());
+        storagePlotters.forEach(p => p.render());
+        convergencePlotters.forEach(p => p.render());
+        policyParamsPlotter.render();
+        
+        console.log('=== SYSTEM READY ===');
+    </script>
+</body>
+</html>
