@@ -2136,16 +2136,26 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             const completableWords = findCompletableWords(currentWord);
             const aiWasBluffing = completableWords.length === 0;
             
+            // Debug: show what words were found
+            if (completableWords.length > 0 && completableWords.length <= 5) {
+                console.log(`🔍 Found ${completableWords.length} completable word(s):`, completableWords);
+            } else if (completableWords.length > 5) {
+                console.log(`🔍 Found ${completableWords.length} completable words:`, completableWords.slice(0, 10), '...');
+            }
+            
             // Record challenge outcome in adaptive system
             bluffingSystem.recordChallenge(aiWasBluffing);
             
             if (completableWords.length > 0) {
                 const word = completableWords[0];
-                setStatus(`❌ Challenge failed! AI was building "${word}". You lose!`, 'error');
-                endGame(false);
+                const wordList = completableWords.length <= 3 ? 
+                    completableWords.join(', ') : 
+                    `${completableWords.slice(0, 3).join(', ')} (+${completableWords.length - 3} more)`;
+                setStatus(`❌ Challenge failed! AI was building "${word}". Possible words: ${wordList}`, 'error');
+                endGame(false, true); // Pass true to preserve custom message
             } else {
-                setStatus(`✅ Challenge successful! AI was bluffing. You win!`, 'success');
-                endGame(true);
+                setStatus(`✅ Challenge successful! "${currentWord}" cannot be completed. You win!`, 'success');
+                endGame(true, true); // Pass true to preserve custom message
             }
         }
         
@@ -2164,8 +2174,8 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                     // AI challenges!
                     bluffingSystem.playerChallenges++; // Track AI challenged
                     setTimeout(() => {
-                        setStatus(`🤖 AI challenges you! "${currentWord}" has no valid continuation. AI wins!`, 'error');
-                        endGame(false);
+                        setStatus(`🤖 AI challenges! "${currentWord}" cannot be completed. AI wins!`, 'error');
+                        endGame(false, true); // Preserve custom message
                     }, 800);
                     return true;
                 } else {
@@ -2177,7 +2187,7 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             return false;
         }
         
-        function endGame(playerWon) {
+        function endGame(playerWon, customMessage = null) {
             gameActive = false;
             stats.games++;
             
@@ -2187,19 +2197,29 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             turnIndicator.className = 'turn-indicator game-over';
             turnPlayer.textContent = '🏁 Game Over';
             
-            if (playerWon) {
-                stats.wins++;
-                if (isCompleteWord(currentWord)) {
-                    setStatus(`🎉 Victory! AI completed the word "${currentWord}" and loses!`, 'success');
+            // Only set status if no custom message was already set
+            if (!customMessage) {
+                if (playerWon) {
+                    stats.wins++;
+                    if (isCompleteWord(currentWord)) {
+                        setStatus(`🎉 Victory! AI completed the word "${currentWord}" and loses!`, 'success');
+                    } else {
+                        setStatus(`🎉 Victory! AI made an invalid move with "${currentWord}"!`, 'success');
+                    }
                 } else {
-                    setStatus(`🎉 Victory! AI made an invalid move with "${currentWord}"!`, 'success');
+                    stats.losses++;
+                    if (isCompleteWord(currentWord)) {
+                        setStatus(`😞 You Lost! You completed the word "${currentWord}" (4+ letters = lose).`, 'error');
+                    } else {
+                        setStatus(`😞 You Lost! "${currentWord}" cannot continue to a valid word.`, 'error');
+                    }
                 }
             } else {
-                stats.losses++;
-                if (isCompleteWord(currentWord)) {
-                    setStatus(`😞 You Lost! You completed the word "${currentWord}" (4+ letters = lose).`, 'error');
+                // Use custom message and update stats
+                if (playerWon) {
+                    stats.wins++;
                 } else {
-                    setStatus(`😞 You Lost! "${currentWord}" cannot continue to a valid word.`, 'error');
+                    stats.losses++;
                 }
             }
             
