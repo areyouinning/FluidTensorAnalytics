@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C0NN3CT10NS - Number Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .category-selector {
+            margin-bottom: 30px;
+        }
+
+        .category-selector h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-item:hover {
+            background: #f0f3ff;
+        }
+
+        .category-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .category-item label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .difficulty-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .difficulty-easy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .difficulty-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .difficulty-hard {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .range-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-control label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .range-control input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            background: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .attempts {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .mistakes {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .number-tile {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 3px solid #dee2e6;
+            border-radius: 12px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .number-tile:hover:not(.solved) {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .number-tile.selected {
+            background: #667eea;
+            color: white;
+            border-color: #5568d3;
+        }
+
+        .number-tile.solved {
+            cursor: default;
+            animation: solveAnimation 0.5s;
+        }
+
+        @keyframes solveAnimation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .number-tile.wrong {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .solved-categories {
+            margin-bottom: 20px;
+        }
+
+        .solved-category {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .solved-category h3 {
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+
+        .solved-category p {
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .solved-numbers {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .solved-number {
+            background: rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .color-yellow {
+            background: #f9ca24;
+            color: #2c3e50;
+        }
+
+        .color-green {
+            background: #6ab04c;
+            color: white;
+        }
+
+        .color-blue {
+            background: #4834d4;
+            color: white;
+        }
+
+        .color-purple {
+            background: #be2edd;
+            color: white;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .feedback-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .feedback-message.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .feedback-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .win-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .win-screen.show {
+            display: block;
+        }
+
+        .win-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .win-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .win-stat {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .win-stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .win-stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .instructions h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .instructions p {
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .number-grid {
+                gap: 8px;
+            }
+
+            .number-tile {
+                font-size: 1.4em;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .category-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>C0NN3CT10NS</h1>
+            <p>Find groups of four numbers that share a mathematical property</p>
+        </div>
+
+        <div class="game-card">
+            <div class="category-selector">
+                <h3>Select Categories (choose at least 4)</h3>
+                <div class="category-list" id="category-list"></div>
+            </div>
+
+            <div class="controls">
+                <div class="range-control">
+                    <label>Min:</label>
+                    <input type="number" id="min-range" value="1" min="1">
+                </div>
+                <div class="range-control">
+                    <label>Max:</label>
+                    <input type="number" id="max-range" value="100" min="2">
+                </div>
+                <button class="btn btn-primary" id="new-game-btn">New Game</button>
+                <button class="btn btn-secondary" id="toggle-instructions">How to Play</button>
+            </div>
+
+            <div class="instructions" id="instructions" style="display: none;">
+                <h4>How to Play</h4>
+                <p>
+                    Select any 4 numbers that share a common mathematical property. 
+                    Properties include: multiples, primes, perfect squares, Fibonacci numbers, and more!
+                    You have 4 mistakes before the game ends. Good luck!
+                </p>
+            </div>
+        </div>
+
+        <div class="game-card" id="game-area" style="display: none;">
+            <div class="status-bar">
+                <div class="attempts">
+                    Selected: <span id="selected-count">0</span>/4
+                </div>
+                <div class="mistakes">
+                    Mistakes: <span id="mistake-count">0</span>/4
+                </div>
+            </div>
+
+            <div class="solved-categories" id="solved-categories"></div>
+
+            <div class="number-grid" id="number-grid"></div>
+
+            <div class="game-actions">
+                <button class="btn btn-secondary" id="shuffle-btn">Shuffle</button>
+                <button class="btn btn-secondary" id="deselect-btn">Deselect All</button>
+                <button class="btn btn-primary" id="submit-btn" disabled>Submit</button>
+            </div>
+
+            <div class="feedback-message" id="feedback-message"></div>
+
+            <div class="win-screen" id="win-screen">
+                <h2>🎉 Congratulations! 🎉</h2>
+                <div class="win-stats">
+                    <div class="win-stat">
+                        <div class="win-stat-value" id="final-attempts">0</div>
+                        <div class="win-stat-label">Attempts</div>
+                    </div>
+                    <div class="win-stat">
+                        <div class="win-stat-value" id="final-mistakes">0</div>
+                        <div class="win-stat-label">Mistakes</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Number property functions
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i <= Math.sqrt(n); i += 2) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        function isTriangular(n) {
+            const x = 8 * n + 1;
+            const sqrtX = Math.floor(Math.sqrt(x));
+            return sqrtX * sqrtX === x;
+        }
+
+        function isFibonacci(n) {
+            const isPerfectSquare = (x) => {
+                const s = Math.floor(Math.sqrt(x));
+                return s * s === x;
+            };
+            return isPerfectSquare(5*n*n + 4) || isPerfectSquare(5*n*n - 4);
+        }
+
+        function isHappy(n) {
+            const seen = new Set();
+            while (n !== 1 && !seen.has(n)) {
+                seen.add(n);
+                n = String(n).split('').reduce((sum, digit) => sum + parseInt(digit)**2, 0);
+            }
+            return n === 1;
+        }
+
+        function sumProperDivisors(n) {
+            if (n <= 1) return 0;
+            const divisors = [1];
+            for (let i = 2; i <= Math.sqrt(n); i++) {
+                if (n % i === 0) {
+                    divisors.push(i);
+                    if (i !== n / i) divisors.push(n / i);
+                }
+            }
+            return divisors.reduce((a, b) => a + b, 0);
+        }
+
+        function isArmstrong(n) {
+            const digits = String(n).split('').map(d => parseInt(d));
+            const power = digits.length;
+            return digits.reduce((sum, d) => sum + Math.pow(d, power), 0) === n;
+        }
+
+        const NUMBER_CATEGORIES = {
+            multiples_2: {
+                name: 'Multiples of 2',
+                description: 'Even numbers',
+                difficulty: 'easy',
+                check: n => n % 2 === 0,
+                color: 'yellow'
+            },
+            multiples_3: {
+                name: 'Multiples of 3',
+                description: 'Divisible by 3',
+                difficulty: 'easy',
+                check: n => n % 3 === 0,
+                color: 'green'
+            },
+            multiples_5: {
+                name: 'Multiples of 5',
+                description: 'Divisible by 5',
+                difficulty: 'easy',
+                check: n => n % 5 === 0,
+                color: 'blue'
+            },
+            multiples_7: {
+                name: 'Multiples of 7',
+                description: 'Divisible by 7',
+                difficulty: 'medium',
+                check: n => n % 7 === 0,
+                color: 'purple'
+            },
+            prime: {
+                name: 'Prime Numbers',
+                description: 'Only divisible by 1 and itself',
+                difficulty: 'medium',
+                check: isPrime,
+                color: 'green'
+            },
+            perfect_square: {
+                name: 'Perfect Squares',
+                description: 'n = k² for some integer k',
+                difficulty: 'medium',
+                check: n => Math.floor(Math.sqrt(n))**2 === n,
+                color: 'blue'
+            },
+            perfect_cube: {
+                name: 'Perfect Cubes',
+                description: 'n = k³ for some integer k',
+                difficulty: 'hard',
+                check: n => Math.round(Math.cbrt(n))**3 === n,
+                color: 'purple'
+            },
+            triangular: {
+                name: 'Triangular Numbers',
+                description: 'n = k(k+1)/2 for some k',
+                difficulty: 'hard',
+                check: isTriangular,
+                color: 'yellow'
+            },
+            fibonacci: {
+                name: 'Fibonacci Numbers',
+                description: 'In the Fibonacci sequence',
+                difficulty: 'hard',
+                check: isFibonacci,
+                color: 'green'
+            },
+            power_of_2: {
+                name: 'Powers of 2',
+                description: 'n = 2^k for some k',
+                difficulty: 'medium',
+                check: n => n > 0 && (n & (n - 1)) === 0,
+                color: 'blue'
+            },
+            palindrome: {
+                name: 'Palindromic Numbers',
+                description: 'Reads same forwards and backwards',
+                difficulty: 'easy',
+                check: n => String(n) === String(n).split('').reverse().join(''),
+                color: 'purple'
+            },
+            happy: {
+                name: 'Happy Numbers',
+                description: 'Sum of squares of digits eventually reaches 1',
+                difficulty: 'hard',
+                check: isHappy,
+                color: 'yellow'
+            },
+            abundant: {
+                name: 'Abundant Numbers',
+                description: 'Sum of proper divisors > n',
+                difficulty: 'hard',
+                check: n => sumProperDivisors(n) > n,
+                color: 'green'
+            },
+            deficient: {
+                name: 'Deficient Numbers',
+                description: 'Sum of proper divisors < n',
+                difficulty: 'medium',
+                check: n => sumProperDivisors(n) < n,
+                color: 'blue'
+            },
+            perfect: {
+                name: 'Perfect Numbers',
+                description: 'Sum of proper divisors = n',
+                difficulty: 'hard',
+                check: n => sumProperDivisors(n) === n,
+                color: 'purple'
+            },
+            harshad: {
+                name: 'Harshad Numbers',
+                description: 'Divisible by sum of its digits',
+                difficulty: 'medium',
+                check: n => n % String(n).split('').reduce((a, b) => a + parseInt(b), 0) === 0,
+                color: 'yellow'
+            },
+            armstrong: {
+                name: 'Armstrong Numbers',
+                description: 'Sum of digits^(# digits) equals n',
+                difficulty: 'hard',
+                check: isArmstrong,
+                color: 'green'
+            }
+        };
+
+        class ConnectionsGame {
+            constructor() {
+                this.selectedCategories = new Set();
+                this.puzzle = null;
+                this.selectedNumbers = new Set();
+                this.solvedCategories = new Set();
+                this.mistakes = 0;
+                this.maxMistakes = 4;
+                this.attempts = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.renderCategorySelector();
+                this.setupEventListeners();
+            }
+            
+            renderCategorySelector() {
+                const container = document.getElementById('category-list');
+                container.innerHTML = '';
+                
+                const byDifficulty = {easy: [], medium: [], hard: []};
+                for (const [key, cat] of Object.entries(NUMBER_CATEGORIES)) {
+                    byDifficulty[cat.difficulty].push({key, ...cat});
+                }
+                
+                for (const difficulty of ['easy', 'medium', 'hard']) {
+                    const categories = byDifficulty[difficulty];
+                    categories.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    for (const cat of categories) {
+                        const item = document.createElement('div');
+                        item.className = 'category-item';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `cat-${cat.key}`;
+                        checkbox.value = cat.key;
+                        
+                        // Default selections
+                        if (['prime', 'perfect_square', 'multiples_2', 'multiples_5', 
+                             'fibonacci', 'triangular'].includes(cat.key)) {
+                            checkbox.checked = true;
+                            this.selectedCategories.add(cat.key);
+                        }
+                        
+                        checkbox.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                this.selectedCategories.add(cat.key);
+                            } else {
+                                this.selectedCategories.delete(cat.key);
+                            }
+                        });
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `cat-${cat.key}`;
+                        label.innerHTML = `
+                            ${cat.name}
+                            <span class="difficulty-badge difficulty-${difficulty}">
+                                ${difficulty}
+                            </span>
+                        `;
+                        label.title = cat.description;
+                        
+                        item.appendChild(checkbox);
+                        item.appendChild(label);
+                        container.appendChild(item);
+                    }
+                }
+            }
+            
+            setupEventListeners() {
+                document.getElementById('new-game-btn').addEventListener('click', () => this.newGame());
+                document.getElementById('shuffle-btn').addEventListener('click', () => this.shuffleGrid());
+                document.getElementById('deselect-btn').addEventListener('click', () => this.deselectAll());
+                document.getElementById('submit-btn').addEventListener('click', () => this.submitGuess());
+                document.getElementById('play-again-btn').addEventListener('click', () => this.newGame());
+                document.getElementById('toggle-instructions').addEventListener('click', () => {
+                    const instructions = document.getElementById('instructions');
+                    instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+            
+            generatePuzzle() {
+                if (this.selectedCategories.size < 4) {
+                    alert('Please select at least 4 categories!');
+                    return null;
+                }
+                
+                const minRange = parseInt(document.getElementById('min-range').value);
+                const maxRange = parseInt(document.getElementById('max-range').value);
+                
+                if (minRange >= maxRange) {
+                    alert('Maximum must be greater than minimum!');
+                    return null;
+                }
+                
+                const selectedCats = Array.from(this.selectedCategories);
+                const puzzleCategories = this.shuffleArray(selectedCats).slice(0, 4);
+                
+                const numbersPerCategory = 4;
+                const allNumbers = [];
+                const solutions = {};
+                
+                for (const catKey of puzzleCategories) {
+                    const category = NUMBER_CATEGORIES[catKey];
+                    const categoryNumbers = [];
+                    
+                    let attempts = 0;
+                    const maxAttempts = 10000;
+                    
+                    while (categoryNumbers.length < numbersPerCategory && attempts < maxAttempts) {
+                        const n = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                        
+                        if (allNumbers.includes(n)) {
+                            attempts++;
+                            continue;
+                        }
+                        
+                        if (category.check(n)) {
+                            categoryNumbers.push(n);
+                            allNumbers.push(n);
+                        }
+                        
+                        attempts++;
+                    }
+                    
+                    if (categoryNumbers.length < numbersPerCategory) {
+                        return null;
+                    }
+                    
+                    solutions[catKey] = {
+                        name: category.name,
+                        description: category.description,
+                        numbers: categoryNumbers.sort((a, b) => a - b),
+                        color: category.color,
+                        difficulty: category.difficulty
+                    };
+                }
+                
+                return {
+                    numbers: this.shuffleArray(allNumbers),
+                    solutions: solutions,
+                    grid_size: 16
+                };
+            }
+            
+            shuffleArray(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+            
+            newGame() {
+                let puzzle = null;
+                let attempts = 0;
+                
+                while (!puzzle && attempts < 20) {
+                    puzzle = this.generatePuzzle();
+                    attempts++;
+                }
+                
+                if (!puzzle) {
+                    alert('Could not generate puzzle with selected categories. Try different settings.');
+                    return;
+                }
+                
+                this.puzzle = puzzle;
+                this.resetGame();
+                this.renderGame();
+                document.getElementById('game-area').style.display = 'block';
+            }
+            
+            resetGame() {
+                this.selectedNumbers.clear();
+                this.solvedCategories.clear();
+                this.mistakes = 0;
+                this.attempts = 0;
+                this.updateStatus();
+                this.hideFeedback();
+                document.getElementById('win-screen').classList.remove('show');
+            }
+            
+            renderGame() {
+                this.renderGrid();
+                document.getElementById('solved-categories').innerHTML = '';
+            }
+            
+            renderGrid() {
+                const grid = document.getElementById('number-grid');
+                grid.innerHTML = '';
+                
+                for (const number of this.puzzle.numbers) {
+                    let isSolved = false;
+                    
+                    for (const catKey of this.solvedCategories) {
+                        if (this.puzzle.solutions[catKey].numbers.includes(number)) {
+                            isSolved = true;
+                            break;
+                        }
+                    }
+                    
+                    if (isSolved) continue;
+                    
+                    const tile = document.createElement('div');
+                    tile.className = 'number-tile';
+                    if (this.selectedNumbers.has(number)) {
+                        tile.classList.add('selected');
+                    }
+                    tile.textContent = number;
+                    tile.addEventListener('click', () => this.toggleNumber(number));
+                    grid.appendChild(tile);
+                }
+            }
+            
+            toggleNumber(number) {
+                if (this.selectedNumbers.has(number)) {
+                    this.selectedNumbers.delete(number);
+                } else if (this.selectedNumbers.size < 4) {
+                    this.selectedNumbers.add(number);
+                }
+                
+                this.updateStatus();
+                this.renderGrid();
+            }
+            
+            deselectAll() {
+                this.selectedNumbers.clear();
+                this.updateStatus();
+                this.renderGrid();
+            }
+            
+            shuffleGrid() {
+                this.puzzle.numbers = this.shuffleArray(this.puzzle.numbers);
+                this.renderGrid();
+            }
+            
+            updateStatus() {
+                document.getElementById('selected-count').textContent = this.selectedNumbers.size;
+                document.getElementById('mistake-count').textContent = this.mistakes;
+                document.getElementById('submit-btn').disabled = this.selectedNumbers.size !== 4;
+            }
+            
+            submitGuess() {
+                this.attempts++;
+                const guessed = new Set(this.selectedNumbers);
+                
+                let foundMatch = false;
+                let matchResult = null;
+                
+                for (const [catKey, catData] of Object.entries(this.puzzle.solutions)) {
+                    const solution = new Set(catData.numbers);
+                    if (this.setsEqual(guessed, solution)) {
+                        foundMatch = true;
+                        matchResult = {
+                            category_key: catKey,
+                            category: catData.name,
+                            description: catData.description,
+                            color: catData.color,
+                            difficulty: catData.difficulty
+                        };
+                        break;
+                    }
+                }
+                
+                if (foundMatch) {
+                    this.handleCorrectGuess(matchResult);
+                } else {
+                    let maxOverlap = 0;
+                    for (const catData of Object.entries(this.puzzle.solutions)) {
+                        const solution = new Set(catData[1].numbers);
+                        const overlap = [...guessed].filter(x => solution.has(x)).length;
+                        maxOverlap = Math.max(maxOverlap, overlap);
+                    }
+                    this.handleIncorrectGuess(maxOverlap);
+                }
+            }
+            
+            setsEqual(a, b) {
+                if (a.size !== b.size) return false;
+                for (const item of a) {
+                    if (!b.has(item)) return false;
+                }
+                return true;
+            }
+            
+            handleCorrectGuess(result) {
+                document.querySelectorAll('.number-tile.selected').forEach(tile => {
+                    tile.classList.add('solved');
+                });
+                
+                this.solvedCategories.add(result.category_key);
+                this.addSolvedCategory(result);
+                this.selectedNumbers.clear();
+                
+                setTimeout(() => {
+                    this.renderGrid();
+                    this.updateStatus();
+                    
+                    if (this.solvedCategories.size === 4) {
+                        this.handleWin();
+                    }
+                }, 500);
+                
+                this.showFeedback(`Correct! ${result.category}`, 'success');
+            }
+            
+            handleIncorrectGuess(overlap) {
+                this.mistakes++;
+                this.updateStatus();
+                
+                document.querySelectorAll('.number-tile.selected').forEach(tile => {
+                    tile.classList.add('wrong');
+                    setTimeout(() => tile.classList.remove('wrong'), 500);
+                });
+                
+                let message = 'Incorrect! ';
+                if (overlap === 3) message += 'Three numbers are in the same group!';
+                else if (overlap === 2) message += 'Two numbers are in the same group.';
+                else if (overlap === 1) message += 'One number is in the right group.';
+                else message += 'Try again!';
+                
+                this.showFeedback(message, 'error');
+                
+                if (this.mistakes >= this.maxMistakes) {
+                    this.handleLoss();
+                }
+            }
+            
+            addSolvedCategory(result) {
+                const container = document.getElementById('solved-categories');
+                const div = document.createElement('div');
+                div.className = `solved-category color-${result.color}`;
+                
+                const numbers = this.puzzle.solutions[result.category_key].numbers;
+                
+                div.innerHTML = `
+                    <h3>${result.category}</h3>
+                    <p>${result.description}</p>
+                    <div class="solved-numbers">
+                        ${numbers.map(n => `<span class="solved-number">${n}</span>`).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            }
+            
+            handleWin() {
+                document.getElementById('final-attempts').textContent = this.attempts;
+                document.getElementById('final-mistakes').textContent = this.mistakes;
+                document.getElementById('win-screen').classList.add('show');
+            }
+            
+            handleLoss() {
+                this.showFeedback('Game Over! Here are the solutions:', 'error');
+                
+                for (const [catKey, catData] of Object.entries(this.puzzle.solutions)) {
+                    if (!this.solvedCategories.has(catKey)) {
+                        this.addSolvedCategory({
+                            category_key: catKey,
+                            category: catData.name,
+                            description: catData.description,
+                            color: catData.color
+                        });
+                    }
+                }
+                
+                document.getElementById('number-grid').innerHTML = '';
+                document.getElementById('submit-btn').disabled = true;
+            }
+            
+            showFeedback(message, type) {
+                const feedback = document.getElementById('feedback-message');
+                feedback.textContent = message;
+                feedback.className = `feedback-message show feedback-${type}`;
+                
+                setTimeout(() => this.hideFeedback(), 3000);
+            }
+            
+            hideFeedback() {
+                document.getElementById('feedback-message').classList.remove('show');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.game = new ConnectionsGame();
+        });
+    </script>
+</body>
+</html>
