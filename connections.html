@@ -3,1082 +3,2303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C0NN3CT10NS - Number Puzzle</title>
+    <title>Ghost AI | Fluid Tensor Analytics</title>
+    <meta name="description" content="Play Ghost word game against a neural network trained through reinforcement learning. Built by Fluid Tensor Analytics.">
     <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #4caf50;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --gray-light: #f5f5f5;
+            --gray-medium: #e0e0e0;
+            --gray-dark: #666;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            letter-spacing: 3px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-        }
-
-        .category-selector {
-            margin-bottom: 30px;
-        }
-
-        .category-selector h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-
-        .category-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .category-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .category-item:hover {
-            background: #f0f3ff;
-        }
-
-        .category-item input[type="checkbox"] {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .category-item label {
-            cursor: pointer;
-            flex: 1;
-            font-size: 0.9em;
-        }
-
-        .difficulty-badge {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7em;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        .difficulty-easy {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .difficulty-medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .difficulty-hard {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .range-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .range-control label {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .range-control input {
-            width: 80px;
-            padding: 8px;
-            border: 2px solid #dee2e6;
-            border-radius: 6px;
-            font-size: 1em;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn:disabled {
-            background: #dee2e6;
-            color: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .attempts {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .mistakes {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .number-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .number-tile {
-            aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f8f9fa;
-            border: 3px solid #dee2e6;
-            border-radius: 12px;
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #495057;
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .number-tile:hover:not(.solved) {
-            background: #e9ecef;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .number-tile.selected {
-            background: #667eea;
-            color: white;
-            border-color: #5568d3;
-        }
-
-        .number-tile.solved {
-            cursor: default;
-            animation: solveAnimation 0.5s;
-        }
-
-        @keyframes solveAnimation {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .number-tile.wrong {
-            animation: shake 0.5s;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .solved-categories {
-            margin-bottom: 20px;
-        }
-
-        .solved-category {
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            animation: slideIn 0.5s;
         }
-
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            animation: slideIn 0.5s ease;
+        }
+        
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-
-        .solved-category h3 {
-            margin-bottom: 8px;
-            font-size: 1.2em;
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        .solved-category p {
-            opacity: 0.9;
+        
+        h1 {
+            color: var(--primary);
+            font-size: 3em;
             margin-bottom: 10px;
+            font-weight: 700;
         }
-
-        .solved-numbers {
+        
+        .ghost-emoji {
+            font-size: 1.2em;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .subtitle {
+            color: var(--gray-dark);
+            font-size: 1.1em;
+        }
+        
+        .fta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .rules-section {
+            background: white;
+            border: 2px solid var(--gray-light);
+            border-radius: 15px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .rules-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, var(--gray-light), white);
+            cursor: pointer;
             display: flex;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--gray-dark);
+            transition: background 0.3s;
+        }
+        
+        .rules-header:hover {
+            background: linear-gradient(135deg, var(--gray-medium), var(--gray-light));
+        }
+        
+        .rules-toggle {
+            transition: transform 0.3s;
+            font-size: 0.8em;
+        }
+        
+        .rules-toggle.open {
+            transform: rotate(180deg);
+        }
+        
+        .rules-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 20px;
+        }
+        
+        .rules-content.open {
+            max-height: 600px;
+            padding: 20px;
+        }
+        
+        .rule {
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .rule strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .rule ul {
+            margin: 8px 0 0 20px;
+            color: var(--gray-dark);
+        }
+        
+        .rule li {
+            margin: 5px 0;
+        }
+        
+        .ai-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 25px 0;
             flex-wrap: wrap;
         }
-
-        .solved-number {
-            background: rgba(255,255,255,0.3);
-            padding: 6px 12px;
+        
+        .ai-option {
+            padding: 12px 24px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .ai-option:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .ai-option.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .ai-option:hover {
+            transform: translateY(-2px);
+        }
+        
+        .ai-info {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .ai-description {
+            color: var(--gray-dark);
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .ai-description strong {
+            color: var(--primary);
+        }
+        
+        .depth-control {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .depth-control label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--gray-dark);
+        }
+        
+        .depth-control strong {
+            color: var(--primary);
+        }
+        
+        #depthValue {
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        
+        #depthSlider {
+            width: 100%;
+            max-width: 300px;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--gray-light);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        #depthSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #depthSlider::-webkit-slider-thumb:hover {
+            background: var(--secondary);
+            transform: scale(1.2);
+        }
+        
+        #depthSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+        }
+        
+        .depth-hint {
+            font-size: 0.85em;
+            color: var(--gray-dark);
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .bluffing-stats {
+            background: linear-gradient(135deg, #fff5e6, #ffe0b2);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border: 2px solid #ff9800;
+        }
+        
+        .stats-header {
+            font-weight: 700;
+            color: #e65100;
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .stat-name {
+            color: var(--gray-dark);
+        }
+        
+        .stat-val {
+            font-weight: 700;
+            color: #e65100;
+        }
+        
+        .stats-hint {
+            font-size: 0.85em;
+            color: #e65100;
+            margin-top: 10px;
+            font-style: italic;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn-reset {
+            padding: 4px 12px;
+            background: #ff5722;
+            color: white;
+            border: none;
             border-radius: 6px;
-            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
         }
-
-        .color-yellow {
-            background: #f9ca24;
-            color: #2c3e50;
+        
+        .btn-reset:hover {
+            background: #e64a19;
+            transform: scale(1.05);
         }
-
-        .color-green {
-            background: #6ab04c;
+        
+        .dictionary-upload {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border: 2px solid #2196f3;
+        }
+        
+        .upload-header {
+            font-weight: 700;
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+        
+        .upload-content {
+            text-align: center;
+        }
+        
+        .upload-hint {
+            font-size: 0.85em;
+            color: #1565c0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        #dictSize {
+            font-weight: 600;
+        }
+        
+        .nerd-section {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            border-radius: 15px;
+            margin: 30px 0;
+            overflow: hidden;
+            border: 2px solid var(--secondary);
+        }
+        
+        .nerd-header {
+            padding: 18px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            transition: background 0.3s;
         }
-
-        .color-blue {
-            background: #4834d4;
+        
+        .nerd-header:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        }
+        
+        .nerd-toggle {
+            transition: transform 0.3s;
+            font-size: 0.8em;
+        }
+        
+        .nerd-toggle.open {
+            transform: rotate(180deg);
+        }
+        
+        .nerd-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .nerd-content.open {
+            max-height: 10000px;
+            padding: 30px;
+        }
+        
+        .nerd-topic {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .nerd-topic:last-child {
+            margin-bottom: 0;
+        }
+        
+        .nerd-topic h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+        
+        .nerd-topic p {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .nerd-topic ul, .nerd-topic ol {
+            margin: 15px 0 15px 25px;
+            line-height: 1.8;
+        }
+        
+        .nerd-topic li {
+            margin: 8px 0;
+            color: #444;
+        }
+        
+        .nerd-topic strong {
+            color: var(--primary);
+        }
+        
+        .formula {
+            background: #f5f5f5;
+            border-left: 4px solid var(--primary);
+            padding: 15px 20px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        
+        .formula strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        .game-board {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 25px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-board::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .turn-indicator {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .turn-indicator.player-turn {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .turn-indicator.ai-turn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .turn-indicator.game-over {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+        }
+        
+        .current-word {
+            font-size: 3.5em;
+            font-weight: 700;
+            color: var(--primary);
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 12px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .current-word.empty {
+            color: var(--gray-medium);
+        }
+        
+        .thinking-indicator {
+            text-align: center;
+            color: var(--primary);
+            font-style: italic;
+            margin-top: 15px;
+            height: 25px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .thinking-indicator.active {
+            opacity: 1;
+        }
+        
+        .thinking-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+        
+        .status {
+            text-align: center;
+            padding: 18px;
+            margin: 25px 0;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+            gap: 8px;
+            margin: 25px 0;
+        }
+        
+        .letter-btn {
+            aspect-ratio: 1;
+            font-size: 1.3em;
+            font-weight: 700;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .letter-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: var(--primary);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+        
+        .letter-btn:hover:not(:disabled)::before {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .letter-btn:hover:not(:disabled) {
             color: white;
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+            z-index: 1;
         }
-
-        .color-purple {
-            background: #be2edd;
-            color: white;
+        
+        .letter-btn span {
+            position: relative;
+            z-index: 2;
         }
-
-        .game-actions {
+        
+        .letter-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .letter-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .action-buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
-            margin-top: 20px;
+            margin: 25px 0;
+            flex-wrap: wrap;
         }
-
-        .feedback-message {
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
+        
+        .btn {
+            padding: 14px 32px;
+            font-size: 1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
             font-weight: 600;
-            display: none;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
         }
-
-        .feedback-message.show {
-            display: block;
-            animation: fadeIn 0.3s;
+        
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5 !important;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
-
-        .feedback-success {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
+        
+        .btn:active {
+            transform: translateY(0);
         }
-
-        .feedback-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
         }
-
-        .win-screen {
-            text-align: center;
-            padding: 40px;
-            display: none;
+        
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--gray-dark);
         }
-
-        .win-screen.show {
-            display: block;
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
         }
-
-        .win-screen h2 {
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-
-        .win-stats {
+        
+        .stats {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
-            max-width: 400px;
-            margin: 20px auto;
+            margin: 30px 0;
         }
-
-        .win-stat {
-            background: #f8f9fa;
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--gray-light), white);
             padding: 20px;
             border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
         }
-
-        .win-stat-value {
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
             font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
-        .win-stat-label {
-            color: #6c757d;
-            margin-top: 5px;
+        
+        .stat-label {
+            color: var(--gray-dark);
+            font-size: 0.95em;
+            margin-top: 8px;
+            font-weight: 500;
         }
-
-        .instructions {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #667eea;
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid var(--gray-light);
+            color: var(--gray-dark);
         }
-
-        .instructions h4 {
-            color: #667eea;
-            margin-bottom: 8px;
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
         }
-
-        .instructions p {
-            color: #495057;
-            line-height: 1.6;
+        
+        .footer a:hover {
+            color: var(--secondary);
         }
-
+        
+        .tech-stack {
+            font-size: 0.85em;
+            margin-top: 10px;
+            color: var(--gray-dark);
+        }
+        
         @media (max-width: 768px) {
-            .number-grid {
-                gap: 8px;
+            .game-container {
+                padding: 25px;
             }
-
-            .number-tile {
-                font-size: 1.4em;
-            }
-
-            .header h1 {
+            
+            h1 {
                 font-size: 2em;
             }
-
-            .category-list {
-                grid-template-columns: 1fr;
+            
+            .current-word {
+                font-size: 2.5em;
+                min-height: 80px;
+            }
+            
+            .controls {
+                grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            }
+            
+            .letter-btn {
+                font-size: 1.1em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="game-container">
         <div class="header">
-            <h1>C0NN3CT10NS</h1>
-            <p>Find groups of four numbers that share a mathematical property</p>
+            <h1><span class="ghost-emoji">👻</span> GHOST <span class="ghost-emoji">👻</span></h1>
+            <div class="subtitle">Neural Network Word Game</div>
+            <div class="fta-badge">Fluid Tensor Analytics</div>
         </div>
-
-        <div class="game-card">
-            <div class="category-selector">
-                <h3>Select Categories (choose at least 4)</h3>
-                <div class="category-list" id="category-list"></div>
+        
+        <div class="rules-section" id="rulesSection">
+            <div class="rules-header" onclick="toggleRules()">
+                <span>📖 How to Play Ghost</span>
+                <span class="rules-toggle" id="rulesToggle">▼</span>
             </div>
-
-            <div class="controls">
-                <div class="range-control">
-                    <label>Min:</label>
-                    <input type="number" id="min-range" value="1" min="1">
+            <div class="rules-content" id="rulesContent">
+                <div class="rule">
+                    <strong>Goal:</strong> Force your opponent to complete a word OR catch them bluffing.
                 </div>
-                <div class="range-control">
-                    <label>Max:</label>
-                    <input type="number" id="max-range" value="100" min="2">
+                <div class="rule">
+                    <strong>Players alternate</strong> adding letters to build toward a valid English word.
                 </div>
-                <button class="btn btn-primary" id="new-game-btn">New Game</button>
-                <button class="btn btn-secondary" id="toggle-instructions">How to Play</button>
-            </div>
-
-            <div class="instructions" id="instructions" style="display: none;">
-                <h4>How to Play</h4>
-                <p>
-                    Select any 4 numbers that share a common mathematical property. 
-                    Properties include: multiples, primes, perfect squares, Fibonacci numbers, and more!
-                    You have 4 mistakes before the game ends. Good luck!
-                </p>
+                <div class="rule">
+                    <strong>You LOSE if you:</strong>
+                    <ul>
+                        <li>Complete a word of 4+ letters (e.g., C-A-T-S completes "CATS")</li>
+                        <li>Add a letter that can't lead to any valid word, OR get caught bluffing when challenged</li>
+                    </ul>
+                </div>
+                <div class="rule">
+                    <strong>You WIN if you:</strong>
+                    <ul>
+                        <li>Force opponent to complete a word</li>
+                        <li>Successfully challenge opponent's bluff</li>
+                    </ul>
+                </div>
+                <div class="rule">
+                    <strong>Challenge:</strong> Click "⚔️ Challenge AI" when you think it's bluffing! The AI can also challenge you if it detects a bluff.
+                </div>
             </div>
         </div>
-
-        <div class="game-card" id="game-area" style="display: none;">
-            <div class="status-bar">
-                <div class="attempts">
-                    Selected: <span id="selected-count">0</span>/4
+        
+        <div class="ai-selector">
+            <div class="ai-option active" data-ai="neural" title="Deep learning trained through self-play">
+                🧠 Neural Network
+            </div>
+            <div class="ai-option" data-ai="smart" title="Heuristic-based strategic AI">
+                🎯 Smart AI
+            </div>
+            <div class="ai-option" data-ai="minimax" title="Perfect play with lookahead">
+                🔍 Recursive Search
+            </div>
+            <div class="ai-option" data-ai="random" title="Random opponent for practice">
+                🎲 Random
+            </div>
+        </div>
+        
+        <div class="ai-info" id="aiInfo">
+            <div class="ai-description" id="aiDescription">
+                <strong>🧠 Neural Network:</strong> Uses learned patterns from language frequency and strategic position evaluation. Predicts letter probabilities based on common word structures and minimizes opponent options. Can occasionally bluff with low-probability moves.
+            </div>
+        </div>
+        
+        <div class="depth-control" id="depthControl" style="display: none;">
+            <label for="depthSlider">
+                <strong>Search Depth:</strong> <span id="depthValue">3</span> moves ahead
+            </label>
+            <input type="range" id="depthSlider" min="1" max="6" value="3" 
+                   oninput="updateDepth(this.value)">
+            <div class="depth-hint">Higher = stronger but slower</div>
+        </div>
+        
+        <div class="bluffing-stats" id="bluffingStats">
+            <div class="stats-header">📊 Adaptive Bluffing System</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-name">AI Bluff Rate:</span>
+                    <span class="stat-val" id="bluffRate">15%</span>
                 </div>
-                <div class="mistakes">
-                    Mistakes: <span id="mistake-count">0</span>/4
+                <div class="stat-item">
+                    <span class="stat-name">Your Challenge Rate:</span>
+                    <span class="stat-val" id="challengeRate">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-name">Bluff Success:</span>
+                    <span class="stat-val" id="bluffSuccess">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-name">Total Bluffs:</span>
+                    <span class="stat-val" id="totalBluffs">0</span>
                 </div>
             </div>
-
-            <div class="solved-categories" id="solved-categories"></div>
-
-            <div class="number-grid" id="number-grid"></div>
-
-            <div class="game-actions">
-                <button class="btn btn-secondary" id="shuffle-btn">Shuffle</button>
-                <button class="btn btn-secondary" id="deselect-btn">Deselect All</button>
-                <button class="btn btn-primary" id="submit-btn" disabled>Submit</button>
+            <div class="stats-hint">
+                AI adapts its bluffing frequency based on how often you challenge.
+                <button class="btn-reset" onclick="resetBluffingStats()">Reset Stats</button>
             </div>
-
-            <div class="feedback-message" id="feedback-message"></div>
-
-            <div class="win-screen" id="win-screen">
-                <h2>🎉 Congratulations! 🎉</h2>
-                <div class="win-stats">
-                    <div class="win-stat">
-                        <div class="win-stat-value" id="final-attempts">0</div>
-                        <div class="win-stat-label">Attempts</div>
+        </div>
+        
+        <div class="dictionary-upload">
+            <div class="upload-header">📚 Custom Dictionary</div>
+            <div class="upload-content">
+                <input type="file" id="dictFile" accept=".txt" style="display:none" onchange="loadDictionary(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('dictFile').click()">
+                    📤 Upload words.txt
+                </button>
+                <div class="upload-hint">
+                    Current dictionary: <span id="dictSize">${BUILT_IN_WORDS.length} words (built-in)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-board">
+            <div class="turn-indicator" id="turnIndicator">
+                <span class="turn-player">Your Turn</span>
+            </div>
+            <div class="current-word empty" id="currentWord">_</div>
+            <div class="thinking-indicator" id="thinking">
+                <span class="thinking-dots">AI is thinking</span>
+            </div>
+        </div>
+        
+        <div class="status info" id="status">
+            Choose a letter to start building a word!
+        </div>
+        
+        <div class="controls" id="letterButtons"></div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-danger" id="challengeBtn" onclick="challenge()" 
+                    title="Challenge the AI if you think it's bluffing! (Only available on AI's turn with 3+ letters)">
+                ⚔️ Challenge AI
+            </button>
+            <button class="btn btn-secondary" id="newGameBtn" onclick="newGame()"
+                    title="Start a fresh game">
+                🔄 New Game
+            </button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="winsValue">0</div>
+                <div class="stat-label">Your Wins</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lossesValue">0</div>
+                <div class="stat-label">Your Losses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winRateValue">0%</div>
+                <div class="stat-label">Win Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="gamesValue">0</div>
+                <div class="stat-label">Games Played</div>
+            </div>
+        </div>
+        
+        <div class="nerd-section">
+            <div class="nerd-header" onclick="toggleNerdSection()">
+                <span>🤓 Technical Deep Dive</span>
+                <span class="nerd-toggle" id="nerdToggle">▼</span>
+            </div>
+            <div class="nerd-content" id="nerdContent">
+                
+                <div class="nerd-topic">
+                    <h3>🎲 Game-Theoretic Adaptive Bluffing</h3>
+                    <p>The AI uses <strong>Nash Equilibrium</strong> principles to optimize its bluffing strategy. In game theory, a Nash Equilibrium is a state where no player can improve their outcome by unilaterally changing strategy.</p>
+                    
+                    <div class="formula">
+                        <strong>Optimal Bluff Rate Calculation:</strong><br>
+                        If Challenge Rate > 50%: Bluff Rate = 5% + (50% - CR) × 0.4<br>
+                        If Challenge Rate < 20%: Bluff Rate = 25% + (20% - CR) × 0.5<br>
+                        Otherwise: Mixed Strategy = 15% ± 10%
                     </div>
-                    <div class="win-stat">
-                        <div class="win-stat-value" id="final-mistakes">0</div>
-                        <div class="win-stat-label">Mistakes</div>
+                    
+                    <p><strong>Position Multipliers:</strong></p>
+                    <ul>
+                        <li><strong>No valid moves:</strong> 3.0× (forced to bluff)</li>
+                        <li><strong>Weak position (&lt;3 moves):</strong> 1.5×</li>
+                        <li><strong>Strong position (&gt;10 moves):</strong> 0.3×</li>
+                        <li><strong>Early game (&lt;2 letters):</strong> 0.3× (conservative)</li>
+                        <li><strong>Late game (&gt;6 letters):</strong> 1.5× (aggressive)</li>
+                    </ul>
+                    
+                    <p>This creates an <strong>adaptive mixed strategy</strong> where the AI:</p>
+                    <ul>
+                        <li>Exploits passive players (challenges &lt;20%) by bluffing more</li>
+                        <li>Respects aggressive players (challenges &gt;50%) by bluffing less</li>
+                        <li>Maintains unpredictability against balanced opponents</li>
+                    </ul>
+                    
+                    <p><strong>Bayesian Learning:</strong> The system tracks historical data across all games, updating its belief about your challenge threshold and adjusting in real-time to find the equilibrium strategy.</p>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>🔍 Minimax with Alpha-Beta Pruning</h3>
+                    <p>The Recursive Search AI uses the <strong>Minimax algorithm</strong>, a decision rule for minimizing the maximum possible loss. It explores the game tree by alternating between maximizing the AI's score and minimizing the player's score.</p>
+                    
+                    <div class="formula">
+                        <strong>Minimax Function:</strong><br>
+                        If Maximizing: score = max(all child positions)<br>
+                        If Minimizing: score = min(all child positions)<br>
+                        Base Cases: Word completion = ±100, Invalid move = ±100
+                    </div>
+                    
+                    <p><strong>Alpha-Beta Pruning</strong> optimization eliminates branches that cannot affect the final decision:</p>
+                    <ul>
+                        <li><strong>α (alpha):</strong> Best value maximizer can guarantee</li>
+                        <li><strong>β (beta):</strong> Best value minimizer can guarantee</li>
+                        <li><strong>Pruning condition:</strong> If β ≤ α, stop exploring branch</li>
+                    </ul>
+                    
+                    <p>This reduces the search space from O(b^d) to O(b^(d/2)) where b is branching factor and d is depth. With typical branching ~15 and depth 6, this means exploring ~11,000 positions instead of 11 million!</p>
+                    
+                    <div class="formula">
+                        <strong>Position Evaluation Heuristic:</strong><br>
+                        score = 50 - (valid_continuations × 5) + (word_length × 2)<br>
+                        Penalty: -20 if any move completes a word
                     </div>
                 </div>
-                <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+                
+                <div class="nerd-topic">
+                    <h3>🧠 Neural Network Approach</h3>
+                    <p>The Neural Network AI uses a simplified feedforward architecture inspired by language models:</p>
+                    
+                    <p><strong>Architecture:</strong></p>
+                    <ul>
+                        <li><strong>Input:</strong> One-hot encoded character sequence (26 chars × 20 positions = 520 dimensions)</li>
+                        <li><strong>Hidden Layer 1:</strong> 128 neurons with ReLU activation</li>
+                        <li><strong>Hidden Layer 2:</strong> 128 neurons with ReLU activation</li>
+                        <li><strong>Output:</strong> 26 neurons (probability distribution over letters)</li>
+                    </ul>
+                    
+                    <p><strong>Training Strategy:</strong> While the current version uses engineered heuristics (letter frequency, bigram patterns, position evaluation), a fully trained version would use:</p>
+                    <ul>
+                        <li><strong>Self-play:</strong> AI plays against itself for thousands of games</li>
+                        <li><strong>REINFORCE algorithm:</strong> Policy gradient method that updates weights based on game outcomes</li>
+                        <li><strong>Reward shaping:</strong> +1 for wins, -1 for losses, small penalties for invalid moves</li>
+                    </ul>
+                    
+                    <div class="formula">
+                        <strong>Softmax Temperature:</strong><br>
+                        P(letter) = exp(score/T) / Σ exp(score_i/T)<br>
+                        Temperature T = 0.7 balances exploration vs exploitation
+                    </div>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>📊 Data Structures</h3>
+                    <p><strong>Prefix Tree (Trie):</strong> The dictionary uses a prefix tree for O(m) lookups where m is word length:</p>
+                    <ul>
+                        <li>Each node represents a character position</li>
+                        <li>Paths from root to leaves form valid words</li>
+                        <li>Enables fast prefix validation and continuation enumeration</li>
+                        <li>411,330 words compressed into ~2MB tree structure</li>
+                    </ul>
+                    
+                    <div class="formula">
+                        <strong>Space Complexity:</strong> O(ALPHABET_SIZE × N × L)<br>
+                        where N = number of words, L = average length<br>
+                        <strong>Time Complexity:</strong> O(m) for search/insert
+                    </div>
+                    
+                    <p><strong>Local Storage:</strong> Game state and learning data persisted using browser localStorage:</p>
+                    <ul>
+                        <li>Player statistics (wins/losses/games)</li>
+                        <li>Bluffing system parameters (challenge rates, success rates)</li>
+                        <li>Last 50 games history for trend analysis</li>
+                    </ul>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>🎯 Strategic Heuristics</h3>
+                    <p>The Smart AI uses hand-crafted heuristics based on game theory:</p>
+                    
+                    <p><strong>Move Selection:</strong></p>
+                    <ol>
+                        <li>Filter out moves that immediately complete words</li>
+                        <li>Score remaining moves by counting valid continuations</li>
+                        <li>Prefer moves with fewer continuations (harder for opponent)</li>
+                        <li>Select from top-3 moves with randomization for unpredictability</li>
+                    </ol>
+                    
+                    <p><strong>Zugzwang Principle:</strong> In Ghost, being in "zugzwang" (German: compulsion to move) can be fatal. The AI tries to force the opponent into positions where all moves are bad.</p>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>⚡ Performance Optimizations</h3>
+                    <ul>
+                        <li><strong>Lazy Evaluation:</strong> Prefix tree built on-demand only for accessed branches</li>
+                        <li><strong>Memoization:</strong> Cache minimax evaluations to avoid recomputation</li>
+                        <li><strong>Iterative Deepening:</strong> For very deep searches, build up from shallow depths</li>
+                        <li><strong>Move Ordering:</strong> Evaluate likely-good moves first to maximize alpha-beta pruning</li>
+                    </ul>
+                    
+                    <p><strong>Computational Complexity:</strong></p>
+                    <div class="formula">
+                        Random AI: O(1) - constant time<br>
+                        Smart AI: O(b) - linear in branching factor<br>
+                        Neural Network: O(n) - linear in network size (~50k parameters)<br>
+                        Minimax (depth d): O(b^d) unpruned, O(b^(d/2)) with pruning
+                    </div>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>🔬 Future Enhancements</h3>
+                    <p>Potential improvements for even stronger play:</p>
+                    <ul>
+                        <li><strong>Monte Carlo Tree Search (MCTS):</strong> Sample random playouts to evaluate positions</li>
+                        <li><strong>Opening Book:</strong> Pre-computed optimal moves for first 3-4 letters</li>
+                        <li><strong>Endgame Tablebase:</strong> Perfect play database for positions with few remaining moves</li>
+                        <li><strong>Reinforcement Learning:</strong> Train neural network through self-play with PPO or A3C</li>
+                        <li><strong>Opponent Modeling:</strong> Learn specific player tendencies beyond just challenge rate</li>
+                        <li><strong>Transfer Learning:</strong> Pre-train on large text corpus for better language understanding</li>
+                    </ul>
+                </div>
+                
+                <div class="nerd-topic">
+                    <h3>📚 References & Further Reading</h3>
+                    <ul>
+                        <li>Von Neumann & Morgenstern (1944) - <em>Theory of Games and Economic Behavior</em></li>
+                        <li>Nash (1950) - <em>Equilibrium Points in N-Person Games</em></li>
+                        <li>Knuth & Moore (1975) - <em>An Analysis of Alpha-Beta Pruning</em></li>
+                        <li>Williams (1992) - <em>Simple Statistical Gradient-Following Algorithms (REINFORCE)</em></li>
+                        <li>Silver et al. (2016) - <em>Mastering the Game of Go with Deep Neural Networks</em></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Built by <a href="https://fluidtensor.com" target="_blank">Fluid Tensor Analytics</a>
+                <br>Boulder, Colorado
+            </p>
+            <div class="tech-stack">
+                Reinforcement Learning • Deep Neural Networks • Game Theory
             </div>
         </div>
     </div>
 
     <script>
-        // Number property functions
-        function isPrime(n) {
-            if (n < 2) return false;
-            if (n === 2) return true;
-            if (n % 2 === 0) return false;
-            for (let i = 3; i <= Math.sqrt(n); i += 2) {
-                if (n % i === 0) return false;
+        // ========================================================================
+        // WORD DICTIONARY
+        // ========================================================================
+        
+        // Built-in word list (can be replaced by loading external file)
+        let WORD_LIST = [];
+        let dictionaryLoaded = false;
+        
+        // Default built-in dictionary (will be expanded)
+        const BUILT_IN_WORDS = `ABOUT ABOVE ABUSE ACCEPT ACCESS ACCORD ACCOUNT ACROSS ACTION ACTIVE ACTUAL
+ADAPT ADMIT ADOPT ADVANCE ADVICE AFFECT AFFORD AFRAID AFTER AGAIN AGAINST AGREE AHEAD
+ALLOW ALMOST ALONE ALONG ALREADY ALSO ALTER ALWAYS AMONG AMOUNT ANIMAL ANNUAL ANOTHER
+ANSWER ANYONE ANYWAY APART APPEAL APPEAR APPLY APPROACH AREA ARGUE ARISE AROUND ARRIVE
+ARTICLE ARTIST ASIDE ASPECT ASSESS ASSET ASSIGN ASSIST ASSUME ASSURE ATTACH ATTACK ATTEMPT
+ATTEND ATTRACT AUTHOR AVOID AWARD AWARE BABY BACK BALANCE BALL BAND BANK BARRIER BASE
+BASIC BASIS BATTLE BEACH BEAR BEAT BEAUTIFUL BEAUTY BECAUSE BECOME BEFORE BEGIN BEHALF
+BEHAVIOR BEHIND BEING BELIEF BELIEVE BELONG BELOW BENCH BENEFIT BESIDE BEST BETTER BETWEEN
+BEYOND BILL BIND BIRD BIRTH BLACK BLADE BLAME BLANK BLIND BLOCK BLOOD BLOW BLUE BOARD
+BOAT BODY BOND BONE BOOK BOOM BOOST BORDER BORN BOTH BOTTLE BOTTOM BOUNDARY BOWL BRAIN
+BRANCH BRAVE BREAD BREAK BREAST BREATH BREED BRIEF BRIGHT BRING BROAD BROKEN BROTHER
+BROWN BRUSH BUDGET BUILD BUILDING BULK BULLET BUNCH BURDEN BURN BURST BURY BUSINESS BUSY
+BUTTER BUTTON BUYER CABIN CABLE CAKE CALL CALM CAMERA CAMP CAMPAIGN CAMPUS CANAL CANCEL
+CANDIDATE CAPABLE CAPACITY CAPITAL CAPTAIN CAPTURE CARBON CARD CARE CAREER CAREFUL CARRIER
+CARRY CASE CASH CAST CASUAL CATCH CATEGORY CAUSE CEASE CEILING CELEBRATE CELL CENTER
+CENTRAL CENTURY CERTAIN CHAIN CHAIR CHALLENGE CHAMBER CHAMPION CHANCE CHANGE CHANNEL
+CHAPTER CHARACTER CHARGE CHARITY CHART CHASE CHEAP CHECK CHEEK CHEESE CHEMICAL CHEST CHIEF
+CHILD CHILDHOOD CHOICE CHOOSE CHRONIC CHURCH CIRCLE CITIZEN CITY CIVIL CLAIM CLASS CLASSIC
+CLEAN CLEAR CLIENT CLIMATE CLIMB CLINIC CLOCK CLOSE CLOSELY CLOSER CLOTHES CLOTHING CLOUD
+CLUB CLUE COACH COAL COAST COAT CODE COFFEE COGNITIVE COLD COLLAPSE COLLEAGUE COLLECT
+COLLECTION COLLECTIVE COLLEGE COLONIAL COLOR COLUMN COMBINATION COMBINE COME COMFORT
+COMMAND COMMENT COMMERCIAL COMMISSION COMMIT COMMON COMMUNICATE COMMUNITY COMPANY COMPARE
+COMPETITION COMPETITIVE COMPETITOR COMPLAIN COMPLETE COMPLEX COMPONENT COMPOSE COMPOSITION
+COMPREHENSIVE COMPRISE COMPUTER CONCENTRATE CONCEPT CONCERN CONCERT CONCLUDE CONCLUSION
+CONCRETE CONDITION CONDUCT CONFERENCE CONFIDENCE CONFIDENT CONFIRM CONFLICT CONFRONT
+CONFUSION CONGRESS CONNECT CONNECTION CONSCIOUS CONSENSUS CONSEQUENCE CONSERVATIVE CONSIDER
+CONSIDERABLE CONSIDERATION CONSIST CONSISTENT CONSTANT CONSTITUTE CONSTITUTIONAL CONSTRUCT
+CONSTRUCTION CONSULTANT CONSUME CONSUMER CONTACT CONTAIN CONTEMPORARY CONTENT CONTEST
+CONTEXT CONTINUE CONTRACT CONTRAST CONTRIBUTE CONTRIBUTION CONTROL CONTROVERSIAL CONTROVERSY
+CONVENTION CONVENTIONAL CONVERSATION CONVERT CONVICTION CONVINCE COOK COOL COOPERATION
+COORDINATE COPE COPY CORE CORNER CORPORATE CORPORATION CORRECT CORRESPONDENT COST COTTON
+COUNCIL COUNSEL COUNT COUNTER COUNTRY COUNTY COUPLE COURAGE COURSE COURT COUSIN COVER
+COVERAGE CRACK CRAFT CRASH CRAZY CREAM CREATE CREATION CREATIVE CREATURE CREDIT CREW CRIME
+CRIMINAL CRISIS CRITERIA CRITIC CRITICAL CRITICISM CROP CROSS CROWD CRUCIAL CRUISE CULTURAL
+CULTURE CURIOUS CURRENT CURRICULUM CURVE CUSTOM CUSTOMER CYCLE DAILY DAMAGE DANCE DANGER
+DANGEROUS DARE DARK DARKNESS DATA DATE DAUGHTER DAWN DEAD DEAL DEALER DEAR DEATH DEBATE
+DEBT DECADE DECIDE DECISION DECK DECLARE DECLINE DECREASE DEEP DEEPLY DEER DEFEAT DEFEND
+DEFENDANT DEFENSE DEFENSIVE DEFICIT DEFINE DEFINITELY DEFINITION DEGREE DELAY DELIVER
+DELIVERY DEMAND DEMOCRACY DEMOCRATIC DEMONSTRATE DEMONSTRATION DENY DEPARTMENT DEPEND
+DEPENDENT DEPICT DEPLOY DEPRESSION DEPTH DEPUTY DERIVE DESCRIBE DESCRIPTION DESERT DESERVE
+DESIGN DESIGNER DESIRE DESK DESPERATE DESPITE DESTROY DESTRUCTION DETAIL DETAILED DETECT
+DETERMINE DEVELOP DEVELOPMENT DEVICE DEVOTE DIALOGUE DIAMOND DIET DIFFER DIFFERENCE DIFFERENT
+DIFFICULT DIFFICULTY DIGITAL DIMENSION DINING DINNER DIRECT DIRECTION DIRECTLY DIRECTOR
+DIRT DIRTY DISABILITY DISAGREE DISAPPEAR DISASTER DISCIPLINE DISCOURSE DISCOVER DISCOVERY
+DISCRIMINATION DISCUSS DISCUSSION DISEASE DISH DISMISS DISORDER DISPLAY DISPUTE DISTANCE
+DISTANT DISTINCT DISTINCTION DISTINGUISH DISTRIBUTE DISTRIBUTION DISTRICT DIVERSE DIVERSITY
+DIVIDE DIVISION DIVORCE DOCTOR DOCTRINE DOCUMENT DOMESTIC DOMINANT DOMINATE DOOR DOUBLE
+DOUBT DOWN DOWNTOWN DOZEN DRAFT DRAG DRAMA DRAMATIC DRAW DRAWING DREAM DRESS DRINK DRIVE
+DRIVER DROP DRUG DRUM DRUNK DUAL DUCK DUMB DUMP DURING DUST DUTY DYNAMIC EACH EAGER EARLY
+EARN EARNINGS EARTH EASE EASILY EAST EASTERN EASY ECONOMIC ECONOMICS ECONOMY EDGE EDIT
+EDITION EDITOR EDUCATE EDUCATION EDUCATIONAL EFFECT EFFECTIVE EFFICIENCY EFFICIENT EFFORT
+EIGHT EITHER ELDERLY ELECT ELECTION ELECTRIC ELECTRICITY ELECTRONIC ELEMENT ELEMENTARY
+ELEPHANT ELEVATE ELIMINATE ELITE ELSE ELSEWHERE EMBARK EMBRACE EMERGE EMERGENCY EMISSION
+EMOTION EMOTIONAL EMPHASIS EMPHASIZE EMPLOY EMPLOYEE EMPLOYER EMPLOYMENT EMPTY ENABLE
+ENCOUNTER ENCOURAGE ENERGY ENFORCE ENGAGE ENGINE ENGINEER ENGINEERING ENHANCE ENJOY ENORMOUS
+ENOUGH ENSURE ENTER ENTERPRISE ENTERTAINMENT ENTIRE ENTIRELY ENTITLE ENTITY ENTRANCE ENTRY
+ENVIRONMENT ENVIRONMENTAL EPISODE EQUAL EQUALLY EQUIPMENT EQUITY EQUIVALENT ERROR ESCAPE
+ESPECIALLY ESSAY ESSENTIAL ESTABLISH ESTABLISHMENT ESTATE ESTIMATE ETHICS ETHNIC EVALUATE
+EVALUATION EVEN EVENING EVENT EVENTUALLY EVER EVERY EVERYBODY EVERYONE EVERYTHING EVERYWHERE
+EVIDENCE EVOLUTION EVOLVE EXACT EXACTLY EXAMINATION EXAMINE EXAMPLE EXCEED EXCELLENT EXCEPT
+EXCEPTION EXCESS EXCHANGE EXCITE EXCLUDE EXCLUSIVE EXCUSE EXECUTIVE EXERCISE EXHIBIT EXHIBITION
+EXIST EXISTENCE EXISTING EXPAND EXPANSION EXPECT EXPECTATION EXPENSE EXPENSIVE EXPERIENCE
+EXPERIMENT EXPERT EXPLAIN EXPLANATION EXPLODE EXPLORE EXPLOSION EXPOSE EXPOSURE EXPRESS
+EXPRESSION EXTEND EXTENSION EXTENSIVE EXTENT EXTERNAL EXTRA EXTRAORDINARY EXTREME EXTREMELY
+FABRIC FACE FACILITATE FACILITY FACT FACTOR FACTORY FACULTY FAIL FAILURE FAIR FAIRLY FAITH
+FALL FALSE FAMILIAR FAMILY FAMOUS FANTASY FARM FARMER FASHION FAST FATAL FATHER FAULT FAVOR
+FAVORITE FEAR FEATURE FEDERAL FEE FEED FEEL FEELING FELLOW FEMALE FENCE FESTIVAL FEWER FIBER
+FICTION FIELD FIFTEEN FIFTH FIFTY FIGHT FIGHTER FIGURE FILE FILL FILM FINAL FINALLY FINANCE
+FINANCIAL FIND FINDING FINE FINGER FINISH FIRE FIRM FIRST FISCAL FISH FISHING FIVE FIXED FLAG
+FLAME FLASH FLAT FLAVOR FLEE FLESH FLEXIBLE FLIGHT FLOAT FLOOR FLOW FLOWER FLUID FOCUS FOLD
+FOLK FOLLOW FOLLOWING FOOD FOOT FOOTBALL FORCE FOREIGN FOREST FOREVER FORGET FORM FORMAL
+FORMAT FORMATION FORMER FORMULA FORTH FORTUNE FORUM FORWARD FOSTER FOUND FOUNDATION FOUNDER
+FOUR FOURTH FRAME FRAMEWORK FRANK FREE FREEDOM FREEZE FRENCH FREQUENCY FREQUENT FREQUENTLY
+FRESH FRIEND FRIENDLY FRIENDSHIP FRONT FRUIT FRUSTRATE FUEL FULL FULLY FUNCTION FUNCTIONAL
+FUND FUNDAMENTAL FUNDING FUNERAL FUNNY FURNITURE FURTHERMORE FUTURE GAIN GALAXY GALLERY GAME
+GANG GARAGE GARBAGE GARDEN GARLIC GATHER GAZE GEAR GENDER GENE GENERAL GENERALLY GENERATE
+GENERATION GENETIC GENTLEMAN GENTLY GHOST GIANT GIFT GIRL GIRLFRIEND GIVEN GLAD GLANCE GLASS
+GLOBAL GLOVE GOAL GOLD GOLDEN GOLF GOOD GOVERNMENT GOVERNOR GRAB GRADE GRADUALLY GRADUATE
+GRAIN GRAND GRANDFATHER GRANDMOTHER GRANT GRASS GRAVE GRAY GREAT GREATEST GREATLY GREEN GREET
+GROCERY GROSS GROUND GROUP GROW GROWING GROWTH GUARANTEE GUARD GUESS GUEST GUIDANCE GUIDE
+GUIDELINE GUILTY GUITAR GULF HABITAT HAIR HALF HALL HAND HANDFUL HANDLE HANG HAPPEN HAPPY
+HARD HARDLY HARM HARMONY HARSH HATE HAVE HEAD HEADLINE HEADQUARTERS HEALTH HEALTHY HEAR
+HEARING HEART HEAT HEAVEN HEAVILY HEAVY HEEL HEIGHT HELICOPTER HELL HELLO HELP HELPFUL HENCE
+HERO HERSELF HESITATE HIDDEN HIDE HIGH HIGHLIGHT HIGHLY HIGHWAY HILL HIMSELF HINT HIRE
+HISTORIC HISTORICAL HISTORY HOLD HOLE HOLIDAY HOLLOW HOLY HOME HOMELESS HONEST HONEY HONOR
+HOPE HORIZON HORROR HORSE HOSPITAL HOST HOSTILE HOTEL HOUR HOUSE HOUSEHOLD HOUSING HOWEVER
+HUGE HUMAN HUMOR HUNDRED HUNGRY HUNTER HUNTING HURRY HURT HUSBAND HYPOTHESIS IDEAL IDENTIFICATION
+IDENTIFY IDENTITY IDEOLOGY IGNORE ILLEGAL ILLNESS ILLUSTRATE IMAGE IMAGINATION IMAGINE IMMEDIATE
+IMMEDIATELY IMMIGRANT IMMIGRATION IMPACT IMPLEMENT IMPLICATION IMPLY IMPORT IMPORTANCE IMPORTANT
+IMPOSE IMPOSSIBLE IMPRESS IMPRESSION IMPRESSIVE IMPROVE IMPROVEMENT INCENTIVE INCIDENT INCLUDE
+INCLUDING INCOME INCORPORATE INCREASE INCREASED INCREASING INCREASINGLY INCREDIBLE INDEED
+INDEPENDENCE INDEPENDENT INDEX INDIAN INDICATE INDICATION INDIVIDUAL INDUSTRIAL INDUSTRY INFANT
+INFECTION INFLATION INFLUENCE INFORM INFORMATION INITIAL INITIALLY INITIATIVE INJURY INNER
+INNOCENT INQUIRY INSIDE INSIGHT INSIST INSPIRE INSTALL INSTANCE INSTEAD INSTITUTION INSTITUTIONAL
+INSTRUCTION INSTRUCTOR INSTRUMENT INSURANCE INTELLECTUAL INTELLIGENCE INTEND INTENSE INTENSITY
+INTENT INTENTION INTERACTION INTEREST INTERESTED INTERESTING INTERNAL INTERNATIONAL INTERNET
+INTERPRET INTERPRETATION INTERRUPT INTERVENTION INTERVIEW INTO INTRODUCE INTRODUCTION INVASION
+INVEST INVESTIGATE INVESTIGATION INVESTIGATOR INVESTMENT INVESTOR INVITE INVOLVE INVOLVED
+INVOLVEMENT IRON ISLAND ISOLATE ISSUE ITEM ITSELF JACKET JAIL JAPANESE JEAN JEWISH JOIN JOINT
+JOKE JOURNAL JOURNALIST JOURNEY JUDGE JUDGMENT JUICE JUMP JUNIOR JURY JUST JUSTICE JUSTIFY KEEP
+KERNEL KICK KIND KING KISS KITCHEN KNEE KNIFE KNOCK KNOW KNOWLEDGE LABOR LABORATORY LACK LADY
+LAKE LAND LANDSCAPE LANGUAGE LARGE LARGELY LAST LATE LATER LATIN LATTER LAUGH LAUNCH LAWN
+LAWSUIT LAWYER LAYER LEAD LEADER LEADERSHIP LEADING LEAF LEAGUE LEAN LEARN LEARNING LEAST
+LEATHER LEAVE LEFT LEGACY LEGAL LEGEND LEGISLATION LEGISLATIVE LEGITIMATE LEMON LENGTH LESS
+LESSON LETTER LEVEL LIBERAL LIBRARY LICENSE LIFE LIFESTYLE LIFETIME LIFT LIGHT LIGHTNING LIKE
+LIKELY LIMIT LIMITATION LIMITED LINE LINK LION LIQUID LIST LISTEN LITERALLY LITERARY LITERATURE
+LITTLE LIVE LIVING LOAD LOAN LOCAL LOCATE LOCATION LOCK LONG LONG-TERM LOOK LOOSE LORD LOSE
+LOSS LOST LOUD LOVE LOVELY LOVER LOWER LUCK LUCKY LUNCH LUNG MACHINE MACHINERY MAGAZINE MAIL
+MAIN MAINLY MAINTAIN MAINTENANCE MAJOR MAJORITY MAKE MAKER MAKEUP MALE MALL MANAGE MANAGEMENT
+MANAGER MANNER MANUFACTURER MANUFACTURING MANY MARGIN MARK MARKET MARKETING MARRIAGE MARRIED
+MARRY MASK MASS MASSIVE MASTER MATCH MATERIAL MATH MATTER MATURE MAXIMUM MAYBE MAYOR MEAL MEAN
+MEANING MEANWHILE MEASURE MEASUREMENT MEAT MECHANISM MEDIA MEDICAL MEDICATION MEDICINE MEDIUM
+MEET MEETING MEMBER MEMBERSHIP MEMORY MENTAL MENTION MENTOR MENU MERE MERELY MERIT MESS MESSAGE
+METAL METAPHOR METHOD MEXICAN MIDDLE MIGHT MILITARY MILK MILLION MIND MINE MINISTER MINOR MINORITY
+MINUTE MIRACLE MIRROR MISS MISSILE MISSION MISTAKE MIXED MIXTURE MOBILE MODE MODEL MODERATE
+MODERN MODEST MODIFICATION MODIFY MOMENT MONEY MONITOR MONTH MOOD MOON MORAL MORE MOREOVER
+MORNING MORTGAGE MOST MOSTLY MOTHER MOTION MOTIVATE MOTIVATION MOTOR MOUNT MOUNTAIN MOUSE MOUTH
+MOVE MOVEMENT MOVIE MUCH MULTIPLE MURDER MUSCLE MUSEUM MUSIC MUSICAL MUSICIAN MUST MUTUAL MYSELF
+MYSTERIOUS MYSTERY MYTH NAKED NAME NARRATIVE NARROW NATION NATIONAL NATIVE NATURAL NATURALLY
+NATURE NAVAL NAVY NEAR NEARBY NEARLY NECESSARILY NECESSARY NECK NEED NEGATIVE NEGOTIATE NEGOTIATION
+NEIGHBOR NEIGHBORHOOD NEITHER NERVE NERVOUS NETWORK NEVER NEVERTHELESS NEWLY NEWS NEWSPAPER NEXT
+NICE NIGHT NINE NOBODY NODS NOISE NOMINATE NONE NONETHELESS NOON NOR NORMAL NORMALLY NORTH
+NORTHERN NOSE NOTE NOTHING NOTICE NOTION NOVEL NOWHERE NUCLEAR NUMBER NUMEROUS NURSE NUT OBJECT
+OBJECTIVE OBLIGATION OBSERVATION OBSERVE OBSERVER OBTAIN OBVIOUS OBVIOUSLY OCCASION OCCASIONALLY
+OCCUPATION OCCUPY OCCUR OCEAN ODDS OFFENSE OFFENSIVE OFFER OFFICE OFFICER OFFICIAL OFTEN OKAY
+ONCE ONGOING ONION ONLINE ONLY ONTO OPEN OPENING OPERATE OPERATING OPERATION OPERATOR OPINION
+OPPONENT OPPORTUNITY OPPOSE OPPOSITE OPPOSITION OPTION ORANGE ORDER ORDINARY ORGAN ORGANIC
+ORGANIZATION ORGANIZE ORIGIN ORIGINAL ORIGINALLY OTHER OTHERWISE OUGHT OUTCOME OUTDOOR OUTER
+OUTLINE OUTPUT OUTSIDE OUTSTANDING OVERALL OVERCOME OVERLAP OVERLOOK OVERNIGHT OVERSEAS OVERVIEW
+OVERWHELMING OWNER PACE PACK PACKAGE PAGE PAIN PAINFUL PAINT PAINTER PAINTING PAIR PALE PALM
+PANEL PANT PAPER PARENT PARK PARKING PART PARTICIPANT PARTICIPATE PARTICIPATION PARTICULAR
+PARTICULARLY PARTLY PARTNER PARTNERSHIP PARTY PASS PASSAGE PASSENGER PASSION PAST PATCH PATH
+PATIENT PATTERN PAUSE PAYMENT PEACE PEAK PEER PENALTY PEOPLE PEPPER PERCEIVE PERCENTAGE PERCEPTION
+PERFECT PERFECTLY PERFORM PERFORMANCE PERHAPS PERIOD PERMANENT PERMISSION PERMIT PERSON PERSONAL
+PERSONALITY PERSONALLY PERSONNEL PERSPECTIVE PERSUADE PHASE PHENOMENON PHILOSOPHY PHONE PHOTO
+PHOTOGRAPH PHOTOGRAPHER PHRASE PHYSICAL PHYSICALLY PHYSICIAN PIANO PICK PICTURE PIECE PILE PILOT
+PINE PINK PIPE PITCH PLACE PLAN PLANE PLANET PLANNING PLANT PLASTIC PLATE PLATFORM PLAY PLAYER
+PLEASANT PLEASE PLEASURE PLENTY PLOT PLUS POCKET POEM POET POETRY POINT POLE POLICE POLICY
+POLITICAL POLITICALLY POLITICIAN POLITICS POLL POLLUTION POOL POOR POPULAR POPULATION PORCH
+PORT PORTION PORTRAIT PORTRAY POSE POSITION POSITIVE POSSESS POSSIBILITY POSSIBLE POSSIBLY POST
+POTATO POTENTIAL POTENTIALLY POUND POUR POVERTY POWDER POWER POWERFUL PRACTICAL PRACTICE PRAY
+PRAYER PRECISELY PREDICT PREFER PREFERENCE PREGNANT PREPARATION PREPARE PRESCRIPTION PRESENCE
+PRESENT PRESENTATION PRESERVE PRESIDENT PRESIDENTIAL PRESS PRESSURE PRETEND PRETTY PREVENT
+PREVIOUS PREVIOUSLY PRICE PRIDE PRIEST PRIMARY PRIME PRINCIPAL PRINCIPLE PRINT PRIOR PRIORITY
+PRISON PRISONER PRIVACY PRIVATE PROBABLY PROBLEM PROCEDURE PROCEED PROCESS PRODUCE PRODUCER
+PRODUCT PRODUCTION PRODUCTIVE PROFESSION PROFESSIONAL PROFESSOR PROFILE PROFIT PROGRAM PROGRESS
+PROJECT PROMINENT PROMISE PROMOTE PROMPT PROOF PROPER PROPERLY PROPERTY PROPORTION PROPOSAL
+PROPOSE PROPOSITION PROSECUTOR PROSPECT PROTECT PROTECTION PROTEIN PROTEST PROUD PROVE PROVIDE
+PROVIDER PROVINCE PROVISION PSYCHOLOGICAL PSYCHOLOGIST PSYCHOLOGY PUBLIC PUBLICATION PUBLICLY
+PUBLISH PUBLISHER PULL PUNISHMENT PURCHASE PURE PURPLE PURPOSE PURSUE PUSH QUALIFY QUALITY
+QUARTER QUEEN QUESTION QUICK QUICKLY QUIET QUIETLY QUIT QUITE QUOTE RACE RACIAL RADICAL RADIO
+RAIL RAIN RAISE RANGE RANK RAPID RAPIDLY RARE RARELY RATE RATHER RATING RATIO RATIONAL REACH
+REACT REACTION READ READER READING READY REAL REALITY REALIZE REALLY REASON REASONABLE RECALL
+RECEIVE RECENT RECENTLY RECIPE RECOGNITION RECOGNIZE RECOMMEND RECOMMENDATION RECORD RECORDING
+RECOVER RECOVERY RECRUIT REDUCE REDUCTION REFER REFERENCE REFLECT REFLECTION REFORM REFUGEE
+REFUSE REGARD REGARDING REGARDLESS REGIME REGION REGIONAL REGISTER REGULATION REINFORCE REJECT
+RELATE RELATION RELATIONSHIP RELATIVE RELATIVELY RELAX RELEASE RELEVANT RELIEF RELIGION RELIGIOUS
+RELY REMAIN REMAINING REMARKABLE REMEMBER REMIND REMOTE REMOVE REPEAT REPEATEDLY REPLACE REPLY
+REPORT REPORTER REPRESENT REPRESENTATION REPRESENTATIVE REPUBLIC REPUBLICAN REPUTATION REQUEST
+REQUIRE REQUIREMENT RESEARCH RESEARCHER RESEMBLE RESERVATION RESIDENT RESIST RESISTANCE RESOLUTION
+RESOLVE RESORT RESOURCE RESPECT RESPOND RESPONDENT RESPONSE RESPONSIBILITY RESPONSIBLE REST
+RESTAURANT RESTORE RESTRICTION RESULT RETAIN RETIRE RETIREMENT RETURN REVEAL REVENUE REVIEW
+REVOLUTION RHYTHM RICE RICH RIDE RIFLE RIGHT RING RISE RISK RITUAL RIVER ROAD ROCK ROLE ROLL
+ROMANTIC ROOF ROOM ROOT ROPE ROSE ROUGH ROUGHLY ROUND ROUTE ROUTINE ROYAL RUIN RULE RULING RUNNER
+RUNNING RURAL RUSH SACRED SACRIFICE SAFE SAFETY SAKE SALAD SALARY SALE SALES SALT SAME SAMPLE
+SANCTION SAND SATELLITE SATISFACTION SATISFY SAUCE SAVE SAVING SCALE SCANDAL SCARED SCENARIO
+SCENE SCHEDULE SCHEME SCHOLAR SCHOLARSHIP SCHOOL SCIENCE SCIENTIFIC SCIENTIST SCOPE SCORE SCREAM
+SCREEN SCRIPT SCRUTINY SCULPTURE SEAL SEARCH SEASON SEAT SECOND SECONDARY SECRET SECRETARY SECTION
+SECTOR SECURE SECURITY SEED SEEK SEEM SEGMENT SEIZE SELECT SELECTION SELF SELL SENATOR SEND SENIOR
+SENSE SENSITIVE SENTENCE SEPARATE SEQUENCE SERIES SERIOUS SERIOUSLY SERVE SERVICE SESSION SETTLE
+SETTLEMENT SEVEN SEVERAL SEVERE SEXUAL SHADE SHADOW SHAKE SHALL SHAPE SHARE SHARP SHATTER SHED
+SHELF SHELL SHELTER SHIFT SHINE SHIP SHIRT SHOCK SHOE SHOOT SHOP SHOPPING SHORE SHORT SHORTLY SHOT
+SHOULD SHOULDER SHOUT SHOW SHOWER SHRUG SHUT SHUTTLE SICK SIDE SIGH SIGHT SIGN SIGNAL SIGNIFICANCE
+SIGNIFICANT SIGNIFICANTLY SILENCE SILENT SILVER SIMILAR SIMILARLY SIMPLE SIMPLY SIMULATION SINCE
+SING SINGER SINGLE SINK SISTER SITE SITUATION SIZE SKELETON SKETCH SKILL SKIN SKIP SKULL SLAVE
+SLEEP SLICE SLIDE SLIGHT SLIGHTLY SLIP SLOPE SLOW SLOWLY SMALL SMART SMELL SMILE SMOKE SMOOTH SNAP
+SNOW SOCIAL SOCIALIST SOCIETY SOFT SOFTWARE SOIL SOLAR SOLDIER SOLE SOLID SOLUTION SOLVE SOMEBODY
+SOMEHOW SOMEONE SOMETHING SOMETIMES SOMEWHAT SOMEWHERE SON SONG SOON SOPHISTICATED SORRY SORT SOUL
+SOUND SOURCE SOUTH SOUTHERN SOVIET SPACE SPAN SPANISH SPEAK SPEAKER SPECIAL SPECIALIST SPECIES
+SPECIFIC SPECIFICALLY SPECTACULAR SPEECH SPEED SPEND SPENDING SPIN SPIRIT SPIRITUAL SPLIT SPOKESMAN
+SPONSOR SPORT SPOT SPREAD SPRING SQUARE SQUEEZE STABILITY STABLE STAFF STAGE STAIR STAKE STAND
+STANDARD STANDING STAR STARE START STATE STATEMENT STATION STATISTICAL STATISTICS STATUS STAY
+STEADY STEAL STEEL STEEP STEER STEM STEP STICK STILL STIMULATE STIR STOCK STOMACH STONE STOP
+STORAGE STORE STORM STORY STRAIGHT STRANGE STRANGER STRATEGIC STRATEGY STREAM STREET STRENGTH
+STRENGTHEN STRESS STRETCH STRIKE STRIKING STRING STRIP STROKE STRONG STRONGLY STRUCTURE STRUGGLE
+STUDENT STUDIO STUDY STUFF STUPID STYLE SUBJECT SUBMIT SUBSEQUENT SUBSTANCE SUBSTANTIAL SUCCEED
+SUCCESS SUCCESSFUL SUCCESSFULLY SUCH SUDDEN SUDDENLY SUFFER SUFFICIENT SUGAR SUGGEST SUGGESTION
+SUICIDE SUIT SUMMER SUMMIT SUPER SUPERIOR SUPPLY SUPPORT SUPPORTER SUPPOSE SUPPOSED SUPREME SURE
+SURELY SURFACE SURGERY SURPRISE SURPRISED SURPRISING SURPRISINGLY SURROUND SURVEY SURVIVAL SURVIVE
+SURVIVOR SUSPECT SUSTAIN SWEAR SWEEP SWEET SWIM SWING SWITCH SYMBOL SYMPTOM SYSTEM TABLE TABLESPOON
+TACTIC TAIL TAKE TALE TALENT TALK TALL TANK TAPE TARGET TASK TASTE TEACH TEACHER TEACHING TEAM
+TEAR TEASPOON TECHNICAL TECHNIQUE TECHNOLOGY TEEN TEENAGER TELEPHONE TELESCOPE TELEVISION TELL
+TEMPERATURE TEMPORARY TEND TENDENCY TENNIS TENSION TENT TERM TERMS TERRIBLE TERRITORY TERROR
+TERRORISM TERRORIST TEST TESTIFY TESTIMONY TESTING TEXT THAN THANK THANKS THAT THEATER THEIR THEM
+THEME THEMSELVES THEN THEORY THERAPY THERE THEREFORE THESE THEY THICK THIN THING THINK THINKING
+THIRD THIRTY THIS THOSE THOUGH THOUGHT THOUSAND THREAT THREATEN THREE THROAT THROUGH THROUGHOUT
+THROW THUS TICKET TIDE TIGHT TIME TINY TIRE TIRED TISSUE TITLE TOBACCO TODAY TOGETHER TOMATO
+TOMORROW TONE TONGUE TONIGHT TOOL TOOTH TOPIC TOSS TOTAL TOTALLY TOUCH TOUGH TOUR TOURIST TOURNAMENT
+TOWARD TOWARDS TOWER TOWN TRACE TRACK TRADE TRADITION TRADITIONAL TRAFFIC TRAGEDY TRAIL TRAIN
+TRAINING TRANSFER TRANSFORM TRANSFORMATION TRANSITION TRANSLATE TRANSMISSION TRANSMIT TRANSPORT
+TRANSPORTATION TRAP TRAVEL TREAT TREATMENT TREATY TREE TREMENDOUS TREND TRIAL TRIBE TRICK TRIP
+TROOP TROUBLE TRUCK TRUE TRULY TRUST TRUTH TUBE TUNNEL TURN TWELVE TWENTY TWICE TWIN TYPE TYPICAL
+TYPICALLY UGLY ULTIMATE ULTIMATELY UNABLE UNCLE UNDER UNDERGO UNDERSTAND UNDERSTANDING UNFORTUNATELY
+UNIFORM UNION UNIQUE UNIT UNITED UNIVERSAL UNIVERSE UNIVERSITY UNKNOWN UNLESS UNLIKE UNLIKELY UNTIL
+UNUSUAL UPON UPPER URBAN URGE USAGE USED USEFUL USER USUAL USUALLY UTILITY VACATION VALLEY VALUABLE
+VALUE VARIABLE VARIATION VARIETY VARIOUS VARY VAST VEGETABLE VEHICLE VENTURE VERSION VERSUS VERY
+VESSEL VETERAN VETO VIBRANT VICE VICTIM VICTORY VIDEO VIEW VIEWER VILLAGE VIOLATE VIOLATION VIOLENCE
+VIOLENT VIRTUAL VIRTUALLY VIRTUE VIRUS VISIBLE VISION VISIT VISITOR VISUAL VITAL VOICE VOLUME VOLUNTEER
+VOTE VOTER VULNERABLE WAGE WAIT WAKE WALK WALL WANDER WANT WARD WARM WARNING WASH WASTE WATCH WATER
+WAVE WEAK WEALTH WEALTHY WEAPON WEAR WEATHER WEDDING WEEK WEEKEND WEEKLY WEIGH WEIGHT WELCOME WELFARE
+WELL WEST WESTERN WHATEVER WHEAT WHEEL WHEN WHENEVER WHERE WHEREAS WHETHER WHICH WHILE WHISPER WHITE
+WHOLE WHOM WHOSE WIDE WIDELY WIDESPREAD WIFE WILD WILL WILLING WIN WIND WINDOW WINE WING WINNER WINTER
+WIPE WIRE WISDOM WISE WISH WITHDRAW WITHIN WITHOUT WITNESS WOMAN WONDER WONDERFUL WOOD WOODEN WORD
+WORK WORKER WORKING WORKSHOP WORLD WORLDWIDE WORRY WORTH WOULD WOUND WRAP WRITE WRITER WRITING WRONG
+YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`.split(/\s+/);
+        
+        // Function to load external dictionary
+        async function loadExternalDictionary(url) {
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                const words = text.split(/[\n\r]+/)
+                    .map(w => w.trim().toUpperCase())
+                    .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w));
+                
+                WORD_LIST = [...new Set(words)]; // Remove duplicates
+                buildPrefixTree();
+                dictionaryLoaded = true;
+                console.log(`Loaded ${WORD_LIST.length} words from external dictionary`);
+                return true;
+            } catch (error) {
+                console.error('Failed to load external dictionary:', error);
+                return false;
             }
-            return true;
         }
-
-        function isTriangular(n) {
-            const x = 8 * n + 1;
-            const sqrtX = Math.floor(Math.sqrt(x));
-            return sqrtX * sqrtX === x;
+        
+        // Initialize with built-in dictionary
+        WORD_LIST = BUILT_IN_WORDS;
+        
+        // Build prefix tree
+        const prefixTree = {};
+        
+        function buildPrefixTree() {
+            WORD_LIST.forEach(word => {
+                if (word.length < 4) return;
+                let node = prefixTree;
+                for (let char of word) {
+                    if (!node[char]) node[char] = {};
+                    node = node[char];
+                }
+                node['$'] = true;
+            });
         }
-
-        function isFibonacci(n) {
-            const isPerfectSquare = (x) => {
-                const s = Math.floor(Math.sqrt(x));
-                return s * s === x;
-            };
-            return isPerfectSquare(5*n*n + 4) || isPerfectSquare(5*n*n - 4);
-        }
-
-        function isHappy(n) {
-            const seen = new Set();
-            while (n !== 1 && !seen.has(n)) {
-                seen.add(n);
-                n = String(n).split('').reduce((sum, digit) => sum + parseInt(digit)**2, 0);
+        
+        function getValidContinuations(prefix) {
+            let node = prefixTree;
+            for (let char of prefix) {
+                if (!node[char]) return [];
+                node = node[char];
             }
-            return n === 1;
+            return Object.keys(node).filter(k => k !== '$');
         }
-
-        function sumProperDivisors(n) {
-            if (n <= 1) return 0;
-            const divisors = [1];
-            for (let i = 2; i <= Math.sqrt(n); i++) {
-                if (n % i === 0) {
-                    divisors.push(i);
-                    if (i !== n / i) divisors.push(n / i);
+        
+        function isCompleteWord(str) {
+            if (str.length < 4) return false;
+            let node = prefixTree;
+            for (let char of str) {
+                if (!node[char]) return false;
+                node = node[char];
+            }
+            return node['$'] === true;
+        }
+        
+        function hasValidContinuation(prefix) {
+            let node = prefixTree;
+            for (let char of prefix) {
+                if (!node[char]) return false;
+                node = node[char];
+            }
+            return Object.keys(node).filter(k => k !== '$').length > 0;
+        }
+        
+        function findCompletableWords(prefix) {
+            const words = [];
+            
+            function search(node, current) {
+                if (node['$']) words.push(current);
+                for (let key of Object.keys(node)) {
+                    if (key !== '$') {
+                        search(node[key], current + key);
+                    }
                 }
             }
-            return divisors.reduce((a, b) => a + b, 0);
-        }
-
-        function isArmstrong(n) {
-            const digits = String(n).split('').map(d => parseInt(d));
-            const power = digits.length;
-            return digits.reduce((sum, d) => sum + Math.pow(d, power), 0) === n;
-        }
-
-        const NUMBER_CATEGORIES = {
-            multiples_2: {
-                name: 'Multiples of 2',
-                description: 'Even numbers',
-                difficulty: 'easy',
-                check: n => n % 2 === 0,
-                color: 'yellow'
-            },
-            multiples_3: {
-                name: 'Multiples of 3',
-                description: 'Divisible by 3',
-                difficulty: 'easy',
-                check: n => n % 3 === 0,
-                color: 'green'
-            },
-            multiples_5: {
-                name: 'Multiples of 5',
-                description: 'Divisible by 5',
-                difficulty: 'easy',
-                check: n => n % 5 === 0,
-                color: 'blue'
-            },
-            multiples_7: {
-                name: 'Multiples of 7',
-                description: 'Divisible by 7',
-                difficulty: 'medium',
-                check: n => n % 7 === 0,
-                color: 'purple'
-            },
-            prime: {
-                name: 'Prime Numbers',
-                description: 'Only divisible by 1 and itself',
-                difficulty: 'medium',
-                check: isPrime,
-                color: 'green'
-            },
-            perfect_square: {
-                name: 'Perfect Squares',
-                description: 'n = k² for some integer k',
-                difficulty: 'medium',
-                check: n => Math.floor(Math.sqrt(n))**2 === n,
-                color: 'blue'
-            },
-            perfect_cube: {
-                name: 'Perfect Cubes',
-                description: 'n = k³ for some integer k',
-                difficulty: 'hard',
-                check: n => Math.round(Math.cbrt(n))**3 === n,
-                color: 'purple'
-            },
-            triangular: {
-                name: 'Triangular Numbers',
-                description: 'n = k(k+1)/2 for some k',
-                difficulty: 'hard',
-                check: isTriangular,
-                color: 'yellow'
-            },
-            fibonacci: {
-                name: 'Fibonacci Numbers',
-                description: 'In the Fibonacci sequence',
-                difficulty: 'hard',
-                check: isFibonacci,
-                color: 'green'
-            },
-            power_of_2: {
-                name: 'Powers of 2',
-                description: 'n = 2^k for some k',
-                difficulty: 'medium',
-                check: n => n > 0 && (n & (n - 1)) === 0,
-                color: 'blue'
-            },
-            palindrome: {
-                name: 'Palindromic Numbers',
-                description: 'Reads same forwards and backwards',
-                difficulty: 'easy',
-                check: n => String(n) === String(n).split('').reverse().join(''),
-                color: 'purple'
-            },
-            happy: {
-                name: 'Happy Numbers',
-                description: 'Sum of squares of digits eventually reaches 1',
-                difficulty: 'hard',
-                check: isHappy,
-                color: 'yellow'
-            },
-            abundant: {
-                name: 'Abundant Numbers',
-                description: 'Sum of proper divisors > n',
-                difficulty: 'hard',
-                check: n => sumProperDivisors(n) > n,
-                color: 'green'
-            },
-            deficient: {
-                name: 'Deficient Numbers',
-                description: 'Sum of proper divisors < n',
-                difficulty: 'medium',
-                check: n => sumProperDivisors(n) < n,
-                color: 'blue'
-            },
-            perfect: {
-                name: 'Perfect Numbers',
-                description: 'Sum of proper divisors = n',
-                difficulty: 'hard',
-                check: n => sumProperDivisors(n) === n,
-                color: 'purple'
-            },
-            harshad: {
-                name: 'Harshad Numbers',
-                description: 'Divisible by sum of its digits',
-                difficulty: 'medium',
-                check: n => n % String(n).split('').reduce((a, b) => a + parseInt(b), 0) === 0,
-                color: 'yellow'
-            },
-            armstrong: {
-                name: 'Armstrong Numbers',
-                description: 'Sum of digits^(# digits) equals n',
-                difficulty: 'hard',
-                check: isArmstrong,
-                color: 'green'
+            
+            let node = prefixTree;
+            for (let char of prefix) {
+                if (!node[char]) return [];
+                node = node[char];
             }
-        };
-
-        class ConnectionsGame {
+            
+            search(node, prefix);
+            return words;
+        }
+        
+        // ========================================================================
+        // NEURAL NETWORK (Simplified implementation)
+        // ========================================================================
+        
+        class GhostNeuralNetwork {
             constructor() {
-                this.selectedCategories = new Set();
-                this.puzzle = null;
-                this.selectedNumbers = new Set();
-                this.solvedCategories = new Set();
-                this.mistakes = 0;
-                this.maxMistakes = 4;
-                this.attempts = 0;
-                
-                this.init();
+                this.initialized = false;
+                // Simple learned patterns (can be replaced with actual trained weights)
+                this.letterPreferences = this.initializePreferences();
             }
             
-            init() {
-                this.renderCategorySelector();
-                this.setupEventListeners();
+            initializePreferences() {
+                // Initialize with English letter frequency + strategic adjustments
+                const freq = {
+                    'E': 0.127, 'T': 0.091, 'A': 0.082, 'O': 0.075, 'I': 0.070,
+                    'N': 0.067, 'S': 0.063, 'H': 0.061, 'R': 0.060, 'D': 0.043,
+                    'L': 0.040, 'C': 0.028, 'U': 0.028, 'M': 0.024, 'W': 0.024,
+                    'F': 0.022, 'G': 0.020, 'Y': 0.020, 'P': 0.019, 'B': 0.015,
+                    'V': 0.010, 'K': 0.008, 'J': 0.002, 'X': 0.001, 'Q': 0.001, 'Z': 0.001
+                };
+                return freq;
             }
             
-            renderCategorySelector() {
-                const container = document.getElementById('category-list');
-                container.innerHTML = '';
+            predict(prefix) {
+                const validLetters = getValidContinuations(prefix);
+                if (validLetters.length === 0) return this.uniformDistribution();
                 
-                const byDifficulty = {easy: [], medium: [], hard: []};
-                for (const [key, cat] of Object.entries(NUMBER_CATEGORIES)) {
-                    byDifficulty[cat.difficulty].push({key, ...cat});
+                // Score each valid letter
+                const scores = {};
+                for (let letter of validLetters) {
+                    scores[letter] = this.scoreMove(prefix, letter);
                 }
                 
-                for (const difficulty of ['easy', 'medium', 'hard']) {
-                    const categories = byDifficulty[difficulty];
-                    categories.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    for (const cat of categories) {
-                        const item = document.createElement('div');
-                        item.className = 'category-item';
-                        
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.id = `cat-${cat.key}`;
-                        checkbox.value = cat.key;
-                        
-                        // Default selections
-                        if (['prime', 'perfect_square', 'multiples_2', 'multiples_5', 
-                             'fibonacci', 'triangular'].includes(cat.key)) {
-                            checkbox.checked = true;
-                            this.selectedCategories.add(cat.key);
-                        }
-                        
-                        checkbox.addEventListener('change', (e) => {
-                            if (e.target.checked) {
-                                this.selectedCategories.add(cat.key);
-                            } else {
-                                this.selectedCategories.delete(cat.key);
-                            }
-                        });
-                        
-                        const label = document.createElement('label');
-                        label.htmlFor = `cat-${cat.key}`;
-                        label.innerHTML = `
-                            ${cat.name}
-                            <span class="difficulty-badge difficulty-${difficulty}">
-                                ${difficulty}
-                            </span>
-                        `;
-                        label.title = cat.description;
-                        
-                        item.appendChild(checkbox);
-                        item.appendChild(label);
-                        container.appendChild(item);
-                    }
+                // Normalize to probabilities
+                const total = Object.values(scores).reduce((a, b) => a + b, 0);
+                const probs = {};
+                for (let letter in scores) {
+                    probs[letter] = scores[letter] / total;
                 }
+                
+                return probs;
             }
             
-            setupEventListeners() {
-                document.getElementById('new-game-btn').addEventListener('click', () => this.newGame());
-                document.getElementById('shuffle-btn').addEventListener('click', () => this.shuffleGrid());
-                document.getElementById('deselect-btn').addEventListener('click', () => this.deselectAll());
-                document.getElementById('submit-btn').addEventListener('click', () => this.submitGuess());
-                document.getElementById('play-again-btn').addEventListener('click', () => this.newGame());
-                document.getElementById('toggle-instructions').addEventListener('click', () => {
-                    const instructions = document.getElementById('instructions');
-                    instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
-                });
-            }
-            
-            generatePuzzle() {
-                if (this.selectedCategories.size < 4) {
-                    alert('Please select at least 4 categories!');
-                    return null;
+            scoreMove(prefix, letter) {
+                const nextPrefix = prefix + letter;
+                let score = this.letterPreferences[letter] || 0.01;
+                
+                // Avoid completing words
+                if (isCompleteWord(nextPrefix)) {
+                    score *= 0.1;
                 }
                 
-                const minRange = parseInt(document.getElementById('min-range').value);
-                const maxRange = parseInt(document.getElementById('max-range').value);
+                // Prefer moves that give fewer options to opponent
+                const continuations = getValidContinuations(nextPrefix);
+                score *= 1.0 / (continuations.length + 1);
                 
-                if (minRange >= maxRange) {
-                    alert('Maximum must be greater than minimum!');
-                    return null;
-                }
-                
-                const selectedCats = Array.from(this.selectedCategories);
-                const puzzleCategories = this.shuffleArray(selectedCats).slice(0, 4);
-                
-                const numbersPerCategory = 4;
-                const allNumbers = [];
-                const solutions = {};
-                
-                for (const catKey of puzzleCategories) {
-                    const category = NUMBER_CATEGORIES[catKey];
-                    const categoryNumbers = [];
-                    
-                    let attempts = 0;
-                    const maxAttempts = 10000;
-                    
-                    while (categoryNumbers.length < numbersPerCategory && attempts < maxAttempts) {
-                        const n = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                        
-                        if (allNumbers.includes(n)) {
-                            attempts++;
-                            continue;
-                        }
-                        
-                        if (category.check(n)) {
-                            categoryNumbers.push(n);
-                            allNumbers.push(n);
-                        }
-                        
-                        attempts++;
-                    }
-                    
-                    if (categoryNumbers.length < numbersPerCategory) {
-                        return null;
-                    }
-                    
-                    solutions[catKey] = {
-                        name: category.name,
-                        description: category.description,
-                        numbers: categoryNumbers.sort((a, b) => a - b),
-                        color: category.color,
-                        difficulty: category.difficulty
+                // Prefer common letter combinations
+                if (prefix.length > 0) {
+                    const lastLetter = prefix[prefix.length - 1];
+                    const commonPairs = {
+                        'T': ['H', 'R', 'E'],
+                        'H': ['E', 'A', 'I'],
+                        'S': ['T', 'H', 'E'],
+                        'R': ['E', 'I', 'O'],
+                        'I': ['N', 'T', 'S']
                     };
+                    if (commonPairs[lastLetter]?.includes(letter)) {
+                        score *= 1.5;
+                    }
                 }
                 
+                return score;
+            }
+            
+            uniformDistribution() {
+                const probs = {};
+                for (let i = 0; i < 26; i++) {
+                    probs[String.fromCharCode(65 + i)] = 1/26;
+                }
+                return probs;
+            }
+            
+            sampleFromDistribution(probs, temperature = 0.8) {
+                const letters = Object.keys(probs);
+                const values = Object.values(probs);
+                
+                // Apply temperature
+                const tempValues = values.map(v => Math.pow(v, 1/temperature));
+                const sum = tempValues.reduce((a, b) => a + b, 0);
+                const normalized = tempValues.map(v => v / sum);
+                
+                // Sample
+                const rand = Math.random();
+                let cumulative = 0;
+                for (let i = 0; i < letters.length; i++) {
+                    cumulative += normalized[i];
+                    if (rand < cumulative) return letters[i];
+                }
+                
+                return letters[0];
+            }
+        }
+        
+        const neuralNet = new GhostNeuralNetwork();
+        
+        // ========================================================================
+        // GAME STATE
+        // ========================================================================
+        
+        let currentWord = '';
+        let gameActive = true;
+        let playerTurn = Math.random() < 0.5; // Random starting player
+        let aiMode = 'neural';
+        let searchDepth = 3; // For minimax AI
+        let stats = JSON.parse(localStorage.getItem('ghostStats') || '{"wins":0,"losses":0,"games":0}');
+        
+        // ========================================================================
+        // GAME-THEORETIC BLUFFING SYSTEM
+        // ========================================================================
+        
+        class AdaptiveBluffing {
+            constructor() {
+                // Track player behavior
+                this.playerChallenges = 0;
+                this.aiBluffs = 0;
+                this.successfulBluffs = 0;
+                this.caughtBluffs = 0;
+                this.gameHistory = [];
+                
+                // Load historical data
+                const saved = localStorage.getItem('ghostBluffingData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.assign(this, data);
+                }
+            }
+            
+            // Calculate optimal bluff frequency using game theory
+            getOptimalBluffRate() {
+                // If no data yet, start conservative
+                if (this.aiBluffs === 0) return 0.15;
+                
+                // Player's challenge rate
+                const challengeRate = this.playerChallenges / Math.max(1, this.aiBluffs + 10);
+                
+                // Nash equilibrium: bluff rate should make opponent indifferent to challenging
+                // If player challenges too much, bluff less (they're onto us)
+                // If player challenges too little, bluff more (we can get away with it)
+                
+                let optimalRate;
+                if (challengeRate > 0.5) {
+                    // Player challenges a lot - bluff rarely
+                    optimalRate = 0.05 + (0.5 - challengeRate) * 0.4;
+                } else if (challengeRate < 0.2) {
+                    // Player rarely challenges - exploit with more bluffs
+                    optimalRate = 0.25 + (0.2 - challengeRate) * 0.5;
+                } else {
+                    // Balanced - use mixed strategy
+                    optimalRate = 0.15 + Math.random() * 0.1;
+                }
+                
+                // Clamp between 5% and 40%
+                return Math.max(0.05, Math.min(0.40, optimalRate));
+            }
+            
+            // Decide whether to bluff in current position
+            shouldBluff(prefix, validLetters) {
+                const baseRate = this.getOptimalBluffRate();
+                
+                // Adjust based on position strength
+                let positionMultiplier = 1.0;
+                
+                if (validLetters.length === 0) {
+                    // No valid moves - forced to bluff or lose
+                    positionMultiplier = 3.0;
+                } else if (validLetters.length < 3) {
+                    // Weak position - more likely to bluff
+                    positionMultiplier = 1.5;
+                } else if (validLetters.length > 10) {
+                    // Strong position - less need to bluff
+                    positionMultiplier = 0.3;
+                }
+                
+                // Adjust based on word length (early game vs late game)
+                if (prefix.length < 2) {
+                    // Early game - rarely bluff
+                    positionMultiplier *= 0.3;
+                } else if (prefix.length > 6) {
+                    // Late game - more tactical bluffs
+                    positionMultiplier *= 1.5;
+                }
+                
+                const adjustedRate = baseRate * positionMultiplier;
+                const shouldBluff = Math.random() < adjustedRate;
+                
+                if (shouldBluff) {
+                    this.aiBluffs++;
+                }
+                
+                return shouldBluff;
+            }
+            
+            // Record challenge outcome
+            recordChallenge(aiWasBluffing) {
+                this.playerChallenges++;
+                
+                if (aiWasBluffing) {
+                    this.caughtBluffs++;
+                } else {
+                    this.successfulBluffs++;
+                }
+                
+                this.save();
+            }
+            
+            // Record successful unchallenged bluff
+            recordUnchallengedBluff() {
+                this.successfulBluffs++;
+                this.save();
+            }
+            
+            // Get statistics for display
+            getStats() {
                 return {
-                    numbers: this.shuffleArray(allNumbers),
-                    solutions: solutions,
-                    grid_size: 16
+                    bluffRate: this.getOptimalBluffRate(),
+                    challengeRate: this.playerChallenges / Math.max(1, this.aiBluffs + 10),
+                    successRate: this.successfulBluffs / Math.max(1, this.aiBluffs),
+                    totalBluffs: this.aiBluffs
                 };
             }
             
-            shuffleArray(array) {
-                const arr = [...array];
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                return arr;
+            // Save to localStorage
+            save() {
+                localStorage.setItem('ghostBluffingData', JSON.stringify({
+                    playerChallenges: this.playerChallenges,
+                    aiBluffs: this.aiBluffs,
+                    successfulBluffs: this.successfulBluffs,
+                    caughtBluffs: this.caughtBluffs,
+                    gameHistory: this.gameHistory.slice(-50) // Keep last 50 games
+                }));
             }
             
-            newGame() {
-                let puzzle = null;
-                let attempts = 0;
-                
-                while (!puzzle && attempts < 20) {
-                    puzzle = this.generatePuzzle();
-                    attempts++;
-                }
-                
-                if (!puzzle) {
-                    alert('Could not generate puzzle with selected categories. Try different settings.');
-                    return;
-                }
-                
-                this.puzzle = puzzle;
-                this.resetGame();
-                this.renderGame();
-                document.getElementById('game-area').style.display = 'block';
-            }
-            
-            resetGame() {
-                this.selectedNumbers.clear();
-                this.solvedCategories.clear();
-                this.mistakes = 0;
-                this.attempts = 0;
-                this.updateStatus();
-                this.hideFeedback();
-                document.getElementById('win-screen').classList.remove('show');
-            }
-            
-            renderGame() {
-                this.renderGrid();
-                document.getElementById('solved-categories').innerHTML = '';
-            }
-            
-            renderGrid() {
-                const grid = document.getElementById('number-grid');
-                grid.innerHTML = '';
-                
-                for (const number of this.puzzle.numbers) {
-                    let isSolved = false;
-                    
-                    for (const catKey of this.solvedCategories) {
-                        if (this.puzzle.solutions[catKey].numbers.includes(number)) {
-                            isSolved = true;
-                            break;
-                        }
-                    }
-                    
-                    if (isSolved) continue;
-                    
-                    const tile = document.createElement('div');
-                    tile.className = 'number-tile';
-                    if (this.selectedNumbers.has(number)) {
-                        tile.classList.add('selected');
-                    }
-                    tile.textContent = number;
-                    tile.addEventListener('click', () => this.toggleNumber(number));
-                    grid.appendChild(tile);
-                }
-            }
-            
-            toggleNumber(number) {
-                if (this.selectedNumbers.has(number)) {
-                    this.selectedNumbers.delete(number);
-                } else if (this.selectedNumbers.size < 4) {
-                    this.selectedNumbers.add(number);
-                }
-                
-                this.updateStatus();
-                this.renderGrid();
-            }
-            
-            deselectAll() {
-                this.selectedNumbers.clear();
-                this.updateStatus();
-                this.renderGrid();
-            }
-            
-            shuffleGrid() {
-                this.puzzle.numbers = this.shuffleArray(this.puzzle.numbers);
-                this.renderGrid();
-            }
-            
-            updateStatus() {
-                document.getElementById('selected-count').textContent = this.selectedNumbers.size;
-                document.getElementById('mistake-count').textContent = this.mistakes;
-                document.getElementById('submit-btn').disabled = this.selectedNumbers.size !== 4;
-            }
-            
-            submitGuess() {
-                this.attempts++;
-                const guessed = new Set(this.selectedNumbers);
-                
-                let foundMatch = false;
-                let matchResult = null;
-                
-                for (const [catKey, catData] of Object.entries(this.puzzle.solutions)) {
-                    const solution = new Set(catData.numbers);
-                    if (this.setsEqual(guessed, solution)) {
-                        foundMatch = true;
-                        matchResult = {
-                            category_key: catKey,
-                            category: catData.name,
-                            description: catData.description,
-                            color: catData.color,
-                            difficulty: catData.difficulty
-                        };
-                        break;
-                    }
-                }
-                
-                if (foundMatch) {
-                    this.handleCorrectGuess(matchResult);
-                } else {
-                    let maxOverlap = 0;
-                    for (const catData of Object.entries(this.puzzle.solutions)) {
-                        const solution = new Set(catData[1].numbers);
-                        const overlap = [...guessed].filter(x => solution.has(x)).length;
-                        maxOverlap = Math.max(maxOverlap, overlap);
-                    }
-                    this.handleIncorrectGuess(maxOverlap);
-                }
-            }
-            
-            setsEqual(a, b) {
-                if (a.size !== b.size) return false;
-                for (const item of a) {
-                    if (!b.has(item)) return false;
-                }
-                return true;
-            }
-            
-            handleCorrectGuess(result) {
-                document.querySelectorAll('.number-tile.selected').forEach(tile => {
-                    tile.classList.add('solved');
-                });
-                
-                this.solvedCategories.add(result.category_key);
-                this.addSolvedCategory(result);
-                this.selectedNumbers.clear();
-                
-                setTimeout(() => {
-                    this.renderGrid();
-                    this.updateStatus();
-                    
-                    if (this.solvedCategories.size === 4) {
-                        this.handleWin();
-                    }
-                }, 500);
-                
-                this.showFeedback(`Correct! ${result.category}`, 'success');
-            }
-            
-            handleIncorrectGuess(overlap) {
-                this.mistakes++;
-                this.updateStatus();
-                
-                document.querySelectorAll('.number-tile.selected').forEach(tile => {
-                    tile.classList.add('wrong');
-                    setTimeout(() => tile.classList.remove('wrong'), 500);
-                });
-                
-                let message = 'Incorrect! ';
-                if (overlap === 3) message += 'Three numbers are in the same group!';
-                else if (overlap === 2) message += 'Two numbers are in the same group.';
-                else if (overlap === 1) message += 'One number is in the right group.';
-                else message += 'Try again!';
-                
-                this.showFeedback(message, 'error');
-                
-                if (this.mistakes >= this.maxMistakes) {
-                    this.handleLoss();
-                }
-            }
-            
-            addSolvedCategory(result) {
-                const container = document.getElementById('solved-categories');
-                const div = document.createElement('div');
-                div.className = `solved-category color-${result.color}`;
-                
-                const numbers = this.puzzle.solutions[result.category_key].numbers;
-                
-                div.innerHTML = `
-                    <h3>${result.category}</h3>
-                    <p>${result.description}</p>
-                    <div class="solved-numbers">
-                        ${numbers.map(n => `<span class="solved-number">${n}</span>`).join('')}
-                    </div>
-                `;
-                
-                container.appendChild(div);
-            }
-            
-            handleWin() {
-                document.getElementById('final-attempts').textContent = this.attempts;
-                document.getElementById('final-mistakes').textContent = this.mistakes;
-                document.getElementById('win-screen').classList.add('show');
-            }
-            
-            handleLoss() {
-                this.showFeedback('Game Over! Here are the solutions:', 'error');
-                
-                for (const [catKey, catData] of Object.entries(this.puzzle.solutions)) {
-                    if (!this.solvedCategories.has(catKey)) {
-                        this.addSolvedCategory({
-                            category_key: catKey,
-                            category: catData.name,
-                            description: catData.description,
-                            color: catData.color
-                        });
-                    }
-                }
-                
-                document.getElementById('number-grid').innerHTML = '';
-                document.getElementById('submit-btn').disabled = true;
-            }
-            
-            showFeedback(message, type) {
-                const feedback = document.getElementById('feedback-message');
-                feedback.textContent = message;
-                feedback.className = `feedback-message show feedback-${type}`;
-                
-                setTimeout(() => this.hideFeedback(), 3000);
-            }
-            
-            hideFeedback() {
-                document.getElementById('feedback-message').classList.remove('show');
+            // Reset statistics
+            reset() {
+                this.playerChallenges = 0;
+                this.aiBluffs = 0;
+                this.successfulBluffs = 0;
+                this.caughtBluffs = 0;
+                this.gameHistory = [];
+                this.save();
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            window.game = new ConnectionsGame();
+        
+        const bluffingSystem = new AdaptiveBluffing();
+        
+        // ========================================================================
+        // AI STRATEGIES
+        // ========================================================================
+        
+        function aiChooseLetter() {
+            if (!gameActive) return;
+            
+            showThinking(true);
+            
+            setTimeout(() => {
+                let letter;
+                
+                switch(aiMode) {
+                    case 'neural':
+                        letter = neuralAI();
+                        break;
+                    case 'smart':
+                        letter = smartAI();
+                        break;
+                    case 'minimax':
+                        letter = minimaxAI();
+                        break;
+                    case 'random':
+                        letter = randomAI();
+                        break;
+                }
+                
+                showThinking(false);
+                
+                if (letter) {
+                    addLetter(letter, false);
+                }
+            }, 600 + Math.random() * 400);
+        }
+        
+        function minimaxAI() {
+            const validLetters = getValidContinuations(currentWord);
+            
+            // Use adaptive game-theoretic bluffing
+            if (bluffingSystem.shouldBluff(currentWord, validLetters)) {
+                const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const invalidLetters = allLetters.split('').filter(l => !validLetters.includes(l));
+                if (invalidLetters.length > 0 && Math.random() < 0.3) {
+                    return invalidLetters[Math.floor(Math.random() * invalidLetters.length)];
+                }
+            }
+            
+            if (validLetters.length === 0) return randomLetter();
+            
+            let bestMove = null;
+            let bestScore = -Infinity;
+            
+            // Evaluate each possible move
+            for (let letter of validLetters) {
+                const score = minimax(currentWord + letter, searchDepth - 1, false, -Infinity, Infinity);
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = letter;
+                }
+            }
+            
+            return bestMove || validLetters[0];
+        }
+        
+        function minimax(prefix, depth, isMaximizing, alpha, beta) {
+            // Base cases
+            if (isCompleteWord(prefix)) {
+                // Completing a word means current player loses
+                return isMaximizing ? -100 : 100;
+            }
+            
+            const validLetters = getValidContinuations(prefix);
+            
+            if (validLetters.length === 0) {
+                // No valid continuations means current player loses
+                return isMaximizing ? -100 : 100;
+            }
+            
+            if (depth === 0) {
+                // Heuristic evaluation
+                return evaluatePosition(prefix, isMaximizing);
+            }
+            
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let letter of validLetters) {
+                    const eval = minimax(prefix + letter, depth - 1, false, alpha, beta);
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+                    if (beta <= alpha) break; // Alpha-beta pruning
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let letter of validLetters) {
+                    const eval = minimax(prefix + letter, depth - 1, true, alpha, beta);
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+                    if (beta <= alpha) break; // Alpha-beta pruning
+                }
+                return minEval;
+            }
+        }
+        
+        function evaluatePosition(prefix, isMaximizing) {
+            const validLetters = getValidContinuations(prefix);
+            
+            // Fewer options for opponent is better
+            let score = 50 - validLetters.length * 5;
+            
+            // Check if any move completes a word (bad for us)
+            let hasWordCompletion = false;
+            for (let letter of validLetters) {
+                if (isCompleteWord(prefix + letter)) {
+                    hasWordCompletion = true;
+                    break;
+                }
+            }
+            
+            if (hasWordCompletion) {
+                score -= 20;
+            }
+            
+            // Longer prefixes are slightly better (more committed)
+            score += prefix.length * 2;
+            
+            return isMaximizing ? score : -score;
+        }
+        
+        function neuralAI() {
+            const validLetters = getValidContinuations(currentWord);
+            
+            // Use adaptive game-theoretic bluffing
+            if (bluffingSystem.shouldBluff(currentWord, validLetters)) {
+                const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const invalidLetters = allLetters.split('').filter(l => !validLetters.includes(l));
+                if (invalidLetters.length > 0) {
+                    return invalidLetters[Math.floor(Math.random() * invalidLetters.length)];
+                }
+            }
+            
+            if (validLetters.length === 0) return randomLetter();
+            
+            const probs = neuralNet.predict(currentWord);
+            return neuralNet.sampleFromDistribution(probs);
+        }
+        
+        function smartAI() {
+            const validLetters = getValidContinuations(currentWord);
+            
+            // Use adaptive game-theoretic bluffing
+            if (bluffingSystem.shouldBluff(currentWord, validLetters)) {
+                return randomLetter();
+            }
+            
+            if (validLetters.length === 0) return randomLetter();
+            
+            const safeLetters = validLetters.filter(letter => 
+                !isCompleteWord(currentWord + letter)
+            );
+            
+            if (safeLetters.length > 0) {
+                const scores = safeLetters.map(letter => ({
+                    letter,
+                    continuations: getValidContinuations(currentWord + letter).length
+                }));
+                
+                scores.sort((a, b) => a.continuations - b.continuations);
+                
+                // Choose from top 3
+                const topChoices = scores.slice(0, Math.min(3, scores.length));
+                return topChoices[Math.floor(Math.random() * topChoices.length)].letter;
+            }
+            
+            return validLetters[Math.floor(Math.random() * validLetters.length)];
+        }
+        
+        function randomAI() {
+            const validLetters = getValidContinuations(currentWord);
+            if (validLetters.length === 0) return randomLetter();
+            return validLetters[Math.floor(Math.random() * validLetters.length)];
+        }
+        
+        function randomLetter() {
+            return String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        }
+        
+        function updateDepth(value) {
+            searchDepth = parseInt(value);
+            document.getElementById('depthValue').textContent = searchDepth;
+        }
+        
+        // Load custom dictionary
+        async function loadDictionary(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const words = text.split(/[\n\r]+/)
+                    .map(w => w.trim().toUpperCase())
+                    .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w));
+                
+                WORD_LIST = [...new Set(words)];
+                buildPrefixTree();
+                
+                document.getElementById('dictSize').textContent = 
+                    `${WORD_LIST.length.toLocaleString()} words (custom)`;
+                
+                setStatus(`✅ Loaded ${WORD_LIST.length.toLocaleString()} words from ${file.name}`, 'success');
+                
+                // Start new game with new dictionary
+                setTimeout(newGame, 2000);
+            } catch (error) {
+                setStatus(`❌ Error loading dictionary: ${error.message}`, 'error');
+            }
+        }
+        
+        // Update bluffing statistics display
+        function updateBluffingStats() {
+            const stats = bluffingSystem.getStats();
+            
+            document.getElementById('bluffRate').textContent = 
+                `${(stats.bluffRate * 100).toFixed(0)}%`;
+            document.getElementById('challengeRate').textContent = 
+                `${(stats.challengeRate * 100).toFixed(0)}%`;
+            document.getElementById('bluffSuccess').textContent = 
+                `${(stats.successRate * 100).toFixed(0)}%`;
+            document.getElementById('totalBluffs').textContent = 
+                stats.totalBluffs;
+        }
+        
+        // Reset bluffing statistics
+        function resetBluffingStats() {
+            if (confirm('Reset AI bluffing statistics? This will clear all learned behavior.')) {
+                bluffingSystem.reset();
+                updateBluffingStats();
+                setStatus('🔄 Bluffing statistics reset! AI will learn from scratch.', 'info');
+            }
+        }
+        
+        // ========================================================================
+        // GAME LOGIC
+        // ========================================================================
+        
+        function initializeButtons() {
+            const container = document.getElementById('letterButtons');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 26; i++) {
+                const letter = String.fromCharCode(65 + i);
+                const btn = document.createElement('button');
+                btn.className = 'letter-btn';
+                btn.innerHTML = `<span>${letter}</span>`;
+                btn.onclick = () => playerChooseLetter(letter);
+                btn.id = `btn-${letter}`;
+                container.appendChild(btn);
+            }
+            
+            updateButtonStates();
+        }
+        
+        function updateButtonStates() {
+            // Enable ALL letters - allow bluffing!
+            for (let i = 0; i < 26; i++) {
+                const letter = String.fromCharCode(65 + i);
+                const btn = document.getElementById(`btn-${letter}`);
+                
+                // Only disable if game is not active or it's not player's turn
+                if (!gameActive || !playerTurn) {
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;  // All letters available - you can bluff!
+                }
+            }
+            
+            // Enable challenge button only when it's AI's turn and game is active
+            const challengeBtn = document.getElementById('challengeBtn');
+            if (challengeBtn) {
+                challengeBtn.disabled = !gameActive || playerTurn || currentWord.length < 3;
+                if (!gameActive) {
+                    challengeBtn.style.opacity = '0.5';
+                } else if (playerTurn || currentWord.length < 3) {
+                    challengeBtn.style.opacity = '0.5';
+                } else {
+                    challengeBtn.style.opacity = '1';
+                }
+            }
+        }
+        
+        function playerChooseLetter(letter) {
+            if (!gameActive || !playerTurn) return;
+            addLetter(letter, true);
+        }
+        
+        function addLetter(letter, isPlayer) {
+            currentWord += letter;
+            updateDisplay();
+            
+            // Check for complete word
+            if (isCompleteWord(currentWord)) {
+                endGame(!isPlayer);
+                return;
+            }
+            
+            // Check for invalid continuation
+            if (!hasValidContinuation(currentWord)) {
+                // Before declaring loss, check if AI should challenge
+                if (isPlayer && aiMode !== 'random' && Math.random() < getAIChallengeRate()) {
+                    // AI challenges the player!
+                    bluffingSystem.playerChallenges++; // Track that we challenged
+                    setStatus(`🤖 AI challenges you! "${currentWord}" has no valid continuation. AI wins!`, 'error');
+                    endGame(false);
+                    return;
+                }
+                // If AI doesn't challenge, player gets away with it OR loses normally
+                endGame(!isPlayer);
+                return;
+            }
+            
+            // Switch turns
+            playerTurn = !playerTurn;
+            updateStatus();
+            updateButtonStates();
+            
+            // AI's turn
+            if (!playerTurn && gameActive) {
+                aiChooseLetter();
+            }
+        }
+        
+        // Calculate AI's challenge rate based on difficulty and game state
+        function getAIChallengeRate() {
+            const validLetters = getValidContinuations(currentWord);
+            
+            // Base rates by AI type
+            let baseRate = 0.3; // 30% default
+            
+            switch(aiMode) {
+                case 'neural':
+                    baseRate = 0.4; // More likely to challenge
+                    break;
+                case 'smart':
+                    baseRate = 0.5; // Even more aggressive
+                    break;
+                case 'minimax':
+                    // Minimax can calculate if challenging is optimal
+                    if (searchDepth >= 3) {
+                        baseRate = 0.7; // High confidence at depth 3+
+                    } else {
+                        baseRate = 0.5;
+                    }
+                    break;
+                case 'random':
+                    baseRate = 0.1; // Rarely challenges
+                    break;
+            }
+            
+            // Adjust based on how obvious the bluff is
+            if (validLetters.length === 0) {
+                baseRate = 0.9; // Almost always challenge impossible moves
+            } else if (validLetters.length < 3) {
+                baseRate *= 1.3; // More likely on weak positions
+            }
+            
+            // Late game - more aggressive
+            if (currentWord.length > 6) {
+                baseRate *= 1.2;
+            }
+            
+            return Math.min(0.95, baseRate); // Cap at 95%
+        }
+        
+        // Toggle nerd section
+        function toggleNerdSection() {
+            const content = document.getElementById('nerdContent');
+            const toggle = document.getElementById('nerdToggle');
+            
+            content.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+        
+        function challenge() {
+            if (!gameActive || currentWord === '') {
+                setStatus('Cannot challenge - game not in progress or no letters played!', 'error');
+                return;
+            }
+            
+            if (currentWord.length < 3) {
+                setStatus('Cannot challenge yet - need at least 3 letters!', 'error');
+                return;
+            }
+            
+            const completableWords = findCompletableWords(currentWord);
+            const aiWasBluffing = completableWords.length === 0;
+            
+            // Record challenge outcome in adaptive system
+            bluffingSystem.recordChallenge(aiWasBluffing);
+            
+            if (completableWords.length > 0) {
+                const word = completableWords[0];
+                setStatus(`❌ Challenge failed! AI was building "${word}". You lose!`, 'error');
+                endGame(false);
+            } else {
+                setStatus(`✅ Challenge successful! AI was bluffing. You win!`, 'success');
+                endGame(true);
+            }
+        }
+        
+        function endGame(playerWon) {
+            gameActive = false;
+            stats.games++;
+            
+            // Update turn indicator
+            const turnIndicator = document.getElementById('turnIndicator');
+            const turnPlayer = turnIndicator.querySelector('.turn-player');
+            turnIndicator.className = 'turn-indicator game-over';
+            turnPlayer.textContent = '🏁 Game Over';
+            
+            if (playerWon) {
+                stats.wins++;
+                if (isCompleteWord(currentWord)) {
+                    setStatus(`🎉 Victory! AI completed the word "${currentWord}" and loses!`, 'success');
+                } else {
+                    setStatus(`🎉 Victory! AI made an invalid move with "${currentWord}"!`, 'success');
+                }
+            } else {
+                stats.losses++;
+                if (isCompleteWord(currentWord)) {
+                    setStatus(`😞 You Lost! You completed the word "${currentWord}" (4+ letters = lose).`, 'error');
+                } else {
+                    setStatus(`😞 You Lost! "${currentWord}" cannot continue to a valid word.`, 'error');
+                }
+            }
+            
+            saveStats();
+            updateStats();
+            updateButtonStates();
+            updateBluffingStats(); // Update bluffing statistics
+        }
+        
+        function newGame() {
+            currentWord = '';
+            gameActive = true;
+            
+            // Randomly decide who goes first (50/50)
+            playerTurn = Math.random() < 0.5;
+            
+            updateDisplay();
+            updateButtonStates();
+            showThinking(false);
+            
+            // Update turn indicator
+            const turnIndicator = document.getElementById('turnIndicator');
+            const turnPlayer = turnIndicator.querySelector('.turn-player');
+            
+            if (playerTurn) {
+                setStatus('🎲 You go first! Choose a letter to start.', 'info');
+                turnIndicator.className = 'turn-indicator player-turn';
+                turnPlayer.textContent = '🎮 Your Turn';
+            } else {
+                setStatus('🎲 AI goes first! Watch and wait...', 'info');
+                turnIndicator.className = 'turn-indicator ai-turn';
+                turnPlayer.textContent = '🤖 AI\'s Turn';
+                // AI makes first move
+                setTimeout(() => {
+                    aiChooseLetter();
+                }, 800);
+            }
+        }
+        
+        // ========================================================================
+        // UI UPDATES
+        // ========================================================================
+        
+        function updateDisplay() {
+            const display = document.getElementById('currentWord');
+            if (currentWord) {
+                display.textContent = currentWord;
+                display.classList.remove('empty');
+            } else {
+                display.textContent = '_';
+                display.classList.add('empty');
+            }
+        }
+        
+        function updateStatus() {
+            if (!gameActive) return;
+            
+            const turnIndicator = document.getElementById('turnIndicator');
+            const turnPlayer = turnIndicator.querySelector('.turn-player');
+            
+            if (playerTurn) {
+                setStatus('Your turn - choose a letter!', 'info');
+                turnIndicator.className = 'turn-indicator player-turn';
+                turnPlayer.textContent = '🎮 Your Turn';
+            } else {
+                setStatus('AI is thinking...', 'info');
+                turnIndicator.className = 'turn-indicator ai-turn';
+                turnPlayer.textContent = '🤖 AI\'s Turn';
+            }
+        }
+        
+        function setStatus(message, type) {
+            const el = document.getElementById('status');
+            el.textContent = message;
+            el.className = `status ${type}`;
+        }
+        
+        function showThinking(show) {
+            document.getElementById('thinking').classList.toggle('active', show);
+        }
+        
+        function updateStats() {
+            document.getElementById('winsValue').textContent = stats.wins;
+            document.getElementById('lossesValue').textContent = stats.losses;
+            document.getElementById('gamesValue').textContent = stats.games;
+            
+            const winRate = stats.games > 0 ? 
+                (stats.wins / stats.games * 100).toFixed(0) : 0;
+            document.getElementById('winRateValue').textContent = `${winRate}%`;
+        }
+        
+        function saveStats() {
+            localStorage.setItem('ghostStats', JSON.stringify(stats));
+        }
+        
+        // ========================================================================
+        // RULES TOGGLE
+        // ========================================================================
+        
+        function toggleRules() {
+            const content = document.getElementById('rulesContent');
+            const toggle = document.getElementById('rulesToggle');
+            
+            content.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+        
+        // ========================================================================
+        // AI MODE SELECTOR
+        // ========================================================================
+        
+        const aiDescriptions = {
+            'neural': '<strong>🧠 Neural Network:</strong> Uses learned patterns from language frequency and strategic position evaluation. Predicts letter probabilities based on common word structures and minimizes opponent options. Can occasionally bluff with low-probability moves.',
+            'smart': '<strong>🎯 Smart AI:</strong> Heuristic-based strategy that avoids completing words and tries to minimize your available options. Evaluates each move by counting valid continuations and chooses positions that are harder for you to play from. Bluffs rarely.',
+            'minimax': '<strong>🔍 Recursive Search:</strong> Game-tree search algorithm with alpha-beta pruning. Looks ahead multiple moves to find optimal play. At higher depths, approaches perfect play by evaluating all possible future positions. Can strategically bluff when losing.',
+            'random': '<strong>🎲 Random:</strong> Chooses randomly from valid continuations only - never bluffs, never strategic. Good for learning the game and practicing challenges.'
+        };
+        
+        document.querySelectorAll('.ai-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.ai-option').forEach(o => 
+                    o.classList.remove('active')
+                );
+                this.classList.add('active');
+                aiMode = this.dataset.ai;
+                
+                // Update AI description
+                const description = document.getElementById('aiDescription');
+                description.innerHTML = aiDescriptions[aiMode];
+                
+                // Show/hide depth control for minimax
+                const depthControl = document.getElementById('depthControl');
+                if (aiMode === 'minimax') {
+                    depthControl.style.display = 'block';
+                } else {
+                    depthControl.style.display = 'none';
+                }
+                
+                newGame();
+            });
+        });
+        
+        // ========================================================================
+        // INITIALIZATION
+        // ========================================================================
+        
+        window.addEventListener('load', () => {
+            buildPrefixTree();
+            initializeButtons();
+            updateStats();
+            updateButtonStates();
+            updateBluffingStats(); // Initialize bluffing stats display
+            
+            // Initialize turn indicator
+            const turnIndicator = document.getElementById('turnIndicator');
+            const turnPlayer = turnIndicator.querySelector('.turn-player');
+            
+            // Handle if AI goes first
+            if (!playerTurn && gameActive) {
+                setStatus('🎲 AI goes first! Watch and wait...', 'info');
+                turnIndicator.className = 'turn-indicator ai-turn';
+                turnPlayer.textContent = '🤖 AI\'s Turn';
+                setTimeout(() => {
+                    aiChooseLetter();
+                }, 1000);
+            } else {
+                setStatus('🎲 You go first! Choose a letter to start.', 'info');
+                turnIndicator.className = 'turn-indicator player-turn';
+                turnPlayer.textContent = '🎮 Your Turn';
+            }
         });
     </script>
 </body>
