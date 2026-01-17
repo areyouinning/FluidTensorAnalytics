@@ -893,7 +893,7 @@
                     📤 Upload words.txt
                 </button>
                 <div class="upload-hint">
-                    Current dictionary: <span id="dictSize">${BUILT_IN_WORDS.length} words (built-in)</span>
+                    Current dictionary: <span id="dictSize">Loading...</span>
                 </div>
             </div>
         </div>
@@ -1120,7 +1120,7 @@
         <div class="footer">
             <p>
                 Built by <a href="https://fluidtensor.com" target="_blank">Fluid Tensor Analytics</a>
-                <br>Boulder, Colorado
+                <br>Westminster, Colorado
             </p>
             <div class="tech-stack">
                 Reinforcement Learning • Deep Neural Networks • Game Theory
@@ -1381,6 +1381,9 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         const prefixTree = {};
         
         function buildPrefixTree() {
+            // Clear existing tree
+            Object.keys(prefixTree).forEach(key => delete prefixTree[key]);
+            
             WORD_LIST.forEach(word => {
                 if (word.length < 4) return;
                 let node = prefixTree;
@@ -1390,6 +1393,31 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 }
                 node['$'] = true;
             });
+            
+            console.log(`✓ Prefix tree built with ${WORD_LIST.length} words`);
+        }
+        
+        // Try to load full dictionary asynchronously
+        function loadFullDictionary() {
+            fetch('ghost_dictionary.json')
+                .then(response => {
+                    if (!response.ok) throw new Error('Not found');
+                    return response.json();
+                })
+                .then(words => {
+                    WORD_LIST = words;
+                    buildPrefixTree();
+                    dictionaryLoaded = true;
+                    const sizeEl = document.getElementById('dictSize');
+                    if (sizeEl) {
+                        sizeEl.textContent = `${WORD_LIST.length.toLocaleString()} words (full dictionary)`;
+                    }
+                    console.log(`✓ Loaded ${WORD_LIST.length.toLocaleString()} words from ghost_dictionary.json`);
+                })
+                .catch(error => {
+                    console.log('Full dictionary not found, using built-in:', WORD_LIST.length, 'words');
+                    console.log('(Place ghost_dictionary.json in same folder for 411k word dictionary)');
+                });
         }
         
         function getValidContinuations(prefix) {
@@ -2281,7 +2309,16 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             initializeButtons();
             updateStats();
             updateButtonStates();
-            updateBluffingStats(); // Initialize bluffing stats display
+            updateBluffingStats();
+            
+            // Initialize dictionary size display
+            const sizeEl = document.getElementById('dictSize');
+            if (sizeEl) {
+                sizeEl.textContent = `${WORD_LIST.length.toLocaleString()} words (built-in)`;
+            }
+            
+            // Try to load full dictionary
+            loadFullDictionary();
             
             // Initialize turn indicator
             const turnIndicator = document.getElementById('turnIndicator');
