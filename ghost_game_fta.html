@@ -1399,12 +1399,18 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         
         // Try to load full dictionary asynchronously
         function loadFullDictionary() {
+            console.log('🔍 Attempting to load ghost_dictionary.json...');
             fetch('ghost_dictionary.json')
                 .then(response => {
-                    if (!response.ok) throw new Error('Not found');
+                    console.log('📥 Fetch response status:', response.status, response.statusText);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     return response.json();
                 })
                 .then(words => {
+                    console.log('📝 Received data, processing...');
+                    if (!Array.isArray(words)) {
+                        throw new Error('Dictionary must be a JSON array of words');
+                    }
                     WORD_LIST = words;
                     buildPrefixTree();
                     dictionaryLoaded = true;
@@ -1412,11 +1418,20 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                     if (sizeEl) {
                         sizeEl.textContent = `${WORD_LIST.length.toLocaleString()} words (full dictionary)`;
                     }
-                    console.log(`✓ Loaded ${WORD_LIST.length.toLocaleString()} words from ghost_dictionary.json`);
+                    console.log(`✅ Successfully loaded ${WORD_LIST.length.toLocaleString()} words from ghost_dictionary.json`);
                 })
                 .catch(error => {
-                    console.log('Full dictionary not found, using built-in:', WORD_LIST.length, 'words');
-                    console.log('(Place ghost_dictionary.json in same folder for 411k word dictionary)');
+                    console.warn('⚠️ Dictionary load failed:', error.message);
+                    console.log(`ℹ️  Using built-in dictionary: ${WORD_LIST.length.toLocaleString()} words`);
+                    console.log('💡 To use full dictionary (411k words):');
+                    console.log('   1. Place ghost_dictionary.json in same folder as HTML');
+                    console.log('   2. Serve via web server (python -m http.server 8000)');
+                    
+                    // Update UI to show we're using built-in
+                    const sizeEl = document.getElementById('dictSize');
+                    if (sizeEl) {
+                        sizeEl.textContent = `${WORD_LIST.length.toLocaleString()} words (built-in)`;
+                    }
                 });
         }
         
@@ -2014,13 +2029,6 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                     challengeBtn.style.opacity = '0.5';
                 } else if (currentWord.length < 3) {
                     challengeBtn.style.opacity = '0.6';
-                } else {
-                    challengeBtn.style.opacity = '1';
-                }
-            }
-        }
-                } else if (playerTurn || currentWord.length < 3) {
-                    challengeBtn.style.opacity = '0.5';
                 } else {
                     challengeBtn.style.opacity = '1';
                 }
