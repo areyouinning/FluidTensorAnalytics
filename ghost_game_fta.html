@@ -824,7 +824,7 @@
                     </ul>
                 </div>
                 <div class="rule">
-                    <strong>Challenge:</strong> Click "⚔️ Challenge AI" when you think it's bluffing! The AI can also challenge you if it detects a bluff.
+                    <strong>Challenge:</strong> After the AI plays, you can click "⚔️ Challenge AI" to call out an invalid move. The AI can also challenge you after you play if it catches your bluff!
                 </div>
             </div>
         </div>
@@ -2002,12 +2002,23 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 }
             }
             
-            // Enable challenge button only when it's AI's turn and game is active
+            // Enable challenge button when:
+            // 1. Game is active
+            // 2. Word has at least 3 letters
+            // 3. It's player's turn (right after AI just played)
             const challengeBtn = document.getElementById('challengeBtn');
             if (challengeBtn) {
-                challengeBtn.disabled = !gameActive || playerTurn || currentWord.length < 3;
+                // Can challenge after AI has played (when it's your turn and there are 3+ letters)
+                challengeBtn.disabled = !gameActive || currentWord.length < 3;
                 if (!gameActive) {
                     challengeBtn.style.opacity = '0.5';
+                } else if (currentWord.length < 3) {
+                    challengeBtn.style.opacity = '0.6';
+                } else {
+                    challengeBtn.style.opacity = '1';
+                }
+            }
+        }
                 } else if (playerTurn || currentWord.length < 3) {
                     challengeBtn.style.opacity = '0.5';
                 } else {
@@ -2019,32 +2030,27 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         function playerChooseLetter(letter) {
             if (!gameActive || !playerTurn) return;
             addLetter(letter, true);
+            
+            // After player's move, give AI a chance to challenge
+            if (gameActive) {
+                setTimeout(() => {
+                    aiConsiderChallenge();
+                }, 500);
+            }
         }
         
         function addLetter(letter, isPlayer) {
             currentWord += letter;
             updateDisplay();
             
-            // Check for complete word
+            // Check for complete word (still automatic - completing a word is always a loss)
             if (isCompleteWord(currentWord)) {
                 endGame(!isPlayer);
                 return;
             }
             
-            // Check for invalid continuation
-            if (!hasValidContinuation(currentWord)) {
-                // Before declaring loss, check if AI should challenge
-                if (isPlayer && aiMode !== 'random' && Math.random() < getAIChallengeRate()) {
-                    // AI challenges the player!
-                    bluffingSystem.playerChallenges++; // Track that we challenged
-                    setStatus(`🤖 AI challenges you! "${currentWord}" has no valid continuation. AI wins!`, 'error');
-                    endGame(false);
-                    return;
-                }
-                // If AI doesn't challenge, player gets away with it OR loses normally
-                endGame(!isPlayer);
-                return;
-            }
+            // REMOVED: Automatic invalid continuation check
+            // Players must now challenge to catch invalid moves
             
             // Switch turns
             playerTurn = !playerTurn;
@@ -2133,6 +2139,34 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 setStatus(`✅ Challenge successful! AI was bluffing. You win!`, 'success');
                 endGame(true);
             }
+        }
+        
+        // AI decides whether to challenge player
+        function aiConsiderChallenge() {
+            if (!gameActive || currentWord.length < 3) return false;
+            
+            const validLetters = getValidContinuations(currentWord);
+            
+            // Check if player's move was invalid
+            if (validLetters.length === 0) {
+                // Decide if AI should challenge
+                const challengeRate = getAIChallengeRate();
+                
+                if (Math.random() < challengeRate) {
+                    // AI challenges!
+                    bluffingSystem.playerChallenges++; // Track AI challenged
+                    setTimeout(() => {
+                        setStatus(`🤖 AI challenges you! "${currentWord}" has no valid continuation. AI wins!`, 'error');
+                        endGame(false);
+                    }, 800);
+                    return true;
+                } else {
+                    // AI doesn't notice or chooses not to challenge
+                    // Player gets away with the bluff!
+                    return false;
+                }
+            }
+            return false;
         }
         
         function endGame(playerWon) {
