@@ -893,7 +893,8 @@
                     📤 Upload words.txt
                 </button>
                 <div class="upload-hint">
-                    Current dictionary: <span id="dictSize">Loading...</span>
+                    Current dictionary: <span id="dictSize">Loading...</span><br>
+                    <small style="color: #666;">Using curated list of common English words. Upload your own .txt file (one word per line) for more words.</small>
                 </div>
             </div>
         </div>
@@ -2452,8 +2453,11 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 sizeEl.textContent = `${WORD_LIST.length.toLocaleString()} words (built-in)`;
             }
             
-            // Try to load full dictionary
-            loadFullDictionary();
+            // DON'T auto-load full dictionary - it has too many obscure words
+            // Users can upload their own dictionary if they want more words
+            // loadFullDictionary();
+            
+            console.log('✓ Using built-in dictionary:', WORD_LIST.length, 'common English words');
             
             // Initialize turn indicator
             const turnIndicator = document.getElementById('turnIndicator');
