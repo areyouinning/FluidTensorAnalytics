@@ -704,6 +704,11 @@
             color: white;
         }
         
+        .btn-info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -919,6 +924,11 @@
             <button class="btn btn-danger" id="challengeBtn" onclick="challenge()" 
                     title="Challenge the AI if you think it's bluffing! (Only available on AI's turn with 3+ letters)">
                 ⚔️ Challenge AI
+            </button>
+            <button class="btn btn-info" id="googleBtn" onclick="checkGoogle()" 
+                    style="display: none;"
+                    title="Search Google to verify if this word exists">
+                🔍 Check Google
             </button>
             <button class="btn btn-secondary" id="newGameBtn" onclick="newGame()"
                     title="Start a fresh game">
@@ -1749,6 +1759,9 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         // Track if the last AI move was a bluff
         let lastAIMoveWasBluff = false;
         
+        // Track the word being disputed for Google verification
+        let disputedWord = null;
+        
         // ========================================================================
         // AI STRATEGIES
         // ========================================================================
@@ -2065,16 +2078,13 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             
             addLetter(letter, true);
             
-            // After player's move, give AI a chance to challenge
-            // Save the word at the time of player's move to check later
+            // IMMEDIATELY check if AI wants to challenge (before AI makes its move)
             if (gameActive) {
-                const wordToCheck = currentWord;
-                setTimeout(() => {
-                    // Only challenge if we're still on the same word (AI hasn't moved yet)
-                    if (currentWord === wordToCheck && gameActive) {
-                        aiConsiderChallenge();
-                    }
-                }, 500);
+                const challenged = aiConsiderChallenge();
+                // Only let AI make its move if it didn't challenge
+                if (!challenged && !playerTurn && gameActive) {
+                    aiChooseLetter();
+                }
             }
         }
         
@@ -2108,10 +2118,8 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             updateStatus();
             updateButtonStates();
             
-            // AI's turn
-            if (!playerTurn && gameActive) {
-                aiChooseLetter();
-            }
+            // Don't automatically call AI here - let the calling function decide
+            // This prevents AI from moving after being challenged
         }
         
         // Calculate AI's challenge rate based on difficulty and game state
@@ -2163,6 +2171,30 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             
             content.classList.toggle('open');
             toggle.classList.toggle('open');
+        }
+        
+        function checkGoogle() {
+            if (disputedWord) {
+                // Open Google search for "define [word]" in a new tab
+                const searchUrl = `https://www.google.com/search?q=define+${disputedWord.toLowerCase()}`;
+                window.open(searchUrl, '_blank');
+            }
+        }
+        
+        function showGoogleButton(word) {
+            disputedWord = word;
+            const googleBtn = document.getElementById('googleBtn');
+            if (googleBtn) {
+                googleBtn.style.display = 'inline-block';
+            }
+        }
+        
+        function hideGoogleButton() {
+            disputedWord = null;
+            const googleBtn = document.getElementById('googleBtn');
+            if (googleBtn) {
+                googleBtn.style.display = 'none';
+            }
         }
         
         function challenge() {
@@ -2219,11 +2251,13 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                     `${completableWords.slice(0, 3).join(', ')} (+${completableWords.length - 3} more)`;
                 console.log('Challenge FAILED - calling endGame(false, true)');
                 setStatus(`❌ Challenge failed! AI was building "${word}". Possible words: ${wordList}`, 'error');
+                showGoogleButton(word); // Allow checking Google
                 endGame(false, true); // Pass true to preserve custom message
             } else {
                 // AI WAS bluffing - you win
                 console.log('Challenge SUCCEEDED - calling endGame(true, true)');
                 setStatus(`✅ Challenge successful! "${currentWord}" cannot be completed. You win!`, 'success');
+                showGoogleButton(currentWord); // Allow checking Google anyway
                 endGame(true, true); // Pass true to preserve custom message
             }
             console.log('=== END CHALLENGE DEBUG ===');
@@ -2243,8 +2277,9 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 if (Math.random() < challengeRate) {
                     // AI challenges!
                     bluffingSystem.playerChallenges++; // Track AI challenged
+                    setStatus(`🤖 AI challenges! "${currentWord}" cannot be completed. AI wins!`, 'error');
+                    showGoogleButton(currentWord); // Allow checking Google
                     setTimeout(() => {
-                        setStatus(`🤖 AI challenges! "${currentWord}" cannot be completed. AI wins!`, 'error');
                         endGame(false, true); // Preserve custom message
                     }, 800);
                     return true;
@@ -2311,6 +2346,7 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             currentWord = '';
             gameActive = true;
             lastAIMoveWasBluff = false; // Reset bluff tracking
+            hideGoogleButton(); // Hide Google verification button
             
             // Randomly decide who goes first (50/50)
             playerTurn = Math.random() < 0.5;
