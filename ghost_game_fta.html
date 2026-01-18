@@ -2073,11 +2073,23 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         }
         
         function addLetter(letter, isPlayer) {
+            console.log(`%c📝 addLetter called`, 'background: #0f0; color: #000; font-weight: bold');
+            console.log('  Letter:', letter);
+            console.log('  isPlayer:', isPlayer);
+            console.log('  Current word before:', currentWord);
+            
             currentWord += letter;
+            console.log('  Current word after:', currentWord);
             updateDisplay();
             
             // Check for complete word (still automatic - completing a word is always a loss)
-            if (isCompleteWord(currentWord)) {
+            console.log('  Checking if complete word...');
+            const isComplete = isCompleteWord(currentWord);
+            console.log('  Is complete word?:', isComplete);
+            
+            if (isComplete) {
+                console.log(`  🎯 Word completed! Calling endGame(!isPlayer) = endGame(${!isPlayer})`);
+                console.log(`  This means: ${isPlayer ? 'PLAYER' : 'AI'} completed word, so ${!isPlayer ? 'PLAYER' : 'AI'} wins`);
                 endGame(!isPlayer);
                 return;
             }
