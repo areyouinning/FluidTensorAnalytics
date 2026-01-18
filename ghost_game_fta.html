@@ -1680,11 +1680,15 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 const adjustedRate = baseRate * positionMultiplier;
                 const shouldBluff = Math.random() < adjustedRate;
                 
-                if (shouldBluff) {
-                    this.aiBluffs++;
-                }
+                // Don't increment counter here - do it when we actually bluff
                 
                 return shouldBluff;
+            }
+            
+            // Record that AI actually made a bluff
+            recordBluff() {
+                this.aiBluffs++;
+                this.save();
             }
             
             // Record challenge outcome
@@ -1692,10 +1696,11 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 this.playerChallenges++;
                 
                 if (aiWasBluffing) {
+                    // AI was bluffing and got caught
                     this.caughtBluffs++;
-                } else {
-                    this.successfulBluffs++;
                 }
+                // Note: If AI was NOT bluffing (challenge failed), we don't increment 
+                // successfulBluffs here because there was no bluff to be successful
                 
                 this.save();
             }
@@ -1740,6 +1745,9 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         
         const bluffingSystem = new AdaptiveBluffing();
         
+        // Track if the last AI move was a bluff
+        let lastAIMoveWasBluff = false;
+        
         // ========================================================================
         // AI STRATEGIES
         // ========================================================================
@@ -1783,10 +1791,13 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 const invalidLetters = allLetters.split('').filter(l => !validLetters.includes(l));
                 if (invalidLetters.length > 0 && Math.random() < 0.3) {
+                    bluffingSystem.recordBluff(); // Actually bluffing now
+                    lastAIMoveWasBluff = true;
                     return invalidLetters[Math.floor(Math.random() * invalidLetters.length)];
                 }
             }
             
+            lastAIMoveWasBluff = false;
             if (validLetters.length === 0) return randomLetter();
             
             let bestMove = null;
@@ -1878,10 +1889,13 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 const invalidLetters = allLetters.split('').filter(l => !validLetters.includes(l));
                 if (invalidLetters.length > 0) {
+                    bluffingSystem.recordBluff();
+                    lastAIMoveWasBluff = true;
                     return invalidLetters[Math.floor(Math.random() * invalidLetters.length)];
                 }
             }
             
+            lastAIMoveWasBluff = false;
             if (validLetters.length === 0) return randomLetter();
             
             const probs = neuralNet.predict(currentWord);
@@ -1893,9 +1907,12 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             
             // Use adaptive game-theoretic bluffing
             if (bluffingSystem.shouldBluff(currentWord, validLetters)) {
+                bluffingSystem.recordBluff();
+                lastAIMoveWasBluff = true;
                 return randomLetter();
             }
             
+            lastAIMoveWasBluff = false;
             if (validLetters.length === 0) return randomLetter();
             
             const safeLetters = validLetters.filter(letter => 
@@ -2037,6 +2054,14 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         
         function playerChooseLetter(letter) {
             if (!gameActive || !playerTurn) return;
+            
+            // If last AI move was a bluff and player didn't challenge, record successful bluff
+            if (lastAIMoveWasBluff) {
+                bluffingSystem.recordUnchallengedBluff();
+                console.log('✅ AI bluff went unchallenged!');
+                lastAIMoveWasBluff = false; // Reset flag
+            }
+            
             addLetter(letter, true);
             
             // After player's move, give AI a chance to challenge
@@ -2133,30 +2158,50 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                 return;
             }
             
+            console.log('=== CHALLENGE DEBUG ===');
+            console.log('Current word:', currentWord);
+            console.log('Player turn?:', playerTurn);
+            console.log('Game active?:', gameActive);
+            console.log('Last AI move was bluff?:', lastAIMoveWasBluff);
+            
             const completableWords = findCompletableWords(currentWord);
+            console.log('Completable words:', completableWords);
+            console.log('Number of completable words:', completableWords.length);
+            
             const aiWasBluffing = completableWords.length === 0;
+            console.log('AI was bluffing?:', aiWasBluffing);
+            
+            // Reset bluff flag
+            lastAIMoveWasBluff = false;
             
             // Debug: show what words were found
             if (completableWords.length > 0 && completableWords.length <= 5) {
                 console.log(`🔍 Found ${completableWords.length} completable word(s):`, completableWords);
             } else if (completableWords.length > 5) {
                 console.log(`🔍 Found ${completableWords.length} completable words:`, completableWords.slice(0, 10), '...');
+            } else {
+                console.log('🔍 No completable words found - challenge should succeed!');
             }
             
             // Record challenge outcome in adaptive system
             bluffingSystem.recordChallenge(aiWasBluffing);
             
             if (completableWords.length > 0) {
+                // AI was NOT bluffing - you lose
                 const word = completableWords[0];
                 const wordList = completableWords.length <= 3 ? 
                     completableWords.join(', ') : 
                     `${completableWords.slice(0, 3).join(', ')} (+${completableWords.length - 3} more)`;
+                console.log('Challenge FAILED - calling endGame(false, true)');
                 setStatus(`❌ Challenge failed! AI was building "${word}". Possible words: ${wordList}`, 'error');
                 endGame(false, true); // Pass true to preserve custom message
             } else {
+                // AI WAS bluffing - you win
+                console.log('Challenge SUCCEEDED - calling endGame(true, true)');
                 setStatus(`✅ Challenge successful! "${currentWord}" cannot be completed. You win!`, 'success');
                 endGame(true, true); // Pass true to preserve custom message
             }
+            console.log('=== END CHALLENGE DEBUG ===');
         }
         
         // AI decides whether to challenge player
@@ -2188,6 +2233,11 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         }
         
         function endGame(playerWon, customMessage = null) {
+            console.log('=== ENDGAME DEBUG ===');
+            console.log('Player won?:', playerWon);
+            console.log('Custom message?:', customMessage);
+            console.log('Current word:', currentWord);
+            
             gameActive = false;
             stats.games++;
             
@@ -2199,6 +2249,7 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             
             // Only set status if no custom message was already set
             if (!customMessage) {
+                console.log('No custom message - setting generic message');
                 if (playerWon) {
                     stats.wins++;
                     if (isCompleteWord(currentWord)) {
@@ -2215,6 +2266,7 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
                     }
                 }
             } else {
+                console.log('Custom message provided - preserving existing status');
                 // Use custom message and update stats
                 if (playerWon) {
                     stats.wins++;
@@ -2227,11 +2279,13 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             updateStats();
             updateButtonStates();
             updateBluffingStats(); // Update bluffing statistics
+            console.log('=== END ENDGAME DEBUG ===');
         }
         
         function newGame() {
             currentWord = '';
             gameActive = true;
+            lastAIMoveWasBluff = false; // Reset bluff tracking
             
             // Randomly decide who goes first (50/50)
             playerTurn = Math.random() < 0.5;
