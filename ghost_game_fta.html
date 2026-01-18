@@ -2148,12 +2148,17 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
         }
         
         function challenge() {
+            console.log('%c=== CHALLENGE BUTTON CLICKED ===', 'background: #ff0; color: #000; font-size: 16px; font-weight: bold');
+            console.log('Timestamp:', new Date().toISOString());
+            
             if (!gameActive || currentWord === '') {
+                console.log('❌ Challenge aborted: game not active or no word');
                 setStatus('Cannot challenge - game not in progress or no letters played!', 'error');
                 return;
             }
             
             if (currentWord.length < 3) {
+                console.log('❌ Challenge aborted: word too short');
                 setStatus('Cannot challenge yet - need at least 3 letters!', 'error');
                 return;
             }
@@ -2164,9 +2169,11 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             console.log('Game active?:', gameActive);
             console.log('Last AI move was bluff?:', lastAIMoveWasBluff);
             
+            console.log('Calling findCompletableWords...');
             const completableWords = findCompletableWords(currentWord);
             console.log('Completable words:', completableWords);
             console.log('Number of completable words:', completableWords.length);
+            console.log('Array is empty?:', completableWords.length === 0);
             
             const aiWasBluffing = completableWords.length === 0;
             console.log('AI was bluffing?:', aiWasBluffing);
