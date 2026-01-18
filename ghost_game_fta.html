@@ -2066,9 +2066,14 @@ YARD YEAH YEAR YELL YELLOW YESTERDAY YIELD YOUNG YOUR YOURS YOURSELF YOUTH ZONE`
             addLetter(letter, true);
             
             // After player's move, give AI a chance to challenge
+            // Save the word at the time of player's move to check later
             if (gameActive) {
+                const wordToCheck = currentWord;
                 setTimeout(() => {
-                    aiConsiderChallenge();
+                    // Only challenge if we're still on the same word (AI hasn't moved yet)
+                    if (currentWord === wordToCheck && gameActive) {
+                        aiConsiderChallenge();
+                    }
                 }, 500);
             }
         }
