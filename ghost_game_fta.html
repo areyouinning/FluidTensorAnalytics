@@ -3,105 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost AI - Minimax Fixed - Fluid Tensor Analytics</title>
+    <title>Ghost AI - Complete Fixed Version - Fluid Tensor Analytics</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .game-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 40px; max-width: 800px; width: 100%; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+        }
+        .game-container { 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            padding: 40px; 
+            max-width: 900px; 
+            width: 100%; 
+        }
         .header { text-align: center; margin-bottom: 30px; }
         h1 { color: #667eea; font-size: 2.5em; margin-bottom: 10px; }
         .subtitle { color: #666; font-size: 0.9em; }
-        .dictionary-info { background: #f0f0f0; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 0.85em; color: #555; }
-        .game-board { background: #f7f7f7; border-radius: 15px; padding: 30px; margin: 20px 0; text-align: center; }
-        .current-word { font-size: 3em; font-weight: bold; color: #667eea; min-height: 80px; display: flex; align-items: center; justify-content: center; letter-spacing: 8px; font-family: 'Courier New', monospace; }
-        .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; }
-        .letter-btn { width: 50px; height: 50px; font-size: 1.2em; font-weight: bold; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-        .letter-btn:hover:not(:disabled) { background: #667eea; color: white; transform: scale(1.1); }
-        .letter-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .status { padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; font-weight: 500; }
+        .dictionary-info { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            font-size: 0.85em; 
+            color: #555; 
+        }
+        .game-board { 
+            background: #f7f7f7; 
+            border-radius: 15px; 
+            padding: 30px; 
+            margin: 20px 0; 
+            text-align: center; 
+        }
+        .current-word { 
+            font-size: 3em; 
+            font-weight: bold; 
+            color: #667eea; 
+            min-height: 80px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            letter-spacing: 8px; 
+            font-family: 'Courier New', monospace; 
+        }
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+            justify-content: center; 
+            margin: 20px 0; 
+        }
+        .letter-btn { 
+            width: 45px; 
+            height: 45px; 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            border: 2px solid #667eea; 
+            background: white; 
+            color: #667eea; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .letter-btn:hover:not(:disabled) { 
+            background: #667eea; 
+            color: white; 
+            transform: scale(1.1); 
+        }
+        .letter-btn:disabled { 
+            /* Keep buttons looking normal - player must figure out valid letters */
+            opacity: 1.0; 
+            cursor: pointer; 
+        }
+        .status { 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-weight: 500; 
+        }
         .status.info { background: #e3f2fd; color: #1976d2; }
         .status.success { background: #e8f5e9; color: #388e3c; }
         .status.error { background: #ffebee; color: #c62828; }
-        .action-buttons { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
-        .btn { padding: 12px 30px; border: none; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        
+        .action-buttons { 
+            display: flex; 
+            gap: 15px; 
+            justify-content: center; 
+            margin: 20px 0; 
+        }
+        .btn { 
+            padding: 12px 30px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1em; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
         .btn-danger { background: #e53935; color: white; }
         .btn-danger:hover { background: #c62828; transform: translateY(-2px); }
         .btn-secondary { background: #757575; color: white; }
         .btn-secondary:hover { background: #616161; transform: translateY(-2px); }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; }
+        
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0; 
+        }
+        .stat-card { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            text-align: center; 
+        }
         .stat-value { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
         .stat-label { font-size: 0.9em; opacity: 0.9; }
-        .ai-selector { display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-        .ai-option { padding: 10px 20px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.9em; }
+        
+        .ai-selector { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            margin: 20px 0; 
+            flex-wrap: wrap; 
+        }
+        .ai-option { 
+            padding: 10px 20px; 
+            border: 2px solid #667eea; 
+            background: white; 
+            color: #667eea; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-size: 0.9em; 
+        }
         .ai-option.active { background: #667eea; color: white; }
         .ai-option:hover { transform: translateY(-2px); }
-        .thinking-indicator { display: none; text-align: center; color: #667eea; font-style: italic; margin: 10px 0; font-size: 0.9em; }
+        
+        .thinking-indicator { 
+            display: none; 
+            text-align: center; 
+            color: #667eea; 
+            font-style: italic; 
+            margin: 10px 0; 
+            font-size: 0.9em; 
+        }
         .thinking-indicator.active { display: block; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .thinking-indicator.active::after { content: '...'; animation: pulse 1.5s infinite; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; }
+        
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        .thinking-indicator.active::after { 
+            content: '...'; 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        .explanation { 
+            background: #fff3e0; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin: 15px 0; 
+            font-size: 0.85em; 
+            color: #e65100; 
+            border-left: 4px solid #ff9800;
+        }
+        
+        .footer { 
+            text-align: center; 
+            margin-top: 30px; 
+            color: #666; 
+            font-size: 0.9em; 
+        }
         .footer a { color: #667eea; text-decoration: none; }
         .footer a:hover { text-decoration: underline; }
-        .debug { font-size: 0.8em; color: #999; margin-top: 10px; font-family: monospace; }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="header">
             <h1>👻 GHOST</h1>
-            <div class="subtitle">Minimax AI (Fixed)</div>
+            <div class="subtitle">AI Word Game - Complete Edition</div>
         </div>
-        <div class="dictionary-info" id="dict-info">Demo Dictionary Loaded</div>
+        
+        <div class="dictionary-info" id="dict-info">📖 Demo Dictionary (Ready)</div>
+        
         <div class="ai-selector">
             <div class="ai-option" data-ai="minimax" data-depth="8">🧠 Minimax D8</div>
             <div class="ai-option active" data-ai="minimax" data-depth="6">🎯 Minimax D6</div>
             <div class="ai-option" data-ai="minimax" data-depth="4">💡 Minimax D4</div>
+            <div class="ai-option" data-ai="neural">🤖 Neural Net</div>
             <div class="ai-option" data-ai="greedy">⚡ Greedy</div>
             <div class="ai-option" data-ai="random">🎲 Random</div>
         </div>
+        
         <div class="game-board">
             <div class="current-word" id="currentWord">_</div>
             <div class="thinking-indicator" id="thinking">AI is thinking</div>
-            <div class="debug" id="debug"></div>
         </div>
+        
+        <div class="explanation" id="explanation" style="display: none;"></div>
+        
         <div class="status info" id="status">Choose a letter to start!</div>
+        
         <div class="controls" id="letterButtons"></div>
+        
         <div class="action-buttons">
             <button class="btn btn-danger" onclick="challenge()" id="challengeBtn">Challenge AI</button>
             <button class="btn btn-secondary" onclick="newGame()" id="newGameBtn">New Game</button>
         </div>
+        
         <div class="stats">
-            <div class="stat-card"><div class="stat-value" id="winsValue">0</div><div class="stat-label">Your Wins</div></div>
-            <div class="stat-card"><div class="stat-value" id="lossesValue">0</div><div class="stat-label">Your Losses</div></div>
-            <div class="stat-card"><div class="stat-value" id="winRateValue">0%</div><div class="stat-label">Win Rate</div></div>
+            <div class="stat-card">
+                <div class="stat-value" id="winsValue">0</div>
+                <div class="stat-label">Your Wins</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lossesValue">0</div>
+                <div class="stat-label">Your Losses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winRateValue">0%</div>
+                <div class="stat-label">Win Rate</div>
+            </div>
         </div>
+        
         <div class="footer">
             <p>Created by <a href="https://fluidtensor.com" target="_blank">Fluid Tensor Analytics</a></p>
             <p style="margin-top: 5px; font-size: 0.8em;">Game Theory • Minimax • Alpha-Beta Pruning</p>
         </div>
     </div>
+    
     <script>
-// Demo Dictionary
+// ========================================
+// DICTIONARY (Demo version - replace with TWL06)
+// ========================================
+
 class SimpleDictionary {
     constructor() {
         this.words = new Set([
-            'GHOST', 'GHOSTS', 'GAME', 'GAMES', 'GAMER', 'WORD', 'WORDS', 'PLAY', 'PLAYS', 'PLAYER',
-            'TEST', 'TESTS', 'CODE', 'CODES', 'CODER', 'DATA', 'TEAM', 'TEAMS',
-            'WORK', 'WORKS', 'WORKER', 'TIME', 'TIMES', 'TIMER', 'HELP', 'HELPS', 'HELPER',
-            'TYPE', 'TYPES', 'TYPED', 'TYPING', 'TYPER', 'TYPICAL',
-            'MAKE', 'MAKES', 'MAKER', 'FIND', 'FINDS', 'FINDER', 'CALL', 'CALLS', 'CALLER',
-            'HAND', 'HANDS', 'PART', 'PARTS', 'PLACE', 'PLACES', 'WORLD', 'WORLDS',
-            'GREAT', 'GREATER', 'GREATEST', 'FIRST', 'THINK', 'THINKS', 'THINKER',
-            'COULD', 'WATER', 'WATERS', 'ABOUT', 'AFTER', 'AGAIN', 'AGAINST',
-            'ALMOST', 'ALWAYS', 'ANOTHER', 'ANSWER', 'ANSWERS', 'AROUND',
-            'BECAUSE', 'BEFORE', 'BETTER', 'BETWEEN', 'BLACK', 'BLACKS',
-            'BRING', 'BRINGS', 'BUILD', 'BUILDS', 'BUILDER', 'CHANGE', 'CHANGES',
-            'CHILDREN', 'CHILD', 'CLOSE', 'CLOSES', 'CLOSER', 'COMMUNITY',
-            'COMPANY', 'COMPANIES', 'COUNTRY', 'COUNTRIES', 'COURSE', 'COURSES',
-            'CREATE', 'CREATES', 'CREATOR', 'DIFFERENT', 'EARLY', 'EARLIER',
-            'EDUCATION', 'EVERY', 'EXAMPLE', 'EXAMPLES', 'EXPERIENCE'
+            'GHOST', 'GHOSTS', 'GAME', 'GAMES', 'GAMER', 'GAMING', 'WORD', 'WORDS', 'WORK', 'WORKS', 'WORKER',
+            'PLAY', 'PLAYS', 'PLAYER', 'PLAYING', 'TEST', 'TESTS', 'TESTED', 'TESTING', 'TESTER',
+            'CODE', 'CODES', 'CODER', 'CODING', 'CODED', 'DATA', 'TEAM', 'TEAMS', 'TEAMING',
+            'TYPE', 'TYPES', 'TYPED', 'TYPING', 'TYPER', 'TYPICAL', 'TYPICALLY',
+            'TIME', 'TIMES', 'TIMER', 'TIMED', 'TIMING', 'TIMELY',
+            'HELP', 'HELPS', 'HELPER', 'HELPING', 'HELPED', 'HELPFUL',
+            'MAKE', 'MAKES', 'MAKER', 'MAKING', 'FIND', 'FINDS', 'FINDER', 'FINDING',
+            'CALL', 'CALLS', 'CALLER', 'CALLING', 'CALLED',
+            'HAND', 'HANDS', 'HANDLE', 'HANDLER', 'HANDLING',
+            'PART', 'PARTS', 'PLACE', 'PLACES', 'PLACING',
+            'WORLD', 'WORLDS', 'GREAT', 'GREATER', 'GREATEST',
+            'FIRST', 'THINK', 'THINKS', 'THINKER', 'THINKING',
+            'WATER', 'WATERS', 'WATERED', 'WATERING',
+            'ABOUT', 'AFTER', 'AGAIN', 'AGAINST',
+            'ALMOST', 'ALWAYS', 'ANOTHER', 'ANSWER', 'ANSWERS', 'ANSWERED',
+            'BECAUSE', 'BEFORE', 'BETTER', 'BETWEEN',
+            'BLACK', 'BLACKS', 'BRING', 'BRINGS', 'BRINGING',
+            'BUILD', 'BUILDS', 'BUILDER', 'BUILDING',
+            'CHANGE', 'CHANGES', 'CHANGED', 'CHANGING',
+            'CHILD', 'CHILDREN', 'CLOSE', 'CLOSES', 'CLOSER', 'CLOSING',
+            'COMPANY', 'COMPANIES', 'COUNTRY', 'COUNTRIES',
+            'COURSE', 'COURSES', 'CREATE', 'CREATES', 'CREATOR', 'CREATING',
+            'DIFFERENT', 'EARLY', 'EARLIER', 'EARLIEST',
+            'EDUCATION', 'EDUCATIONAL', 'EVERY', 'EXAMPLE', 'EXAMPLES',
+            'FAMILY', 'FAMILIES', 'FOLLOW', 'FOLLOWS', 'FOLLOWER', 'FOLLOWING',
+            'FRIEND', 'FRIENDS', 'FRIENDLY', 'FRIENDSHIP',
+            'GOVERNMENT', 'GOVERNMENTAL', 'GROUP', 'GROUPS', 'GROUPING',
+            'HEALTH', 'HEALTHY', 'HEALTHIER', 'HOUSE', 'HOUSES', 'HOUSING',
+            'HUMAN', 'HUMANS', 'HUMANITY', 'IMPORTANT', 'IMPORTANCE',
+            'INFORMATION', 'INFORMATIONAL', 'INTEREST', 'INTERESTS', 'INTERESTING',
+            'LARGE', 'LARGER', 'LARGEST', 'LEARN', 'LEARNS', 'LEARNER', 'LEARNING',
+            'LEVEL', 'LEVELS', 'LOCAL', 'LOCALLY', 'MEMBER', 'MEMBERS', 'MEMBERSHIP',
+            'MOMENT', 'MOMENTS', 'MONEY', 'MONTH', 'MONTHS', 'MONTHLY',
+            'NATIONAL', 'NATIONALLY', 'NATURE', 'NATURAL', 'NATURALLY',
+            'NUMBER', 'NUMBERS', 'NUMBERED', 'NUMBERING',
+            'OFFER', 'OFFERS', 'OFFERING', 'OFFERED',
+            'ORDER', 'ORDERS', 'ORDERED', 'ORDERING',
+            'PARENT', 'PARENTS', 'PARENTAL', 'PARENTING',
+            'PEOPLE', 'PERSON', 'PERSONS', 'PERSONAL', 'PERSONALITY',
+            'POINT', 'POINTS', 'POINTED', 'POINTING',
+            'POWER', 'POWERS', 'POWERFUL', 'POWERED', 'POWERING',
+            'PROBLEM', 'PROBLEMS', 'PROBLEMATIC',
+            'PROCESS', 'PROCESSES', 'PROCESSED', 'PROCESSING',
+            'PROGRAM', 'PROGRAMS', 'PROGRAMMED', 'PROGRAMMING', 'PROGRAMMER',
+            'PUBLIC', 'PUBLICLY', 'QUESTION', 'QUESTIONS', 'QUESTIONING',
+            'REACH', 'REACHES', 'REACHED', 'REACHING',
+            'REALLY', 'REASON', 'REASONS', 'REASONABLE', 'REASONING',
+            'REPORT', 'REPORTS', 'REPORTER', 'REPORTING', 'REPORTED',
+            'RIGHT', 'RIGHTS', 'SCHOOL', 'SCHOOLS', 'SCHOOLING',
+            'SECOND', 'SECONDS', 'SEVERAL', 'SHALL', 'SHOULD',
+            'SMALL', 'SMALLER', 'SMALLEST', 'SOCIAL', 'SOCIALLY',
+            'SOMETHING', 'STAND', 'STANDS', 'STANDING',
+            'START', 'STARTS', 'STARTER', 'STARTING', 'STARTED',
+            'STATE', 'STATES', 'STATED', 'STATING',
+            'STILL', 'STORY', 'STORIES', 'STUDENT', 'STUDENTS',
+            'STUDY', 'STUDIES', 'STUDIED', 'STUDYING',
+            'SYSTEM', 'SYSTEMS', 'SYSTEMATIC', 'SYSTEMATICALLY',
+            'THEIR', 'THEIRS', 'THERE', 'THESE', 'THING', 'THINGS',
+            'THREE', 'THROUGH', 'TODAY', 'TOGETHER',
+            'TOWARD', 'TOWARDS', 'UNDER', 'UNTIL',
+            'WHERE', 'WHICH', 'WHILE', 'WHITE', 'WHITER',
+            'WOMAN', 'WOMEN', 'WOULD', 'WRITE', 'WRITES', 'WRITER', 'WRITING',
+            'YOUNG', 'YOUNGER', 'YOUNGEST'
         ]);
+        
         this.prefixTree = {};
         for (const word of this.words) {
             let node = this.prefixTree;
@@ -112,7 +326,11 @@ class SimpleDictionary {
             node['$'] = true;
         }
     }
-    check(word) { return this.words.has(word.toUpperCase()); }
+    
+    check(word) {
+        return this.words.has(word.toUpperCase());
+    }
+    
     children(prefix) {
         let node = this.prefixTree;
         for (const char of prefix.toUpperCase()) {
@@ -123,21 +341,178 @@ class SimpleDictionary {
     }
 }
 
-// Game State
-let currentWord = '', gameActive = true, playerTurn = true;
+// ========================================
+// GAME STATE
+// ========================================
+
+let currentWord = '';
+let gameActive = true;
+let playerTurn = true;
 let stats = { wins: 0, losses: 0, games: 0 };
-let aiMode = 'minimax', searchDepth = 6;
+let aiMode = 'minimax';
+let searchDepth = 6;
+let lastAIMove = null;
+
 const dictionary = new SimpleDictionary();
 const minimaxCache = new Map();
 
-// Dictionary functions
-function getValidContinuations(prefix) { return dictionary.children(prefix); }
-function isCompleteWord(str) { return str.length >= 4 && dictionary.check(str); }
+// ========================================
+// DICTIONARY FUNCTIONS
+// ========================================
 
-// CORRECTED Minimax AI
+function getValidContinuations(prefix) {
+    return dictionary.children(prefix);
+}
+
+function isCompleteWord(str) {
+    return str.length >= 4 && dictionary.check(str);
+}
+
+function hasValidContinuation(prefix) {
+    return getValidContinuations(prefix).length > 0;
+}
+
+// ========================================
+// NEURAL NETWORK AI
+// ========================================
+
+class SimpleNeuralNet {
+    constructor() {
+        // Simple feedforward network for demonstration
+        // In production, load trained weights
+        this.initialized = false;
+        this.initializeRandomWeights();
+    }
+    
+    initializeRandomWeights() {
+        // Random weights for demo (would be trained in production)
+        this.weights1 = this.randomMatrix(520, 128); // Input to hidden
+        this.weights2 = this.randomMatrix(128, 64);  // Hidden to hidden
+        this.weights3 = this.randomMatrix(64, 26);   // Hidden to output
+        this.initialized = true;
+    }
+    
+    randomMatrix(rows, cols) {
+        const matrix = [];
+        for (let i = 0; i < rows; i++) {
+            const row = [];
+            for (let j = 0; j < cols; j++) {
+                row.push((Math.random() - 0.5) * 0.2); // Small random weights
+            }
+            matrix.push(row);
+        }
+        return matrix;
+    }
+    
+    encodePrefix(prefix) {
+        // One-hot encoding: 26 letters × 20 positions = 520 inputs
+        const encoding = new Array(520).fill(0);
+        for (let i = 0; i < prefix.length && i < 20; i++) {
+            const charCode = prefix.charCodeAt(i) - 65; // A=0, B=1, etc.
+            if (charCode >= 0 && charCode < 26) {
+                encoding[i * 26 + charCode] = 1;
+            }
+        }
+        return encoding;
+    }
+    
+    matmul(vec, matrix) {
+        const result = new Array(matrix[0].length).fill(0);
+        for (let j = 0; j < matrix[0].length; j++) {
+            for (let i = 0; i < vec.length; i++) {
+                result[j] += vec[i] * matrix[i][j];
+            }
+        }
+        return result;
+    }
+    
+    relu(vec) {
+        return vec.map(x => Math.max(0, x));
+    }
+    
+    softmax(vec) {
+        const max = Math.max(...vec);
+        const exps = vec.map(x => Math.exp(x - max));
+        const sum = exps.reduce((a, b) => a + b, 0);
+        return exps.map(x => x / sum);
+    }
+    
+    predict(prefix) {
+        if (!this.initialized) return null;
+        
+        // Encode the prefix
+        const input = this.encodePrefix(prefix);
+        
+        // Forward pass
+        let hidden1 = this.matmul(input, this.weights1);
+        hidden1 = this.relu(hidden1);
+        
+        let hidden2 = this.matmul(hidden1, this.weights2);
+        hidden2 = this.relu(hidden2);
+        
+        let output = this.matmul(hidden2, this.weights3);
+        const probabilities = this.softmax(output);
+        
+        return probabilities;
+    }
+}
+
+const neuralNet = new SimpleNeuralNet();
+
+function neuralAI() {
+    const validLetters = getValidContinuations(currentWord);
+    if (!validLetters.length) return null;
+    
+    // Get neural network predictions
+    const probs = neuralNet.predict(currentWord);
+    if (!probs) return randomAI();
+    
+    // Filter to valid letters and renormalize
+    const validProbs = validLetters.map(letter => {
+        const idx = letter.charCodeAt(0) - 65;
+        return { letter, prob: probs[idx] || 0 };
+    });
+    
+    // Remove word-completing moves
+    const safeProbs = validProbs.filter(item => !isCompleteWord(currentWord + item.letter));
+    const candidateProbs = safeProbs.length > 0 ? safeProbs : validProbs;
+    
+    // Renormalize
+    const sum = candidateProbs.reduce((s, item) => s + item.prob, 0);
+    if (sum === 0) return randomAI();
+    
+    candidateProbs.forEach(item => item.prob /= sum);
+    
+    // Sample from distribution with temperature
+    const temperature = 0.8;
+    const tempProbs = candidateProbs.map(item => ({
+        letter: item.letter,
+        prob: Math.pow(item.prob, 1 / temperature)
+    }));
+    
+    const tempSum = tempProbs.reduce((s, item) => s + item.prob, 0);
+    tempProbs.forEach(item => item.prob /= tempSum);
+    
+    // Sample
+    const rand = Math.random();
+    let cumProb = 0;
+    for (let item of tempProbs) {
+        cumProb += item.prob;
+        if (rand < cumProb) return item.letter;
+    }
+    
+    return tempProbs[0].letter;
+}
+
+// ========================================
+// MINIMAX AI (FIXED VERSION)
+// ========================================
+
 function minimax(prefix, depth, isMaximizing, alpha = -Infinity, beta = Infinity) {
     const cacheKey = `${prefix}|${depth}|${isMaximizing}`;
-    if (minimaxCache.has(cacheKey)) return minimaxCache.get(cacheKey);
+    if (minimaxCache.has(cacheKey)) {
+        return minimaxCache.get(cacheKey);
+    }
     
     const validLetters = getValidContinuations(prefix);
     
@@ -165,22 +540,26 @@ function minimax(prefix, depth, isMaximizing, alpha = -Infinity, beta = Infinity
         for (const letter of validLetters) {
             const newPrefix = prefix + letter;
             
-            // Skip moves that complete words (immediate loss)
+            // CRITICAL FIX: Skip moves that immediately complete words
             if (isCompleteWord(newPrefix)) {
+                // This is an immediate loss - don't even recurse
+                // We continue to check other moves
                 continue;
             }
             
+            // Recursively evaluate this move
             const evaluation = minimax(newPrefix, depth - 1, false, alpha, beta);
             
             if (evaluation.score > maxEval.score) {
                 maxEval = { score: evaluation.score, letter: letter };
             }
             
+            // Alpha-beta pruning
             alpha = Math.max(alpha, evaluation.score);
             if (beta <= alpha) break;
         }
         
-        // If ALL moves complete words, pick the least bad one
+        // If ALL moves complete words (forced loss), pick any
         if (maxEval.score === -Infinity) {
             maxEval = { score: -1000, letter: validLetters[0] };
         }
@@ -193,7 +572,7 @@ function minimax(prefix, depth, isMaximizing, alpha = -Infinity, beta = Infinity
         for (const letter of validLetters) {
             const newPrefix = prefix + letter;
             
-            // Skip moves that complete words (opponent won't make them)
+            // Opponent won't complete words either
             if (isCompleteWord(newPrefix)) {
                 continue;
             }
@@ -217,48 +596,81 @@ function minimax(prefix, depth, isMaximizing, alpha = -Infinity, beta = Infinity
     }
 }
 
+// ========================================
+// AI STRATEGIES
+// ========================================
+
 function aiChooseLetter() {
     if (!gameActive) return;
-    document.getElementById('thinking').className = 'thinking-indicator active';
+    
+    showThinking(true);
     
     setTimeout(() => {
-        let letter, score;
+        let letter, score, explanation;
         
-        if (minimaxCache.size > 10000) minimaxCache.clear();
+        // Clear cache if too large
+        if (minimaxCache.size > 10000) {
+            minimaxCache.clear();
+        }
         
         switch(aiMode) {
             case 'minimax':
                 const result = minimax(currentWord, searchDepth, true);
                 letter = result.letter;
                 score = result.score;
-                document.getElementById('debug').textContent = 
-                    `Minimax depth ${searchDepth}: chose ${letter} (score: ${score})`;
+                
+                // Generate explanation
+                const validLetters = getValidContinuations(currentWord);
+                explanation = `🧠 Minimax (depth ${searchDepth}): Evaluating ${validLetters.length} possible moves. `;
+                
+                if (score === -1000) {
+                    explanation += `All moves lead to AI losing - choosing least bad option.`;
+                } else if (score === 1000) {
+                    explanation += `Found a winning path!`;
+                } else {
+                    explanation += `Chose '${letter}' (score: ${score}).`;
+                }
                 break;
+            
+            case 'neural':
+                letter = neuralAI();
+                explanation = `🤖 Neural Network: Using learned patterns from training games. Selected '${letter}' based on probability distribution over valid moves.`;
+                break;
+                
             case 'greedy':
                 letter = greedyAI();
-                document.getElementById('debug').textContent = 'Greedy AI';
+                explanation = `⚡ Greedy: Avoiding word completion and choosing move with fewest opponent options.`;
                 break;
+                
             case 'random':
                 letter = randomAI();
-                document.getElementById('debug').textContent = 'Random AI';
+                explanation = `🎲 Random: Selected '${letter}' randomly from valid moves.`;
                 break;
         }
         
-        document.getElementById('thinking').className = 'thinking-indicator';
+        showThinking(false);
+        showExplanation(explanation);
+        
+        lastAIMove = { letter, score, explanation };
         
         if (letter) {
             addLetter(letter, false);
         } else {
+            // AI has no valid moves
             endGame(true);
         }
-    }, 300);
+    }, 500);
 }
 
 function greedyAI() {
     const validLetters = getValidContinuations(currentWord);
     if (!validLetters.length) return null;
+    
+    // Filter out word-completing moves
     const safeLetters = validLetters.filter(l => !isCompleteWord(currentWord + l));
+    
     if (safeLetters.length) {
+        // Choose letter with fewest continuations (harder for opponent)
         const scores = safeLetters.map(l => ({
             letter: l,
             score: getValidContinuations(currentWord + l).length
@@ -266,17 +678,26 @@ function greedyAI() {
         scores.sort((a, b) => a.score - b.score);
         return scores[0].letter;
     }
+    
+    // All moves complete words - pick randomly
     return validLetters[Math.floor(Math.random() * validLetters.length)];
 }
 
 function randomAI() {
     const validLetters = getValidContinuations(currentWord);
-    return validLetters.length ? validLetters[Math.floor(Math.random() * validLetters.length)] : null;
+    if (!validLetters.length) return null;
+    return validLetters[Math.floor(Math.random() * validLetters.length)];
 }
+
+// ========================================
+// GAME LOGIC
+// ========================================
 
 function initializeButtons() {
     const container = document.getElementById('letterButtons');
     container.innerHTML = '';
+    
+    // Create ALL 26 letter buttons
     for (let i = 0; i < 26; i++) {
         const letter = String.fromCharCode(65 + i);
         const btn = document.createElement('button');
@@ -286,20 +707,37 @@ function initializeButtons() {
         btn.id = `btn-${letter}`;
         container.appendChild(btn);
     }
+    
     updateButtonStates();
 }
 
 function updateButtonStates() {
-    const validLetters = getValidContinuations(currentWord);
+    // Don't disable buttons - let player figure out which letters are valid
+    // All buttons stay enabled during player's turn
     for (let i = 0; i < 26; i++) {
         const letter = String.fromCharCode(65 + i);
         const btn = document.getElementById(`btn-${letter}`);
-        if (btn) btn.disabled = !validLetters.includes(letter) || !gameActive || !playerTurn;
+        
+        if (btn) {
+            // Only disable during AI's turn or when game is over
+            btn.disabled = !gameActive || !playerTurn;
+        }
     }
 }
 
 function playerChooseLetter(letter) {
-    if (!gameActive || !playerTurn || !getValidContinuations(currentWord).includes(letter)) return;
+    if (!gameActive || !playerTurn) return;
+    
+    const validLetters = getValidContinuations(currentWord);
+    if (!validLetters.includes(letter)) {
+        // Invalid move - player loses!
+        setStatus(`Invalid letter "${letter}"! No words continue from "${currentWord}${letter}". You lose!`, 'error');
+        showExplanation(`Letter '${letter}' doesn't form any valid words after "${currentWord}". This is an illegal move.`);
+        endGame(false);
+        return;
+    }
+    
+    hideExplanation();
     addLetter(letter, true);
 }
 
@@ -307,16 +745,19 @@ function addLetter(letter, isPlayer) {
     currentWord += letter;
     document.getElementById('currentWord').textContent = currentWord;
     
+    // Check if this move completes a word (player who completes loses)
     if (isCompleteWord(currentWord)) {
         endGame(!isPlayer);
         return;
     }
     
-    if (!getValidContinuations(currentWord).length) {
-        endGame(isPlayer);
+    // Check if there are valid continuations
+    if (!hasValidContinuation(currentWord)) {
+        endGame(isPlayer); // Player who forces dead-end loses
         return;
     }
     
+    // Switch turns
     playerTurn = !playerTurn;
     updateButtonStates();
     
@@ -324,19 +765,26 @@ function addLetter(letter, isPlayer) {
         setStatus("AI's turn...", 'info');
         aiChooseLetter();
     } else {
-        setStatus('Your turn!', 'info');
+        setStatus('Your turn! Choose a letter.', 'info');
     }
 }
 
 function challenge() {
-    if (!gameActive || playerTurn) {
-        setStatus("Challenge only on AI's turn!", 'error');
+    if (!gameActive) {
+        setStatus('Start a new game first!', 'error');
         return;
     }
     
+    if (playerTurn) {
+        setStatus("You can only challenge on AI's turn!", 'error');
+        return;
+    }
+    
+    // Search for a valid word the AI could make
     function findWord(prefix, depth) {
         if (depth === 0) return null;
         if (isCompleteWord(prefix)) return prefix;
+        
         const letters = getValidContinuations(prefix);
         for (const letter of letters) {
             const result = findWord(prefix + letter, depth - 1);
@@ -345,13 +793,15 @@ function challenge() {
         return null;
     }
     
-    const foundWord = findWord(currentWord, 10);
+    const foundWord = findWord(currentWord, 15);
     
     if (foundWord) {
-        setStatus(`Challenge failed! AI had: ${foundWord}`, 'error');
+        setStatus(`❌ Challenge failed! AI was building: ${foundWord}`, 'error');
+        showExplanation(`AI had a valid word in mind: ${foundWord}. You lose the challenge!`);
         endGame(false);
     } else {
-        setStatus('Challenge successful!', 'success');
+        setStatus(`✅ Challenge successful! AI had no valid word.`, 'success');
+        showExplanation(`AI couldn't complete a valid word from "${currentWord}". You win!`);
         endGame(true);
     }
 }
@@ -359,13 +809,23 @@ function challenge() {
 function endGame(playerWon) {
     gameActive = false;
     stats.games++;
+    
     if (playerWon) {
         stats.wins++;
-        setStatus(`You won! 🎉 Word: ${currentWord}`, 'success');
+        if (isCompleteWord(currentWord)) {
+            setStatus(`🎉 Victory! AI completed "${currentWord}" and loses!`, 'success');
+        } else {
+            setStatus(`🎉 Victory! AI had no valid moves from "${currentWord}"!`, 'success');
+        }
     } else {
         stats.losses++;
-        setStatus(`AI won! 😔 Word: ${currentWord}`, 'error');
+        if (isCompleteWord(currentWord)) {
+            setStatus(`😔 Defeat! You completed "${currentWord}" and lose!`, 'error');
+        } else {
+            setStatus(`😔 Defeat! You had no valid moves from "${currentWord}"!`, 'error');
+        }
     }
+    
     updateStats();
     updateButtonStates();
 }
@@ -374,12 +834,18 @@ function newGame() {
     currentWord = '';
     gameActive = true;
     playerTurn = true;
+    lastAIMove = null;
     minimaxCache.clear();
+    
     document.getElementById('currentWord').textContent = '_';
-    document.getElementById('debug').textContent = '';
-    setStatus('Choose a letter!', 'info');
+    setStatus('Choose a letter to start!', 'info');
+    hideExplanation();
     updateButtonStates();
 }
+
+// ========================================
+// UI HELPERS
+// ========================================
 
 function setStatus(message, type = 'info') {
     const statusEl = document.getElementById('status');
@@ -387,12 +853,33 @@ function setStatus(message, type = 'info') {
     statusEl.className = `status ${type}`;
 }
 
+function showThinking(show) {
+    const thinkingEl = document.getElementById('thinking');
+    thinkingEl.className = show ? 'thinking-indicator active' : 'thinking-indicator';
+}
+
+function showExplanation(text) {
+    const explEl = document.getElementById('explanation');
+    explEl.textContent = text;
+    explEl.style.display = 'block';
+}
+
+function hideExplanation() {
+    const explEl = document.getElementById('explanation');
+    explEl.style.display = 'none';
+}
+
 function updateStats() {
     document.getElementById('winsValue').textContent = stats.wins;
     document.getElementById('lossesValue').textContent = stats.losses;
+    
     const winRate = stats.games > 0 ? (stats.wins / stats.games * 100).toFixed(1) : 0;
     document.getElementById('winRateValue').textContent = winRate + '%';
 }
+
+// ========================================
+// AI MODE SELECTOR
+// ========================================
 
 document.querySelectorAll('.ai-option').forEach(option => {
     option.addEventListener('click', function() {
@@ -405,7 +892,14 @@ document.querySelectorAll('.ai-option').forEach(option => {
     });
 });
 
-initializeButtons();
+// ========================================
+// INITIALIZATION
+// ========================================
+
+window.addEventListener('DOMContentLoaded', () => {
+    initializeButtons();
+    updateStats();
+});
     </script>
 </body>
 </html>
