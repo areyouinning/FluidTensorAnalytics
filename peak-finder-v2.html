@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>HORIZON — Front Range Peak Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1318;
+    --panel: #13181f;
+    --border: #1e2630;
+    --amber: #e8a030;
+    --amber-dim: #7a5218;
+    --amber-glow: rgba(232,160,48,0.15);
+    --cyan: #40c8d0;
+    --cyan-dim: #1a5458;
+    --red: #e05040;
+    --white: #e8e4dc;
+    --dim: #4a5260;
+    --horizon-sky: #0d1520;
+    --horizon-ground: #080c10;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  #header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 6px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+    gap: 12px;
+  }
+
+  #title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  #subtitle {
+    font-size: 8px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 1px;
+  }
+
+  #status-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .status-pill {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    background: var(--bg);
+  }
+  .status-pill.active { border-color: var(--amber-dim); color: var(--amber); }
+  .status-pill.good { border-color: #1e4a30; color: #40b060; }
+  .status-pill.warn { border-color: #4a2010; color: var(--red); }
+
+  /* ── MAIN VIEWPORT ── */
+  #viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #canvas-container {
+    position: absolute;
+    inset: 0;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ── CROSSHAIR ── */
+  #crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #crosshair svg { display: block; }
+
+  /* ── PEAK TOOLTIP ── */
+  #peak-info {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(10,12,16,0.95) 30%);
+    padding: 24px 20px 14px;
+    pointer-events: none;
+    z-index: 20;
+    transition: opacity 0.3s;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  #peak-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    line-height: 1;
+    text-shadow: 0 0 20px var(--amber);
+    transition: all 0.25s;
+  }
+
+  #peak-stats {
+    font-size: 10px;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-top: 3px;
+    opacity: 0.8;
+  }
+
+  #peak-range {
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    margin-top: 1px;
+  }
+
+  /* ── CONTROLS ── */
+  #controls {
+    padding: 10px 16px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  #az-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    min-width: 80px;
+    line-height: 1;
+  }
+
+  #az-label {
+    font-size: 8px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 1px;
+  }
+
+  #sep { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
+
+  #el-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--white);
+    min-width: 70px;
+    line-height: 1;
+  }
+
+  #el-label {
+    font-size: 8px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 1px;
+  }
+
+  #spacer { flex: 1; }
+
+  #cal-btn {
+    background: var(--bg);
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  #cal-btn:hover, #cal-btn:active {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+  }
+  #cal-btn.calibrated {
+    border-color: #1e4a30;
+    color: #40b060;
+  }
+
+  /* ── CALIBRATION OVERLAY ── */
+  #cal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,12,16,0.96);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    gap: 0;
+  }
+
+  #cal-overlay.hidden { display: none; }
+
+  .cal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 6px;
+    color: var(--amber);
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .cal-sub {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .compass-rose {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin-bottom: 40px;
+  }
+
+  .compass-rose svg { width: 100%; height: 100%; }
+
+  .cal-instruction {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 32px;
+    max-width: 300px;
+    opacity: 0.8;
+  }
+
+  .cal-instruction em {
+    color: var(--amber);
+    font-style: normal;
+  }
+
+  #cal-confirm-btn {
+    background: var(--amber);
+    border: none;
+    color: var(--bg);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    padding: 14px 48px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  #cal-confirm-btn:hover { background: #f0b848; }
+  #cal-confirm-btn:active { transform: scale(0.97); }
+
+  .cal-note {
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    text-align: center;
+    margin-top: 16px;
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  /* ── DEMO MODE SLIDER ── */
+  #demo-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0 16px 4px;
+    z-index: 5;
+    display: none;
+  }
+  #demo-bar.visible { display: block; }
+  #demo-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  #demo-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--amber);
+    cursor: pointer;
+  }
+  #demo-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  /* ── TICK MARKS ── */
+  #tick-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 32px;
+    pointer-events: none;
+    z-index: 8;
+  }
+
+  /* ── NO MOTION MESSAGE ── */
+  #no-motion {
+    position: absolute;
+    bottom: 12px; right: 16px;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    z-index: 30;
+    display: none;
+  }
+
+  /* ── DEBUG OVERLAY ── */
+  #debug-overlay {
+    position: absolute;
+    top: 36px; right: 10px;
+    background: rgba(10,12,16,0.88);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--cyan);
+    z-index: 50;
+    line-height: 1.8;
+    display: none;
+    min-width: 180px;
+  }
+  #debug-overlay.visible { display: block; }
+  #debug-toggle {
+    position: absolute;
+    top: 36px; right: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    cursor: pointer;
+    z-index: 51;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div>
+      <div id="title">HORIZON</div>
+      <div id="subtitle">FRONT RANGE PEAK FINDER</div>
+    </div>
+    <div id="status-bar">
+      <div id="st-gps" class="status-pill">GPS ···</div>
+      <div id="st-gyro" class="status-pill">GYRO ···</div>
+      <div id="st-cal" class="status-pill">UNCAL</div>
+    </div>
+  </div>
+
+  <div id="viewport">
+    <div id="canvas-container">
+      <canvas id="main-canvas"></canvas>
+    </div>
+
+    <svg id="tick-overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <div id="crosshair">
+      <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="4" x2="30" y2="22" stroke="#e8a030" stroke-width="1.5" opacity="0.9"/>
+        <line x1="30" y1="38" x2="30" y2="56" stroke="#e8a030" stroke-width="1.5" opacity="0.9"/>
+        <line x1="4" y1="30" x2="22" y2="30" stroke="#e8a030" stroke-width="1.5" opacity="0.9"/>
+        <line x1="38" y1="30" x2="56" y2="30" stroke="#e8a030" stroke-width="1.5" opacity="0.9"/>
+        <circle cx="30" cy="30" r="3" fill="none" stroke="#e8a030" stroke-width="1.5" opacity="0.9"/>
+        <circle cx="30" cy="30" r="12" fill="none" stroke="#e8a030" stroke-width="0.5" opacity="0.3"/>
+      </svg>
+    </div>
+
+    <div id="peak-info">
+      <div id="peak-name">—</div>
+      <div id="peak-stats"></div>
+      <div id="peak-range"></div>
+    </div>
+
+    <div id="demo-bar">
+      <div id="demo-label">DRAG TO SWEEP AZIMUTH — DEMO MODE</div>
+      <input type="range" id="demo-slider" min="180" max="360" value="270" step="0.5">
+    </div>
+
+    <div id="no-motion">MOTION UNAVAILABLE — USE SLIDER</div>
+    <button id="debug-toggle" onclick="toggleDebug()">DBG</button>
+    <div id="debug-overlay">
+      <div>α (az raw) <span id="dbg-alpha">—</span></div>
+      <div>β (tilt)   <span id="dbg-beta">—</span></div>
+      <div>γ (roll)   <span id="dbg-gamma">—</span></div>
+      <div>ABS event  <span id="dbg-abs">—</span></div>
+      <div>CAL α      <span id="dbg-cal">—</span></div>
+      <div>→ AZ       <span id="dbg-az">—</span></div>
+      <div>→ EL       <span id="dbg-el">—</span></div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div>
+      <div id="az-display">---°</div>
+      <div id="az-label">AZIMUTH</div>
+    </div>
+    <div id="sep"></div>
+    <div>
+      <div id="el-display">--°</div>
+      <div id="el-label">ELEVATION</div>
+    </div>
+    <div id="spacer"></div>
+    <button id="cal-btn" onclick="showCalOverlay()">CALIBRATE</button>
+  </div>
+</div>
+
+<!-- CALIBRATION OVERLAY -->
+<div id="cal-overlay">
+  <div class="cal-title">CALIBRATE</div>
+  <div class="cal-sub">FRONT RANGE PEAK FINDER</div>
+  <div class="compass-rose">
+    <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="70" cy="70" r="64" fill="none" stroke="#1e2630" stroke-width="1"/>
+      <circle cx="70" cy="70" r="48" fill="none" stroke="#1e2630" stroke-width="0.5"/>
+      <!-- tick marks -->
+      <g stroke="#1e2630" stroke-width="1">
+        <line x1="70" y1="6" x2="70" y2="18"/>
+        <line x1="134" y1="70" x2="122" y2="70"/>
+        <line x1="70" y1="134" x2="70" y2="122"/>
+        <line x1="6" y1="70" x2="18" y2="70"/>
+      </g>
+      <!-- N S E W labels -->
+      <text x="70" y="4" text-anchor="middle" fill="#4a5260" font-family="Space Mono" font-size="8" dy="0">N</text>
+      <text x="136" y="73" text-anchor="start" fill="#4a5260" font-family="Space Mono" font-size="8">E</text>
+      <text x="70" y="138" text-anchor="middle" fill="#4a5260" font-family="Space Mono" font-size="8">S</text>
+      <!-- W highlighted -->
+      <text x="2" y="73" text-anchor="start" fill="#e8a030" font-family="Space Mono" font-size="9" font-weight="bold">W</text>
+      <!-- arrow pointing west -->
+      <line x1="70" y1="70" x2="26" y2="70" stroke="#e8a030" stroke-width="2"/>
+      <polygon points="22,70 30,65 30,75" fill="#e8a030"/>
+      <!-- center dot -->
+      <circle cx="70" cy="70" r="3" fill="#e8a030"/>
+      <!-- pulsing ring via animation -->
+      <circle cx="70" cy="70" r="20" fill="none" stroke="#e8a030" stroke-width="0.5" opacity="0.4">
+        <animate attributeName="r" values="18;36;18" dur="2.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>
+  <div class="cal-instruction">
+    Using your compass, <em>face due WEST</em> (270°).<br>
+    Hold phone upright, screen toward you.<br><br>
+    Wait for the sensor to show a reading, then tap.
+  </div>
+  <div id="cal-sensor-status" style="
+    font-size:11px; letter-spacing:2px; margin-bottom:20px;
+    padding: 10px 20px; border: 1px solid #1e2630;
+    text-align:center; min-width:220px; line-height:2;
+  ">
+    <div style="color:#4a5260">WAITING FOR SENSOR...</div>
+    <div id="cal-alpha-live" style="color:#e8a030; font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px;">α = —</div>
+    <div id="cal-event-type" style="color:#4a5260; font-size:9px;">—</div>
+  </div>
+  <button id="cal-confirm-btn" onclick="doCalibrate()">LOCK WEST</button>
+  <div class="cal-note">
+    After calibration, rotate left/right to sweep the horizon.<br>
+    Tilt up/down to adjust elevation angle.<br>
+    Tap CALIBRATE to re-zero at any time.
+  </div>
+</div>
+
+<div id="no-motion">MOTION UNAVAILABLE — USE SLIDER</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// OBSERVER: Westminster Castle / Pillar of Fire
+// 39.8564° N, -104.9981° W, elev ~1676m (5499 ft)
+// ═══════════════════════════════════════════════════════
+const OBSERVER = {
+  lat: 39.8564,
+  lon: -104.9981,
+  elev: 1676  // meters
+};
+
+// ═══════════════════════════════════════════════════════
+// PEAK DATABASE
+// Computed: azimuth and angular elevation from Westminster Castle
+// Columns: name, lat, lon, elev_m, range (label), az_true (computed), ang_el (computed)
+// ═══════════════════════════════════════════════════════
+const RAW_PEAKS = [
+  // Northern Front Range / RMNP
+  { name: "Longs Peak",         lat: 40.2550, lon: -105.6153, elev: 4346, range: "Front Range / RMNP" },
+  { name: "Mount Meeker",       lat: 40.2481, lon: -105.6003, elev: 4226, range: "Front Range / RMNP" },
+  { name: "Chiefs Head Peak",   lat: 40.2283, lon: -105.6433, elev: 4171, range: "Front Range / RMNP" },
+  { name: "Hagues Peak",        lat: 40.4886, lon: -105.6419, elev: 4213, range: "Mummy Range / RMNP" },
+  { name: "Ypsilon Mountain",   lat: 40.4633, lon: -105.6508, elev: 4157, range: "Mummy Range / RMNP" },
+  { name: "Fairchild Mountain", lat: 40.4769, lon: -105.6394, elev: 4049, range: "Mummy Range / RMNP" },
+  { name: "Stones Peak",        lat: 40.3906, lon: -105.6694, elev: 3934, range: "RMNP" },
+
+  // Indian Peaks
+  { name: "North Arapaho Peak", lat: 40.0236, lon: -105.6444, elev: 4120, range: "Indian Peaks" },
+  { name: "South Arapaho Peak", lat: 40.0175, lon: -105.6486, elev: 4076, range: "Indian Peaks" },
+  { name: "Navajo Peak",        lat: 40.0058, lon: -105.6478, elev: 4062, range: "Indian Peaks" },
+  { name: "Apache Peak",        lat: 40.0136, lon: -105.6453, elev: 4037, range: "Indian Peaks" },
+  { name: "Mount Audubon",      lat: 40.0983, lon: -105.6261, elev: 4049, range: "Indian Peaks" },
+  { name: "Kiowa Peak",         lat: 40.0022, lon: -105.6467, elev: 4019, range: "Indian Peaks" },
+  { name: "Paiute Peak",        lat: 40.1033, lon: -105.6344, elev: 4016, range: "Indian Peaks" },
+
+  // Southern Front Range (James Peak area)
+  { name: "James Peak",         lat: 39.9775, lon: -105.7075, elev: 4059, range: "Front Range" },
+  { name: "Parry Peak",         lat: 39.8419, lon: -105.7581, elev: 4316, range: "Front Range" },
+  { name: "Mount Bancroft",     lat: 39.8286, lon: -105.7528, elev: 4168, range: "Front Range" },
+  { name: "Bard Peak",          lat: 39.7611, lon: -105.7478, elev: 4191, range: "Front Range" },
+  { name: "Mount Parnassus",    lat: 39.7419, lon: -105.7494, elev: 4040, range: "Front Range" },
+  { name: "Mount Flora",        lat: 39.8033, lon: -105.7911, elev: 4137, range: "Front Range" },
+
+  // Continental Divide / Divide area
+  { name: "Grays Peak",         lat: 39.6339, lon: -105.8175, elev: 4352, range: "Front Range / Divide" },
+  { name: "Torreys Peak",       lat: 39.6428, lon: -105.8211, elev: 4351, range: "Front Range / Divide" },
+  { name: "Mount Edwards",      lat: 39.6072, lon: -105.8025, elev: 4170, range: "Continental Divide" },
+  { name: "Argentine Peak",     lat: 39.6056, lon: -105.8217, elev: 4177, range: "Continental Divide" },
+  { name: "Mount Sniktau",      lat: 39.6897, lon: -105.8042, elev: 4101, range: "Continental Divide" },
+
+  // Mount Evans massif
+  { name: "Mount Blue Sky",     lat: 39.5881, lon: -105.6431, elev: 4348, range: "Front Range" },
+  { name: "Mount Spalding",     lat: 39.5864, lon: -105.6472, elev: 4111, range: "Front Range" },
+  { name: "Mount Bierstadt",    lat: 39.5836, lon: -105.7086, elev: 4287, range: "Front Range" },
+  { name: "Rosalie Peak",       lat: 39.4947, lon: -105.6714, elev: 4108, range: "Front Range" },
+  { name: "Chief Mountain",     lat: 39.6247, lon: -105.5825, elev: 3748, range: "Front Range" },
+
+  // Pikes Peak massif
+  { name: "Pikes Peak",         lat: 38.8405, lon: -105.0442, elev: 4302, range: "Front Range" },
+  { name: "Almagre Mountain",   lat: 38.7619, lon: -105.0194, elev: 3766, range: "Front Range" },
+
+  // Sawatch Range (distant, SSW to SW)
+  { name: "Mount Elbert",       lat: 39.1178, lon: -106.4453, elev: 4399, range: "Sawatch Range" },
+  { name: "Mount Massive",      lat: 39.1875, lon: -106.4756, elev: 4396, range: "Sawatch Range" },
+  { name: "Mount Harvard",      lat: 38.9242, lon: -106.3206, elev: 4395, range: "Collegiate Peaks" },
+  { name: "Mount Yale",         lat: 38.8442, lon: -106.3139, elev: 4327, range: "Collegiate Peaks" },
+  { name: "Mount Princeton",    lat: 38.7492, lon: -106.2419, elev: 4327, range: "Collegiate Peaks" },
+  { name: "Mount Oxford",       lat: 38.9647, lon: -106.3383, elev: 4354, range: "Collegiate Peaks" },
+  { name: "Mount of Holy Cross",lat: 39.4669, lon: -106.4819, elev: 4269, range: "Sawatch Range" },
+  { name: "Quandary Peak",      lat: 39.3978, lon: -106.1067, elev: 4348, range: "Tenmile Range" },
+  { name: "Mount Lincoln",      lat: 39.3519, lon: -106.1111, elev: 4354, range: "Mosquito Range" },
+  { name: "Mount Democrat",     lat: 39.3394, lon: -106.1406, elev: 4313, range: "Mosquito Range" },
+  { name: "Mount Bross",        lat: 39.3358, lon: -106.1019, elev: 4320, range: "Mosquito Range" },
+  { name: "Mount Sherman",      lat: 39.2250, lon: -106.1708, elev: 4278, range: "Mosquito Range" },
+  { name: "Snowmass Mountain",  lat: 39.1189, lon: -107.0664, elev: 4293, range: "Elk Mountains" },
+  { name: "Capitol Peak",       lat: 39.1497, lon: -107.0828, elev: 4307, range: "Elk Mountains" },
+  { name: "Maroon Peak",        lat: 38.9706, lon: -106.9886, elev: 4317, range: "Elk Mountains" },
+  { name: "Castle Peak",        lat: 38.9972, lon: -106.8622, elev: 4349, range: "Elk Mountains" },
+
+  // Gore Range / Williams Fork
+  { name: "Mount Powell",       lat: 39.7592, lon: -106.3461, elev: 4070, range: "Gore Range" },
+
+  // Sangre de Cristo (far S, visible on clear days)
+  { name: "Crestone Peak",      lat: 37.9667, lon: -105.5853, elev: 4360, range: "Sangre de Cristo" },
+  { name: "Blanca Peak",        lat: 37.5775, lon: -105.4853, elev: 4374, range: "Sangre de Cristo" },
+  { name: "Kit Carson Mountain",lat: 38.0664, lon: -105.6022, elev: 4319, range: "Sangre de Cristo" },
+];
+
+// ═══════════════════════════════════════════════════════
+// GEODETIC MATH
+// ═══════════════════════════════════════════════════════
+const R_EARTH = 6371000; // meters
+const DEG = Math.PI / 180;
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const dlat = (lat2 - lat1) * DEG;
+  const dlon = (lon2 - lon1) * DEG;
+  const a = Math.sin(dlat/2)**2 + Math.cos(lat1*DEG)*Math.cos(lat2*DEG)*Math.sin(dlon/2)**2;
+  return R_EARTH * 2 * Math.asin(Math.sqrt(a));
+}
+
+function bearingTo(lat1, lon1, lat2, lon2) {
+  const dlon = (lon2 - lon1) * DEG;
+  const y = Math.sin(dlon) * Math.cos(lat2 * DEG);
+  const x = Math.cos(lat1*DEG)*Math.sin(lat2*DEG) - Math.sin(lat1*DEG)*Math.cos(lat2*DEG)*Math.cos(dlon);
+  return (Math.atan2(y, x) / DEG + 360) % 360;
+}
+
+function angularElevation(distM, peakElevM, obsElevM) {
+  // Include Earth curvature correction: apparent drop = d²/(2R)
+  // Atmospheric refraction factor k ≈ 0.13
+  const k = 0.13;
+  const curvatureDrop = (distM * distM) / (2 * R_EARTH) * (1 - k);
+  const apparentPeakElev = peakElevM - curvatureDrop;
+  const heightDiff = apparentPeakElev - obsElevM;
+  return Math.atan2(heightDiff, distM) / DEG;
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD COMPUTED PEAK LIST
+// ═══════════════════════════════════════════════════════
+const PEAKS = RAW_PEAKS.map(p => {
+  const dist = haversineDistance(OBSERVER.lat, OBSERVER.lon, p.lat, p.lon);
+  const az = bearingTo(OBSERVER.lat, OBSERVER.lon, p.lat, p.lon);
+  const angEl = angularElevation(dist, p.elev, OBSERVER.elev);
+  return {
+    ...p,
+    dist_km: dist / 1000,
+    az_true: az,
+    ang_el: angEl,
+    elev_ft: Math.round(p.elev * 3.28084),
+  };
+}).filter(p => p.ang_el > -1.5); // prune below-horizon (curvature-hidden)
+
+// ═══════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════
+const state = {
+  calibrated: false,
+  calAlpha: null,       // gyro alpha at moment of calibration (facing west)
+  currentAz: 270,       // true azimuth we're currently pointing
+  currentEl: 0,         // elevation angle we're pointing (degrees)
+  demoMode: false,
+  motionAvailable: false,
+  orientationAvailable: false,
+  nearestPeak: null,
+  FOV: 90,              // horizontal field of view degrees shown on canvas
+  EL_FOV: 45,           // vertical FOV
+};
+
+// ═══════════════════════════════════════════════════════
+// CANVAS RENDERING
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('main-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+}
+
+window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+resizeCanvas();
+
+// Approximate horizon profile for Westminster Castle (elevation angle per azimuth degree)
+// Generated from simplified terrain model: mountains to west/southwest, flat plains elsewhere
+// Format: [az_start, az_end, base_elevation_angle, variation_amplitude]
+function getHorizonAngle(az) {
+  // Approximate silhouette based on actual Front Range geometry
+  // Indian Peaks / Continental Divide: ~280-320°, peaks at ~4-8°
+  // Front Range S: ~240-270°, peaks at ~3-6°
+  // Pikes Peak direction: ~215°, ~2°
+  // Plains: ~0-180°, near 0°
+  const az360 = ((az % 360) + 360) % 360;
+
+  if (az360 >= 200 && az360 < 225) {
+    // Pikes Peak region (SSW)
+    const t = (az360 - 200) / 25;
+    return 1.5 + 0.5 * Math.sin(t * Math.PI);
+  } else if (az360 >= 225 && az360 < 260) {
+    // Mount Evans / Blue Sky region (SW)
+    const t = (az360 - 225) / 35;
+    return 2.5 + 3.0 * Math.sin(t * Math.PI);
+  } else if (az360 >= 260 && az360 < 285) {
+    // James Peak / Parry Peak corridor (WSW-W)
+    const t = (az360 - 260) / 25;
+    return 4.5 + 2.5 * Math.sin(t * Math.PI * 1.2);
+  } else if (az360 >= 285 && az360 < 315) {
+    // Indian Peaks / Continental Divide (WNW)
+    const t = (az360 - 285) / 30;
+    return 5.5 + 2.0 * Math.sin(t * Math.PI);
+  } else if (az360 >= 315 && az360 < 340) {
+    // Longs Peak / Mummy Range corridor (NW)
+    const t = (az360 - 315) / 25;
+    return 4.0 + 1.5 * Math.sin(t * Math.PI);
+  } else if (az360 >= 340 || az360 < 20) {
+    // Hagues / Mummy Range (NNW-N)
+    const frac = az360 >= 340 ? (az360 - 340) / 40 : (az360 + 20) / 40;
+    return 1.5 + 1.5 * Math.sin(frac * Math.PI);
+  } else {
+    return 0.2; // Plains — nearly flat horizon
+  }
+}
+
+function azToX(az, width) {
+  // diff > 0: peak is to the RIGHT of pointing direction → right of center
+  const diff = ((az - state.currentAz + 540) % 360) - 180;
+  return width/2 + (diff / state.FOV) * width;
+}
+
+function elToY(el, height) {
+  // Render relative to currentEl: tilting up (currentEl increases) shifts scene down.
+  // Peak at ang_el == currentEl appears at screen center vertically.
+  const centerY = height * 0.52;
+  const scale = height / state.EL_FOV;
+  return centerY - (el - state.currentEl) * scale;
+}
+
+function draw() {
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // SKY GRADIENT
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.6);
+  skyGrad.addColorStop(0, '#060c16');
+  skyGrad.addColorStop(1, '#0d1a28');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // GROUND
+  const groundGrad = ctx.createLinearGradient(0, H * 0.55, 0, H);
+  groundGrad.addColorStop(0, '#08100c');
+  groundGrad.addColorStop(1, '#04080a');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, H * 0.52, W, H * 0.48);
+
+  // STARS (subtle, only above horizon)
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  const starSeed = 42;
+  for (let i = 0; i < 80; i++) {
+    const sx = pseudoRand(starSeed + i * 7) * W;
+    const sy = pseudoRand(starSeed + i * 13) * H * 0.45;
+    const sr = pseudoRand(starSeed + i * 3) * 1.2;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ELEVATION GRID LINES
+  ctx.strokeStyle = 'rgba(30,38,48,0.6)';
+  ctx.lineWidth = 1;
+  for (let el = -5; el <= 15; el += 2) {
+    const y = elToY(el, H);
+    if (y < 0 || y > H) continue;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+    if (el !== 0) {
+      ctx.fillStyle = 'rgba(74,82,96,0.6)';
+      ctx.font = `${Math.round(9 * window.devicePixelRatio)}px Space Mono`;
+      ctx.fillText(`${el > 0 ? '+' : ''}${el}°`, 6, y - 3);
+    }
+  }
+
+  // HORIZON LINE (el=0)
+  const horizonY = elToY(0, H);
+  ctx.strokeStyle = 'rgba(64,200,208,0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.moveTo(0, horizonY);
+  ctx.lineTo(W, horizonY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // MOUNTAIN SILHOUETTE
+  drawMountainSilhouette(W, H);
+
+  // PEAK MARKERS
+  drawPeakMarkers(W, H);
+
+  // AZIMUTH TICK STRIP
+  drawAzimuthTicks(W, H);
+
+  // CARDINAL LABELS ON CANVAS
+  drawCardinalLabels(W, H);
+
+  // LONGS PEAK VERIFICATION CALLOUT
+  drawLongsVerification(W, H);
+}
+
+function pseudoRand(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function drawMountainSilhouette(W, H) {
+  // Build horizon profile path across full width
+  ctx.beginPath();
+  const steps = W;
+  let started = false;
+
+  for (let px = 0; px <= steps; px++) {
+    const az = state.currentAz - state.FOV/2 + (px / steps) * state.FOV;
+    const hEl = getHorizonAngle(az);
+    const y = elToY(hEl, H);
+    if (!started) { ctx.moveTo(px, y); started = true; }
+    else ctx.lineTo(px, y);
+  }
+
+  ctx.lineTo(W, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+
+  // Mountain fill
+  const mountainGrad = ctx.createLinearGradient(0, H * 0.3, 0, H * 0.75);
+  mountainGrad.addColorStop(0, '#0f1e18');
+  mountainGrad.addColorStop(0.4, '#0c1812');
+  mountainGrad.addColorStop(1, '#08100c');
+  ctx.fillStyle = mountainGrad;
+  ctx.fill();
+
+  // Ridge line glow
+  ctx.strokeStyle = 'rgba(64,200,208,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  started = false;
+  for (let px = 0; px <= steps; px++) {
+    const az = state.currentAz - state.FOV/2 + (px / steps) * state.FOV;
+    const hEl = getHorizonAngle(az);
+    const y = elToY(hEl, H);
+    if (!started) { ctx.moveTo(px, y); started = true; }
+    else ctx.lineTo(px, y);
+  }
+  ctx.stroke();
+}
+
+function drawPeakMarkers(W, H) {
+  const FOV_HALF = state.FOV / 2;
+  let closestPeak = null;
+  let closestAngDist = 999;
+
+  PEAKS.forEach(peak => {
+    const azDiff = ((peak.az_true - state.currentAz + 540) % 360) - 180;
+    if (Math.abs(azDiff) > FOV_HALF + 5) return;
+
+    const x = azToX(peak.az_true, W);
+    const y = elToY(peak.ang_el, H);
+
+    // Horizon angle at this azimuth
+    const hEl = getHorizonAngle(peak.az_true);
+    const aboveHorizon = peak.ang_el > hEl - 0.5;
+    if (!aboveHorizon) return;
+
+    // Snap distance from crosshair (azimuth only for robustness)
+    const snapDist = Math.abs(azDiff);
+    if (snapDist < closestAngDist) {
+      closestAngDist = snapDist;
+      closestPeak = peak;
+    }
+
+    // Prominence by distance — closer peaks slightly larger
+    const baseSize = peak.elev > 4200 ? 6 : peak.elev > 4000 ? 5 : 4;
+    const size = baseSize * window.devicePixelRatio;
+
+    const isHighlighted = closestPeak === peak && snapDist < 8;
+    const alpha = Math.max(0.3, 1 - snapDist / 40);
+
+    // Marker dot
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fillStyle = isHighlighted
+      ? `rgba(232,160,48,${alpha})`
+      : `rgba(64,200,208,${alpha * 0.85})`;
+    ctx.fill();
+
+    // Vertical tick down to silhouette
+    const silY = elToY(hEl, H);
+    ctx.strokeStyle = isHighlighted
+      ? `rgba(232,160,48,${alpha * 0.5})`
+      : `rgba(64,200,208,${alpha * 0.3})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y + size);
+    ctx.lineTo(x, silY);
+    ctx.stroke();
+
+    // Label — only show for highlighted or high-prominence peaks near center
+    const showLabel = Math.abs(azDiff) < (isHighlighted ? 15 : 5);
+    if (showLabel) {
+      const fs = Math.round(9 * window.devicePixelRatio);
+      ctx.font = `${fs}px Space Mono`;
+      const label = peak.name.toUpperCase();
+      const tw = ctx.measureText(label).width;
+
+      // Label position: above the dot, avoid edges
+      let lx = Math.max(tw/2 + 6, Math.min(W - tw/2 - 6, x));
+      const ly = Math.max(size * 2 + 14, y - size - 10);
+
+      ctx.fillStyle = 'rgba(10,12,16,0.75)';
+      ctx.fillRect(lx - tw/2 - 4, ly - fs - 2, tw + 8, fs + 6);
+
+      ctx.fillStyle = isHighlighted
+        ? `rgba(232,160,48,${alpha})`
+        : `rgba(200,220,230,${alpha})`;
+      ctx.textAlign = 'center';
+      ctx.fillText(label, lx, ly);
+      ctx.textAlign = 'left';
+    }
+  });
+
+  // Update nearest peak in state
+  if (closestPeak && closestAngDist < 8) {
+    state.nearestPeak = closestPeak;
+  } else {
+    state.nearestPeak = null;
+  }
+  updatePeakInfo();
+}
+
+function drawAzimuthTicks(W, H) {
+  // Draw tick marks along top strip
+  const fs = Math.round(8 * window.devicePixelRatio);
+  ctx.font = `${fs}px Space Mono`;
+  ctx.textAlign = 'center';
+
+  for (let az = 0; az < 360; az += 5) {
+    const x = azToX(az, W);
+    if (x < -20 || x > W + 20) continue;
+    const isMajor = az % 10 === 0;
+    const isCardinal = az % 90 === 0;
+
+    const tickH = isCardinal ? 18 : isMajor ? 12 : 6;
+    ctx.strokeStyle = isCardinal ? 'rgba(232,160,48,0.8)' : isMajor ? 'rgba(74,82,96,0.9)' : 'rgba(40,50,60,0.7)';
+    ctx.lineWidth = isCardinal ? 1.5 : 1;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, tickH * window.devicePixelRatio);
+    ctx.stroke();
+
+    if (isMajor) {
+      ctx.fillStyle = isCardinal ? 'rgba(232,160,48,0.9)' : 'rgba(74,82,96,0.7)';
+      ctx.fillText(`${az}`, x, (tickH + 12) * window.devicePixelRatio);
+    }
+  }
+  ctx.textAlign = 'left';
+}
+
+function drawCardinalLabels(W, H) {
+  const cardinals = [
+    { az: 0,   label: 'N' },
+    { az: 45,  label: 'NE' },
+    { az: 90,  label: 'E' },
+    { az: 135, label: 'SE' },
+    { az: 180, label: 'S' },
+    { az: 225, label: 'SW' },
+    { az: 270, label: 'W' },
+    { az: 315, label: 'NW' },
+  ];
+
+  const fs = Math.round(11 * window.devicePixelRatio);
+  ctx.font = `bold ${fs}px Space Mono`;
+  ctx.textAlign = 'center';
+
+  cardinals.forEach(c => {
+    const x = azToX(c.az, W);
+    if (x < 0 || x > W) return;
+    const isWest = c.az === 270;
+    ctx.fillStyle = isWest ? 'rgba(232,160,48,0.95)' : 'rgba(100,120,140,0.7)';
+    ctx.fillText(c.label, x, H - 10 * window.devicePixelRatio);
+  });
+  ctx.textAlign = 'left';
+}
+
+function drawLongsVerification(W, H) {
+  // Find Longs Peak in computed list
+  const longs = PEAKS.find(p => p.name === 'Longs Peak');
+  if (!longs) return;
+
+  const azDiff = ((longs.az_true - state.currentAz + 540) % 360) - 180;
+  const inView = Math.abs(azDiff) < state.FOV / 2;
+  const fs = Math.round(9 * window.devicePixelRatio);
+  ctx.font = `${fs}px Space Mono`;
+
+  // Always show Longs bearing indicator at top-left
+  const bearingStr = `LONGS: ${longs.az_true.toFixed(1)}°  ${longs.dist_km.toFixed(0)}km  ${longs.ang_el.toFixed(2)}° EL`;
+  const arrowDir = azDiff > 0 ? '→' : azDiff < -state.FOV/2 ? '←' : '↑';
+  const tw = ctx.measureText(bearingStr).width;
+  const pad = 8 * window.devicePixelRatio;
+  const bh = fs + pad * 2;
+
+  ctx.fillStyle = inView ? 'rgba(232,160,48,0.15)' : 'rgba(10,12,16,0.75)';
+  ctx.fillRect(pad, pad * 3, tw + pad * 2 + fs, bh);
+  ctx.strokeStyle = inView ? 'rgba(232,160,48,0.6)' : 'rgba(30,38,48,0.8)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(pad, pad * 3, tw + pad * 2 + fs, bh);
+
+  ctx.fillStyle = inView ? '#e8a030' : '#4a5260';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${arrowDir} ${bearingStr}`, pad * 2, pad * 3 + bh - pad);
+}
+
+function updatePeakInfo() {
+  const p = state.nearestPeak;
+  const nameEl = document.getElementById('peak-name');
+  const statsEl = document.getElementById('peak-stats');
+  const rangeEl = document.getElementById('peak-range');
+
+  if (p) {
+    nameEl.textContent = p.name.toUpperCase();
+    nameEl.style.color = '#e8a030';
+    statsEl.textContent = `${p.elev_ft.toLocaleString()} FT  ·  ${p.dist_km.toFixed(0)} KM  ·  ${p.ang_el.toFixed(1)}° ELEV`;
+    rangeEl.textContent = p.range.toUpperCase();
+  } else {
+    nameEl.textContent = '—';
+    nameEl.style.color = '#4a5260';
+    statsEl.textContent = '';
+    rangeEl.textContent = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DEVICE ORIENTATION
+// Try both 'deviceorientationabsolute' and 'deviceorientation'.
+// Whichever fires first with non-null alpha wins.
+// ═══════════════════════════════════════════════════════
+
+let usingAbsolute = false;
+let rawAlpha = null, rawBeta = null, rawGamma = null;
+let lastEventType = '—';
+
+function onOrientationEvent(e, isAbsolute) {
+  if (e.alpha === null) return;
+
+  // Ignore relative events once we have absolute
+  if (usingAbsolute && !isAbsolute) return;
+  if (isAbsolute) usingAbsolute = true;
+
+  rawAlpha = e.alpha;
+  rawBeta  = e.beta;
+  rawGamma = e.gamma;
+  lastEventType = isAbsolute ? 'deviceorientationabsolute' : 'deviceorientation';
+
+  // Update GYRO status pill
+  document.getElementById('st-gyro').textContent = isAbsolute ? 'GYRO ABS' : 'GYRO REL';
+  document.getElementById('st-gyro').className = 'status-pill good';
+
+  // Update calibration overlay live readout
+  const alphaLive = document.getElementById('cal-alpha-live');
+  const evType    = document.getElementById('cal-event-type');
+  if (alphaLive) {
+    alphaLive.textContent = `α = ${rawAlpha.toFixed(1)}°`;
+    alphaLive.parentElement.firstElementChild.textContent = 'SENSOR ACTIVE';
+    alphaLive.parentElement.firstElementChild.style.color = '#40b060';
+  }
+  if (evType) evType.textContent = lastEventType;
+
+  // Update debug overlay
+  document.getElementById('dbg-alpha').textContent = rawAlpha.toFixed(1);
+  document.getElementById('dbg-beta').textContent  = rawBeta  !== null ? rawBeta.toFixed(1)  : '—';
+  document.getElementById('dbg-gamma').textContent = rawGamma !== null ? rawGamma.toFixed(1) : '—';
+  document.getElementById('dbg-abs').textContent   = isAbsolute ? 'YES' : 'NO';
+
+  if (!state.calibrated) return;
+
+  // ── AZIMUTH ──────────────────────────────────────────
+  // deviceorientationabsolute alpha: compass azimuth of device's -Y axis (top edge).
+  // In portrait, top edge points away from user. Rotating device right (CW from above)
+  // DECREASES alpha on Android. So: trueAz = (calAlpha - alpha + 270 + 720) % 360
+  // For relative deviceorientation: same formula holds (zeroed at cal time).
+  const trueAz = ((state.calAlpha - rawAlpha + 270) + 720) % 360;
+  state.currentAz = trueAz;
+
+  // ── ELEVATION ─────────────────────────────────────────
+  // Portrait, screen facing user:
+  //   beta=90  → upright, pointing at horizon → el=0
+  //   beta<90  → tilted back (looking up)     → el>0
+  //   beta>90  → tilted forward (looking down)→ el<0
+  // gamma is left-right lean; doesn't affect el in portrait.
+  // If holding in landscape, beta and gamma swap — handle both:
+  if (rawBeta !== null) {
+    const absBeta = Math.abs(rawBeta);
+    if (absBeta > 45) {
+      // Portrait-ish: beta dominates tilt
+      state.currentEl = -(rawBeta - 90);
+    } else {
+      // Phone nearly flat — use gamma instead (landscape or flat hold)
+      state.currentEl = rawGamma !== null ? -rawGamma : 0;
+    }
+  }
+
+  document.getElementById('dbg-cal').textContent = state.calAlpha.toFixed(1);
+  document.getElementById('dbg-az').textContent  = trueAz.toFixed(1);
+  document.getElementById('dbg-el').textContent  = state.currentEl.toFixed(1);
+
+  updateDisplays();
+  draw();
+}
+
+function attachOrientationListeners() {
+  // Listen to both; absolute takes priority via flag
+  window.addEventListener('deviceorientationabsolute', e => onOrientationEvent(e, true));
+  window.addEventListener('deviceorientation', e => onOrientationEvent(e, false));
+}
+
+function updateDisplays() {
+  document.getElementById('az-display').textContent = `${Math.round(state.currentAz)}°`;
+  document.getElementById('el-display').textContent = `${(state.currentEl >= 0 ? '+' : '')}${state.currentEl.toFixed(1)}°`;
+}
+
+// ═══════════════════════════════════════════════════════
+// CALIBRATION
+// ═══════════════════════════════════════════════════════
+
+function showCalOverlay() {
+  document.getElementById('cal-overlay').classList.remove('hidden');
+}
+
+function doCalibrate() {
+  if (rawAlpha !== null) {
+    // Lock current alpha as the "facing west" reference
+    state.calAlpha = rawAlpha;
+    state.calibrated = true;
+    state.demoMode = false;
+
+    document.getElementById('cal-overlay').classList.add('hidden');
+    document.getElementById('cal-btn').textContent = 'RE-CAL';
+    document.getElementById('cal-btn').classList.add('calibrated');
+    document.getElementById('st-cal').textContent = 'CAL ✓';
+    document.getElementById('st-cal').className = 'status-pill good';
+    document.getElementById('demo-bar').classList.remove('visible');
+    document.getElementById('no-motion').style.display = 'none';
+  } else {
+    // No orientation data — fall back to demo mode
+    activateDemoMode();
+    document.getElementById('cal-overlay').classList.add('hidden');
+  }
+}
+
+function activateDemoMode() {
+  state.demoMode = true;
+  state.calibrated = true;
+  state.currentAz = 270;
+  document.getElementById('demo-bar').classList.add('visible');
+  document.getElementById('no-motion').style.display = 'block';
+  document.getElementById('st-cal').textContent = 'DEMO';
+  document.getElementById('st-cal').className = 'status-pill warn';
+  document.getElementById('cal-btn').textContent = 'RE-CAL';
+
+  const slider = document.getElementById('demo-slider');
+  // Remove any duplicate listener
+  slider.oninput = () => {
+    state.currentAz = parseFloat(slider.value);
+    updateDisplays();
+    draw();
+  };
+
+  updateDisplays();
+  draw();
+}
+
+// ═══════════════════════════════════════════════════════
+// DEBUG TOGGLE
+// ═══════════════════════════════════════════════════════
+function toggleDebug() {
+  const el = document.getElementById('debug-overlay');
+  el.classList.toggle('visible');
+  document.getElementById('debug-toggle').style.opacity = el.classList.contains('visible') ? '1' : '0.4';
+}
+
+// ═══════════════════════════════════════════════════════
+// GPS
+// ═══════════════════════════════════════════════════════
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    () => {
+      document.getElementById('st-gps').textContent = 'GPS ✓';
+      document.getElementById('st-gps').className = 'status-pill good';
+    },
+    () => {
+      document.getElementById('st-gps').textContent = 'GPS —';
+      document.getElementById('st-gps').className = 'status-pill';
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// TOUCH DRAG — demo mode pan
+// ═══════════════════════════════════════════════════════
+let touchStartX = null;
+let touchStartAz = null;
+
+canvas.addEventListener('touchstart', e => {
+  if (!state.demoMode) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartAz = state.currentAz;
+});
+
+canvas.addEventListener('touchmove', e => {
+  if (!state.demoMode || touchStartX === null) return;
+  e.preventDefault();
+  const dx = e.touches[0].clientX - touchStartX;
+  const dAz = -(dx / canvas.offsetWidth) * state.FOV * 1.5;
+  state.currentAz = ((touchStartAz + dAz) + 360) % 360;
+  document.getElementById('demo-slider').value = state.currentAz;
+  updateDisplays();
+  draw();
+}, { passive: false });
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+// Attach orientation listeners immediately (Android needs no permission prompt)
+attachOrientationListeners();
+
+// iOS 13+ permission gate — triggered by the cal overlay button tap (already a user gesture)
+if (typeof DeviceOrientationEvent !== 'undefined' &&
+    typeof DeviceOrientationEvent.requestPermission === 'function') {
+  // Wrap doCalibrate to request permission first on iOS
+  const _origCal = window.doCalibrate;
+  window.doCalibrate = function() {
+    DeviceOrientationEvent.requestPermission()
+      .then(result => {
+        if (result === 'granted') attachOrientationListeners();
+        _origCal();
+      })
+      .catch(() => _origCal());
+  };
+}
+
+state.currentAz = 270;
+updateDisplays();
+draw();
+
+setTimeout(() => {
+  document.getElementById('cal-overlay').classList.remove('hidden');
+}, 400);
+</script>
+</body>
+</html>
