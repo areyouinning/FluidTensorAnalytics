@@ -134,7 +134,7 @@
     </div>
   </nav>
 
-  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go and the board tips that way, up to 11°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Mazes start 3 × 3 with one hole and grow by one size, and one hole, every two wins, up to 6 × 6 with four. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
+  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go and the board tips that way, up to 11°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -259,7 +259,7 @@
   var ground2=new THREE.Mesh(new THREE.BoxGeometry(120,0.4,80),toon(C.grass)); ground2.position.set(2,-0.21,-30); scene.add(ground2);
   function tree(x,z,s){ var t=new THREE.Group(); var tr=post(0.09*s,C.dirt2); tr.scale.y=0.5*s; t.add(tr);
     var c1=cone(0.55*s,1.1*s,C.grass); c1.position.y=s; t.add(c1); t.position.set(x,0,z); scene.add(t); }
-  tree(-3.4,-3.0,1.2); tree(-1.4,-4.2,1.6); tree(7.8,-2.8,1.4); tree(9.6,-4.6,1.1); tree(4.6,-4.4,1.0); tree(11.5,0.8,1.5); tree(10.2,3.2,1.0);
+  tree(-3.6,-3.0,1.2); tree(-2.2,-6.0,1.6); tree(8.6,-3.4,1.4); tree(9.8,-5.4,1.1); tree(4.6,-6.4,1.0); tree(11.5,0.8,1.5); tree(10.2,3.2,1.0);
   tree(1.0,-9.5,1.9); tree(6.5,-11,2.2); tree(13,-8,1.8); tree(-5.5,-8.5,2.0); tree(16,-3,1.6);
   function hill(x,z,r,sy,hex){ var h=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(r,1)),toon(hex)); h.scale.y=sy; h.position.set(x,0,z); scene.add(h); }
   hill(-6,-18,9,0.32,C.grass); hill(8,-22,12,0.3,C.hill); hill(22,-16,9,0.36,C.grass); hill(-18,-12,8,0.34,C.hill);
@@ -314,7 +314,7 @@
   // =====================================================================
   var maze=(function(){
     var root=new THREE.Group(); root.visible=false; scene.add(root);
-    var BX=2.2, BY=0.62, BZ=0, CS=1.0, T=0.12, WH=0.3, R=0.2, MAXT=rad(11), E=0.35, ROLLRES=0.25, NMAX=6;
+    var BX=2.2, BY=0.62, BZ=0, CS=1.0, T=0.12, WH=0.3, R=0.2, MAXT=rad(11), E=0.35, ROLLRES=0.25;
     var base=box(1.2,BY-0.16,1.2,C.dirt2); base.position.set(BX,(BY-0.16)/2,BZ); root.add(base);
     var foot=box(2.0,0.12,2.0,C.orange); foot.position.set(BX,0.06,BZ); root.add(foot);
     var baseShadow=blob(0.18); baseShadow.scale.setScalar(2.2); baseShadow.position.set(BX,0.004,BZ); root.add(baseShadow);
@@ -323,7 +323,7 @@
     var mshadow=blob(0.3); mshadow.scale.setScalar(R*1.05); gimbal.add(mshadow);
     var ringMat=new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.9,depthTest:false});
     var ring=new THREE.Mesh(new THREE.RingGeometry(0.2,0.32,32),ringMat); ring.rotation.x=-Math.PI/2; ring.renderOrder=10; ring.visible=false; root.add(ring);
-    var boardG=null, cells=null, walls=[], N=3, wins=0, half=1.5, start=null, goal=null, path=[], pi=0, roundId=0, holes=[], pathIdx={}, furthest=0, popT=0, falls=0;
+    var boardG=null, cells=null, walls=[], N=8, wins=0, half=4, start=null, goal=null, path=[], pi=0, roundId=0, holes=[], pathIdx={}, furthest=0, popT=0, falls=0;
     var st={x:0,z:0,vx:0,vz:0,px:0,pz:0,rx:0,rz:0}, tilt={x:0,z:0}, want={x:0,z:0}, phase="play", dropT=0, auto=false, dragging=false, jiggle=0, nextT=null;
 
     // ---- maze generation: depth-first backtracker, then open a few dead ends so there are loops ----
@@ -384,7 +384,7 @@
     function autopilot(){
       if(pi>=path.length) return; var c=centre(path[pi]), ex=c.x-st.x, ez=c.z-st.z, e=Math.hypot(ex,ez);
       if(e<0.24&&pi<path.length-1){ pi++; c=centre(path[pi]); ex=c.x-st.x; ez=c.z-st.z; e=Math.hypot(ex,ez); }
-      var sp=Math.min(1.0,e*2.2), dvx=(e>1e-4?ex/e*sp:0)-st.vx, dvz=(e>1e-4?ez/e*sp:0)-st.vz;
+      var sp=Math.min(1.5,e*2.2), dvx=(e>1e-4?ex/e*sp:0)-st.vx, dvz=(e>1e-4?ez/e*sp:0)-st.vz;
       want.x=clamp(Math.asin(clamp(dvx*2.6/(K*G),-1,1)),-MAXT,MAXT); want.z=clamp(Math.asin(clamp(dvz*2.6/(K*G),-1,1)),-MAXT,MAXT);
     }
     function collide(){
@@ -418,7 +418,7 @@
     function win(){
       phase="won"; marble.group.visible=false; S.tada();
       var g=centre(goal); var wp=gimbal.localToWorld(new THREE.Vector3(g.x,0.3,g.z)); var q=toScreen(wp); confetti(q.x,q.y);
-      if(!auto){ wins++; if(wins%2===0&&N<NMAX) N++; speak(pick(["You did it, Paul!","Into the hole! Great rolling!","The marble made it home!","Yes, Paul! Down the hole!"])); }
+      if(!auto){ wins++; speak(pick(["You did it, Paul!","Into the hole! Great rolling!","The marble made it home!","Yes, Paul! Down the hole!"])); }
       nextT=setTimeout(newRound,2400);
     }
     function frame(dt,alpha){
@@ -445,7 +445,7 @@
     }
     return {
       name:"maze", root:root, goVisible:false, fit:function(){ return fitPts(); },
-      enter:function(){ cam.dir.set(-0.4,0.95,1).normalize(); cam.target.set(BX,BY-0.1,BZ); cam.off=0; if(!cells) newRound(); cam.distWant=fitDist(fitPts(),0.94,0.8); cam.dist=cam.distWant; },
+      enter:function(){ cam.dir.set(-0.3,1.35,1).normalize(); cam.target.set(BX,BY-0.1,BZ); cam.off=0; if(!cells) newRound(); cam.distWant=fitDist(fitPts(),0.94,0.8); cam.dist=cam.distWant; },
       exit:function(){ dragging=false; ring.visible=false; want.x=want.z=0; auto=false; setRumble(0); },
       step:step, frame:frame, overlay:function(){},
       down:function(p){ if(setWant(p)){ dragging=true; S.tick(); jiggle=0; } else { jiggle=1; S.soft(); } },
@@ -457,8 +457,9 @@
         newRound(); auto=true; var rid;
         if(kind==="intro") speak("Marble maze! Tip the board to roll the marble into the hole. Watch me.");
         demo.target={world:function(){ return ring.visible?ring.position.clone():new THREE.Vector3(BX,BY,BZ); }};
-        return wait(1600,tok).then(function(){ finger.hidden=false; rid=roundId; return until(function(){ return phase==="won"; },tok); })
-          .then(function(){ finger.hidden=true; ring.visible=false; auto=false; want.x=want.z=0; return until(function(){ return roundId>rid; },tok); })
+        var t0; // drive for a few seconds to show the idea, then hand over the same maze
+        return wait(1600,tok).then(function(){ finger.hidden=false; rid=roundId; t0=now(); return until(function(){ return phase==="won"||(phase==="play"&&now()-t0>9000); },tok); })
+          .then(function(){ var won=phase==="won"; finger.hidden=true; ring.visible=false; auto=false; want.x=want.z=0; return won?until(function(){ return roundId>rid; },tok):null; })
           .then(function(){ if(kind==="intro") speak("Your turn! Touch the board where the marble should go."); });
       }
     };
