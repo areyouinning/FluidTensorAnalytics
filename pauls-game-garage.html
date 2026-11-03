@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="A 3D toy-box games collection for a five-year-old: Marble Maze and Ramp Race, built on real rolling physics.">
+<meta name="description" content="A 3D toy-box games collection for a five-year-old: Marble Maze, Ramp Race, Marble Hill, Big Launch, Word Hill and Tile Time, built on real physics.">
 <title>Paul's Game Garage</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
 <style>
@@ -33,6 +33,12 @@
     width:64px;height:64px;flex:0 0 auto;cursor:pointer;box-shadow:var(--shadow);display:grid;place-items:center;padding:0;
   }
   .round svg{width:32px;height:32px}
+  .hbtns{display:flex;gap:8px;flex:0 0 auto}
+  .round.nope{animation:nope .4s}
+  @keyframes nope{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  body.full{overflow:hidden}
+  body.full .stage{position:fixed;inset:0;z-index:40;height:auto;border:0;border-radius:0;box-shadow:none}
+  .exitfull{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:6}
   .round:active,.tile:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(34,32,63,.18)}
 
   .stage{
@@ -92,13 +98,47 @@
     font-family:inherit;font-weight:700;font-size:16px;color:var(--ink);
   }
   .tile canvas{width:72px;height:54px}
+  .gems{position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;
+    padding:4px 14px 4px 8px;font-weight:700;font-size:clamp(22px,4vw,32px);font-variant-numeric:tabular-nums;box-shadow:0 4px 0 rgba(34,32,63,.18)}
+  .gems svg{width:32px;height:32px}
+  .wordbar{position:absolute;left:50%;top:10px;transform:translateX(-50%);max-width:calc(100% - 170px);display:flex;flex-wrap:wrap;justify-content:center;column-gap:1px;
+    background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:4px 10px;font-weight:700;font-size:clamp(20px,4.4vw,38px);line-height:1.15;box-shadow:0 4px 0 rgba(34,32,63,.18)}
+  .wordbar .c{min-width:.45em;text-align:center;border-radius:6px}
+  .wordbar .todo{color:#B8B5CC}
+  .wordbar .next{color:var(--ink);background:var(--yellow)}
+  .wordbar .sp{min-width:.7em}
+  .wordbar .sp.todo{box-shadow:inset 0 -3px 0 #B8B5CC}
+  .wordbar .sp.next{box-shadow:inset 0 -4px 0 var(--ink)}
+  .wordbar .miss{color:var(--red)}
+  .ttbar{position:absolute;left:12px;right:12px;top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;pointer-events:none}
+  .ttt,.tteq{display:flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:4px 14px;font-weight:700;
+    font-variant-numeric:tabular-nums;box-shadow:0 4px 0 rgba(34,32,63,.18)}
+  .ttt{font-size:clamp(28px,5.4vw,44px);padding-left:8px}
+  .ttt svg{width:36px;height:36px}
+  .tteq{font-size:clamp(20px,4vw,32px)}
+  .tteq b.hit{color:#1E8F52} .tteq b.over{color:var(--red)} .tteq.win{background:var(--yellow)}
+  .ttbtns{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:14px;z-index:3}
+  .ttb{appearance:none;width:84px;height:84px;border-radius:50%;border:5px solid var(--ink);background:var(--yellow);font-family:inherit;font-weight:700;font-size:54px;line-height:1;
+    color:var(--ink);box-shadow:0 6px 0 rgba(34,32,63,.25);cursor:pointer;display:grid;place-items:center;padding:0 0 4px;touch-action:manipulation}
+  #ttPlus{background:var(--teal)} .ttb.undo{background:var(--card);padding:0} .ttb.undo svg{width:42px;height:42px}
+  .ttb:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(34,32,63,.25)}
+  .ttb.pulse{animation:pulse 1s ease-in-out infinite}
+  .ttb.small{width:62px;height:62px;font-size:32px;padding:0} .ttb.ok{background:var(--grass)}
+  .gridpick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border:4px solid var(--ink);border-radius:18px;padding:12px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;z-index:60}
+  .gpgrid{--cell:clamp(20px,min(7vw,5.2vh),32px);display:grid;grid-template-columns:repeat(10,var(--cell));grid-template-rows:repeat(10,var(--cell));gap:3px;touch-action:none}
+  .gpc{background:var(--paper);border:2px solid #CFCBE0;border-radius:5px}
+  .gpc.on{background:var(--yellow);border-color:var(--ink)}
+  .gprow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:clamp(22px,4.4vw,30px);font-variant-numeric:tabular-nums}
+  .gems.bump{animation:bump .3s}
+  @keyframes bump{50%{transform:scale(1.25)}}
   .tile[aria-pressed="true"]{background:var(--yellow)}
   .go:focus-visible,.round:focus-visible,.tile:focus-visible,.start button:focus-visible{outline:4px solid var(--purple);outline-offset:3px}
 
   footer{font-size:14px;color:var(--muted);line-height:1.5;max-width:68ch}
   footer a{color:var(--purple);font-weight:700}
   .err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-weight:600;font-size:18px;background:var(--sky)}
-  @media (max-width:520px){ .go{width:92px;height:92px} .start button{width:124px;height:124px} .place{width:42px;height:42px;font-size:24px;border-width:3px} .place.first{width:52px;height:52px;font-size:30px} h1{text-shadow:3px 3px 0 var(--yellow)} }
+  @media (max-width:520px){ .wordbar{top:60px;max-width:calc(100% - 16px)} .ttb{width:70px;height:70px;font-size:44px} .round{width:52px;height:52px} .round svg{width:27px;height:27px} .hbtns{gap:6px} .go{width:92px;height:92px} .start button{width:124px;height:124px} .place{width:42px;height:42px;font-size:24px;border-width:3px} .place.first{width:52px;height:52px;font-size:30px} h1{text-shadow:3px 3px 0 var(--yellow)} }
   @media (prefers-reduced-motion: reduce){ .go.pulse,.start button{animation:none} .place{transition:none} }
 </style>
 
@@ -108,7 +148,11 @@
 <div class="app">
   <header>
     <h1>PAUL'S <span>GAME</span> GARAGE</h1>
-    <button class="round" id="mute" aria-label="Sound on or off" aria-pressed="false"></button>
+    <div class="hbtns">
+      <button class="round" id="ctl" aria-label="Steer by touch or by tipping the phone" aria-pressed="false"></button>
+      <button class="round" id="full" aria-label="Full screen"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12V5h7M20 5h7v7M27 20v7h-7M12 27H5v-7" fill="none" stroke="#22203F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="round" id="mute" aria-label="Sound on or off" aria-pressed="false"></button>
+    </div>
   </header>
 
   <div class="stage" id="stage">
@@ -116,6 +160,7 @@
     <canvas id="fx"></canvas>
     <div id="labels"></div>
     <div class="finger" id="finger" hidden></div>
+    <button class="round exitfull" id="exitfull" aria-label="Leave full screen" hidden><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 5v7H5M27 12h-7V5M20 27v-7h7M5 20h7v7" fill="none" stroke="#22203F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button class="go" id="go" aria-label="Race!" hidden>
       <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 4 L36 20 L8 36 Z" fill="#fff" stroke="#22203F" stroke-width="4" stroke-linejoin="round"/></svg>
     </button>
@@ -127,14 +172,18 @@
   </div>
 
   <nav class="picker" aria-label="Games">
-    <div class="row-label">How things move</div>
+    <div class="row-label">Games</div>
     <div class="tiles">
       <button class="tile" data-g="maze" aria-pressed="true"><canvas width="144" height="108"></canvas>MARBLE MAZE</button>
       <button class="tile" data-g="ramp" aria-pressed="false"><canvas width="144" height="108"></canvas>RAMP RACE</button>
+      <button class="tile" data-g="hill" aria-pressed="false"><canvas width="144" height="108"></canvas>MARBLE HILL</button>
+      <button class="tile" data-g="launch" aria-pressed="false"><canvas width="144" height="108"></canvas>BIG LAUNCH</button>
+      <button class="tile" data-g="word" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD HILL</button>
+      <button class="tile" data-g="tiles" aria-pressed="false"><canvas width="144" height="108"></canvas>TILE TIME</button>
     </div>
   </nav>
 
-  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go and the board tips that way, up to 11°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
+  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go. At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The marble rolls at 5/7 · g · sin 8° with light grass drag, settling near 2.8 m/s. <b>Big Launch:</b> pull the ball back in the slingshot and let go; the pull direction sets the angle and the pull length sets the speed, up to 10.6 m/s. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The far bucket needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> the marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after each round the score becomes the target; + adds one tile and × adds a block of rows × columns, so 21 can be 5 × 4 + 1. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -187,6 +236,7 @@
     tick:function(){ tone(900,900,0.04,"square",0.05); },
     pop:function(big){ tone(big?320:620,big?700:1300,0.14,"sine",0.14); },
     soft:function(){ tone(440,400,0.12,"sine",0.07); },
+    boing:function(p){ tone(220*(p||1),90,0.35,"sine",0.18); },
     clack:function(){ tone(190,90,0.09,"square",0.08); noise(0.06,0.12); },
     hit:function(v){ var t=now(); if(t-lastHit<70) return; lastHit=t; var k=clamp(v/2.5,0.15,1); tone(260+120*k,120,0.07,"square",0.03+0.07*k); noise(0.05,0.05+0.12*k); },
     whoop:function(){ tone(520,110,0.42,"sine",0.13); },
@@ -194,9 +244,9 @@
     go:function(){ tone(260,780,0.3,"triangle",0.14); noise(0.25,0.06); },
     tada:function(){ [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ tone(f,f,0.25,"triangle",0.13); }, i*110); }); }
   };
-  function speak(text){
+  function speak(text,queue){
     if(!started||muted) return;
-    try{ var ss=window.speechSynthesis; if(!ss) return; ss.cancel(); var u=new SpeechSynthesisUtterance(text); u.rate=0.92; u.pitch=1.15; ss.speak(u); }catch(e){}
+    try{ var ss=window.speechSynthesis; if(!ss) return; if(!queue) ss.cancel(); var u=new SpeechSynthesisUtterance(text); u.rate=1.08; u.pitch=1.15; ss.speak(u); }catch(e){}
   }
   var muteBtn=document.getElementById("mute");
   var ICON_ON='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h5l7-6v20l-7-6H5z" fill="#FFD23F" stroke="#22203F" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 11c2 2 2 8 0 10M24.5 8c4 4 4 12 0 16" fill="none" stroke="#22203F" stroke-width="2.5" stroke-linecap="round"/></svg>';
@@ -205,11 +255,47 @@
   paintMute();
   muteBtn.addEventListener("click",function(){ muted=!muted; save("pgg.muted",muted); paintMute(); if(muted){ setRumble(0); try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} } else { ac(); S.click(); } });
 
+  // ---------- steering: touch, or tipping the phone where the browser allows it ----------
+  var ctlBtn=document.getElementById("ctl"), ctlMode="touch", tilt={ok:false,g:0,b:0,g0:null,b0:null,last:0};
+  var ICON_HAND='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 16V7a2 2 0 0 1 4 0v8V5a2 2 0 0 1 4 0v10V7a2 2 0 0 1 4 0v11c0 6-3 10-8 10s-7-3-9-7l-2-4a2 2 0 0 1 3-2l2 3z" fill="#FFD23F" stroke="#22203F" stroke-width="2.2" stroke-linejoin="round"/></svg>';
+  var ICON_TILT='<svg viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate(-22 16 16)"><rect x="10" y="4" width="12" height="24" rx="3" fill="#2BD4C2" stroke="#22203F" stroke-width="2.4"/><circle cx="16" cy="23.5" r="1.6" fill="#22203F"/></g><path d="M4 9c-2 4-2 10 0 14M28 9c2 4 2 10 0 14" fill="none" stroke="#22203F" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  function paintCtl(){ ctlBtn.innerHTML=ctlMode==="tilt"?ICON_TILT:ICON_HAND; ctlBtn.setAttribute("aria-pressed",ctlMode==="tilt"?"true":"false"); ctlBtn.title=ctlMode==="tilt"?"Steering: tip the phone":"Steering: touch"; }
+  function onOri(e){
+    if(e.gamma==null||e.beta==null) return; var a=(screen.orientation&&screen.orientation.angle)||window.orientation||0, x=e.gamma, y=e.beta;
+    if(a===90){ x=e.beta; y=-e.gamma; } else if(a===-90||a===270){ x=-e.beta; y=e.gamma; }
+    if(tilt.g0===null){ tilt.g0=x; tilt.b0=y; } tilt.g=x-tilt.g0; tilt.b=y-tilt.b0; tilt.last=now(); tilt.ok=true;
+  }
+  function tiltVec(){ if(ctlMode!=="tilt"||!tilt.ok||now()-tilt.last>800) return null; return {x:clamp(tilt.g/18,-1,1),z:clamp(tilt.b/18,-1,1)}; } // full tip at 18° from how the phone was held
+  function tiltRefused(){ window.removeEventListener("deviceorientation",onOri); ctlMode="touch"; paintCtl(); ctlBtn.classList.remove("nope"); void ctlBtn.offsetWidth; ctlBtn.classList.add("nope"); S.soft(); }
+  function enableTilt(){
+    tilt.ok=false; tilt.g0=null;
+    function listen(){ window.addEventListener("deviceorientation",onOri); setTimeout(function(){ if(ctlMode==="tilt"&&!tilt.ok) tiltRefused(); },1500); }
+    var D=window.DeviceOrientationEvent;
+    if(!D){ tiltRefused(); return; }
+    if(typeof D.requestPermission==="function"){ D.requestPermission().then(function(r){ if(r==="granted") listen(); else tiltRefused(); }).catch(tiltRefused); } else listen();
+  }
+  paintCtl();
+  ctlBtn.addEventListener("click",function(){ if(ctlMode==="touch"){ ctlMode="tilt"; paintCtl(); enableTilt(); S.click(); } else { ctlMode="touch"; window.removeEventListener("deviceorientation",onOri); paintCtl(); S.click(); } });
+
+  // ---------- full screen: the real thing where allowed, and the stage filling the window everywhere ----------
+  var fullBtn=document.getElementById("full"), exitFull=document.getElementById("exitfull"), realFull=false;
+  function setFull(on){
+    document.body.classList.toggle("full",on); exitFull.hidden=!on;
+    try{ var de=document.documentElement;
+      if(on){ var rq=de.requestFullscreen||de.webkitRequestFullscreen; if(rq){ var pr=rq.call(de); if(pr&&pr.catch) pr.catch(function(){}); } }
+      else if(document.fullscreenElement||document.webkitFullscreenElement){ var ex=document.exitFullscreen||document.webkitExitFullscreen; var p2=ex.call(document); if(p2&&p2.catch) p2.catch(function(){}); }
+    }catch(e){}
+  }
+  fullBtn.addEventListener("click",function(){ S.click(); setFull(true); });
+  exitFull.addEventListener("click",function(){ S.click(); setFull(false); });
+  function fsChange(){ if(document.fullscreenElement||document.webkitFullscreenElement) realFull=true; else if(realFull){ realFull=false; if(document.body.classList.contains("full")) setFull(false); } }
+  document.addEventListener("fullscreenchange",fsChange); document.addEventListener("webkitfullscreenchange",fsChange);
+
   // ---------- renderer, camera, light, haze ----------
   var glc=document.getElementById("gl"), fx=document.getElementById("fx"), fctx=fx.getContext("2d"), labelsEl=document.getElementById("labels");
   var renderer;
   try{ renderer=new THREE.WebGLRenderer({canvas:glc,antialias:true}); }catch(e){ fail("This device could not start 3D drawing (WebGL)."); return; }
-  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  renderer.setPixelRatio(Math.min(window.matchMedia("(pointer: coarse)").matches?1.5:2,window.devicePixelRatio||1));
   var scene=new THREE.Scene(); scene.background=new THREE.Color(C.sky);
   var camera=new THREE.PerspectiveCamera(38,1,0.1,160);
   var cam={dir:new THREE.Vector3(0,1,1).normalize(),target:new THREE.Vector3(),dist:12,distWant:12,off:0};
@@ -255,15 +341,16 @@
   function blob(op){ var m=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:C.ink,transparent:true,opacity:op,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2})); m.rotation.x=-Math.PI/2; return m; }
 
   // ---------- shared scenery ----------
-  var ground=new THREE.Mesh(new THREE.BoxGeometry(40,0.4,16),toon(C.grass)); ground.position.set(2,-0.2,-2); scene.add(ground);
-  var ground2=new THREE.Mesh(new THREE.BoxGeometry(120,0.4,80),toon(C.grass)); ground2.position.set(2,-0.21,-30); scene.add(ground2);
+  var shared=new THREE.Group(); scene.add(shared); // scenery for the games played on the lawn
+  var ground=new THREE.Mesh(new THREE.BoxGeometry(40,0.4,16),toon(C.grass)); ground.position.set(2,-0.2,-2); shared.add(ground);
+  var ground2=new THREE.Mesh(new THREE.BoxGeometry(160,0.4,180),toon(C.grass)); ground2.position.set(2,-0.21,-20); shared.add(ground2);
   function tree(x,z,s){ var t=new THREE.Group(); var tr=post(0.09*s,C.dirt2); tr.scale.y=0.5*s; t.add(tr);
-    var c1=cone(0.55*s,1.1*s,C.grass); c1.position.y=s; t.add(c1); t.position.set(x,0,z); scene.add(t); }
+    var c1=cone(0.55*s,1.1*s,C.grass); c1.position.y=s; t.add(c1); t.position.set(x,0,z); shared.add(t); }
   tree(-3.6,-3.0,1.2); tree(-2.2,-6.0,1.6); tree(8.6,-3.4,1.4); tree(9.8,-5.4,1.1); tree(4.6,-6.4,1.0); tree(11.5,0.8,1.5); tree(10.2,3.2,1.0);
   tree(1.0,-9.5,1.9); tree(6.5,-11,2.2); tree(13,-8,1.8); tree(-5.5,-8.5,2.0); tree(16,-3,1.6);
-  function hill(x,z,r,sy,hex){ var h=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(r,1)),toon(hex)); h.scale.y=sy; h.position.set(x,0,z); scene.add(h); }
+  function hill(x,z,r,sy,hex){ var h=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(r,1)),toon(hex)); h.scale.y=sy; h.position.set(x,0,z); shared.add(h); }
   hill(-6,-18,9,0.32,C.grass); hill(8,-22,12,0.3,C.hill); hill(22,-16,9,0.36,C.grass); hill(-18,-12,8,0.34,C.hill);
-  function cloud(x,y,z,s){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5],[0.6,-0.12,0.5]].forEach(function(p){ var b=sphere(p[2]*s,C.white,1); b.position.set(p[0]*s,p[1]*s,0); g.add(b); }); g.position.set(x,y,z); scene.add(g); return g; }
+  function cloud(x,y,z,s){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5],[0.6,-0.12,0.5]].forEach(function(p){ var b=sphere(p[2]*s,C.white,1); b.position.set(p[0]*s,p[1]*s,0); g.add(b); }); g.position.set(x,y,z); shared.add(g); return g; }
   var clouds=[cloud(-3.5,4.4,-8,1.1),cloud(3.2,5.2,-10,1.4),cloud(9.5,4.2,-8,1.0)];
 
   // ---------- camera and screen helpers ----------
@@ -285,7 +372,9 @@
   var bits=[], COLS=[C.red,C.yellow,C.purple,C.teal,C.orange,C.paper];
   function confetti(x,y){ var n=reduce?18:70; for(var i=0;i<n;i++){ var a=Math.random()*Math.PI*2, sp=180+Math.random()*320;
     bits.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-260,r:Math.random()*6,w:6+Math.random()*7,h:4+Math.random()*5,c:pick(COLS),life:1.6+Math.random()*0.6,t:0}); } }
+  var fxDirty=false;
   function drawFx(dt){
+    if(!bits.length&&!fxDirty) return; fxDirty=bits.length>0;
     fctx.clearRect(0,0,W,H);
     for(var i=bits.length-1;i>=0;i--){ var b=bits[i]; b.t+=dt; if(b.t>b.life){ bits.splice(i,1); continue; }
       b.vy+=700*dt; b.vx*=Math.pow(0.4,dt); b.x+=b.vx*dt; b.y+=b.vy*dt; b.r+=dt*8;
@@ -314,7 +403,7 @@
   // =====================================================================
   var maze=(function(){
     var root=new THREE.Group(); root.visible=false; scene.add(root);
-    var BX=2.2, BY=0.62, BZ=0, CS=1.0, T=0.12, WH=0.3, R=0.2, MAXT=rad(11), E=0.35, ROLLRES=0.25;
+    var BX=2.2, BY=1.4, BZ=0, CS=1.0, T=0.12, WH=0.3, R=0.2, MAXT=rad(16), E=0.35, ROLLRES=0.25;
     var base=box(1.2,BY-0.16,1.2,C.dirt2); base.position.set(BX,(BY-0.16)/2,BZ); root.add(base);
     var foot=box(2.0,0.12,2.0,C.orange); foot.position.set(BX,0.06,BZ); root.add(foot);
     var baseShadow=blob(0.18); baseShadow.scale.setScalar(2.2); baseShadow.position.set(BX,0.004,BZ); root.add(baseShadow);
@@ -402,7 +491,7 @@
       if(phase==="drop"){ dropT+=DT; if(dropT>=0.45) win(); return; }
       if(phase==="fall"){ dropT+=DT; if(dropT>=0.55) respawn(); return; }
       if(phase!=="play") return;
-      if(auto) autopilot();
+      if(auto) autopilot(); else { var tv=tiltVec(); if(tv){ want.x=tv.x*MAXT; want.z=tv.z*MAXT; } }
       var sp=Math.hypot(st.vx,st.vz); if(sp>1e-6){ var f=Math.min(sp,ROLLRES*DT)/sp; st.vx-=st.vx*f; st.vz-=st.vz*f; }
       st.vx+=K*G*Math.sin(tilt.x)*DT; st.vz+=K*G*Math.sin(tilt.z)*DT; // rolling marble on a tipped plane: a = 5/7 · g · sin(tilt)
       sp=Math.hypot(st.vx,st.vz); if(sp>3.2){ st.vx*=3.2/sp; st.vz*=3.2/sp; }
@@ -419,7 +508,7 @@
       phase="won"; marble.group.visible=false; S.tada();
       var g=centre(goal); var wp=gimbal.localToWorld(new THREE.Vector3(g.x,0.3,g.z)); var q=toScreen(wp); confetti(q.x,q.y);
       if(!auto){ wins++; speak(pick(["You did it, Paul!","Into the hole! Great rolling!","The marble made it home!","Yes, Paul! Down the hole!"])); }
-      nextT=setTimeout(newRound,2400);
+      if(auto||!afterRound(path.length,"maze")) nextT=setTimeout(newRound,2400); // score: squares on the route
     }
     function frame(dt,alpha){
       if(jiggle>0) jiggle=Math.max(0,jiggle-dt*3);
@@ -445,7 +534,7 @@
     }
     return {
       name:"maze", root:root, goVisible:false, fit:function(){ return fitPts(); },
-      enter:function(){ cam.dir.set(-0.3,1.35,1).normalize(); cam.target.set(BX,BY-0.1,BZ); cam.off=0; if(!cells) newRound(); cam.distWant=fitDist(fitPts(),0.94,0.8); cam.dist=cam.distWant; },
+      enter:function(){ cam.dir.set(-0.3,1.35,1).normalize(); cam.target.set(BX,BY-0.1,BZ); cam.off=0; if(!cells||phase==="won") newRound(); cam.distWant=fitDist(fitPts(),0.94,0.8); cam.dist=cam.distWant; },
       exit:function(){ dragging=false; ring.visible=false; want.x=want.z=0; auto=false; setRumble(0); },
       step:step, frame:frame, overlay:function(){},
       down:function(p){ if(setWant(p)){ dragging=true; S.tick(); jiggle=0; } else { jiggle=1; S.soft(); } },
@@ -455,12 +544,12 @@
       cancel:function(){ auto=false; want.x=want.z=0; ring.visible=false; },
       demo:function(kind,tok){
         newRound(); auto=true; var rid;
-        if(kind==="intro") speak("Marble maze! Tip the board to roll the marble into the hole. Watch me.");
+        if(kind==="intro") speak("Marble maze! "+(ctlMode==="tilt"?"Tip the phone":"Touch where the marble should go")+". Roll it into the hole with the yellow flag. Watch!");
         demo.target={world:function(){ return ring.visible?ring.position.clone():new THREE.Vector3(BX,BY,BZ); }};
         var t0; // drive for a few seconds to show the idea, then hand over the same maze
-        return wait(1600,tok).then(function(){ finger.hidden=false; rid=roundId; t0=now(); return until(function(){ return phase==="won"||(phase==="play"&&now()-t0>9000); },tok); })
+        return wait(800,tok).then(function(){ finger.hidden=false; rid=roundId; t0=now(); return until(function(){ return phase==="won"||(phase==="play"&&now()-t0>6000); },tok); })
           .then(function(){ var won=phase==="won"; finger.hidden=true; ring.visible=false; auto=false; want.x=want.z=0; return won?until(function(){ return roundId>rid; },tok):null; })
-          .then(function(){ if(kind==="intro") speak("Your turn! Touch the board where the marble should go."); });
+          .then(function(){ if(kind==="intro") speak("Your turn!",true); });
       }
     };
   })();
@@ -544,13 +633,13 @@
       var a=lanes[0], b=lanes[1], line;
       if(a.angle===b.angle) line=a.R!==b.R?pick(["Big ball, little ball. Same time!","The same! Big or little, it does not matter."]):pick(["Same ramps. A tie!","A tie! Both the same."]);
       else line=pick(["The steep ramp wins!","Yes, Paul! Steeper is faster!","Steep ramp, fast ball!"]);
-      speak(line);
+      speak(line); afterRound(Math.max(a.angle,b.angle),"ramp"); // score: the winning ramp's angle
     }
     function fitPts(){ var F=[]; [10,40].forEach(function(a){ var th=rad(a); LANE_Z.forEach(function(z){ [-0.5,0.5].forEach(function(dz){ F.push(new THREE.Vector3(HINGE_X-(L+0.7)*Math.cos(th),(L+0.7)*Math.sin(th)+0.3,z+dz)); }); }); });
       LANE_Z.forEach(function(z){ F.push(new THREE.Vector3(BIN_X+0.3,0.7,z+0.5),new THREE.Vector3(BIN_X+0.3,0,z-0.5),new THREE.Vector3(HINGE_X+0.55,1.9,z+(z>0?0.62:-0.62))); }); return F; }
     var clock=0;
     return {
-      name:"ramp", root:root, goVisible:true, fit:function(){ return fitPts(); }, startRace:function(){ startRace(); },
+      name:"ramp", root:root, goVisible:true, fit:function(){ return fitPts(); }, startRace:function(){ startRace(); }, go:function(){ startRace(); },
       enter:function(){ cam.dir.set(-0.66,0.42,1).normalize(); cam.target.set(1.7,0.75,0); cam.off=0; cam.distWant=fitDist(fitPts()); cam.dist=cam.distWant; randomAngles(); resetBalls(); lanes.forEach(function(l){ l.tag.hidden=false; l.placeEl.hidden=false; }); },
       exit:function(){ drag=null; lanes.forEach(function(l){ l.tag.hidden=true; l.placeEl.hidden=true; }); setRumble(0); state="ready"; },
       step:step,
@@ -587,25 +676,546 @@
       demo:function(kind,tok){
         resetBalls(); var lo=pick([10,15]), hi=pick([30,35,40]), li=Math.random()<0.5?0:1;
         setAngle(lanes[0],lo); setAngle(lanes[1],lo);
-        if(kind==="intro") speak("Ramp race! Watch me.");
-        return wait(900,tok).then(function(){ demo.target={world:function(){ return wpos(lanes[li].knob); }}; finger.hidden=false; return wait(700,tok); })
-        .then(function(){ if(kind==="intro") speak("Lift one ramp up high."); finger.classList.add("press");
+        if(kind==="intro") speak("Ramp race! Drag a knob to make a ramp steep, then press the red button. Watch!");
+        return wait(500,tok).then(function(){ demo.target={world:function(){ return wpos(lanes[li].knob); }}; finger.hidden=false; return wait(400,tok); })
+        .then(function(){ finger.classList.add("press");
           var steps=[], a; for(a=lo+5;a<=hi;a+=5) steps.push(a);
-          return steps.reduce(function(pr,ang){ return pr.then(function(){ setAngle(lanes[li],ang); S.tick(); lanes[li].knobPop=1; return wait(240,tok); }); },Promise.resolve()); })
-        .then(function(){ finger.classList.remove("press"); return wait(350,tok); })
-        .then(function(){ demo.target={go:true}; return wait(750,tok); })
+          return steps.reduce(function(pr,ang){ return pr.then(function(){ setAngle(lanes[li],ang); S.tick(); lanes[li].knobPop=1; return wait(140,tok); }); },Promise.resolve()); })
+        .then(function(){ finger.classList.remove("press"); return wait(200,tok); })
+        .then(function(){ demo.target={go:true}; return wait(450,tok); })
         .then(function(){ finger.classList.add("press"); goBtn.classList.add("pressed"); startRace(); return wait(220,tok); })
         .then(function(){ finger.classList.remove("press"); goBtn.classList.remove("pressed"); finger.hidden=true; demo.target=null; return until(function(){ return state==="done"; },tok); })
-        .then(function(){ return wait(1400,tok); })
-        .then(function(){ resetBalls(); randomAngles(); if(kind==="intro") speak("Your turn! Lift a ramp, then press the big red button."); });
+        .then(function(){ return wait(700,tok); })
+        .then(function(){ resetBalls(); randomAngles(); if(kind==="intro") speak("Your turn!",true); });
       }
     };
   })();
 
+  // =====================================================================
+  // MARBLE HILL — steer down the hill; at every gate one lane is blocked,
+  // one has some gems and one has more gems
+  // =====================================================================
+  var hill=(function(){
+    var root=new THREE.Group(); root.visible=false; scene.add(root);
+    var TH=rad(8), HX=200, NG=6, G0=7, GAP=9, S_END=G0+GAP*(NG-1)+6, H0=(S_END+2)*Math.sin(TH);
+    var LANES=[-1.2,0,1.2], RAIL=1.8, R=0.22, DRAG=0.34, CX=2.0, MAXB=rad(16), BOUNCE=3.0;
+    var track=new THREE.Group(); track.position.set(HX,H0,0); track.rotation.x=-TH; root.add(track);
+    var bank=new THREE.Group(); track.add(bank);
+    // the hill under the chute, a meadow at the bottom, trees standing upright on the slope
+    var slab=new THREE.Mesh(new THREE.BoxGeometry(46,1,S_END+30),toon(C.grass)); slab.position.set(0,-0.72,-(S_END+30)/2+14); track.add(slab);
+    var meadow=new THREE.Mesh(new THREE.BoxGeometry(90,0.5,60),toon(C.grass)); meadow.position.set(HX,-0.3,-(S_END+2)*Math.cos(TH)-28); root.add(meadow);
+    function slopeTree(x,s,sc){ var t=new THREE.Group(); var tr=post(0.09*sc,C.dirt2); tr.scale.y=0.5*sc; t.add(tr); var c1=cone(0.55*sc,1.1*sc,(Math.abs(x)>8)?C.hill:C.grass); c1.position.y=sc; t.add(c1);
+      t.position.set(x,-0.05,-s); t.rotation.x=TH; track.add(t); }
+    for(var ti=0;ti<16;ti++){ var side=ti%2?1:-1; slopeTree(side*(3.6+Math.random()*7),-6+ti*3.6+Math.random()*2,1+Math.random()*0.8); }
+    function hillCloud(x,y,z,s){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5]].forEach(function(p){ var b=sphere(p[2]*s,C.white,1); b.position.set(p[0]*s,p[1]*s,0); g.add(b); }); g.position.set(x,y,z); root.add(g); }
+    hillCloud(HX-9,H0+5,-20,1.4); hillCloud(HX+7,H0+3,-34,1.8); hillCloud(HX-2,H0+2,-52,2.2);
+    // the chute: dirt floor, orange rails, a start pad and a finish basket
+    var floor=box(2*RAIL+0.1,0.1,S_END+3,C.dirt); floor.position.set(0,-0.05,-(S_END+3)/2+1); bank.add(floor);
+    [-1,1].forEach(function(sd){ var r=box(0.12,0.3,S_END+3,C.orange); r.position.set(sd*(RAIL+0.06),0.15,-(S_END+3)/2+1); bank.add(r); });
+    var back=box(2*RAIL+0.3,0.5,0.15,C.orange); back.position.set(0,0.25,1.05); bank.add(back);
+    var basket=box(2*RAIL+0.3,0.55,0.18,C.teal); basket.position.set(0,0.27,-(S_END+0.6)); bank.add(basket);
+    var pole=post(0.04,C.paper); pole.scale.y=1.4; pole.position.set(RAIL-0.2,0,-(S_END+0.4)); bank.add(pole);
+    var flag=box(0.5,0.32,0.04,C.yellow); flag.position.set(RAIL-0.2-0.27,1.22,-(S_END+0.4)); bank.add(flag);
+    var marble=ball(C.red); marble.group.scale.setScalar(R); marble.hull.scale.setScalar(1+OUT/R); bank.add(marble.group);
+    var mshadow=blob(0.3); mshadow.scale.setScalar(R*1.05); bank.add(mshadow);
+    var pick3=new THREE.Mesh(new THREE.PlaneGeometry(80,140),new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide})); pick3.rotation.x=-Math.PI/2; pick3.position.z=-50; track.add(pick3);
+    // HUD: gem counter (an icon and a numeral; nothing to read)
+    var hud=el("gems"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L21 9 L12 22 L3 9 Z" fill="#2BD4C2" stroke="#22203F" stroke-width="2.2" stroke-linejoin="round"/><path d="M3 9 H21 M12 2 L8 9 L12 22 L16 9 Z" fill="none" stroke="#22203F" stroke-width="1.4" stroke-linejoin="round"/></svg><span>0</span>'; hud.hidden=true;
+    var hudN=hud.querySelector("span"), badge=el("place first"); badge.hidden=true;
+
+    var courseG=null, gates=[], walls=[], gems=[], score=0, phase="ready", st={s:0,x:0,vs:0,vx:0,ps:0,px:0}, bankA=0, bankWant=0, fx=null, auto=false, autoUntil=99, camS=0, bonks=0, endT=null, clock=0;
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function build(){
+      if(courseG){ bank.remove(courseG); disposeTree(courseG); }
+      courseG=new THREE.Group(); bank.add(courseG); gates=[]; gems=[];
+      walls=[{minx:-RAIL-0.5,maxx:-RAIL,mins:-2,maxs:S_END+2},{minx:RAIL,maxx:RAIL+0.5,mins:-2,maxs:S_END+2}];
+      for(var i=0;i<NG;i++){
+        var g=G0+i*GAP, order=shuffle([0,1,2]), pair=pick([[1,3],[2,4],[1,4]]);
+        var gate={s:g,wrong:order[0],good:order[1],better:order[2],nGood:pair[0],nBetter:pair[1]}; gates.push(gate);
+        [-0.6,0.6].forEach(function(dx){ var d=box(0.1,0.26,2.2,C.wood); d.position.set(dx,0.13,-(g-0.5)); courseG.add(d);
+          var cap=sphere(0.08,C.wood,0); cap.position.set(dx,0.3,-(g-1.6)); courseG.add(cap);
+          walls.push({minx:dx-0.05,maxx:dx+0.05,mins:g-1.6,maxs:g+0.6}); });
+        // the clearly wrong lane: a striped road barrier
+        var lx=LANES[gate.wrong]; [-0.5,0.5].forEach(function(o){ var p=post(0.045,C.paper); p.scale.y=0.62; p.position.set(lx+o,0,-g); courseG.add(p); });
+        for(var k=0;k<4;k++){ var b=box(0.25,0.17,0.08,k%2?C.paper:C.red); b.position.set(lx-0.375+k*0.25,0.45,-g); courseG.add(b); }
+        for(var k2=0;k2<4;k2++){ var b2=box(0.25,0.1,0.08,k2%2?C.red:C.paper); b2.position.set(lx-0.375+k2*0.25,0.18,-g); courseG.add(b2); }
+        walls.push({minx:lx-0.6,maxx:lx+0.6,mins:g-0.05,maxs:g+0.05,barrier:true});
+        // gems: some in one lane, more in the other
+        [[gate.good,gate.nGood],[gate.better,gate.nBetter]].forEach(function(q){ for(var n=0;n<q[1];n++){
+          var gm=new THREE.Group(); gm.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.17+OUT,0),inkMat)); gm.add(new THREE.Mesh(flat(new THREE.OctahedronGeometry(0.17,0)),toon(C.teal)));
+          var gs=g-1.45+n*0.42; gm.position.set(LANES[q[0]],0.34,-gs); gm.scale.y=1.35; courseG.add(gm); gems.push({m:gm,x:LANES[q[0]],s:gs,got:false,ph:Math.random()*6}); } });
+      }
+    }
+    function reset(){ clearTimeout(endT); build(); st.s=st.ps=0; st.x=st.px=0; st.vs=st.vx=0; bankA=bankWant=0; fx=null; score=0; hudN.textContent="0"; badge.classList.remove("on"); camS=0; phase="ready"; marble.group.visible=true; goBtn.classList.toggle("pulse",!demo.active); }
+    function go(){ if(phase!=="ready"){ reset(); } phase="roll"; S.go(); goBtn.classList.remove("pulse"); }
+    function nextGate(){ for(var i=0;i<gates.length;i++) if(gates[i].s+0.6>st.s) return gates[i]; return null; }
+    function steerAuto(){ var g=nextGate(); fx=g?LANES[g.better]:0; }
+    function collide(){
+      for(var i=0;i<walls.length;i++){ var w=walls[i], cx=clamp(st.x,w.minx,w.maxx), cs=clamp(st.s,w.mins,w.maxs), dx=st.x-cx, ds=st.s-cs, d2=dx*dx+ds*ds;
+        if(d2>=R*R) continue;
+        if(w.barrier){ st.s=w.mins-R-0.01; st.vs=-BOUNCE; st.vx*=0.3; bonks++; S.boing(1.1); noise(0.08,0.15);
+          if(!auto&&bonks%2===1) speak(pick(["Boing! Not that way!","Oops, blocked! Try another way.","Bonk! That way is closed."])); continue; }
+        var d=Math.sqrt(d2)||1e-6, nx=dx/d, ns=ds/d; if(d2<1e-10){ nx=st.x<(w.minx+w.maxx)/2?-1:1; ns=0; }
+        st.x+=nx*(R-d); st.s+=ns*(R-d); var vn=st.vx*nx+st.vs*ns; if(vn<0){ st.vx-=1.4*vn*nx; st.vs-=1.4*vn*ns; if(-vn>0.3) S.hit(-vn); } }
+    }
+    function step(){
+      st.ps=st.s; st.px=st.x;
+      if(phase!=="roll") return;
+      if(auto) steerAuto();
+      var tv=tiltVec(); bankWant=(tv&&!auto)?tv.x*MAXB:(fx===null?0:clamp((fx-st.x)*rad(12),-MAXB,MAXB));
+      var mr=rad(120)*DT; bankA+=clamp(bankWant-bankA,-mr,mr);
+      st.vs+=(K*G*Math.sin(TH)-DRAG*st.vs)*DT;           // rolling marble on the slope, with grass drag
+      st.vx+=(K*G*Math.sin(bankA)-CX*st.vx)*DT;          // the hill tips sideways toward the finger
+      st.s+=st.vs*DT; st.x+=st.vx*DT; collide();
+      for(var i=0;i<gems.length;i++){ var gm=gems[i]; if(!gm.got&&Math.abs(gm.s-st.s)<R+0.16&&Math.abs(gm.x-st.x)<R+0.18){ gm.got=true; gm.m.visible=false; score++; hudN.textContent=String(score);
+        hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump"); tone(880+score*25,1400+score*25,0.12,"triangle",0.1); } }
+      if(st.s+R>S_END+0.5){ st.s=S_END+0.5-R; st.vs=0; st.vx=0; finish(); }
+    }
+    function finish(){
+      phase="done"; S.clack(); S.tada(); var p=toScreen(bank.localToWorld(new THREE.Vector3(st.x,0.3,-st.s))); confetti(p.x,p.y);
+      badge.textContent=String(score); badge.classList.add("on");
+      if(!auto) speak(score>=NG*3?pick(["Wow, Paul! "+score+" gems! You picked the best way every time!","Super! "+score+" gems!"]):pick(["You got "+score+" gems, Paul!","Into the basket! "+score+" gems!"]));
+      if(!auto&&!afterRound(score,"hill")) endT=setTimeout(function(){ if(phase==="done") reset(); },4200);
+    }
+    function frame(dt,alpha){
+      clock+=dt; bank.rotation.z=-bankA*0.35; // show only a hint of the sideways tip so the chute never dips into the grass
+      var s=st.ps+(st.s-st.ps)*alpha, x=st.px+(st.x-st.px)*alpha;
+      marble.group.position.set(x,R,-s); marble.spin.rotation.set(-s/R,Math.PI/2,0);
+      mshadow.position.set(x,0.006,-s);
+      gems.forEach(function(g){ if(!g.got){ g.m.rotation.y=clock*2+g.ph; g.m.position.y=0.34+0.05*Math.sin(clock*3+g.ph); } });
+      camS+=(Math.max(0,s)-camS)*(1-Math.exp(-dt/0.2));
+      var t=track.localToWorld(new THREE.Vector3(0,0,-(camS+3))); cam.target.copy(t);
+      setRumble(phase==="roll"?Math.min(0.12,Math.abs(st.vs)*0.05):0);
+      if(demo.active&&auto&&fx!==null){ ring.visible=true; ring.position.copy(bank.localToWorld(new THREE.Vector3(fx,0.32,-(s+1.4)))); } else ring.visible=false;
+    }
+    var ring=new THREE.Mesh(new THREE.RingGeometry(0.2,0.32,32),new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.9,depthTest:false}));
+    ring.rotation.x=-Math.PI/2-TH; ring.renderOrder=10; ring.visible=false; root.add(ring);
+    function fitPts(){ var pts=[]; [-RAIL-0.3,RAIL+0.3].forEach(function(x){ [-1.2,9].forEach(function(s){ pts.push(track.localToWorld(new THREE.Vector3(x,0.4,-s))); }); }); return pts; }
+    function setFinger(p){
+      ray.setFromCamera(new THREE.Vector2(p.x/W*2-1,-(p.y/H*2-1)),camera); var hits=ray.intersectObject(pick3,false);
+      if(hits.length){ var l=track.worldToLocal(hits[0].point.clone()); fx=clamp(l.x,-RAIL+0.3,RAIL-0.3); } else fx=clamp((p.x/W*2-1)*RAIL,-RAIL+0.3,RAIL-0.3);
+    }
+    return {
+      name:"hill", root:root, goVisible:true, ownScene:true, fit:function(){ return fitPts(); },
+      enter:function(){ cam.dir.set(0,0.6,1).normalize(); cam.off=0; camS=0; root.updateMatrixWorld(true); cam.target.copy(track.localToWorld(new THREE.Vector3(0,0,-3)));
+        reset(); cam.distWant=fitDist(fitPts()); cam.dist=cam.distWant; hud.hidden=false; badge.hidden=false; },
+      exit:function(){ clearTimeout(endT); auto=false; fx=null; ring.visible=false; hud.hidden=true; badge.hidden=true; setRumble(0); },
+      step:step, frame:frame,
+      overlay:function(){ var p=toScreen(bank.localToWorld(new THREE.Vector3(0,1.4,-(S_END+0.4)))); badge.style.left=clamp(p.x,40,W-40)+"px"; badge.style.top=clamp(p.y,50,H-50)+"px"; },
+      go:function(){ go(); },
+      down:function(p){ if(phase==="ready"){ go(); } else if(phase==="done"){ reset(); go(); } setFinger(p); S.tick(); return true; },
+      move:function(p){ setFinger(p); },
+      up:function(){ fx=null; },
+      idleOK:function(){ return phase!=="roll"; },
+      cancel:function(){ auto=false; fx=null; reset(); },
+      demo:function(kind,tok){
+        reset(); auto=true; var g2=G0+1.5;
+        if(kind==="intro") speak("Marble hill! Press the red button, then "+(ctlMode==="tilt"?"tip the phone":"touch where the marble should go")+". Go for the most gems. Watch!");
+        demo.target={world:function(){ return ring.visible?ring.position.clone():track.localToWorld(new THREE.Vector3(0,0.3,-(st.s+1.4))); }};
+        return wait(700,tok).then(function(){ demo.target={go:true}; finger.hidden=false; return wait(500,tok); })
+          .then(function(){ finger.classList.add("press"); goBtn.classList.add("pressed"); go(); return wait(220,tok); })
+          .then(function(){ finger.classList.remove("press"); goBtn.classList.remove("pressed");
+            demo.target={world:function(){ return ring.visible?ring.position.clone():track.localToWorld(new THREE.Vector3(0,0.3,-(st.s+1.4))); }};
+            return until(function(){ return st.s>g2; },tok); })
+          .then(function(){ finger.hidden=true; auto=false; fx=null; return wait(500,tok); })
+          .then(function(){ reset(); if(kind==="intro") speak("Your turn!",true); });
+      }
+    };
+  })();
+
+  // =====================================================================
+  // BIG LAUNCH — pull the slingshot back and let go; land in three buckets.
+  // Released at bucket-rim height, so release and landing heights match and
+  // 45° really is the best angle: range = v² · sin(2θ) / g.
+  // =====================================================================
+  var launch=(function(){
+    var root=new THREE.Group(); root.visible=false; root.position.set(-200,0,0); scene.add(root);
+    var R=0.22, TOP=0.45, H0=TOP+R, BR=0.6, VMAX=10.6, PULLMAX=1.3, AMIN=10, AMAX=80;
+    // field
+    var field=new THREE.Mesh(new THREE.BoxGeometry(80,0.4,60),toon(C.grass)); field.position.set(6,-0.2,-14); root.add(field);
+    var strip=new THREE.Mesh(new THREE.BoxGeometry(14,0.02,1.7),toon(C.dirt)); strip.position.set(5.6,0.01,0); root.add(strip);
+    for(var m=2;m<=12;m+=2){ var tick=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.024,1.7),toon(C.dirt2)); tick.position.set(m,0.012,0); root.add(tick); }
+    function lt(x,z,s){ var t=new THREE.Group(); var tr=post(0.09*s,C.dirt2); tr.scale.y=0.5*s; t.add(tr); var c1=cone(0.55*s,1.1*s,C.grass); c1.position.y=s; t.add(c1); t.position.set(x,0,z); root.add(t); }
+    lt(-3,-3.5,1.4); lt(1.5,-5,1.8); lt(6,-6.5,2.1); lt(10.5,-4.5,1.5); lt(14,-6,1.9); lt(-5,-7,2.2); lt(16.5,-2.5,1.3);
+    var lh1=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(10,1)),toon(C.hill)); lh1.scale.y=0.32; lh1.position.set(2,0,-26); root.add(lh1);
+    var lh2=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(12,1)),toon(C.grass)); lh2.scale.y=0.3; lh2.position.set(20,0,-30); root.add(lh2);
+    [[-2,5.2,-12,1.3],[9,6,-16,1.7]].forEach(function(c){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5]].forEach(function(p){ var b=sphere(p[2]*c[3],C.white,1); b.position.set(p[0]*c[3],p[1]*c[3],0); g.add(b); }); g.position.set(c[0],c[1],c[2]); root.add(g); });
+    // slingshot: a base, two fork posts, a rubber band to the ball
+    var base=box(0.5,0.12,1.0,C.dirt2); base.position.set(0.05,0.06,0); root.add(base);
+    var tips=[new THREE.Vector3(0.05,H0+0.06,0.36),new THREE.Vector3(0.05,H0+0.06,-0.36)];
+    tips.forEach(function(t){ var p=post(0.05,C.dirt2); p.scale.y=t.y; p.position.set(t.x,0,t.z); root.add(p); var k=sphere(0.07,C.red,0); k.position.copy(t); root.add(k); });
+    var UPV=new THREE.Vector3(0,1,0);
+    function band(){ var g=post(0.025,C.ink); root.add(g); return g; }
+    var bands=[band(),band()];
+    function setSeg(g,a,b){ var d=new THREE.Vector3().subVectors(b,a), L=Math.max(1e-3,d.length()); g.position.copy(a); g.scale.set(1,L,1); g.quaternion.setFromUnitVectors(UPV,d.multiplyScalar(1/L)); }
+    var ballM=ball(C.red); ballM.group.scale.setScalar(R); ballM.hull.scale.setScalar(1+OUT/R); root.add(ballM.group);
+    var bshadow=blob(0.3); root.add(bshadow);
+    // aim arrow (direction and power), shown only while pulling
+    var arrow=new THREE.Group(); var shaft=box(1,0.07,0.07,C.yellow); shaft.position.x=0.5; arrow.add(shaft);
+    var head=new THREE.Group(); var hc=cone(0.15,0.3,C.yellow); hc.rotation.z=-Math.PI/2; head.add(hc); arrow.add(head); arrow.visible=false; root.add(arrow);
+    var tag=el("tag"); tag.hidden=true;
+    var hud=el("gems"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="#FFD23F" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><span>0</span>'; hud.hidden=true;
+    var hudN=hud.querySelector("span");
+    // buckets and flight paths
+    var buckets=[], bucketG=null, paths=[], dotGeo=new THREE.SphereGeometry(0.06,8,6);
+    var dotNew=new THREE.MeshBasicMaterial({color:C.paper}), dotOld=new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.4});
+    var st={x:0,y:H0,vx:0,vy:0,px:0,py:H0}, phase="aim", aim={angle:45,power:0,on:false}, lastAngle=null, dotT=0, restT=0, inT=0, inB=null, stars=0, misses=0, newT=null, curPath=null, landed=false;
+    function layout(){
+      if(bucketG){ root.remove(bucketG); disposeTree(bucketG); } bucketG=new THREE.Group(); root.add(bucketG); buckets=[];
+      [[3+Math.random()*1.2,C.red],[6+Math.random()*1.4,C.yellow],[9.2+Math.random()*1.4,C.teal]].forEach(function(b){
+        var g=new THREE.Group(); g.position.set(b[0],0,0); bucketG.add(g);
+        var body=disk(BR,TOP,b[1]); body.position.y=TOP/2; g.add(body);
+        var mouth=new THREE.Mesh(new THREE.CircleGeometry(BR-0.08,24),new THREE.MeshBasicMaterial({color:C.ink})); mouth.rotation.x=-Math.PI/2; mouth.position.y=TOP+0.006; g.add(mouth);
+        var star=new THREE.Group(); star.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.22+OUT,0),inkMat)); star.add(new THREE.Mesh(flat(new THREE.OctahedronGeometry(0.22,0)),toon(C.yellow)));
+        star.position.y=TOP+0.75; star.scale.y=1.3; star.visible=false; g.add(star);
+        var sh=blob(0.2); sh.scale.setScalar(BR*1.25); sh.position.y=0.004; g.add(sh);
+        buckets.push({x:b[0],g:g,star:star,hit:false,pop:0});
+      });
+      paths.forEach(function(p){ root.remove(p); }); paths=[];
+    }
+    function reload(){ st.x=st.px=0; st.y=st.py=H0; st.vx=st.vy=0; phase="aim"; landed=false; ballM.group.visible=true; S.pop(true); }
+    function newRound(){ clearTimeout(newT); layout(); reload(); }
+    function fire(){
+      if(aim.power<0.1){ aim.on=false; S.soft(); return; }
+      var th=rad(aim.angle), v=VMAX*aim.power; lastAngle=aim.angle; aim.on=false;
+      st.x=st.px=0; st.y=st.py=H0; st.vx=v*Math.cos(th); st.vy=v*Math.sin(th); phase="fly"; dotT=0; landed=false;
+      paths.forEach(function(p){ p.children.forEach(function(d){ d.material=dotOld; }); });
+      while(paths.length>=3){ var o=paths.shift(); root.remove(o); }
+      curPath=new THREE.Group(); root.add(curPath); paths.push(curPath);
+      tone(300,900,0.25,"triangle",0.13); noise(0.15,0.08);
+    }
+    function bucketAt(x){ for(var i=0;i<buckets.length;i++) if(Math.abs(x-buckets[i].x)<BR-0.06) return buckets[i]; return null; }
+    function landIn(b,x){
+      phase="in"; inT=0; inB=b; st.x=x; st.y=H0; st.vx=st.vy=0; S.plink(); b.pop=1; addDot(x,H0);
+      if(!b.hit){ b.hit=true; b.star.visible=true; if(!demo.active){ stars++; hudN.textContent=String(stars); hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump"); } }
+      var p=toScreen(b.g.localToWorld(new THREE.Vector3(0,TOP+0.6,0))); confetti(p.x,p.y); S.tada();
+      if(buckets.every(function(q){ return q.hit; })){ if(!demo.active) speak(pick(["All three buckets, Paul! You did it!","Wow! All three! Super launching!"])); if(!afterRound(buckets.reduce(function(a,q){ return a+Math.round(q.x); },0),"launch")) newT=setTimeout(newRound,3200); } // score: the three distances added up
+      else if(!demo.active){ var far=b===buckets[2]; speak(far&&Math.abs(lastAngle-45)<=10?"The far bucket! That's the sweet spot!":pick(["In the bucket!","Bullseye!","Nice launch, Paul!"])); }
+    }
+    function missed(x){
+      misses++; if(demo.active||misses%2===0) return; var next=null; for(var i=0;i<buckets.length;i++) if(!buckets[i].hit){ next=buckets[i]; break; }
+      if(next) speak(x<next.x?pick(["A bit more!","Too short! Pull harder, or try a new angle."]):pick(["Whoa, too far!","Over it! A little less."]));
+    }
+    function addDot(x,y){ if(!curPath) return; var d=new THREE.Mesh(dotGeo,dotNew); d.position.set(x,y,0); curPath.add(d); }
+    function step(){
+      st.px=st.x; st.py=st.y;
+      if(phase==="fly"){
+        st.vy-=G*DT; st.x+=st.vx*DT; st.y+=st.vy*DT;            // no drag: a clean parabola
+        dotT+=DT; if(dotT>=0.07){ dotT=0; addDot(st.x,st.y); }
+        if(st.vy<0&&st.py>=H0&&st.y<H0&&!landed){ var f=(st.py-H0)/(st.py-st.y), xl=st.px+(st.x-st.px)*f, b=bucketAt(xl); if(b){ landIn(b,xl); return; } }
+        if(st.y<TOP+R*0.4) buckets.forEach(function(b){ var dx=st.x-b.x; if(Math.abs(dx)<BR+R&&Math.abs(dx)>BR-0.2){ st.x=b.x+Math.sign(dx)*(BR+R); st.vx=Math.sign(dx)*Math.abs(st.vx)*0.4; S.hit(2); } });
+        if(st.y<=R){ st.y=R; if(!landed){ landed=true; addDot(st.x,R); missed(st.x); } if(Math.abs(st.vy)>1.2){ st.vy=-st.vy*0.35; st.vx*=0.7; S.clack(); } else { st.vy=0; phase="roll"; } }
+      } else if(phase==="roll"){
+        var dv=3*DT; st.vx=Math.abs(st.vx)<=dv?0:st.vx-Math.sign(st.vx)*dv; st.x+=st.vx*DT;
+        buckets.forEach(function(b){ var dx=st.x-b.x; if(Math.abs(dx)<BR+R){ st.x=b.x+Math.sign(dx||1)*(BR+R); st.vx=-st.vx*0.3; } });
+        if(st.vx===0){ phase="rest"; restT=0; }
+      } else if(phase==="rest"){ restT+=DT; if(restT>0.9) reload(); }
+      else if(phase==="in"){ inT+=DT; if(inT>0.55) reload(); }
+    }
+    var clock=0;
+    function frame(dt,alpha){
+      clock+=dt;
+      var x=st.px+(st.x-st.px)*alpha, y=st.py+(st.y-st.py)*alpha;
+      if(phase==="aim"&&aim.on){ var th=rad(aim.angle), L=aim.power*PULLMAX; x=-Math.cos(th)*L; y=H0-Math.sin(th)*L; y=Math.max(R,y); }
+      if(phase==="in"){ var t=Math.min(1,inT/0.4); y=H0-t*(R*2.4); }
+      ballM.group.position.set(x,y,0); ballM.spin.rotation.z=-x/R;
+      ballM.group.visible=!(phase==="in"&&inT>0.4);
+      bshadow.position.set(x,0.026,0); var hh=Math.max(0,y-R), k=Math.max(0.3,1-0.12*hh); bshadow.scale.setScalar(R*1.1*k); bshadow.material.opacity=0.3*k;
+      var bp=phase==="aim"?new THREE.Vector3(x,y,0):new THREE.Vector3(0.05,H0,0); setSeg(bands[0],tips[0],bp); setSeg(bands[1],tips[1],bp); // the band snaps back once the ball is away
+      arrow.visible=phase==="aim"&&aim.on&&aim.power>0.05;
+      if(arrow.visible){ var len=0.4+aim.power*1.4; arrow.position.set(x,y,0); arrow.rotation.z=rad(aim.angle); shaft.scale.x=len; shaft.position.x=len/2; head.position.x=len+0.12; }
+      buckets.forEach(function(b,i){ if(b.star.visible){ b.star.rotation.y=clock*2+i; } if(b.pop>0){ b.pop=Math.max(0,b.pop-dt*3); b.g.scale.set(1+0.15*Math.sin(b.pop*Math.PI),1-0.12*Math.sin(b.pop*Math.PI),1+0.15*Math.sin(b.pop*Math.PI)); } });
+      setRumble(0);
+    }
+    function W2(v){ return root.localToWorld(v.clone()); }
+    function fitPts(){ return [new THREE.Vector3(-1.4,0,1),new THREE.Vector3(-1.4,0,-1),new THREE.Vector3(12.2,0,1),new THREE.Vector3(12.2,0,-1),new THREE.Vector3(-1,3.6,0),new THREE.Vector3(12,3.6,0)].map(W2); }
+    function setAim(p){
+      if(!rayTo(p,FWD,0)) return; var l=root.worldToLocal(hit.clone()), dx=l.x-0, dy=l.y-H0;
+      var a=Math.atan2(-dy,-dx)*180/Math.PI; if(a<0&&a<-90) a=AMAX; aim.angle=Math.round(clamp(a,AMIN,AMAX));
+      var rs=toScreen(W2(new THREE.Vector3(0,H0,0))); aim.power=clamp(Math.hypot(p.x-rs.x,p.y-rs.y)/(Math.min(W,H)*0.32),0,1); aim.on=true; // power by finger distance on screen, the same on any phone
+    }
+    var lastTick=0;
+    return {
+      name:"launch", root:root, goVisible:false, ownScene:true, fit:function(){ return fitPts(); },
+      enter:function(){ cam.dir.set(-0.1,0.24,1).normalize(); root.updateMatrixWorld(true); cam.target.copy(W2(new THREE.Vector3(5.4,1.5,0))); cam.off=0;
+        if(!bucketG||buckets.every(function(q){ return q.hit; })) newRound(); cam.distWant=fitDist(fitPts()); cam.dist=cam.distWant; hud.hidden=false; tag.hidden=false; },
+      exit:function(){ clearTimeout(newT); aim.on=false; hud.hidden=true; tag.hidden=true; },
+      step:step, frame:frame,
+      overlay:function(){ var show=(phase==="aim"&&aim.on)||lastAngle!==null; tag.style.visibility=show?"visible":"hidden";
+        tag.textContent=(phase==="aim"&&aim.on?aim.angle:lastAngle)+"°"; var p=toScreen(W2(new THREE.Vector3(-0.3,H0+1.0,0))); tag.style.left=clamp(p.x,34,W-34)+"px"; tag.style.top=p.y+"px"; },
+      down:function(p){ if(phase==="aim"){ setAim(p); S.tick(); } else S.soft(); return true; },
+      move:function(p){ if(phase!=="aim") return; var a0=aim.angle; setAim(p); if(aim.angle!==a0&&now()-lastTick>60){ lastTick=now(); S.tick(); } },
+      up:function(){ if(phase==="aim"&&aim.on) fire(); },
+      idleOK:function(){ return phase==="aim"&&!aim.on; },
+      cancel:function(){ aim.on=false; if(phase==="aim") reload(); },
+      demo:function(kind,tok){
+        newRound(); var far=buckets[2].x, pw=Math.sqrt(far*G)/VMAX, gap=(buckets[0].x+buckets[1].x)/2, v2=Math.pow(pw*VMAX,2), high=Math.round(90-Math.asin(clamp(gap*G/v2,0,1))*90/Math.PI); // a high arc that lands in the gap
+        if(kind==="intro") speak("Big launch! Pull the ball back and let go. Land it in the buckets. Watch!");
+        demo.target={world:function(){ return ballM.group.getWorldPosition(new THREE.Vector3()); }};
+        function pull(ang,pwr,tk){ var steps=12, i=0; aim.on=true; aim.angle=ang; aim.power=0; finger.hidden=false; finger.classList.add("press");
+          return (function nx(){ return wait(70,tk).then(function(){ i++; aim.power=pwr*i/steps; if(i<steps) return nx(); }); })()
+            .then(function(){ return wait(500,tk); }).then(function(){ finger.classList.remove("press"); fire(); }); }
+        return wait(900,tok).then(function(){ return pull(high,pw,tok); })
+          .then(function(){ finger.hidden=true; return until(function(){ return phase==="aim"; },tok); })
+          .then(function(){ return wait(500,tok); }).then(function(){ return pull(45,pw,tok); })
+          .then(function(){ finger.hidden=true; return until(function(){ return phase==="aim"; },tok); })
+          .then(function(){ return wait(700,tok); })
+          .then(function(){ newRound(); lastAngle=null; if(kind==="intro") speak("Your turn!",true); });
+      }
+    };
+  })();
+
+  // =====================================================================
+  // WORD HILL — roll through letter blocks to spell a sentence.
+  // Words score their letter count; capital + spaces + period + every word = super bonus.
+  // =====================================================================
+  var glyphCache={};
+  function glyphTex(ch){
+    if(glyphCache[ch]) return glyphCache[ch];
+    var cv=document.createElement("canvas"); cv.width=cv.height=128; var t=new THREE.CanvasTexture(cv); glyphCache[ch]=t; drawGlyph(ch); return t;
+  }
+  function drawGlyph(ch){
+    var t=glyphCache[ch], c=t.image.getContext("2d"); c.fillStyle=C.paper; c.fillRect(0,0,128,128); c.strokeStyle=C.ink; c.lineWidth=8; c.strokeRect(4,4,120,120);
+    c.fillStyle=C.ink; c.strokeStyle=C.ink; c.lineCap="round"; c.lineWidth=9;
+    if(ch===" "){ c.beginPath(); c.moveTo(26,70); c.lineTo(26,92); c.lineTo(102,92); c.lineTo(102,70); c.stroke(); }
+    else if(ch==="."){ c.beginPath(); c.arc(64,84,15,0,Math.PI*2); c.fill(); }
+    else { c.font="700 96px Fredoka, 'Arial Rounded MT Bold', Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(ch,64,70); }
+    t.needsUpdate=true;
+  }
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ Object.keys(glyphCache).forEach(drawGlyph); });
+
+  var word=(function(){
+    var root=new THREE.Group(); root.visible=false; scene.add(root);
+    var TH=rad(8), HX=400, G0=6, GAP=8, MAXN=18, MAXLEN=G0+GAP*MAXN+8, H0=(MAXLEN+2)*Math.sin(TH);
+    var LANES=[-1.2,0,1.2], RAIL=1.8, R=0.22, DRAG=0.44, CX=1.6, MAXB=rad(18), BOUNCE=2.6, BONUS=10; // a little slower than Marble Hill: time to read the letters
+    var SENTS=["I see a cat.","The dog can run.","I can hop.","The sun is hot.","A bug is red.","We go up.","Paul has a cap.","I see a big pig.","The cat sat.","My dog is fun."];
+    var ALPHA="abcdefghijklmnoprstuvwy";
+    var track=new THREE.Group(); track.position.set(HX,H0,0); track.rotation.x=-TH; root.add(track);
+    var bank=new THREE.Group(); track.add(bank);
+    var slab=new THREE.Mesh(new THREE.BoxGeometry(46,1,MAXLEN+30),toon(C.grass)); slab.position.set(0,-0.72,-(MAXLEN+30)/2+14); track.add(slab);
+    var meadow=new THREE.Mesh(new THREE.BoxGeometry(90,0.5,60),toon(C.grass)); meadow.position.set(HX,-0.3,-(MAXLEN+2)*Math.cos(TH)-28); root.add(meadow);
+    for(var ti=0;ti<30;ti++){ var side=ti%2?1:-1, sc=1+Math.random()*0.8, t=new THREE.Group(), tr=post(0.09*sc,C.dirt2); tr.scale.y=0.5*sc; t.add(tr);
+      var c1=cone(0.55*sc,1.1*sc,ti%3?C.grass:C.hill); c1.position.y=sc; t.add(c1); t.position.set(side*(3.6+Math.random()*7),-0.05,-(-6+ti*4+Math.random()*2)); t.rotation.x=TH; track.add(t); }
+    var floor=box(2*RAIL+0.1,0.1,MAXLEN+3,C.dirt); floor.position.set(0,-0.05,-(MAXLEN+3)/2+1); bank.add(floor);
+    [-1,1].forEach(function(sd){ var r=box(0.12,0.3,MAXLEN+3,C.orange); r.position.set(sd*(RAIL+0.06),0.15,-(MAXLEN+3)/2+1); bank.add(r); });
+    var back=box(2*RAIL+0.3,0.5,0.15,C.orange); back.position.set(0,0.25,1.05); bank.add(back);
+    var basket=box(2*RAIL+0.3,0.55,0.18,C.teal); bank.add(basket);
+    var marble=ball(C.red); marble.group.scale.setScalar(R); marble.hull.scale.setScalar(1+OUT/R); bank.add(marble.group);
+    var mshadow=blob(0.3); mshadow.scale.setScalar(R*1.05); bank.add(mshadow);
+    var pickP=new THREE.Mesh(new THREE.PlaneGeometry(80,240),new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide})); pickP.rotation.x=-Math.PI/2; pickP.position.z=-100; track.add(pickP);
+    var hud=el("gems"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="#FFD23F" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><span>0</span>'; hud.hidden=true;
+    var hudN=hud.querySelector("span"), bar=el("wordbar"); bar.hidden=true;
+
+    var sent="", gates=[], toks=[], walls=[], courseG=null, points=0, typed=[], phase="ready", st={s:0,x:0,vs:0,vx:0,ps:0,px:0}, bankA=0, fx=null, auto=false, camS=0, endT=null, clock=0, S_END=40, lastSent="";
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function wrongFor(c){ var lc=c.toLowerCase(), w; do{ w=ALPHA[Math.floor(Math.random()*ALPHA.length)]; }while(w===lc||(lc==="i"&&w==="l")); return w; }
+    function sayCh(ch){ return ch===" "?"space":ch==="."?"period":(ch===ch.toUpperCase()&&ch!==ch.toLowerCase()?"big "+ch:ch); }
+    function wordsOf(){ var out=[], cur=null; for(var i=0;i<sent.length;i++){ var c=sent[i]; if(c===" "||c==="."){ cur=null; continue; } if(!cur){ cur={start:i,end:i}; out.push(cur); } cur.end=i; } return out; }
+    function build(){
+      if(courseG){ bank.remove(courseG); disposeTree(courseG); }
+      courseG=new THREE.Group(); bank.add(courseG); gates=[]; toks=[];
+      walls=[{minx:-RAIL-0.5,maxx:-RAIL,mins:-2,maxs:MAXLEN+2},{minx:RAIL,maxx:RAIL+0.5,mins:-2,maxs:MAXLEN+2}];
+      for(var i=0;i<sent.length;i++){
+        var g=G0+i*GAP, c=sent[i], opts;
+        if(i===0) opts=[{ch:c.toUpperCase(),kind:"best"},{ch:c.toLowerCase(),kind:"good"},{ch:wrongFor(c).toUpperCase(),kind:"bad"}];
+        else if(c===" "||c===".") opts=[{ch:c,kind:"best"},{ch:null,kind:"skip"},{ch:wrongFor("x"),kind:"bad"}];
+        else opts=[{ch:c,kind:"best"},{ch:wrongFor(c),kind:"bad"},{ch:null,kind:"skip"}];
+        shuffle(opts); var gate={s:g,i:i,opts:opts,done:false,res:null}; gates.push(gate);
+        [-0.6,0.6].forEach(function(dx){ var d=box(0.1,0.26,1.7,C.wood); d.position.set(dx,0.13,-(g-0.45)); courseG.add(d);
+          walls.push({minx:dx-0.05,maxx:dx+0.05,mins:g-1.3,maxs:g+0.4}); });
+        opts.forEach(function(o,lane){ if(o.ch===null) return; var blk=new THREE.Group(); blk.add(box(0.66,0.58,0.26,C.wood));
+          var face=new THREE.Mesh(new THREE.PlaneGeometry(0.54,0.54),new THREE.MeshBasicMaterial({map:glyphTex(o.ch)})); face.position.z=0.135; blk.add(face);
+          blk.position.set(LANES[lane],0.32,-(g-0.3)); courseG.add(blk); toks.push({gate:gate,lane:lane,x:LANES[lane],s:g-0.3,kind:o.kind,ch:o.ch,m:blk,shake:0,fly:0}); });
+      }
+      S_END=G0+GAP*(sent.length-1)+5; basket.position.set(0,0.27,-(S_END+0.6));
+    }
+    function paintBar(){
+      var h=""; for(var i=0;i<sent.length;i++){ var tch=typed[i], cls="c", txt;
+        if(tch===undefined){ txt=sent[i]===" "?"&nbsp;":sent[i]; cls+=" todo"+(i===typed.length?" next":""); }
+        else if(tch===null){ txt="_"; cls+=" miss"; } else { txt=tch===" "?"&nbsp;":tch; }
+        if(sent[i]===" ") cls+=" sp"; h+='<span class="'+cls+'">'+txt+'</span>'; }
+      bar.innerHTML=h;
+    }
+    function reset(){ clearTimeout(endT); var s0; do{ s0=pick(SENTS); }while(s0===lastSent&&SENTS.length>1); sent=lastSent=s0; typed=[]; build(); paintBar();
+      st.s=st.ps=0; st.x=st.px=0; st.vs=st.vx=0; bankA=0; fx=null; points=0; hudN.textContent="0"; camS=0; phase="ready"; marble.group.visible=true; goBtn.classList.toggle("pulse",!demo.active); }
+    function go(){ if(phase!=="ready") reset(); phase="roll"; S.go(); goBtn.classList.remove("pulse"); if(!auto) speak(sent.replace(".","")); }
+    function curGate(){ for(var i=0;i<gates.length;i++) if(!gates[i].done) return gates[i]; return null; }
+    function resolve(gate,kind,ch){
+      gate.done=true; gate.res={kind:kind,ch:ch}; typed[gate.i]=ch; paintBar();
+      toks.forEach(function(t){ if(t.gate===gate&&t.kind!==kind) t.fade=1; });
+      if(kind==="skip") tone(500,300,0.15,"sine",0.06); else { tone(900,1500,0.12,"triangle",0.1); if(!auto) speak(sayCh(ch)); }
+      var w=wordsOf().filter(function(w){ return w.end===gate.i; })[0];
+      if(w){ var ok=true; for(var k=w.start;k<=w.end;k++) if(!gates[k].done||gates[k].res.kind==="skip") ok=false;
+        if(ok){ var n=w.end-w.start+1; points+=n; hudN.textContent=String(points); hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump");
+          setTimeout(function(){ tone(660,990,0.18,"triangle",0.12); },120); if(!auto) speak(sent.slice(w.start,w.end+1).toLowerCase(),true); } }
+    }
+    function steerAuto(){ var g=curGate(); if(!g){ fx=0; return; } var best=0; g.opts.forEach(function(o,l){ if(o.kind==="best") best=l; }); fx=LANES[best]; }
+    function collide(){
+      for(var i=0;i<walls.length;i++){ var w=walls[i], cx=clamp(st.x,w.minx,w.maxx), cs=clamp(st.s,w.mins,w.maxs), dx=st.x-cx, ds=st.s-cs, d2=dx*dx+ds*ds;
+        if(d2>=R*R) continue; var d=Math.sqrt(d2)||1e-6, nx=dx/d, ns=ds/d; if(d2<1e-10){ nx=st.x<(w.minx+w.maxx)/2?-1:1; ns=0; }
+        st.x+=nx*(R-d); st.s+=ns*(R-d); var vn=st.vx*nx+st.vs*ns; if(vn<0){ st.vx-=1.4*vn*nx; st.vs-=1.4*vn*ns; if(-vn>0.3) S.hit(-vn); } }
+      var g=curGate(); if(!g) return;
+      for(var j=0;j<toks.length;j++){ var t=toks[j]; if(t.gate!==g) continue;
+        if(Math.abs(st.x-t.x)<0.42&&st.s+R>t.s-0.14&&st.s-R<t.s+0.14){
+          if(t.kind==="bad"){ st.s=t.s-0.14-R-0.01; st.vs=-BOUNCE; st.vx*=0.3; t.shake=1; S.boing(1.1); if(!auto) speak("That's "+sayCh(t.ch)+"."); }
+          else { t.fly=1; resolve(g,t.kind,t.ch); } return; } }
+      if(st.s>g.s+0.15){ var lane=0, bd=9; LANES.forEach(function(lx,l){ var d=Math.abs(st.x-lx); if(d<bd){ bd=d; lane=l; } }); var o=g.opts[lane];
+        resolve(g,o.ch===null?"skip":o.kind,o.ch===null?null:o.ch); }
+    }
+    function step(){
+      st.ps=st.s; st.px=st.x;
+      if(phase!=="roll") return;
+      if(auto) steerAuto();
+      var tv=tiltVec(), bw=(tv&&!auto)?tv.x*MAXB:(fx===null?0:clamp((fx-st.x)*rad(15),-MAXB,MAXB));
+      var mr=rad(120)*DT; bankA+=clamp(bw-bankA,-mr,mr);
+      st.vs+=(K*G*Math.sin(TH)-DRAG*st.vs)*DT; st.vx+=(K*G*Math.sin(bankA)-CX*st.vx)*DT;
+      st.s+=st.vs*DT; st.x+=st.vx*DT; collide();
+      if(st.s+R>S_END+0.5){ st.s=S_END+0.5-R; st.vs=0; st.vx=0; finish(); }
+    }
+    function finish(){
+      phase="done"; S.clack();
+      var allWords=wordsOf().every(function(w){ for(var k=w.start;k<=w.end;k++) if(!gates[k].done||gates[k].res.kind==="skip") return false; return true; });
+      var cap=gates[0].res&&gates[0].res.kind==="best", marks=gates.every(function(g,i){ return (sent[i]!==" "&&sent[i]!==".")||(g.res&&g.res.kind==="best"); });
+      var p=toScreen(bank.localToWorld(new THREE.Vector3(st.x,0.3,-st.s))); confetti(p.x,p.y); S.tada();
+      if(allWords&&cap&&marks){ points+=BONUS; hudN.textContent=String(points); setTimeout(function(){ var q=toScreen(bank.localToWorld(new THREE.Vector3(0,1,-st.s))); confetti(q.x,q.y); S.tada(); },500);
+        if(!auto) speak("Super bonus! A whole sentence, with a capital, spaces and a period! "+points+" points!"); }
+      else if(!auto) speak(points+" points!");
+      if(!auto&&!afterRound(points,"word")) endT=setTimeout(function(){ if(phase==="done") reset(); },4200);
+    }
+    var clockT=0;
+    function frame(dt,alpha){
+      clock+=dt; bank.rotation.z=-bankA*0.35;
+      var s=st.ps+(st.s-st.ps)*alpha, x=st.px+(st.x-st.px)*alpha;
+      marble.group.position.set(x,R,-s); marble.spin.rotation.set(-s/R,Math.PI/2,0); mshadow.position.set(x,0.006,-s);
+      toks.forEach(function(t){ if(t.shake>0){ t.shake=Math.max(0,t.shake-dt*3); t.m.position.x=t.x+Math.sin(t.shake*30)*0.06*t.shake; }
+        if(t.fly>0){ t.fly=Math.max(0,t.fly-dt*2.5); t.m.position.y=0.32+(1-t.fly)*1.4; t.m.rotation.y=(1-t.fly)*6; t.m.visible=t.fly>0.05; }
+        if(t.fade>0){ t.fade=Math.max(0,t.fade-dt*3); t.m.scale.setScalar(Math.max(0.01,t.fade)); if(t.fade===0) t.m.visible=false; } });
+      camS+=(Math.max(0,s)-camS)*(1-Math.exp(-dt/0.2)); cam.target.copy(track.localToWorld(new THREE.Vector3(0,0,-(camS+3))));
+      setRumble(phase==="roll"?Math.min(0.12,Math.abs(st.vs)*0.05):0);
+    }
+    function fitPts(){ var pts=[]; [-RAIL-0.3,RAIL+0.3].forEach(function(x){ [-1.2,8].forEach(function(s){ pts.push(track.localToWorld(new THREE.Vector3(x,0.5,-s))); }); }); return pts; }
+    function setFinger(p){ ray.setFromCamera(new THREE.Vector2(p.x/W*2-1,-(p.y/H*2-1)),camera); var hits=ray.intersectObject(pickP,false);
+      if(hits.length){ var l=track.worldToLocal(hits[0].point.clone()); fx=clamp(l.x,-RAIL+0.3,RAIL-0.3); } else fx=clamp((p.x/W*2-1)*RAIL,-RAIL+0.3,RAIL-0.3); }
+    return {
+      name:"word", root:root, goVisible:true, ownScene:true, fit:function(){ return fitPts(); },
+      enter:function(){ cam.dir.set(0,0.6,1).normalize(); cam.off=0; camS=0; root.updateMatrixWorld(true); cam.target.copy(track.localToWorld(new THREE.Vector3(0,0,-3)));
+        reset(); cam.distWant=fitDist(fitPts(),0.9,0.55); cam.dist=cam.distWant; hud.hidden=false; bar.hidden=false; },
+      exit:function(){ clearTimeout(endT); auto=false; fx=null; hud.hidden=true; bar.hidden=true; setRumble(0); },
+      step:step, frame:frame, overlay:function(){},
+      go:function(){ go(); },
+      down:function(p){ if(phase==="ready") go(); else if(phase==="done"){ reset(); go(); } setFinger(p); S.tick(); return true; },
+      move:function(p){ setFinger(p); }, up:function(){ fx=null; },
+      idleOK:function(){ return phase!=="roll"; },
+      cancel:function(){ auto=false; fx=null; reset(); },
+      demo:function(kind,tok){
+        reset(); auto=true;
+        if(kind==="intro") speak("Word hill! Roll through the letters to spell the sentence. Start with a big letter, add the spaces, and end with a period. Watch!");
+        return wait(700,tok).then(function(){ demo.target={go:true}; finger.hidden=false; return wait(500,tok); })
+          .then(function(){ finger.classList.add("press"); goBtn.classList.add("pressed"); go(); return wait(220,tok); })
+          .then(function(){ finger.classList.remove("press"); goBtn.classList.remove("pressed"); finger.hidden=true; return until(function(){ return st.s>G0+GAP*2+1; },tok); })
+          .then(function(){ auto=false; fx=null; return wait(400,tok); })
+          .then(function(){ reset(); if(kind==="intro") speak("Your turn!",true); });
+      }
+    };
+  })();
+
+  // =====================================================================
+  // TILE TIME — make the last game's score with + (one tile) and × (a block of rows × columns)
+  // =====================================================================
+  var tilesG=(function(){
+    var root=new THREE.Group(); root.visible=false; root.position.set(600,0,0); scene.add(root);
+    var P=0.36, TS=0.3, GAPG=0.45, PAL=[C.red,C.yellow,C.teal,C.purple,C.orange];
+    var lawn=new THREE.Mesh(new THREE.BoxGeometry(90,0.4,70),toon(C.grass)); lawn.position.set(0,-0.62,-10); root.add(lawn);
+    var table=box(16,0.4,9,C.wood); table.position.set(4,-0.2,-1.5); root.add(table);
+    [[-6,-9,1.6],[3,-11,2],[12,-9,1.8],[16,-4,1.3],[-7,-3,1.2]].forEach(function(q){ var t=new THREE.Group(), tr=post(0.09*q[2],C.dirt2); tr.scale.y=0.5*q[2]; t.add(tr); var c1=cone(0.55*q[2],1.1*q[2],C.grass); c1.position.y=q[2]; t.add(c1); t.position.set(q[0],-0.42,q[1]); root.add(t); });
+    var tileGeoI=new THREE.BoxGeometry(TS+2*OUT,TS*0.6+2*OUT,TS+2*OUT), tileGeo=new THREE.BoxGeometry(TS,TS*0.6,TS);
+    function tile(hex){ var g=new THREE.Group(); g.add(new THREE.Mesh(tileGeoI,inkMat)); g.add(new THREE.Mesh(tileGeo,toon(hex))); return g; }
+    // HUD: target, total, the number sentence, and the three buttons
+    var bar=el("ttbar"); bar.hidden=true;
+    bar.innerHTML='<div class="ttt"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FF4D4D" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#FFFDF7" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="#FF4D4D"/></svg><b id="ttTarget">0</b></div><div class="tteq" id="ttEq"></div>';
+    var btns=document.createElement("div"); btns.className="ttbtns"; btns.hidden=true; stageEl.appendChild(btns);
+    btns.innerHTML='<button class="ttb" id="ttTimes" aria-label="Add a block of tiles">×</button><button class="ttb" id="ttPlus" aria-label="Add one tile">+</button><button class="ttb undo" id="ttUndo" aria-label="Take the last tiles away"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 9 L5 15 L11 21 M5 15 H20 a7 7 0 0 1 0 14 H14" fill="none" stroke="#22203F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+    var gp=document.createElement("div"); gp.className="gridpick"; gp.hidden=true; stageEl.appendChild(gp);
+    gp.innerHTML='<div class="gpgrid" id="gpGrid"></div><div class="gprow"><b id="gpLabel">1 × 1</b><button class="ttb small" id="gpNo" aria-label="Cancel">✕</button><button class="ttb small ok" id="gpOk" aria-label="Put the tiles down">✓</button></div>';
+    var gpGrid=gp.querySelector("#gpGrid"), gpLabel=gp.querySelector("#gpLabel"), cells=[], NMAX=10, selR=1, selC=1;
+    for(var r=0;r<NMAX;r++) for(var c=0;c<NMAX;c++){ var d=document.createElement("div"); d.className="gpc"; d.dataset.r=r; d.dataset.c=c; gpGrid.appendChild(d); cells.push(d); }
+    function paintPick(){ cells.forEach(function(d){ d.classList.toggle("on",+d.dataset.r<selR&&+d.dataset.c<selC); }); gpLabel.textContent=selR+" × "+selC+" = "+selR*selC; }
+    function pickAt(ev){ var el2=document.elementFromPoint(ev.clientX,ev.clientY); if(el2&&el2.classList.contains("gpc")){ var nr=+el2.dataset.r+1, nc=+el2.dataset.c+1; if(nr!==selR||nc!==selC){ selR=nr; selC=nc; paintPick(); S.tick(); } } }
+    var picking=false;
+    gpGrid.addEventListener("pointerdown",function(ev){ ev.preventDefault(); picking=true; try{ gpGrid.setPointerCapture(ev.pointerId); }catch(e){} pickAt(ev); });
+    gpGrid.addEventListener("pointermove",function(ev){ if(picking) pickAt(ev); });
+    gpGrid.addEventListener("pointerup",function(){ picking=false; });
+    var groups=[], target=0, from=null, won=false, backT=null, clock=0;
+    function total(){ return groups.reduce(function(a,g){ return a+g.r*g.c; },0); }
+    function eqText(){ var parts=[], ones=0; groups.forEach(function(g){ if(g.one) ones+=g.c; else parts.push(g.r+" × "+g.c); }); if(ones) parts.push(ones===1?"1":String(ones)); return parts.join(" + "); }
+    function sayEq(){ var parts=[], ones=0; groups.forEach(function(g){ if(g.one) ones+=g.c; else parts.push(g.r+" times "+g.c); }); if(ones) parts.push(String(ones)); return parts.join(" plus "); }
+    function layout(){ // groups left to right; each block is rows deep (toward the back) and columns wide
+      var x=0; groups.forEach(function(g){ g.x0=x; g.meshes.forEach(function(m,k){ var rr=Math.floor(k/g.c), cc=k%g.c; m.userData.tx=x+cc*P; m.userData.tz=-rr*P; }); x+=g.c*P+GAPG; });
+      var w=Math.max(1.5,x), deep=Math.max(1,groups.reduce(function(a,g){ return Math.max(a,g.r); },1)*P);
+      cam.target.copy(root.localToWorld(new THREE.Vector3(w/2-0.2,0,-deep/2+0.2)));
+      var pts=[new THREE.Vector3(-0.6,0,0.8),new THREE.Vector3(w+0.2,0,0.8),new THREE.Vector3(-0.6,0.5,-deep-0.6),new THREE.Vector3(w+0.2,0.5,-deep-0.6)].map(function(v){ return root.localToWorld(v); });
+      cam.distWant=Math.max(5,fitDist(pts,0.82,0.45));
+    }
+    function paint(){ var t=total(); bar.querySelector("#ttTarget").textContent=String(target); var eq=eqText();
+      bar.querySelector("#ttEq").innerHTML=(eq?eq+" = ":"")+'<b class="'+(t===target?"hit":t>target?"over":"")+'">'+t+'</b>';
+      btns.querySelector("#ttUndo").classList.toggle("pulse",t>target); }
+    function add(r,c,one){
+      if(won) return; var g;
+      var lastG=groups[groups.length-1];
+      if(one&&lastG&&lastG.one){ g=lastG; g.c++; } else { g={r:r,c:c,one:!!one,meshes:[],col:PAL[groups.length%PAL.length]}; groups.push(g); }
+      var need=g.r*g.c-g.meshes.length;
+      for(var k=0;k<need;k++){ var m=tile(one?C.paper:g.col); m.position.set(0,3+Math.random()*0.5,0); m.userData.delay=k*0.025; m.userData.t=0; root.add(m); g.meshes.push(m); }
+      layout(); g.meshes.forEach(function(m){ if(m.userData.t===0){ m.position.x=m.userData.tx; m.position.z=m.userData.tz; } });
+      S.pop(!one); paint(); check();
+    }
+    function undo(){ if(won||!groups.length) return; var g=groups[groups.length-1], n=g.one?1:g.r*g.c;
+      for(var k=0;k<n;k++){ var m=g.meshes.pop(); m.userData.gone=0.0001; } if(g.one){ g.c--; if(g.c===0) groups.pop(); } else groups.pop();
+      layout(); S.soft(); paint(); }
+    function check(){ var t=total();
+      if(t===target){ won=true; S.tada(); var p=toScreen(root.localToWorld(new THREE.Vector3(1,0.6,0))); confetti(W/2,H/2); confetti(p.x,p.y);
+        speak(target+"! "+sayEq()+" makes "+target+"!"); bar.querySelector("#ttEq").classList.add("win");
+        backT=setTimeout(function(){ if(cur!==api) return; if(from) select(from); else start(4+Math.floor(Math.random()*27),null); },4200); }
+      else if(t>target){ speak("Too many! Take some away."); } }
+    function start(n,back){ clearTimeout(backT); groups.forEach(function(g){ g.meshes.forEach(function(m){ root.remove(m); }); }); groups=[]; target=n; from=back; won=false;
+      bar.querySelector("#ttEq").classList.remove("win"); layout(); cam.dist=cam.distWant; paint(); gp.hidden=true; }
+    btns.querySelector("#ttPlus").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; add(1,1,true); });
+    btns.querySelector("#ttTimes").addEventListener("click",function(){ touchedTiles(); S.click(); if(won) return; gp.hidden=!gp.hidden; selR=Math.min(4,NMAX); selC=Math.min(5,NMAX); paintPick(); });
+    btns.querySelector("#ttUndo").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; undo(); });
+    gp.querySelector("#gpOk").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; add(selR,selC,false); if(!won&&total()<target) speak(selR+" times "+selC+" is "+selR*selC); });
+    gp.querySelector("#gpNo").addEventListener("click",function(){ gp.hidden=true; S.soft(); });
+    function touchedTiles(){ lastTouch=now(); if(!started){ started=true; ac(); document.getElementById("start").hidden=true; } }
+    function frame(dt){
+      clock+=dt; var y0=TS*0.3;
+      root.children.slice().forEach(function(m){ var u=m.userData; if(u.tx===undefined) return;
+        if(u.gone){ u.gone+=dt*3; m.position.y+=dt*6; m.scale.setScalar(Math.max(0.01,1-u.gone)); if(u.gone>=1){ root.remove(m); } return; }
+        if(u.delay>0){ u.delay-=dt; return; }
+        m.position.x+=(u.tx-m.position.x)*Math.min(1,dt*12); m.position.z+=(u.tz-m.position.z)*Math.min(1,dt*12);
+        if(m.position.y>y0){ u.vy=(u.vy||0)-25*dt; m.position.y=Math.max(y0,m.position.y+u.vy*dt); if(m.position.y===y0){ if(Math.abs(u.vy)>3) { u.vy=-u.vy*0.25; m.position.y=y0+0.001; } else u.vy=0; } } });
+      setRumble(0);
+    }
+    var api={
+      name:"tiles", root:root, goVisible:false, ownScene:true, fit:function(){ return [root.localToWorld(new THREE.Vector3(-0.6,0,0.8)),root.localToWorld(new THREE.Vector3(1.5,0.5,-1.5))]; },
+      enter:function(){ cam.dir.set(-0.15,1.25,1).normalize(); cam.off=0; root.updateMatrixWorld(true); bar.hidden=false; btns.hidden=false; if(!target) start(4+Math.floor(Math.random()*27),null); else { layout(); cam.dist=cam.distWant; } },
+      exit:function(){ clearTimeout(backT); bar.hidden=true; btns.hidden=true; gp.hidden=true; },
+      step:function(){}, frame:frame, overlay:function(){},
+      down:function(){ S.soft(); return false; }, move:function(){}, up:function(){},
+      idleOK:function(){ return false; }, cancel:function(){},
+      demo:function(kind){ if(kind==="intro") speak("Tile time! Make "+target+". Press times for a block of tiles, and plus for one more."); return Promise.resolve(); },
+      start:function(n,back){ start(n,back); speak("Tile time! Make "+n+"."); }
+    };
+    return api;
+  })();
+  function afterRound(score,from){ // after a round, the score becomes the Tile Time target
+    if(demo.active||!started||!(score>0)) return false;
+    setTimeout(function(){ if(cur!==GAMES[from]) return; select("tiles"); seen.tiles=true; tilesG.start(score,from); },2600);
+    return true;
+  }
+
   // ---------- game switching ----------
-  var GAMES={maze:maze,ramp:ramp}, cur=null;
+  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,tiles:tilesG}, cur=null, seen={};
   var tiles=[].slice.call(document.querySelectorAll(".tile[data-g]"));
   function runDemo(kind){
+    if(kind==="intro") seen[cur.name]=true;
     var tok=++demo.token; demo.active=true; demo.target=null; finger.hidden=true; finger.classList.remove("press"); goBtn.classList.remove("pulse");
     cur.demo(kind,tok).then(function(){ if(tok!==demo.token) return; demo.active=false; demo.target=null; finger.hidden=true; lastTouch=now(); goBtn.classList.add("pulse"); if(!started) runDemo("attract"); }).catch(function(){});
   }
@@ -613,9 +1223,9 @@
   function select(name){
     demo.token++; demo.active=false; demo.target=null; finger.hidden=true;
     if(cur){ cur.exit(); cur.root.visible=false; }
-    cur=GAMES[name]; cur.root.visible=true; cur.enter(); goBtn.hidden=!cur.goVisible;
+    cur=GAMES[name]; cur.root.visible=true; shared.visible=!cur.ownScene; tilt.g0=null; cur.enter(); goBtn.hidden=!cur.goVisible;
     tiles.forEach(function(t){ t.setAttribute("aria-pressed",t.dataset.g===name?"true":"false"); });
-    stageEl.querySelector("#gl").setAttribute("aria-label",name==="maze"?"Marble Maze: tip the board to roll the marble into the hole":"Ramp Race: two balls race down two ramps");
+    stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",tiles:"Tile Time: make the target number with blocks of tiles"}[name]);
   }
 
   // ---------- touch ----------
@@ -629,12 +1239,13 @@
   glc.addEventListener("pointermove",function(ev){ if(!dragging) return; lastTouch=now(); cur.move(local(ev)); });
   function up(){ if(dragging){ dragging=false; glc.classList.remove("grabbing"); cur.up(); } }
   glc.addEventListener("pointerup",up); glc.addEventListener("pointercancel",up);
-  goBtn.addEventListener("pointerdown",function(ev){ ev.preventDefault(); if(!started||cur!==ramp) return; touched(); ramp.startRace(); });
-  goBtn.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&started&&cur===ramp){ ev.preventDefault(); touched(); ramp.startRace(); } });
+  goBtn.addEventListener("pointerdown",function(ev){ ev.preventDefault(); if(!started||!cur.go) return; touched(); cur.go(); });
+  goBtn.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&started&&cur.go){ ev.preventDefault(); touched(); cur.go(); } });
   document.getElementById("startBtn").addEventListener("click",function(){
     started=true; ac(); startRumble(); S.click(); document.getElementById("start").hidden=true; demo.token++; demo.active=false; cur.cancel(); runDemo("intro");
   });
-  tiles.forEach(function(t){ t.addEventListener("click",function(){ S.click(); select(t.dataset.g); runDemo(started?"intro":"attract"); }); });
+  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",tiles:"Tile time!"};
+  tiles.forEach(function(t){ t.addEventListener("click",function(){ var g=t.dataset.g; S.click(); select(g); if(!started) runDemo("attract"); else if(!seen[g]) runDemo("intro"); else { lastTouch=now(); speak(NAMES[g]); } }); });
 
   // tile icons
   (function(){
@@ -649,6 +1260,24 @@
     m.strokeStyle=C.purple; m.lineWidth=7; [[40,30,72,52],[72,52,72,78],[104,30,88,41],[56,63,40,74]].forEach(function(s){ m.beginPath(); m.moveTo(s[0],s[1]); m.lineTo(s[2],s[3]); m.stroke(); });
     m.fillStyle=C.ink; m.beginPath(); m.ellipse(104,64,9,6,0,0,Math.PI*2); m.fill();
     m.fillStyle=C.red; m.strokeStyle=C.ink; m.lineWidth=4; m.beginPath(); m.arc(40,48,10,0,Math.PI*2); m.fill(); m.stroke();
+    var h=document.querySelector('.tile[data-g="hill"] canvas').getContext("2d"); h.lineJoin="round"; h.strokeStyle=C.ink; h.lineWidth=5;
+    h.fillStyle=C.grass; h.beginPath(); h.moveTo(0,30); h.lineTo(144,100); h.lineTo(0,100); h.closePath(); h.fill(); h.stroke();
+    h.fillStyle=C.dirt; h.beginPath(); h.moveTo(0,46); h.lineTo(144,108); h.lineTo(144,100); h.lineTo(0,34); h.closePath(); h.fill();
+    h.fillStyle=C.teal; [[70,40],[88,49],[106,58]].forEach(function(g){ h.beginPath(); h.moveTo(g[0],g[1]-10); h.lineTo(g[0]+7,g[1]); h.lineTo(g[0],g[1]+10); h.lineTo(g[0]-7,g[1]); h.closePath(); h.fill(); h.stroke(); });
+    h.fillStyle=C.red; h.beginPath(); h.arc(34,30,11,0,Math.PI*2); h.fill(); h.stroke();
+    var q=document.querySelector('.tile[data-g="launch"] canvas').getContext("2d"); q.lineJoin="round"; q.lineCap="round"; q.strokeStyle=C.ink; q.lineWidth=5;
+    q.fillStyle=C.grass; q.fillRect(0,90,144,18); q.setLineDash([2,9]); q.lineWidth=6; q.strokeStyle=C.paper; q.beginPath(); q.moveTo(26,72); q.quadraticCurveTo(70,-10,112,74); q.stroke(); q.setLineDash([]);
+    q.strokeStyle=C.ink; q.lineWidth=5; q.beginPath(); q.moveTo(20,92); q.lineTo(20,66); q.moveTo(32,92); q.lineTo(32,66); q.stroke();
+    q.fillStyle=C.teal; q.fillRect(100,74,26,18); q.strokeRect(100,74,26,18);
+    q.fillStyle=C.red; q.beginPath(); q.arc(26,70,9,0,Math.PI*2); q.fill(); q.stroke();
+    var wd=document.querySelector('.tile[data-g="word"] canvas').getContext("2d"); wd.lineJoin="round"; wd.strokeStyle=C.ink; wd.lineWidth=5;
+    wd.fillStyle=C.grass; wd.beginPath(); wd.moveTo(0,40); wd.lineTo(144,104); wd.lineTo(0,104); wd.closePath(); wd.fill();
+    wd.font="700 30px Fredoka, Arial, sans-serif"; wd.textAlign="center"; wd.textBaseline="middle";
+    [["A",30,30],["b",70,48],["c",110,66]].forEach(function(k){ wd.fillStyle=C.wood; wd.fillRect(k[1]-17,k[2]-17,34,34); wd.strokeRect(k[1]-17,k[2]-17,34,34); wd.fillStyle=C.ink; wd.fillText(k[0],k[1],k[2]+2); });
+    var tl=document.querySelector('.tile[data-g="tiles"] canvas').getContext("2d"); tl.lineJoin="round"; tl.strokeStyle=C.ink; tl.lineWidth=4;
+    for(var ty=0;ty<3;ty++) for(var tx=0;tx<4;tx++){ tl.fillStyle=C.teal; tl.fillRect(14+tx*22,18+ty*22,18,18); tl.strokeRect(14+tx*22,18+ty*22,18,18); }
+    tl.fillStyle=C.yellow; tl.fillRect(112,62,18,18); tl.strokeRect(112,62,18,18);
+    tl.font="700 34px Fredoka, Arial, sans-serif"; tl.fillStyle=C.ink; tl.textAlign="center"; tl.fillText("+",120,44);
   })();
 
   // ---------- size ----------
@@ -669,7 +1298,7 @@
     scene.fog.near=FOG.near.value=cam.dist+6; scene.fog.far=FOG.far.value=cam.dist+46;
     cur.overlay();
     clouds.forEach(function(c,i){ c.position.x+=dt*(0.12+i*0.04); if(c.position.x>14) c.position.x=-8; });
-    if(started&&!demo.active&&!dragging&&cur.idleOK()&&now()-lastTouch>10000) runDemo("attract");
+    if(started&&!demo.active&&!dragging&&cur.idleOK()&&now()-lastTouch>20000) runDemo("attract");
     placeFinger(); drawFx(dt);
     renderer.render(scene,camera);
     requestAnimationFrame(frame);
