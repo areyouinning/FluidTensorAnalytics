@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Election Night 2026: State Feeds</title>
+<meta name="description" content="Live estimates for statewide races in Colorado, Iowa and California, updated from official state election results files.">
+<!--
+  A static page. Each visitor's browser reads official state results files directly: Colorado and Iowa (Clarity JSON)
+  and California (api.sos.ca.gov). No server, no data copied onto this host.
+
+  The model: race r, margin M (Democrat minus Republican, points of the total vote).
+    z_r = n + u_r                  the race's error against its starting estimate; n is shared across states
+    F_c = b_c + s0_r + z_r + d_c   county final margin: 2024 presidential margin b_c, starting swing s0_r, county deviation d_c
+    y_c = F_c + x_c                counted margin, a biased sample of F until the county is in: x ~ K(1-e)
+    M_r = sum(V_c F_c) / sum(V_c)  V_c is expected vote: 2024 turnout times an assumed midterm share
+  Conjugate normal updates, with a race-wide early-batch term and a common-mode term on n. Closed form, in the browser.
+  Uncalibrated judgment throughout: START, TURNOUT and the constants below.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+:root {
+  --c-orange: #E8730C; --c-orange-soft: #FBE7D2; --c-blue: #1F6FEB; --c-blue-soft: #DBE8FD;
+  --c-purple: #7C3AED; --c-purple-soft: #EADDFB; --c-green: #1E9E5A; --c-green-soft: #D6F0E0;
+  --c-ink: #1B1D21; --c-ink-soft: #4A4F57; --c-line: #DCDFE4; --c-paper: #FCFBF9; --c-panel: #FFFFFF; --c-mid: #C9CDD3;
+  --font-body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --radius: 10px; --radius-sm: 6px; --shadow: 0 1px 2px rgba(27,29,33,.06), 0 4px 16px rgba(27,29,33,.06);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--c-paper); color: var(--c-ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+h1, h2, h3 { font-weight: 600; margin: 0; }
+a { color: var(--c-blue); }
+.page { max-width: 1180px; margin: 0 auto; padding: 16px 16px 48px; }
+.brand-rule { height: 4px; border: 0; border-radius: 2px; margin: 8px 0 10px; background: linear-gradient(90deg, var(--c-orange) 0 25%, var(--c-blue) 25% 50%, var(--c-purple) 50% 75%, var(--c-green) 75% 100%); }
+.top { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; }
+.top h1 { font-size: 26px; letter-spacing: -.01em; }
+#status { font-size: 14px; color: var(--c-ink-soft); font-variant-numeric: tabular-nums; }
+#status.bad { color: var(--c-ink); background: var(--c-orange-soft); border-radius: var(--radius-sm); padding: 2px 8px; }
+.lede { color: var(--c-ink-soft); margin: 0 0 12px; max-width: 88ch; }
+.notice { background: var(--c-purple-soft); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; max-width: 88ch; }
+.card { background: var(--c-panel); border: 1px solid var(--c-line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.race h2 { font-size: 16px; color: var(--c-purple); }
+.hero { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; margin-top: 4px; }
+.num { font-size: 36px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.k { color: var(--c-ink-soft); font-size: 13.5px; }
+.pbar { position: relative; height: 12px; background: var(--c-orange); border-radius: 3px; overflow: hidden; margin: 6px 0; }
+.pbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c-blue); }
+.pbar b { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--c-panel); }
+.pk { display: flex; justify-content: space-between; font-size: 13.5px; }
+.steps { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; font-variant-numeric: tabular-nums; margin-top: 6px; }
+.steps span:nth-child(odd) { color: var(--c-ink-soft); }
+svg.map { width: 100%; height: 170px; display: block; margin-top: 8px; }
+svg.map path { stroke: var(--c-panel); stroke-width: .5; vector-effect: non-scaling-stroke; }
+canvas.t { display: block; width: 100%; height: 90px; margin-top: 6px; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-ink-soft); margin: 10px 0 2px; flex-wrap: wrap; }
+.grad { width: 150px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--c-orange), var(--c-mid), var(--c-blue)); }
+.chip { display: inline-block; font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; background: var(--c-green-soft); }
+section { margin-top: 14px; }
+section h2 { font-size: 17px; color: var(--c-purple); margin-bottom: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-weight: 600; font-size: 13px; color: var(--c-ink-soft); padding: 4px 8px 4px 0; border-bottom: 2px solid var(--c-line); white-space: nowrap; }
+td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--c-line); font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+details summary { cursor: pointer; font-weight: 600; min-height: 28px; }
+details p, details li { max-width: 88ch; color: var(--c-ink-soft); }
+.links { columns: 3 200px; font-size: 14px; margin: 6px 0 0; padding: 0; list-style: none; }
+#tip { position: fixed; z-index: 10; background: var(--c-ink); color: var(--c-paper); font-size: 13px; padding: 3px 8px; border-radius: 5px; pointer-events: none; max-width: 280px; }
+:focus-visible { outline: 2px solid var(--c-purple); outline-offset: 2px; }
+@media (max-width: 420px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top"><h1>Election Night 2026, from the state files</h1><div id="status" role="status" aria-live="polite">Loading.</div></div>
+  <hr class="brand-rule">
+  <p class="lede">Vote counts here come straight from official state results files, read by your browser. The percentages are a statistical model's estimate of who is ahead once all votes are counted. They are <b>not race calls and not official results</b>, and the model's settings are the author's judgment and are not yet tested against outcomes.</p>
+  <div class="notice" id="coverage"></div>
+  <div class="grid" id="races"></div>
+  <div class="legend"><span>County color, swing against 2024: 20 points toward the Republican</span><span class="grad"></span><span>20 toward the Democrat. Paler means less counted. Grey has nothing counted.</span></div>
+
+  <section class="card"><h2>U.S. House, counts only</h2><p class="k" style="margin:0 0 6px">No estimate here: the state files carry no expected vote and no past results for these districts, so a percentage would be invented. Winners appear only where the state's own file names one.</p>
+    <div class="scroll"><table><thead><tr><th>District</th><th>Democrat</th><th>Republican</th><th>Lead so far</th><th>Votes counted</th><th>Reporting</th></tr></thead><tbody id="house"></tbody></table></div></section>
+
+  <section class="card"><details><summary>How the estimates work, and their limits</summary>
+    <p><b>Start.</b> Each race begins from a starting margin and spread set by the author, informed by public race ratings and past results. It is judgment. The table is in this page's source.</p>
+    <p><b>Evidence.</b> Each county's count is compared with its 2024 presidential margin and the swing the start expects. Counted votes are treated as a biased sample of that county's final margin, because early batches often lean by vote type. A county with little counted moves the estimate little.</p>
+    <p><b>Expected vote.</b> State files don't say how many votes remain. The page assumes each county's total is its 2024 turnout times a statewide midterm share (CO 80%, IA 75%, CA 72%), so "share counted" is an estimate that can be wrong in either direction.</p>
+    <p><b>Across states.</b> One shared error links the three states, and it can barely move until a real share of the vote is in. A state's estimate stays hidden until its polls close.</p>
+    <p><b>Not modeled.</b> Vote-method patterns specific to a state, turnout surprises beyond the noise above, recounts, late-mail patterns over days, and anything outside these three states. California counts for weeks, so its early night numbers deserve extra caution.</p>
+    <p><b>Sources.</b> Colorado Secretary of State and Iowa Secretary of State (Clarity results files), California Secretary of State (api.sos.ca.gov). All totals are unofficial until each state certifies. 2024 county baseline: <a href="https://github.com/tonmcg/US_County_Level_Election_Results_08-24" rel="noopener">tonmcg county results</a>. County outlines: <a href="https://github.com/topojson/us-atlas" rel="noopener">us-atlas</a>. This page isn't affiliated with any election office.</p>
+  </details></section>
+  <section class="card"><details><summary>Official results for every state</summary><ul class="links" id="links"></ul></details></section>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+'use strict';
+const BASE = {"CO":{"adams":["08001","Adams",124056,103024,233336],"alamosa":["08003","Alamosa",3244,4057,7519],"arapahoe":["08005","Arapahoe",190725,125311,325451],"archuleta":["08007","Archuleta",3904,5218,9355],"baca":["08009","Baca",275,1686,2004],"bent":["08011","Bent",645,1496,2189],"boulder":["08013","Boulder",150149,40758,196150],"broomfield":["08014","Broomfield",29426,16071,46817],"chaffee":["08015","Chaffee",7992,6034,14416],"cheyenne":["08017","Cheyenne",108,930,1055],"clearcreek":["08019","Clear Creek",3464,2452,6101],"conejos":["08021","Conejos",1627,2358,4104],"costilla":["08023","Costilla",1155,850,2080],"crowley":["08025","Crowley",422,1231,1706],"custer":["08027","Custer",1188,2583,3867],"delta":["08029","Delta",6030,12948,19476],"denver":["08031","Denver",278634,74765,363076],"dolores":["08033","Dolores",325,1076,1419],"douglas":["08035","Douglas",110408,127451,243758],"eagle":["08037","Eagle",16943,10148,27798],"elbert":["08039","Elbert",4768,15209,20417],"elpaso":["08041","El Paso",166597,203933,380813],"fremont":["08043","Fremont",7526,17313,25467],"garfield":["08045","Garfield",15128,14493,30372],"gilpin":["08047","Gilpin",2254,1729,4129],"grand":["08049","Grand",4743,4822,9883],"gunnison":["08051","Gunnison",6887,3689,10939],"hinsdale":["08053","Hinsdale",257,332,606],"huerfano":["08055","Huerfano",1965,2346,4438],"jackson":["08057","Jackson",173,634,834],"jefferson":["08059","Jefferson",210875,140505,361504],"kiowa":["08061","Kiowa",102,744,863],"kitcarson":["08063","Kit Carson",556,3083,3698],"lake":["08065","Lake",2199,1557,3911],"laplata":["08067","La Plata",20677,14024,35681],"larimer":["08069","Larimer",129376,89680,225482],"lasanimas":["08071","Las Animas",3276,4328,7792],"lincoln":["08073","Lincoln",432,2090,2571],"logan":["08075","Logan",2098,7855,10162],"mesa":["08077","Mesa",33573,55839,91600],"mineral":["08079","Mineral",317,417,753],"moffat":["08081","Moffat",1167,5358,6671],"montezuma":["08083","Montezuma",5793,8972,15136],"montrose":["08085","Montrose",8354,16704,25617],"morgan":["08087","Morgan",3291,9830,13458],"otero":["08089","Otero",3164,5520,8925],"ouray":["08091","Ouray",2442,1573,4098],"park":["08093","Park",4841,6828,12044],"phillips":["08095","Phillips",412,1888,2354],"pitkin":["08097","Pitkin",7932,2992,11167],"prowers":["08099","Prowers",1227,3833,5144],"pueblo":["08101","Pueblo",39328,43688,85107],"rioblanco":["08103","Rio Blanco",637,2988,3690],"riogrande":["08105","Rio Grande",2306,3743,6194],"routt":["08107","Routt",10208,5676,16335],"saguache":["08109","Saguache",1704,1577,3400],"sanjuan":["08111","San Juan",376,188,588],"sanmiguel":["08113","San Miguel",3529,1154,4804],"sedgwick":["08115","Sedgwick",283,1048,1358],"summit":["08117","Summit",11762,5244,17542],"teller":["08119","Teller",5065,10856,16326],"washington":["08121","Washington",329,2436,2806],"weld":["08123","Weld",68752,106469,179854],"yuma":["08125","Yuma",758,3807,4663]},"IA":{"adair":["19001","Adair",1086,2916,4064],"adams":["19003","Adams",576,1517,2131],"allamakee":["19005","Allamakee",2350,4857,7303],"appanoose":["19007","Appanoose",1686,4704,6466],"audubon":["19009","Audubon",970,2214,3239],"benton":["19011","Benton",4739,9549,14470],"blackhawk":["19013","Black Hawk",31299,30572,62653],"boone":["19015","Boone",5895,9199,15346],"bremer":["19017","Bremer",5571,8799,14556],"buchanan":["19019","Buchanan",3766,6790,10714],"buenavista":["19021","Buena Vista",2462,4962,7516],"butler":["19023","Butler",2144,5784,8027],"calhoun":["19025","Calhoun",1328,3708,5093],"carroll":["19027","Carroll",3153,7814,11120],"cass":["19029","Cass",2077,5007,7195],"cedar":["19031","Cedar",4075,6390,10624],"cerrogordo":["19033","Cerro Gordo",9955,12627,22942],"cherokee":["19035","Cherokee",1611,4398,6089],"chickasaw":["19037","Chickasaw",1919,4234,6230],"clarke":["19039","Clarke",1265,3140,4459],"clay":["19041","Clay",2367,6047,8514],"clayton":["19043","Clayton",3017,6255,9381],"clinton":["19045","Clinton",9472,13964,23813],"crawford":["19047","Crawford",1812,4651,6525],"dallas":["19049","Dallas",29402,32374,62633],"davis":["19051","Davis",878,3027,3950],"decatur":["19053","Decatur",957,2711,3727],"delaware":["19055","Delaware",2978,6984,10112],"desmoines":["19057","Des Moines",7935,10794,18998],"dickinson":["19059","Dickinson",3297,7775,11192],"dubuque":["19061","Dubuque",23705,28224,52566],"emmet":["19063","Emmet",1315,3422,4786],"fayette":["19065","Fayette",3334,6325,9817],"floyd":["19067","Floyd",2782,4744,7625],"franklin":["19069","Franklin",1393,3431,4885],"fremont":["19071","Fremont",1023,2711,3785],"greene":["19073","Greene",1603,3211,4874],"grundy":["19075","Grundy",2019,4998,7131],"guthrie":["19077","Guthrie",1974,4446,6514],"hamilton":["19079","Hamilton",2482,5004,7573],"hancock":["19081","Hancock",1523,4336,5933],"hardin":["19083","Hardin",2553,5790,8434],"harrison":["19085","Harrison",2245,5566,7938],"henry":["19087","Henry",2995,6439,9574],"howard":["19089","Howard",1619,3157,4837],"humboldt":["19091","Humboldt",1236,3770,5067],"ida":["19093","Ida",826,2771,3642],"iowa":["19095","Iowa",3400,6068,9617],"jackson":["19097","Jackson",3567,7074,10782],"jasper":["19099","Jasper",7141,12701,20149],"jefferson":["19101","Jefferson",3788,4353,8317],"johnson":["19103","Johnson",58846,26087,86068],"jones":["19105","Jones",3942,6820,10949],"keokuk":["19107","Keokuk",1219,3869,5142],"kossuth":["19109","Kossuth",2284,5983,8376],"lee":["19111","Lee",5659,10152,16154],"linn":["19113","Linn",66358,54237,122369],"louisa":["19115","Louisa",1480,3584,5136],"lucas":["19117","Lucas",1169,3400,4639],"lyon":["19119","Lyon",1023,5899,6984],"madison":["19121","Madison",3008,6864,9995],"mahaska":["19123","Mahaska",2577,8207,10910],"marion":["19125","Marion",5928,13289,19490],"marshall":["19127","Marshall",7134,9815,17217],"mills":["19129","Mills",2456,5671,8223],"mitchell":["19131","Mitchell",1943,3736,5757],"monona":["19133","Monona",1236,3331,4616],"monroe":["19135","Monroe",1002,3104,4146],"montgomery":["19137","Montgomery",1508,3486,5061],"muscatine":["19139","Muscatine",8212,11152,19695],"obrien":["19141","O'Brien",1428,5998,7501],"osceola":["19143","Osceola",555,2623,3219],"page":["19145","Page",2060,5153,7297],"paloalto":["19147","Palo Alto",1338,3576,4976],"plymouth":["19149","Plymouth",3104,10661,13931],"pocahontas":["19151","Pocahontas",796,2727,3573],"polk":["19153","Polk",140075,112240,255563],"pottawattamie":["19155","Pottawattamie",17468,26335,44411],"poweshiek":["19157","Poweshiek",4067,5758,9971],"ringgold":["19159","Ringgold",638,2015,2683],"sac":["19161","Sac",1289,4100,5448],"scott":["19163","Scott",42479,45976,89743],"shelby":["19165","Shelby",1811,4600,6486],"sioux":["19167","Sioux",2626,16053,18881],"story":["19169","Story",26765,21665,49200],"tama":["19171","Tama",3070,5379,8594],"taylor":["19173","Taylor",666,2381,3078],"union":["19175","Union",1874,4044,5996],"vanburen":["19177","Van Buren",778,2785,3622],"wapello":["19179","Wapello",4896,9479,14571],"warren":["19181","Warren",12712,19486,32662],"washington":["19183","Washington",4297,7119,11551],"wayne":["19185","Wayne",643,2426,3119],"webster":["19187","Webster",5641,10850,16706],"winnebago":["19189","Winnebago",1909,3636,5627],"winneshiek":["19191","Winneshiek",5321,6427,11927],"woodbury":["19193","Woodbury",16145,25969,42674],"worth":["19195","Worth",1508,2715,4278],"wright":["19197","Wright",1770,3853,5706]},"CA":{"alameda":["06001","Alameda",499551,140789,669800],"alpine":["06003","Alpine",479,243,738],"amador":["06005","Amador",7783,14018,22402],"butte":["06007","Butte",44228,47179,94523],"calaveras":["06009","Calaveras",9181,16625,26479],"colusa":["06011","Colusa",2431,4414,7021],"contracosta":["06013","Contra Costa",356008,155308,528904],"delnorte":["06015","Del Norte",4266,5999,10564],"eldorado":["06017","El Dorado",47703,61109,111890],"fresno":["06019","Fresno",151628,165924,325994],"glenn":["06021","Glenn",3260,6904,10442],"humboldt":["06023","Humboldt",39800,21559,64228],"imperial":["06025","Imperial",26083,26546,54025],"inyo":["06027","Inyo",4201,4468,8951],"kern":["06029","Kern",108241,167879,283246],"kings":["06031","Kings",15519,25074,41501],"lake":["06033","Lake",12794,13161,26759],"lassen":["06035","Lassen",2478,8619,11371],"losangeles":["06037","Los Angeles",2417109,1189862,3728427],"madera":["06039","Madera",20981,32344,54624],"marin":["06041","Marin",116152,24054,144113],"mariposa":["06043","Mariposa",3622,5625,9509],"mendocino":["06045","Mendocino",24049,13528,39216],"merced":["06047","Merced",40190,43955,86392],"modoc":["06049","Modoc",1008,2884,4016],"mono":["06051","Mono",3522,2294,6064],"monterey":["06053","Monterey",93060,49226,146718],"napa":["06055","Napa",43212,20357,65549],"nevada":["06057","Nevada",33784,26177,62132],"orange":["06059","Orange",691731,654815,1390965],"placer":["06061","Placer",103958,123941,234809],"plumas":["06063","Plumas",4020,5725,10067],"riverside":["06065","Riverside",451782,463677,940405],"sacramento":["06067","Sacramento",381564,252140,656626],"sanbenito":["06069","San Benito",15179,11702,27649],"sanbernardino":["06071","San Bernardino",362114,378416,761714],"sandiego":["06073","San Diego",841372,593270,1477786],"sanfrancisco":["06075","San Francisco",323719,62594,402964],"sanjoaquin":["06077","San Joaquin",126647,128996,263671],"sanluisobispo":["06079","San Luis Obispo",81314,64932,150766],"sanmateo":["06081","San Mateo",242957,76616,330510],"santabarbara":["06083","Santa Barbara",114149,64870,184715],"santaclara":["06085","Santa Clara",510744,210924,750433],"santacruz":["06087","Santa Cruz",100998,27978,134135],"shasta":["06089","Shasta",27130,59539,88900],"sierra":["06091","Sierra",641,1066,1754],"siskiyou":["06093","Siskiyou",8329,12461,21489],"solano":["06095","Solano",113997,70345,189834],"sonoma":["06097","Sonoma",179600,63426,251426],"stanislaus":["06099","Stanislaus",85347,106986,197472],"sutter":["06101","Sutter",13016,25372,39336],"tehama":["06103","Tehama",7415,18503,26532],"trinity":["06105","Trinity",2449,2979,5645],"tulare":["06107","Tulare",53221,81854,138271],"tuolumne":["06109","Tuolumne",10909,17210,28810],"ventura":["06111","Ventura",217424,158901,387595],"yolo":["06113","Yolo",61405,27844,92589],"yuba":["06115","Yuba",10725,18491,30070]}}, LINKS = [["AL","Alabama","https://www.sos.alabama.gov/alabama-votes"],["AK","Alaska","https://www.elections.alaska.gov/election-results/"],["AZ","Arizona","https://results.arizona.vote/"],["AR","Arkansas","https://www.sos.arkansas.gov/elections"],["CA","California","https://electionresults.sos.ca.gov/"],["CO","Colorado","https://results.enr.clarityelections.com/CO/"],["CT","Connecticut","https://portal.ct.gov/sots/election-services/election-results/election-results"],["DE","Delaware","https://elections.delaware.gov/results/"],["DC","District of Columbia","https://electionresults.dcboe.org/"],["FL","Florida","https://floridaelectionwatch.gov/"],["GA","Georgia","https://results.sos.ga.gov/results/public/Georgia"],["HI","Hawaii","https://elections.hawaii.gov/election-results/"],["ID","Idaho","https://voteidaho.gov/election-results/"],["IL","Illinois","https://www.elections.il.gov/"],["IN","Indiana","https://enr.indianavoters.in.gov/"],["IA","Iowa","https://electionresults.iowa.gov/"],["KS","Kansas","https://sos.ks.gov/elections/election-results.html"],["KY","Kentucky","https://elect.ky.gov/results/Pages/default.aspx"],["LA","Louisiana","https://voterportal.sos.la.gov/Graphical"],["ME","Maine","https://www.maine.gov/sos/elections-voting/election-results-data"],["MD","Maryland","https://elections.maryland.gov/elections/"],["MA","Massachusetts","https://electionstats.state.ma.us/"],["MI","Michigan","https://www.michigan.gov/sos/elections/election-results-and-data"],["MN","Minnesota","https://electionresults.sos.mn.gov/"],["MS","Mississippi","https://www.sos.ms.gov/elections-voting/election-results"],["MO","Missouri","https://enr.sos.mo.gov/"],["MT","Montana","https://sosmt.gov/elections/results/"],["NE","Nebraska","https://electionresults.nebraska.gov/"],["NV","Nevada","https://silverstateelection.nv.gov/"],["NH","New Hampshire","https://sos.nh.gov/elections/elections/election-results/"],["NJ","New Jersey","https://www.nj.gov/state/elections/election-information-results.shtml"],["NM","New Mexico","https://www.sos.nm.gov/voting-and-elections/election-results/"],["NY","New York","https://results.elections.ny.gov/"],["NC","North Carolina","https://er.ncsbe.gov/"],["ND","North Dakota","https://results.sos.nd.gov/"],["OH","Ohio","https://liveresults.ohiosos.gov/"],["OK","Oklahoma","https://oklahoma.gov/elections/elections-results/election-results.html"],["OR","Oregon","https://results.oregonvotes.gov/"],["PA","Pennsylvania","https://www.electionreturns.pa.gov/"],["RI","Rhode Island","https://www.ri.gov/election/results/"],["SC","South Carolina","https://www.enr-scvotes.org/"],["SD","South Dakota","https://electionresults.sd.gov/"],["TN","Tennessee","https://sos.tn.gov/elections/results"],["TX","Texas","https://results.texas-election.com/"],["UT","Utah","https://electionresults.utah.gov/results/public/Utah"],["VT","Vermont","https://electionresults.vermont.gov/"],["VA","Virginia","https://www.elections.virginia.gov/resultsreports/"],["WA","Washington","https://results.vote.wa.gov/"],["WV","West Virginia","https://sos.wv.gov/elections/Pages/default.aspx"],["WI","Wisconsin","https://elections.wi.gov/elections/election-results"],["WY","Wyoming","https://sos.wyo.gov/Elections/ElectionResults.aspx"]];
+const ATLAS = 'https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json';
+const FIPS = { CO: '08', IA: '19', CA: '06' };
+const STATES = {
+  CO: { name: 'Colorado', kind: 'clarity', base: 'https://results.enr.clarityelections.com/CO/127407/', close: '2026-11-04T02:00:00Z', closeText: '7 PM Mountain', url: 'https://results.enr.clarityelections.com/CO/', turnout: .80, source: 'Colorado Secretary of State' },
+  IA: { name: 'Iowa', kind: 'clarity', base: 'https://electionresults.iowa.gov/IA/127077/', close: '2026-11-04T02:00:00Z', closeText: '8 PM Central', url: 'https://electionresults.iowa.gov/IA/', turnout: .75, source: 'Iowa Secretary of State' },
+  CA: { name: 'California', kind: 'ca', base: 'https://api.sos.ca.gov/returns/', close: '2026-11-04T04:00:00Z', closeText: '8 PM Pacific', url: 'https://electionresults.sos.ca.gov/', turnout: .72, source: 'California Secretary of State' }
+};
+/* the author's starting margins (Democrat minus Republican, points) and spreads: judgment, informed by public ratings */
+const START = {
+  'CO-S': { st: 'CO', office: 'Senate', re: /United States Senator/i, mu: 17, u: 8 },
+  'CO-G': { st: 'CO', office: 'Governor', re: /^Governor/i, mu: 12, u: 8 },
+  'IA-S': { st: 'IA', office: 'Senate', re: /United States Senator/i, mu: 0, u: 6 },
+  'IA-G': { st: 'IA', office: 'Governor', re: /^Governor/i, mu: 4, u: 6 },
+  'CA-G': { st: 'CA', office: 'Governor', path: 'governor', mu: 20, u: 8 }
+};
+const TAU = 3.5, DELTA = 7, KAPPA = 30, KAPPA0 = 1.5, NU = 18, ETA = 7, COMMON = 25, NDRAW = 4000, E_CAP = 98.5, POLL = 60000;
+
+const $ = id => document.getElementById(id), clamp = (v, a, b) => v < a ? a : v > b ? b : v, css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const h = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const k in attrs || {}) { if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.flat().forEach(c => { if (c !== null && c !== undefined) e.append(c); }); return e; };
+const key = s => String(s).replace(/\s+County$/i, '').toLowerCase().replace(/[^a-z]/g, '');
+const lastName = s => { const a = String(s).split(/\s+and\s+|\s*\/\s*/)[0].trim().replace(/,?\s+(Jr\.?|Sr\.?|II|III|IV)$/i, '').split(/\s+/); return a[a.length - 1]; };
+const pctTxt = p => p >= .995 ? '>99%' : p <= .005 ? '<1%' : Math.round(p * 100) + '%';
+const mTxt = m => Math.abs(m) < .05 ? 'even' : (m > 0 ? 'D+' : 'R+') + Math.abs(m).toFixed(1);
+
+/* ------------------------------------------------------------------ one normal shape for a race */
+function unitsFrom(st, rows) {
+  // rows: [{name, d, r, total}]. Joined to the baseline by county name; expected vote from 2024 turnout
+  const B = BASE[st], T = STATES[st].turnout, seen = new Set(), units = [], unmatched = [];
+  rows.forEach(q => { const k = key(q.name), b = B[k]; if (!b) { unmatched.push(q.name); return; } seen.add(k); const v = q.total, V = Math.max(b[4] * T, v / (E_CAP / 100)); units.push({ name: b[1], fips: b[0], v, V, e: V ? Math.min(E_CAP, 100 * v / V) : 0, y: v ? 100 * (q.d - q.r) / v : null, hist: 100 * (b[2] - b[3]) / b[4] }); });
+  Object.keys(B).forEach(k => { if (!seen.has(k)) { const b = B[k]; units.push({ name: b[1], fips: b[0], v: 0, V: b[4] * T, e: 0, y: null, hist: 100 * (b[2] - b[3]) / b[4] }); } });
+  return { units, unmatched };
+}
+function raceFrom(id, names, parties, rows, won, stateTotals) {
+  const S = START[id], iD = parties.findIndex(p => /^dem/i.test(p)), iR = parties.findIndex(p => /^rep/i.test(p)), U = unitsFrom(S.st, rows.map(q => ({ name: q.name, d: q.v[iD] || 0, r: q.v[iR] || 0, total: q.total })));
+  const tot = U.units.reduce((a, u) => a + u.v, 0), Vt = U.units.reduce((a, u) => a + u.V, 0);
+  return { id, st: S.st, office: S.office, mu: S.mu, u: S.u, D: lastName(names[iD]), R: lastName(names[iR]), units: U.units, unmatched: U.unmatched, top: { v: tot, V: Vt, e: Vt ? 100 * tot / Vt : 0, d: rows.reduce((a, q) => a + (q.v[iD] || 0), 0), r: rows.reduce((a, q) => a + (q.v[iR] || 0), 0) }, won: won === iD ? 'D' : won === iR ? 'R' : won !== null && won >= 0 ? 'O' : null, wonName: won !== null && won >= 0 ? lastName(names[won]) : null };
+}
+function parseClarity(st, sum, det, contests) {
+  const out = {}, house = [], D = new Map((det.Contests || []).map(c => [c.K, c]));
+  (sum.Contests || []).forEach(c => {
+    const id = Object.keys(contests).find(k => contests[k].st === st && contests[k].re && contests[k].re.test(c.C) && !/Lieutenant$/i.test(c.C.split(' ')[0]));
+    if (id) { const d = D.get(c.K); if (d && !out[id]) { const rows = d.P.map((name, i) => ({ name, v: d.V[i], total: (d.V[i] || []).reduce((a, x) => a + x, 0) })), w = (c.W || []).findIndex(x => x); out[id] = raceFrom(id, c.CH, c.P, rows, w >= 0 ? w : null); } return; }
+    const m = /(?:Representative).*District\s+(\d+)/i.exec(c.C); if (m && /Congress|United States/i.test(c.C)) house.push(houseRow(`${st}-${m[1].padStart(2, '0')}`, c.CH, c.P, c.V, (c.W || []).findIndex(x => x), `${c.PR} of ${c.TP} counties`));
+  });
+  return { races: out, house };
+}
+function houseRow(label, names, parties, votes, won, rep) { const iD = parties.findIndex(p => /^dem/i.test(p)), iR = parties.findIndex(p => /^rep/i.test(p)), total = votes.reduce((a, x) => a + (+x || 0), 0); return { label, D: iD >= 0 ? lastName(names[iD]) : '', R: iR >= 0 ? lastName(names[iR]) : '', d: iD >= 0 ? votes[iD] : 0, r: iR >= 0 ? votes[iR] : 0, total, won: won >= 0 ? lastName(names[won]) : null, rep }; }
+const num = s => +String(s).replace(/[^\d.]/g, '') || 0;
+function parseCA(govAll, house) {
+  const list = Array.isArray(govAll) ? govAll : [govAll], counties = list.filter(x => /County Results/i.test(x.raceTitle)), first = counties[0] || list[0], names = first.candidates.map(c => c.Name), parties = first.candidates.map(c => c.Party);
+  const rows = counties.map(x => { const v = names.map(n => num((x.candidates.find(c => c.Name === n) || {}).Votes)); return { name: x.raceTitle.replace(/^.*?-\s*/, '').replace(/\s*County Results.*$/i, ''), v, total: v.reduce((a, b) => a + b, 0) }; });
+  const hs = (Array.isArray(house) ? house : []).map(x => { const m = /District\s+(\d+)/.exec(x.raceTitle); return houseRow(`CA-${(m ? m[1] : '?').padStart(2, '0')}`, x.candidates.map(c => c.Name), x.candidates.map(c => c.Party), x.candidates.map(c => num(c.Votes)), -1, (/^\s*([\d.]+%)/.exec(x.Reporting) || [])[1] ? `${/^\s*([\d.]+%)/.exec(x.Reporting)[1]} of precincts` : ''); });
+  return { races: { 'CA-G': raceFrom('CA-G', names, parties, rows, null) }, house: hs };
+}
+
+/* ------------------------------------------------------------------ the update */
+function summarize(r) {
+  const us = r.units, B = (() => { const V = us.reduce((a, u) => a + u.V, 0); return us.reduce((a, u) => a + u.hist * u.V, 0) / (V || 1); })(), s0 = r.mu - B, Vtot = Math.max(us.reduce((a, u) => a + u.V, 0), 1), E = clamp(r.top.e / 100, 0, 1);
+  let P = 0, Pz = 0, D = 0, A = 0, noise = 0;
+  for (const u of us) { const w = u.V / Vtot; let k = 0; if (u.y !== null && u.v > 0) { const e = u.e >= E_CAP ? 1 : u.e / 100, xi = KAPPA * (1 - e), xv = xi * xi + KAPPA0 * KAPPA0, vc = DELTA * DELTA + xv; P += 1 / vc; Pz += (u.y - u.hist - s0) / vc; k = u.e >= E_CAP ? 1 : DELTA * DELTA / vc; } D += w * (u.hist + s0 + k * (u.y === null ? 0 : u.y - u.hist - s0)); A += w * (1 - k); noise += w * w * DELTA * DELTA * (1 - k); }
+  const nu = NU * (1 - E), Vd = P > 0 ? 1 / P + nu * nu : Infinity, zhat = P > 0 ? Pz / P : 0, rest = 1 - E, counted = us.some(u => u.v > 0); noise += rest * rest * ETA * ETA * (counted ? 1 : 0) + .04;
+  Object.assign(r, { B, s0, zhat, Vd, Dc: D, A, noise, counted, P, nu }); return r;
+}
+function zGiven(r, n) { const iu = 1 / (r.u * r.u), id = isFinite(r.Vd) ? 1 / r.Vd : 0, pv = 1 / (iu + id); return { mean: pv * (n * iu + r.zhat * id), v: pv }; }
+function marginGiven(r, n) { const z = zGiven(r, n); return { mean: r.Dc + r.A * z.mean, v: r.A * r.A * z.v + r.noise }; }
+function shared(rs) { const st = new Map(); let a = 0, b = 0; for (const r of rs) { a += r.top.v; b += r.top.V; if (!isFinite(r.Vd)) continue; const q = st.get(r.st) || { t: 0, s: 0, nu: 0 }, t = 1 / (1 / r.P + r.u * r.u); q.t += t; q.s += t * r.zhat; q.nu = Math.max(q.nu, r.nu); st.set(r.st, q); } let pp = 0, ps = 0; for (const q of st.values()) { const v = 1 / q.t + q.nu * q.nu; pp += 1 / v; ps += (q.s / q.t) / v; } const pr = 1 / (TAU * TAU), E = b ? a / b : 0; if (!pp) return { mean: 0, sd: TAU, E }; const vO = 1 / pp + (COMMON * (1 - E)) ** 2, p = pr + 1 / vO; return { mean: (ps / pp) / vO / p, sd: Math.sqrt(1 / p), E }; }
+const NORM = (() => { let a = 0x9E3779B9; const u = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }, o = new Float64Array(1 << 16); for (let i = 0; i < o.length; i++) o[i] = Math.sqrt(-2 * Math.log(u() + 1e-12)) * Math.cos(2 * Math.PI * u()); return o; })();
+function simulate(rs) {
+  const N = shared(rs), res = {}; rs.forEach(r => { res[r.id] = { wins: 0, m: new Float32Array(NDRAW) }; }); let ni = 0; const nn = () => NORM[ni++ & 65535];
+  for (let d = 0; d < NDRAW; d++) { const n = N.mean + N.sd * nn(); for (const r of rs) { const q = marginGiven(r, n), M = q.mean + Math.sqrt(q.v) * nn(); res[r.id].m[d] = M; if (M > 0) res[r.id].wins++; } }
+  rs.forEach(r => { const a = Float32Array.from(res[r.id].m).sort(); r.p = res[r.id].wins / NDRAW; r.lo = a[Math.floor(NDRAW * .05)]; r.med = a[NDRAW >> 1]; r.hi = a[Math.floor(NDRAW * .95)]; });
+  return N;
+}
+
+/* ------------------------------------------------------------------ polling */
+const S = { races: {}, house: {}, ver: {}, sum: {}, geo: null, ok: {}, err: {}, N: null, hist: {}, closedOverride: false };
+const HKEY = 'en-states-hist-v1'; try { S.hist = JSON.parse(localStorage.getItem(HKEY) || '{}'); } catch (e) { S.hist = {}; }
+const isClosed = st => S.closedOverride || Date.now() >= Date.parse(STATES[st].close);
+async function getJ(u) { const r = await fetch(u, { signal: AbortSignal.timeout(25000), cache: 'no-cache' }); if (!r.ok) throw new Error(`answered ${r.status}`); return r.json(); }
+async function pollClarity(st) { const B = STATES[st].base, tr = await fetch(B + 'current_ver.txt', { signal: AbortSignal.timeout(15000), cache: 'no-cache' }); if (!tr.ok) throw new Error(`version answered ${tr.status}`); const v = (await tr.text()).trim(); if (v === S.ver[st]) return; const [sum, det] = await Promise.all([getJ(`${B}${v}/json/sum.json`), getJ(`${B}${v}/json/details.json`)]); const P = parseClarity(st, sum, det, START); Object.assign(S.races, P.races); S.house[st] = P.house; S.ver[st] = v; }
+async function pollCA() { const B = STATES.CA.base, [g, hs] = await Promise.all([getJ(B + 'governor/county/all'), getJ(B + 'us-rep/district/all')]), P = parseCA(g, hs); Object.assign(S.races, P.races); S.house.CA = P.house; }
+function compute() { const rs = Object.keys(START).map(k => S.races[k]).filter(Boolean).map(summarize); S.N = simulate(rs); const now = Date.now(); rs.forEach(r => { if (!r.counted || !isClosed(r.st)) return; const a = S.hist[r.id] = S.hist[r.id] || [], l = a[a.length - 1]; if (!l || now - l[0] > 50000) { a.push([now, +r.p.toFixed(4)]); if (a.length > 700) a.shift(); } }); try { localStorage.setItem(HKEY, JSON.stringify(S.hist)); } catch (e) { /* history is a convenience */ } }
+async function poll() {
+  await Promise.all(Object.keys(STATES).map(async st => { try { await (STATES[st].kind === 'ca' ? pollCA() : pollClarity(st)); S.ok[st] = Date.now(); S.err[st] = ''; } catch (e) { S.err[st] = e.message || String(e); console.error(st, e); } }));
+  try { compute(); render(); } catch (e) { console.error(e); S.err.page = e.message; } status();
+}
+function status() { const el = $('status'), bad = Object.keys(STATES).filter(s => S.err[s]), oks = Object.values(S.ok), age = oks.length ? Math.round((Date.now() - Math.max(...oks)) / 1000) : null; el.classList.toggle('bad', bad.length > 0); el.textContent = bad.length ? `${bad.map(s => STATES[s].name).join(', ')} file problem; showing the last good count` : age === null ? 'Loading.' : `State files checked ${age} s ago`; }
+
+/* ------------------------------------------------------------------ rendering */
+function mixColor(t) { const hex = v => { const c = css(v); return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }, a = hex('--c-orange'), m = hex('--c-mid'), b = hex('--c-blue'), f = t < .5 ? t * 2 : (t - .5) * 2, p = t < .5 ? a : m, q = t < .5 ? m : b; return `rgb(${p.map((v, i) => Math.round(v + (q[i] - v) * f)).join(',')})`; }
+function topoPaths(topo) { const T = topo.transform, arcs = topo.arcs.map(arc => { let x = 0, y = 0; return arc.map(p => { x += p[0]; y += p[1]; return [x * T.scale[0] + T.translate[0], y * T.scale[1] + T.translate[1]]; }); }), ring = idx => { const o = []; idx.forEach(i => { const a = i < 0 ? arcs[~i].slice().reverse() : arcs[i]; a.forEach((p, j) => { if (j || !o.length) o.push(p); }); }); return o; }, m = {}; topo.objects.counties.geometries.forEach(g => { const polys = g.type === 'Polygon' ? [g.arcs] : g.type === 'MultiPolygon' ? g.arcs : []; const rs = polys.flatMap(p => p.map(ring)); m[g.id] = { rs, d: rs.map(r => 'M' + r.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L') + 'Z').join('') }; }); return m; }
+function mapFor(r, show) {
+  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'map'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `${STATES[r.st].name} counties`); if (!S.geo) return svg; let a = 1e9, b = 1e9, c = -1e9, d = -1e9; const tip = $('tip');
+  r.units.forEach(u => { const g = S.geo[u.fips]; if (!g) return; g.rs.forEach(q => q.forEach(p => { a = Math.min(a, p[0]); c = Math.max(c, p[0]); b = Math.min(b, p[1]); d = Math.max(d, p[1]); })); const sw = show && u.y !== null ? u.y - u.hist : null, e = document.createElementNS(NS, 'path'); e.setAttribute('d', g.d); e.setAttribute('fill', sw === null ? css('--c-line') : mixColor(clamp(.5 + sw / 40, 0, 1))); if (sw !== null) e.setAttribute('fill-opacity', (.3 + .7 * u.e / 100).toFixed(2)); const t = !show || u.y === null ? `${u.name}: nothing counted` : `${u.name}: ${mTxt(u.y)}, 2024 ${mTxt(u.hist)}, about ${Math.round(u.e)}% counted`; e.addEventListener('pointermove', ev => { tip.textContent = t; tip.hidden = false; tip.style.left = clamp(ev.clientX + 12, 4, innerWidth - 290) + 'px'; tip.style.top = ev.clientY + 14 + 'px'; }); e.addEventListener('pointerleave', () => { tip.hidden = true; }); svg.append(e); });
+  svg.setAttribute('viewBox', `${a} ${b} ${c - a} ${d - b}`); return svg;
+}
+function drawLine(c, pts) {
+  const dp = Math.min(devicePixelRatio || 1, 2), w = c.clientWidth, H = c.clientHeight; if (!w) return; c.width = w * dp; c.height = H * dp; const g = c.getContext('2d'); g.setTransform(dp, 0, 0, dp, 0, 0); const L = 34, R = 6, T = 5, B = 16, Y = p => T + (1 - p) * (H - T - B), font = '12px ' + css('--font-body'), f = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const paint = hx => { g.clearRect(0, 0, w, H); g.font = font; g.fillStyle = css('--c-ink-soft'); g.textAlign = 'right'; g.textBaseline = 'middle'; [0, .5, 1].forEach(p => { g.strokeStyle = css('--c-line'); g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(p) + .5); g.lineTo(w - R, Y(p) + .5); g.stroke(); g.fillText(Math.round(p * 100) + '%', L - 4, Y(p)); }); const t0 = pts[0][0], t1 = Math.max(pts[pts.length - 1][0], t0 + 1), X = t => L + (t - t0) / (t1 - t0) * (w - L - R); g.strokeStyle = css('--c-blue'); g.lineWidth = 2; g.beginPath(); pts.forEach((p, i) => { i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])); }); g.stroke(); g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillStyle = css('--c-ink-soft'); g.fillText(f(t0), L, H - 3); g.textAlign = 'right'; g.fillText(f(t1), w - R, H - 3); if (hx !== null && hx >= L) { let b = pts[0]; pts.forEach(p => { if (Math.abs(X(p[0]) - hx) < Math.abs(X(b[0]) - hx)) b = p; }); const x = X(b[0]), y = Y(b[1]); g.fillStyle = css('--c-panel'); g.beginPath(); g.arc(x, y, 5.5, 0, 7); g.fill(); g.fillStyle = css('--c-blue'); g.beginPath(); g.arc(x, y, 4, 0, 7); g.fill(); const t = `${f(b[0])}  ${pctTxt(b[1])}`, tw = g.measureText(t).width + 12, tx = clamp(x - tw / 2, 2, w - tw - 2), ty = y < 30 ? y + 9 : y - 27; g.fillStyle = css('--c-ink'); g.fillRect(tx, ty, tw, 19); g.fillStyle = css('--c-paper'); g.textAlign = 'left'; g.fillText(t, tx + 6, ty + 14); } };
+  paint(null); c.onpointermove = e => paint(e.clientX - c.getBoundingClientRect().left); c.onpointerleave = () => paint(null);
+}
+function raceCard(r) {
+  const open = !isClosed(r.st), ST = STATES[r.st], kids = [h('h2', {}, `${ST.name} ${r.office}`), h('div', { class: 'k' }, `${r.D} (D) v ${r.R} (R)`)];
+  if (open) kids.push(h('p', { style: 'margin:10px 0' }, `Polls open until ${ST.closeText}. No votes or estimates are shown while people are still voting. `, h('a', { href: 'https://www.vote.org/polling-place-locator/', rel: 'noopener' }, 'Find your polling place'), '.'));
+  else if (r.won) kids.push(h('div', { style: 'margin:8px 0' }, h('span', { class: 'chip' }, `${ST.source}'s file marks ${r.wonName} the winner`)));
+  if (!open) { const lead = r.p >= .5, c = h('canvas', { class: 't', role: 'img', 'aria-label': `Estimate for ${r.D} through the night` }), pts = S.hist[r.id] || [];
+    if (!r.won) kids.push(h('div', { class: 'hero' }, h('span', { class: 'num' }, pctTxt(lead ? r.p : 1 - r.p)), h('span', {}, `${lead ? r.D : r.R} ahead at the finish, estimated`)), h('div', { class: 'pbar', 'aria-hidden': 'true' }, Object.assign(h('i'), { style: `width:${r.p * 100}%` }), h('b')), h('div', { class: 'pk' }, h('span', {}, `${r.D} ${pctTxt(r.p)}`), h('span', {}, `${r.R} ${pctTxt(1 - r.p)}`)));
+    kids.push(h('div', { class: 'steps' }, h('span', {}, 'Official count'), h('span', {}, r.top.v ? `${mTxt(100 * (r.top.d - r.top.r) / r.top.v)}, ${r.top.v.toLocaleString()} votes` : 'nothing counted yet'), h('span', {}, 'Share counted'), h('span', {}, r.top.v ? `about ${Math.round(r.top.e)}%, estimated from 2024 turnout` : ''), r.won ? null : h('span', {}, 'Final margin'), r.won ? null : h('span', {}, `${mTxt(r.med)}, 90% range ${mTxt(r.lo)} to ${mTxt(r.hi)}`), r.won ? null : h('span', {}, 'Starting estimate'), r.won ? null : h('span', {}, mTxt(r.mu))));
+    if (pts.length > 1 && !r.won) { kids.push(c); requestAnimationFrame(() => drawLine(c, pts)); } }
+  kids.push(mapFor(r, !open), h('div', { class: 'k', style: 'margin-top:4px' }, 'Source: ', h('a', { href: ST.url, rel: 'noopener' }, ST.source), '. Unofficial until certified.'));
+  return h('div', { class: 'card race' }, kids);
+}
+function render() {
+  $('races').replaceChildren(...Object.keys(START).map(k => S.races[k]).filter(Boolean).map(raceCard));
+  const rows = []; Object.keys(STATES).forEach(st => { (S.house[st] || []).forEach(q => { const open = !isClosed(st), lead = q.total ? 100 * (q.d - q.r) / q.total : null; rows.push(h('tr', {}, h('td', {}, q.label), h('td', {}, q.D), h('td', {}, q.R), h('td', {}, open ? 'polls open' : q.won ? `${q.won}, per the state's file` : lead === null ? '' : mTxt(lead)), h('td', {}, open || !q.total ? '' : q.total.toLocaleString()), h('td', {}, open ? '' : q.rep || ''))); }); }); $('house').replaceChildren(...rows);
+  $('coverage').textContent = 'Covers Colorado, Iowa and California: the states whose official files a web browser can read directly. It says nothing about who controls Congress. Other states are linked below.';
+}
+$('links').replaceChildren(...(LINKS || []).map(q => h('li', {}, h('a', { href: q[2], rel: 'noopener' }, q[1]))));
+addEventListener('resize', () => { if (S.N) render(); });
+fetch(ATLAS).then(r => r.json()).then(t => { S.geo = topoPaths(t); if (S.N) render(); }).catch(() => {});
+window.EN = { S, START, STATES, parseClarity, parseCA, raceFrom, summarize, simulate, compute, render, marginGiven, shared, poll };
+poll(); setInterval(poll, POLL); setInterval(status, 5000);
+</script>
+</body>
+</html>
