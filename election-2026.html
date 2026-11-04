@@ -139,7 +139,7 @@ function parseClarity(st, sum, det, contests) {
   (sum.Contests || []).forEach(c => {
     const id = Object.keys(contests).find(k => contests[k].st === st && contests[k].re && contests[k].re.test(c.C) && !/Lieutenant$/i.test(c.C.split(' ')[0]));
     if (id) { const d = D.get(c.K); if (d && !out[id]) { const rows = d.P.map((name, i) => ({ name, v: d.V[i], total: (d.V[i] || []).reduce((a, x) => a + x, 0) })), w = (c.W || []).findIndex(x => x); out[id] = raceFrom(id, c.CH, c.P, rows, w >= 0 ? w : null); } return; }
-    const m = /(?:Representative).*District\s+(\d+)/i.exec(c.C); if (m && /Congress|United States/i.test(c.C)) house.push(houseRow(`${st}-${m[1].padStart(2, '0')}`, c.CH, c.P, c.V, (c.W || []).findIndex(x => x), `${c.PR} of ${c.TP} counties`));
+    const m = /(?:Representative).*District\s+(\d+)/i.exec(c.C); if (m && /Congress|United States/i.test(c.C)) house.push(houseRow(`${st}-${m[1].padStart(2, '0')}`, c.CH, c.P, c.V, (c.W || []).findIndex(x => x), `${c.PR} of ${c.TP} counties finished`));
   });
   return { races: out, house };
 }
