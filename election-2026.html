@@ -117,7 +117,7 @@ const TAU = 3.5, DELTA = 7, KAPPA = 30, KAPPA0 = 1.5, NU = 18, ETA = 7, COMMON =
 const $ = id => document.getElementById(id), clamp = (v, a, b) => v < a ? a : v > b ? b : v, css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const h = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const k in attrs || {}) { if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.flat().forEach(c => { if (c !== null && c !== undefined) e.append(c); }); return e; };
 const key = s => String(s).replace(/\s+County$/i, '').toLowerCase().replace(/[^a-z]/g, '');
-const lastName = s => { const a = String(s).split(/\s+and\s+|\s*\/\s*/)[0].trim().replace(/,?\s+(Jr\.?|Sr\.?|II|III|IV)$/i, '').split(/\s+/); return a[a.length - 1]; };
+const lastName = s => { const a = String(s).split(/\s+and\s+|\s*\/\s*/)[0].trim().replace(/,?\s+(Jr\.?|Sr\.?|II|III|IV)$/i, '').split(/\s+/); let i = a.length - 1; while (i > 0 && /^(von|van|de|del|der|la|le|da|di|du)$/i.test(a[i - 1])) i--; return a.slice(i).join(' '); };
 const pctTxt = p => p >= .995 ? '>99%' : p <= .005 ? '<1%' : Math.round(p * 100) + '%';
 const mTxt = m => Math.abs(m) < .05 ? 'even' : (m > 0 ? 'D+' : 'R+') + Math.abs(m).toFixed(1);
 
@@ -143,7 +143,13 @@ function parseClarity(st, sum, det, contests) {
   });
   return { races: out, house };
 }
-function houseRow(label, names, parties, votes, won, rep) { const iD = parties.findIndex(p => /^dem/i.test(p)), iR = parties.findIndex(p => /^rep/i.test(p)), total = votes.reduce((a, x) => a + (+x || 0), 0); return { label, D: iD >= 0 ? lastName(names[iD]) : '', R: iR >= 0 ? lastName(names[iR]) : '', d: iD >= 0 ? votes[iD] : 0, r: iR >= 0 ? votes[iR] : 0, total, won: won >= 0 ? lastName(names[won]) : null, rep }; }
+function houseRow(label, names, parties, votes, won, rep) {
+  const iD = parties.findIndex(p => /^dem/i.test(p)), iR = parties.findIndex(p => /^rep/i.test(p)), total = votes.reduce((a, x) => a + (+x || 0), 0), wonName = won >= 0 ? lastName(names[won]) : null;
+  if (iD >= 0 && iR >= 0) return { label, D: lastName(names[iD]), R: lastName(names[iR]), d: votes[iD], r: votes[iR], total, won: wonName, rep };
+  // top-two and uncontested seats have no D-v-R margin: name who is actually on the ballot and lead by name
+  const on = names.map((n, i) => i).filter(i => !/write-?in/i.test(names[i])).sort((a, b) => (+votes[b] || 0) - (+votes[a] || 0) || a - b), who = on.map(i => lastName(names[i])).join(' v '), gap = on.length > 1 && total ? 100 * (votes[on[0]] - votes[on[1]]) / total : null;
+  return { label, D: iD >= 0 ? who : 'none on ballot', R: iR >= 0 ? who : 'none on ballot', d: 0, r: 0, total, won: wonName, rep, leadText: !total ? '' : gap === null ? `${lastName(names[on[0]])}, unopposed` : Math.abs(gap) < .05 ? 'even' : `${lastName(names[on[0]])} +${gap.toFixed(1)}` };
+}
 const num = s => +String(s).replace(/[^\d.]/g, '') || 0;
 function parseCA(govAll, house) {
   const list = Array.isArray(govAll) ? govAll : [govAll], counties = list.filter(x => /County Results/i.test(x.raceTitle)), first = counties[0] || list[0], names = first.candidates.map(c => c.Name), parties = first.candidates.map(c => c.Party);
@@ -211,7 +217,7 @@ function raceCard(r) {
 }
 function render() {
   $('races').replaceChildren(...Object.keys(START).map(k => S.races[k]).filter(Boolean).map(raceCard));
-  const rows = []; Object.keys(STATES).forEach(st => { (S.house[st] || []).forEach(q => { const open = !isClosed(st), lead = q.total ? 100 * (q.d - q.r) / q.total : null; rows.push(h('tr', {}, h('td', {}, q.label), h('td', {}, q.D), h('td', {}, q.R), h('td', {}, open ? 'polls open' : q.won ? `${q.won}, per the state's file` : lead === null ? '' : mTxt(lead)), h('td', {}, open || !q.total ? '' : q.total.toLocaleString()), h('td', {}, open ? '' : q.rep || ''))); }); }); $('house').replaceChildren(...rows);
+  const rows = []; Object.keys(STATES).forEach(st => { (S.house[st] || []).forEach(q => { const open = !isClosed(st), lead = q.total ? 100 * (q.d - q.r) / q.total : null; rows.push(h('tr', {}, h('td', {}, q.label), h('td', {}, q.D), h('td', {}, q.R), h('td', {}, open ? 'polls open' : q.won ? `${q.won}, per the state's file` : q.leadText !== undefined ? q.leadText : lead === null ? '' : mTxt(lead)), h('td', {}, open || !q.total ? '' : q.total.toLocaleString()), h('td', {}, open ? '' : q.rep || ''))); }); }); $('house').replaceChildren(...rows);
   $('coverage').textContent = 'Covers Colorado, Iowa and California: the states whose official files a web browser can read directly. It says nothing about who controls Congress. Other states are linked below.';
 }
 $('links').replaceChildren(...(LINKS || []).map(q => h('li', {}, h('a', { href: q[2], rel: 'noopener' }, q[1]))));
