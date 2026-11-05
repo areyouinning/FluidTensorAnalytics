@@ -296,6 +296,7 @@
 <body>
     <div class="container">
         <header>
+            <a href="/fluid.html" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; display: inline-block; min-height: 24px;">&larr; Fluid</a>
             <h1>Optimal Channel Networks</h1>
             <div class="subtitle">Hill Tunneling Optimization • Energy Minimization (E = ΣA^γL)</div>
         </header>
@@ -2900,9 +2901,11 @@
         }
         
         function animate() {
-            // Render all 4 networks
-            for (let i = 0; i < 4; i++) {
-                renderers[i].render();
+            // Render all 4 networks, unless the 3D landscapes are showing instead (ocn-3d.js)
+            if (!(window.OCN3D && window.OCN3D.on)) {
+                for (let i = 0; i < 4; i++) {
+                    renderers[i].render();
+                }
             }
             energyPlotter.render();
             if (!isRacing) {
@@ -3715,5 +3718,6 @@
         animate();
         drawRaceProgress(); // Initialize race canvas
     </script>
+    <script src="ocn-3d.js"></script>
 </body>
 </html>
