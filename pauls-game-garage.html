@@ -168,6 +168,11 @@
 
   footer{font-size:14px;color:var(--muted);line-height:1.5;max-width:68ch}
   footer a{color:var(--purple);font-weight:700}
+  .navc{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:10px;z-index:3}
+  .navc button{appearance:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 4px 0 rgba(34,32,63,.25);touch-action:manipulation}
+  .navc button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(34,32,63,.25)} .navc button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .navc svg{width:30px;height:30px;display:block} .navc .needle{transition:none}
+  .credit{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:11px;line-height:1.3;color:var(--ink);background:rgba(255,253,247,.82);padding:1px 8px;border-radius:8px;pointer-events:none;white-space:nowrap;z-index:2}
   .err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-weight:600;font-size:18px;background:var(--sky)}
   @media (max-width:699px){ .explain{left:8px;right:8px;top:auto;bottom:8px;transform:none;width:auto;max-height:52%;padding:10px 12px} .explain h3{font-size:22px} .xeq{font-size:18px} }
   @media (max-width:520px){ .wtkeys{gap:7px;bottom:10px} .ttb.wtk{width:50px;height:50px;font-size:31px;border-width:4px} .wordbar{top:60px;max-width:calc(100% - 16px)} .ttb{width:70px;height:70px;font-size:44px} .round{width:52px;height:52px} .round svg{width:27px;height:27px} .hbtns{gap:6px} .go{width:92px;height:92px} .start button{width:124px;height:124px} .place{width:42px;height:42px;font-size:24px;border-width:3px} .place.first{width:52px;height:52px;font-size:30px} h1{text-shadow:3px 3px 0 var(--yellow)} }
@@ -218,7 +223,7 @@
     </div>
   </nav>
 
-  <footer>For grown-ups. <b>How it fits together:</b> Rain to the Lake is home. Paul is the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, 10 for the two hills, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go. At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The marble rolls at 5/7 · g · sin 8° with light grass drag, settling near 2.8 m/s. <b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> the marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number. so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data). Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells. <b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
+  <footer>For grown-ups. <b>How it fits together:</b> Rain to the Lake is home. Paul is the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, 10 for the two hills, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go. At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The marble rolls at 5/7 · g · sin 8° with light grass drag, settling near 2.8 m/s. <b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> the marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number. so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data) and the photo draped over it (contains modified Copernicus Sentinel data 2024: the median of four nearly cloud-free Sentinel-2 passes from late August to early October 2024, clouds masked, about 31 m per pixel). Drag the ground to move the map, drag the cloud to move the cloud, pinch to zoom, twist to turn, slide two fingers up or down to tilt; the compass turns the map back to north. Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells. <b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -688,7 +693,7 @@
         cam.off+=(want-cam.off)*(1-Math.exp(-dt/0.2));
         setRumble(state==="racing"?Math.min(0.12,vmax*0.025):0);
       },
-      overlay:function(){ lanes.forEach(function(l){ var kp=wpos(l.knob), ks=toScreen(kp); l.tag.textContent=l.angle+"°"; l.tag.style.left=clamp(ks.x,34,W-34)+"px"; l.tag.style.top=(ks.y-screenR(kp,0.2)-10)+"px";
+      overlay:function(){ lanes.forEach(function(l){ var kp=wpos(l.knob), ks=toScreen(kp); l.tag.textContent=l.angle+"\u00B0"; l.tag.style.left=clamp(ks.x,34,W-34)+"px"; l.tag.style.top=(ks.y-screenR(kp,0.2)-10)+"px";
         var fp=toScreen(l.flagTop); l.placeEl.style.left=fp.x+"px"; l.placeEl.style.top=(fp.y-24)+"px"; }); },
       down:function(p){
         var best=null, bd=1e9;
@@ -902,7 +907,7 @@
     var buckets=[], bucketG=null, paths=[], dotGeo=new THREE.SphereGeometry(0.06,8,6);
     var dotNew=new THREE.MeshBasicMaterial({color:C.paper}), dotOld=new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.4});
     var st={x:0,y:H0,z:0,vx:0,vy:0,vz:0,px:0,py:H0,pz:0}, phase="aim", aim={angle:30,yaw:0,power:0,on:false,p0:null}, lastShot=null, dotT=0, restT=0, inT=0, stars=0, misses=0, newT=null, curPath=null, landed=false;
-    function setAngle(a){ aim.angle=clamp(Math.round(a/5)*5,AMIN,AMAX); angN.textContent=aim.angle+"°"; var t=rad(aim.angle); angLine.setAttribute("d","M6 28 L"+(6+34*Math.cos(t)).toFixed(1)+" "+(28-34*Math.sin(t)).toFixed(1)); }
+    function setAngle(a){ aim.angle=clamp(Math.round(a/5)*5,AMIN,AMAX); angN.textContent=aim.angle+"\u00B0"; var t=rad(aim.angle); angLine.setAttribute("d","M6 28 L"+(6+34*Math.cos(t)).toFixed(1)+" "+(28-34*Math.sin(t)).toFixed(1)); }
     function dirOf(angle,yaw){ var t=rad(angle), y=rad(yaw); return new THREE.Vector3(Math.cos(t)*Math.cos(y),Math.sin(t),Math.cos(t)*Math.sin(y)); }
     function layout(){
       if(bucketG){ root.remove(bucketG); disposeTree(bucketG); } bucketG=new THREE.Group(); root.add(bucketG); buckets=[];
@@ -1032,6 +1037,8 @@
     else { c.font="700 96px Fredoka, 'Arial Rounded MT Bold', Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(ch,64,70); }
     t.needsUpdate=true;
   }
+  var glyphMats={};
+  function glyphMat(ch){ return glyphMats[ch]||(glyphMats[ch]=new THREE.MeshBasicMaterial({map:glyphTex(ch)})); }   // one shared material per letter
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ Object.keys(glyphCache).forEach(drawGlyph); });
 
   var word=(function(){
@@ -1074,7 +1081,7 @@
         [-0.6,0.6].forEach(function(dx){ var d=box(0.1,0.26,1.7,C.wood); d.position.set(dx,0.13,-(g-0.45)); courseG.add(d);
           walls.push({minx:dx-0.05,maxx:dx+0.05,mins:g-1.3,maxs:g+0.4}); });
         opts.forEach(function(o,lane){ if(o.ch===null) return; var blk=new THREE.Group(); blk.add(box(0.66,0.58,0.26,C.wood));
-          var face=new THREE.Mesh(new THREE.PlaneGeometry(0.54,0.54),new THREE.MeshBasicMaterial({map:glyphTex(o.ch)})); face.position.z=0.135; blk.add(face);
+          var face=new THREE.Mesh(new THREE.PlaneGeometry(0.54,0.54),glyphMat(o.ch)); face.position.z=0.135; blk.add(face);
           blk.position.set(LANES[lane],0.32,-(g-0.3)); courseG.add(blk); toks.push({gate:gate,lane:lane,x:LANES[lane],s:g-0.3,kind:o.kind,ch:o.ch,m:blk,shake:0,fly:0}); });
       }
       S_END=G0+GAP*(sent.length-1)+5; basket.position.set(0,0.27,-(S_END+0.6));
@@ -1368,7 +1375,7 @@
     function tap(ch,bt){
       lastTouch=now(); if(busy||bt.disabled) return;
       if(ch===word[k]){
-        var s=slots[k]; s.face.material=new THREE.MeshBasicMaterial({map:glyphTex(ch)}); s.pop=1; bt.disabled=true; bt.classList.add("used"); bt.classList.remove("pulse");
+        var s=slots[k]; s.face.material=glyphMat(ch); s.pop=1; bt.disabled=true; bt.classList.add("used"); bt.classList.remove("pulse");
         tone(700+k*90,1100+k*90,0.12,"triangle",0.1); speak(ch); k++; missHere=0;
         if(k===word.length){ busy=true; var got=miss===0?word.length:1; pts+=got; hudN.textContent=String(pts); hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump");
           var p=toScreen(root.localToWorld(new THREE.Vector3(0,1.45,-0.9))); confetti(p.x,p.y); S.tada();
@@ -1430,6 +1437,19 @@
   // =====================================================================
   var rain=(function(){
     var root=new THREE.Group(); root.visible=false; root.position.set(800,0,0); scene.add(root);
+    // Google-Earth-style look: satellite photo draped on the terrain, soft sun shading, haze toward the horizon, a sky dome.
+    var SUN=new THREE.Vector3(0.45,0.75,0.5).normalize(), HAZE=new THREE.Color("#D4E7F3"), hazeU={value:new THREE.Color(C.sky)}, texMix={value:0};
+    var GVS="attribute vec4 ovl; varying vec2 vUv; varying vec3 vN; varying vec3 vC; varying vec4 vO; varying float vD;\nvoid main(){ vUv=uv; vN=normalize(mat3(modelMatrix)*normal); vC=color; vO=ovl; vec4 mv=modelViewMatrix*vec4(position,1.0); vD=-mv.z; gl_Position=projectionMatrix*mv; }";
+    var GFS="uniform sampler2D map; uniform float uTex; uniform vec3 uLight; uniform vec3 uHaze; uniform float uNear; uniform float uFar; uniform float uMinHaze; varying vec2 vUv; varying vec3 vN; varying vec3 vC; varying vec4 vO; varying float vD;\nvoid main(){ vec3 c=mix(vC,texture2D(map,vUv).rgb*1.06,uTex); float l=clamp(dot(normalize(vN),uLight),0.0,1.0); c*=mix(0.62+0.5*l,0.8+0.3*l,uTex); c=mix(c,vO.rgb,vO.a); float f=max(uMinHaze,smoothstep(uNear,uFar,vD)); gl_FragColor=vec4(mix(c,uHaze,f),1.0); }";
+    var blankTex=new THREE.DataTexture(new Uint8Array([128,128,128,255]),1,1,THREE.RGBAFormat); blankTex.needsUpdate=true;
+    function groundMat(mix,mh){ return new THREE.ShaderMaterial({uniforms:{map:{value:blankTex},uTex:mix,uMinHaze:{value:mh||0},uLight:{value:SUN},uHaze:hazeU,uNear:FOG.near,uFar:FOG.far},vertexShader:GVS,fragmentShader:GFS,vertexColors:true}); }
+    var satMat=groundMat(texMix), plainMat=groundMat({value:0},0.74), skirtMat=groundMat({value:0},0.25);   // beyond the map: misty plain
+    var sky=new THREE.Mesh(new THREE.SphereGeometry(1000,32,16),new THREE.ShaderMaterial({uniforms:{uZen:{value:new THREE.Color("#3F86D6")},uHor:{value:HAZE},uSun:{value:SUN}},side:THREE.BackSide,depthWrite:false,depthTest:false,
+      vertexShader:"varying vec3 vW; void main(){ vW=(modelMatrix*vec4(position,1.0)).xyz-cameraPosition; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+      fragmentShader:"uniform vec3 uZen; uniform vec3 uHor; uniform vec3 uSun; varying vec3 vW; void main(){ vec3 d=normalize(vW); float h=clamp(d.y,0.0,1.0); vec3 c=mix(uHor,uZen,pow(h,0.5)); float s=max(dot(d,uSun),0.0); c+=vec3(1.0,0.93,0.78)*(pow(s,900.0)*1.5+pow(s,10.0)*0.14); gl_FragColor=vec4(c,1.0); }"}));
+    sky.renderOrder=-10; sky.frustumCulled=false; sky.visible=false; scene.add(sky);
+    function loadImagery(){ new THREE.TextureLoader().load("clear-creek-sat.jpg",function(t){ t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy()); t.minFilter=THREE.LinearMipmapLinearFilter; satMat.uniforms.map.value=t; texFade=true; },undefined,function(){ if(window.console) console.warn("satellite photo did not load; using the painted map"); }); }
+    var texFade=false;
     var GW=240, GH=146, CELL=0.268, VEX=2.5, Z0=1600, CLOUDY=9, LAPSE=6.5, REF_M=1730, MELT=0.9, CUP=8, MAXP=2600;
     var FMAX=8, FR=6, QC=170;   // flood: highest stage (m above the channel), reach of the flood plain (cells), channel capacity at Golden (drops per second)
     var goldenHouses=[], alarm=null, floodThr=null, gaugeCell=-1, gauge=null, sleeve=null, Q=0, qAcc=0, qT=0, stage=0, paintedStage=0, flooding=false;
@@ -1441,7 +1461,7 @@
     var hudN=hud.querySelector("span");
     var wx=document.createElement("div"); wx.className="ttbtns wx"; wx.hidden=true; stageEl.appendChild(wx);
     wx.innerHTML='<button class="ttb" id="wxCold" aria-label="Colder"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v26M5 9.5l22 13M5 22.5l22-13M12 5l4 3 4-3M12 27l4-3 4 3" fill="none" stroke="#22203F" stroke-width="2.6" stroke-linecap="round"/></svg></button>'+
-      '<div class="wxt" id="wxT">3°</div>'+
+      '<div class="wxt" id="wxT">3\u00B0</div>'+
       '<button class="ttb" id="wxWarm" aria-label="Warmer"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="6.5" fill="#FFD23F" stroke="#22203F" stroke-width="2.4"/><path d="M16 2.5v4M16 25.5v4M2.5 16h4M25.5 16h4M6.5 6.5l2.8 2.8M22.7 22.7l2.8 2.8M6.5 25.5l2.8-2.8M22.7 9.3l2.8-2.8" stroke="#22203F" stroke-width="2.4" stroke-linecap="round"/></svg></button>';
     var tEl=wx.querySelector("#wxT");
     var wchip=el("gems cloudw"); wchip.innerHTML='<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M8 20 h17 a5.5 5.5 0 0 0 0-11 a7.5 7.5 0 0 0-14.5 1.5 a5 5 0 0 0-2.5 9.5 z" fill="#FFFDF7" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/><path d="M16 9 c0 0-3 3.6-3 5.6 a3 3 0 0 0 6 0 c0-2-3-5.6-3-5.6z" fill="#4AA8FF" stroke="#22203F" stroke-width="1.6"/></svg><span>10</span>'; wchip.hidden=true;
@@ -1455,7 +1475,7 @@
     var water=10, wantRain=false, saidEmpty=false, markers=[];   // the cloud's own water, earned by playing the games
     var T0=3, cap=20, lake=0, raining=false, cloudPos=new THREE.Vector3(0,CLOUDY,0), cloudWant=new THREE.Vector3(0,CLOUDY,0), auto=false, won=false, said={}, meltT=0, colT=0, snowDirty=false;
     var parts=[], drops=[], headgate=-1, canal=[], lakeCell=-1, lakeY=0, lakeR=2.1;
-    function setT(t){ T0=clamp(t,-9,27); tEl.textContent=Math.round(T0)+"°"; }
+    function setT(t){ T0=clamp(t,-9,27); tEl.textContent=Math.round(T0)+"\u00B0"; }
     function tempAt(c){ return T0-LAPSE*(HM[c]-REF_M)/1000; }            // °C, standard lapse rate from Golden's height
     function wpos(c,lift){ var i=c%GW, j=(c/GW)|0; return new THREE.Vector3((i-(GW-1)/2)*CELL,Y[c]+(lift||0),(j-(GH-1)/2)*CELL); }
     function cellAt(x,z){ var i=Math.round(x/CELL+(GW-1)/2), j=Math.round(z/CELL+(GH-1)/2); if(i<0||j<0||i>=GW||j>=GH) return -1; return j*GW+i; }
@@ -1492,10 +1512,20 @@
         base[c*3]=tmpc.r; base[c*3+1]=tmpc.g; base[c*3+2]=tmpc.b; }
       for(var j=0;j<GH-1;j++) for(var i=0;i<GW-1;i++){ var a0=j*GW+i; idx.push(a0,a0+GW,a0+1, a0+1,a0+GW,a0+GW+1); }
       var geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.setIndex(idx);
-      colAttr=new THREE.BufferAttribute(col,3); geo.setAttribute("color",colAttr); geo.computeVertexNormals(); paintSnow();
-      mesh=new THREE.Mesh(geo,toon(C.grass,true)); root.add(mesh);
-      var wide=(GW-1)*CELL, deep=(GH-1)*CELL, plinth=box(wide,1.2,deep,C.dirt2); plinth.position.y=-0.62; root.add(plinth);   // the toy-table base
-      var table=box(wide+6,0.4,deep+6,C.wood); table.position.y=-1.42; root.add(table);
+      var uv=new Float32Array(n*2); for(c=0;c<n;c++){ uv[c*2]=(c%GW)/(GW-1); uv[c*2+1]=1-((c/GW)|0)/(GH-1); }   // the photo covers exactly the map's lat/lon box
+      geo.setAttribute("uv",new THREE.BufferAttribute(uv,2)); geo.setAttribute("color",new THREE.BufferAttribute(base,3));
+      colAttr=new THREE.BufferAttribute(new Float32Array(n*4),4); geo.setAttribute("ovl",colAttr); geo.computeVertexNormals(); paintSnow();
+      mesh=new THREE.Mesh(geo,satMat); root.add(mesh);
+      // no toy table: a skirt hangs from the map's edge down to a wide plain that fades into the haze
+      var ring=[]; for(i=0;i<GW;i++) ring.push(i); for(j=1;j<GH;j++) ring.push(j*GW+GW-1); for(i=GW-2;i>=0;i--) ring.push((GH-1)*GW+i); for(j=GH-2;j>0;j--) ring.push(j*GW);
+      var lowY=1e9; ring.forEach(function(rc){ lowY=Math.min(lowY,Y[rc]); }); lowY-=0.08;
+      var sp2=[], su=[], sc=[], si=[]; ring.forEach(function(rc,k){ sp2.push(pos[rc*3],pos[rc*3+1],pos[rc*3+2], pos[rc*3],lowY,pos[rc*3+2]); su.push(uv[rc*2],uv[rc*2+1],uv[rc*2],uv[rc*2+1]); sc.push(base[rc*3]*0.8,base[rc*3+1]*0.8,base[rc*3+2]*0.8,0.35,0.33,0.25);
+        var k2=(k+1)%ring.length; si.push(2*k,2*k+1,2*k2, 2*k2,2*k+1,2*k2+1); });
+      var skg=new THREE.BufferGeometry(); skg.setAttribute("position",new THREE.Float32BufferAttribute(sp2,3)); skg.setAttribute("uv",new THREE.Float32BufferAttribute(su,2)); skg.setAttribute("color",new THREE.Float32BufferAttribute(sc,3));
+      skg.setAttribute("ovl",new THREE.Float32BufferAttribute(new Float32Array(sp2.length/3*4),4)); skg.setIndex(si); skg.computeVertexNormals(); root.add(new THREE.Mesh(skg,skirtMat));
+      var plg=new THREE.PlaneGeometry(900,900); plg.rotateX(-Math.PI/2); var pn=plg.attributes.position.count, pc=new Float32Array(pn*3); for(i=0;i<pn;i++){ pc[i*3]=0.5; pc[i*3+1]=0.47; pc[i*3+2]=0.36; }
+      plg.setAttribute("color",new THREE.BufferAttribute(pc,3)); plg.setAttribute("ovl",new THREE.BufferAttribute(new Float32Array(pn*4),4)); var plain=new THREE.Mesh(plg,plainMat); plain.position.y=lowY; root.add(plain);
+      loadImagery();
       // landmarks: a flag on the peak, little houses for the towns, the lake
       var pk=wpos(cellOf(39.5883,-105.6438)); var fp=post(0.08,C.paper); fp.scale.y=2.6; fp.position.copy(pk); root.add(fp);
       var fl=box(1.3,0.8,0.08,C.red); fl.position.set(pk.x+0.68,pk.y+2.15,pk.z); root.add(fl);
@@ -1521,7 +1551,9 @@
       sleeve=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,1,12),new THREE.MeshBasicMaterial({color:"#2E86E0"})); sleeve.geometry.translate(0,0.5,0); sleeve.scale.y=0.01; gauge.add(sleeve);
       alarm=new THREE.Mesh(new THREE.RingGeometry(1.6,1.9,40),new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.9,depthTest:false})); alarm.rotation.x=-Math.PI/2; alarm.renderOrder=9; alarm.position.set(gp.x,gp.y+0.3,gp.z); alarm.visible=false; root.add(alarm);
       var A=wpos(headgate), B=wpos(lakeCell), N=40, pts=[]; for(var s=0;s<=N;s++){ var x=A.x+(B.x-A.x)*s/N, z=A.z+(B.z-A.z)*s/N, cc=cellAt(x,z); pts.push(new THREE.Vector3(x,(cc>=0?Y[cc]:A.y)+0.05,z)); } canal=pts;
-      var cg=new THREE.Group(); for(s=0;s<N;s++){ var p1=pts[s], p2=pts[s+1], d=p2.clone().sub(p1), L=d.length(), sg=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.05,L),new THREE.MeshBasicMaterial({color:"#2E86E0"})); sg.position.copy(p1).add(p2).multiplyScalar(0.5); sg.lookAt(p2); cg.add(sg); } root.add(cg);
+      // the canal is one flat ribbon (one draw call instead of one box per segment)
+      var rv=[], ri=[], dir=new THREE.Vector3(B.x-A.x,0,B.z-A.z).normalize(), sx=-dir.z*0.08, sz=dir.x*0.08; for(s=0;s<=N;s++){ var q=pts[s]; rv.push(q.x-sx,q.y+0.03,q.z-sz, q.x+sx,q.y+0.03,q.z+sz); if(s<N) ri.push(2*s,2*s+1,2*s+2, 2*s+1,2*s+3,2*s+2); }
+      var rg=new THREE.BufferGeometry(); rg.setAttribute("position",new THREE.Float32BufferAttribute(rv,3)); rg.setIndex(ri); root.add(new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:"#2E86E0",side:THREE.DoubleSide})));
       root.add(waterPts); root.add(dropPts); root.add(snowPts); root.add(cloud); root.add(cshadow);
       Object.keys(LANDS).forEach(function(name){ var L=LANDS[name], c2=cellOf(L.lat,L.lon), base=wpos(c2), src=document.querySelector('.tile[data-g="'+name+'"] canvas'); if(!src) return;
         var cv=document.createElement("canvas"); cv.width=176; cv.height=140; var g=cv.getContext("2d"); g.fillStyle=C.paper; g.strokeStyle=C.ink; g.lineWidth=8;
@@ -1532,8 +1564,9 @@
         markers.push({name:name,sp:sp,base:base}); });
     }
     var lakeMesh=null, lakeRim=null;
-    function paintSnow(){ var a=colAttr.array; for(var c=0;c<GW*GH;c++){ var s=Math.min(1,snow[c]/2.5); a[c*3]=base[c*3]+(1-base[c*3])*s; a[c*3+1]=base[c*3+1]+(1-base[c*3+1])*s; a[c*3+2]=base[c*3+2]+(1-base[c*3+2])*s;
-      if(floodThr&&floodThr[c]<stage){ a[c*3]=0.18; a[c*3+1]=0.52; a[c*3+2]=0.88; } } colAttr.needsUpdate=true; snowDirty=false; paintedStage=stage; }
+    function paintSnow(){ var a=colAttr.array; for(var c=0;c<GW*GH;c++){ var s=Math.min(1,snow[c]/2.5), al=ACC[c]>=600?0.5:(ACC[c]>=150?0.16:0), o=c*4;   // overlay on the photo: rgb + how much
+      a[o]=0.29; a[o+1]=0.66; a[o+2]=1; a[o+3]=al; if(s>0.01){ a[o]=a[o+1]=a[o+2]=1; a[o+3]=Math.max(al,0.95*s); }
+      if(floodThr&&floodThr[c]<stage){ a[o]=0.18; a[o+1]=0.52; a[o+2]=0.88; a[o+3]=0.88; } } colAttr.needsUpdate=true; snowDirty=false; paintedStage=stage; }
     // ---- water, rain and snow drawn as points ----
     function dotTex(fill){ var cv=document.createElement("canvas"); cv.width=cv.height=32; var g=cv.getContext("2d"); g.fillStyle=fill; g.strokeStyle=C.ink; g.lineWidth=4; g.beginPath(); g.arc(16,16,11,0,Math.PI*2); g.fill(); g.stroke(); return new THREE.CanvasTexture(cv); }
     function pointCloud(n,fill,size){ var g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(n*3),3)); g.setDrawRange(0,0);
@@ -1573,6 +1606,12 @@
     var clock=0;
     function frame(dt){
       if(!ground) return; clock+=dt;
+      if(fly) stepFly(dt); else if(gmode!=="two"&&Math.abs(view.goal-view.dist)>1e-3) view.dist=Math.exp(Math.log(view.dist)+(Math.log(view.goal)-Math.log(view.dist))*(1-Math.exp(-dt/0.16)));
+      view.ty+=(gY(view.tx,view.tz)-view.ty)*(1-Math.exp(-dt/0.4)); applyView();
+      cam.fogNear=4+view.dist*0.3; cam.fogFar=45+view.dist*1.9; sky.position.copy(camera.position);
+      markers.forEach(function(m){ var d=camera.position.distanceTo(root.localToWorld(m.sp.position.clone())), k=clamp(d*0.085,1.1,4.2)*(m.big||1); m.sp.scale.set(k*1.265,k,1); });
+      needle.setAttribute("transform","rotate("+(view.yaw*180/Math.PI).toFixed(1)+" 16 16)");
+      if(texFade){ texMix.value=Math.min(1,texMix.value+dt/0.8); if(texMix.value>=1) texFade=false; }
       cloudPos.lerp(cloudWant,1-Math.exp(-dt/0.12)); cloud.position.copy(cloudPos); cloud.position.y+=Math.sin(clock*1.6)*0.12;
       var cc=cellAt(cloudPos.x,cloudPos.z); cshadow.position.set(cloudPos.x,(cc>=0?Y[cc]:0)+0.05,cloudPos.z);
       colT+=dt; if(snowDirty&&colT>0.3){ colT=0; paintSnow(); }
@@ -1591,7 +1630,42 @@
       if(lakeMesh){ var fill=Math.min(1,lake/(cap*CUP)); var s2=lakeR*(0.55+0.45*Math.sqrt(fill)); lakeMesh.scale.set(s2*1.3,s2,1); lakeRim.scale.copy(lakeMesh.scale); lakeMesh.position.y=lakeY+fill*0.08; lakeRim.position.y=lakeMesh.position.y+0.002; }
       setRumble(raining?0.05:Math.min(0.08,parts.length*0.00006));
     }
-    function goLand(m){ cloudWant.set(m.base.x,CLOUDY,m.base.z); m.sp.scale.set(3.6,2.85,1); S.go(); var name=m.name; setTimeout(function(){ m.sp.scale.set(3.1,2.45,1); if(cur===api) playLand(name); },950); }
+    // ---- free camera: a point on the ground, a heading, a tilt and a distance (zoom is logarithmic) ----
+    var view={yaw:0,tilt:0.761,dist:30,goal:30,tx:0,tz:0.6,ty:0.6}, viewInit=false, home=null, fly=null, lastLand=null, ptrs={}, gmode=null, grab=null, two=null, tapOK=false;
+    var DMIN=2.6, DMAX=110, TMAX=1.25;
+    function clampView(){ var w=(GW-1)/2*CELL, d=(GH-1)/2*CELL; view.tx=clamp(view.tx,-w,w); view.tz=clamp(view.tz,-d,d); view.tilt=clamp(view.tilt,0,TMAX); view.dist=clamp(view.dist,DMIN,DMAX); view.goal=clamp(view.goal,DMIN,DMAX); }
+    function gY(x,z){ var c=cellAt(x,z); return c>=0?Y[c]:0; }
+    function applyView(){ for(var it=0;it<12;it++){ var st=Math.sin(view.tilt), ox=Math.sin(view.yaw)*st*view.dist, oy=Math.cos(view.tilt)*view.dist, oz=Math.cos(view.yaw)*st*view.dist;
+        if(view.ty+oy>gY(view.tx+ox,view.tz+oz)+0.5||view.tilt<0.05) break; view.tilt-=0.05; }   // never under the mountains
+      cam.dir.set(Math.sin(view.yaw)*Math.sin(view.tilt),Math.cos(view.tilt),Math.cos(view.yaw)*Math.sin(view.tilt)); cam.off=0;
+      cam.target.set(view.tx,view.ty,view.tz).add(root.position); cam.dist=cam.distWant=view.dist; placeCamera(); }
+    function planeHit(p){ return rayTo(p,UP,-cam.target.y)?hit.clone():null; }
+    function panTo(p){ var g=planeHit(p); if(!g||!grab) return; view.tx+=grab.x-g.x; view.tz+=grab.z-g.z; clampView(); applyView(); }
+    function zoomAt(p,f){ var g0=p?planeHit(p):null; view.dist=clamp(view.dist*f,DMIN,DMAX); view.goal=view.dist; applyView(); if(g0){ var g1=planeHit(p); if(g1){ view.tx+=g0.x-g1.x; view.tz+=g0.z-g1.z; clampView(); applyView(); } } }
+    function snap(){ return {yaw:view.yaw,tilt:view.tilt,dist:view.dist,tx:view.tx,tz:view.tz}; }
+    function flyTo(to,ms,done){ if(reduce) ms=0; var a=snap(); while(to.yaw-a.yaw>Math.PI) to.yaw-=Math.PI*2; while(to.yaw-a.yaw<-Math.PI) to.yaw+=Math.PI*2;
+      var far=Math.hypot(to.tx-a.tx,to.tz-a.tz); fly={a:a,b:to,t:0,ms:Math.max(1,ms),bump:Math.min(0.6,far/40),done:done}; }
+    function stepFly(dt){ fly.t+=dt*1000; var u=Math.min(1,fly.t/fly.ms), e=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2, a=fly.a, b=fly.b;
+      view.tx=a.tx+(b.tx-a.tx)*e; view.tz=a.tz+(b.tz-a.tz)*e; view.yaw=a.yaw+(b.yaw-a.yaw)*e; view.tilt=a.tilt+(b.tilt-a.tilt)*e;
+      view.dist=Math.exp(Math.log(a.dist)+(Math.log(b.dist)-Math.log(a.dist))*e+fly.bump*Math.sin(Math.PI*e)); view.goal=view.dist;
+      if(u>=1){ var d=fly.done; fly=null; if(d) d(); } }
+    function homeView(){ return {yaw:0,tilt:0.761,dist:view.home||30,tx:0,tz:0.6}; }
+    function goLand(m){ cloudWant.set(m.base.x,CLOUDY,m.base.z); m.big=1.16; S.go(); var name=m.name; home=snap(); lastLand=m;
+      flyTo({yaw:view.yaw,tilt:1.0,dist:5.5,tx:m.base.x,tz:m.base.z},950);
+      setTimeout(function(){ m.big=1; if(cur===api) playLand(name); },950); }
+    function cloudPx(p){ var w=root.localToWorld(cloudPos.clone()), q=toScreen(w), r=1.9*H/(2*Math.tan(camera.fov*Math.PI/360)*camera.position.distanceTo(w)); return Math.hypot(p.x-q.x,p.y-q.y)<Math.max(46,r); }
+    function pickMarker(p){ var best=null, bd=62; markers.forEach(function(m){ var q=toScreen(root.localToWorld(m.sp.position.clone())), d=Math.hypot(p.x-q.x,p.y-q.y); if(d<bd){ bd=d; best=m; } }); return best; }
+    function twoState(){ var k=Object.keys(ptrs), A=ptrs[k[0]], B=ptrs[k[1]]; return {d:Math.max(1,Math.hypot(A.x-B.x,A.y-B.y)),a:Math.atan2(B.y-A.y,B.x-A.x),m:{x:(A.x+B.x)/2,y:(A.y+B.y)/2},dyA:A.y-A.py,dyB:B.y-B.py}; }
+    function startOne(p,ev){ gmode=(ev&&(ev.button===2||ev.shiftKey||ev.ctrlKey))?"orbit":(!pickMarker(p)&&cloudPx(p))?"cloud":"pan"; grab=planeHit(p); if(gmode==="cloud"){ moveCloud(p); S.tick(); } }
+    var nav=document.createElement("div"); nav.className="navc"; nav.hidden=true; stageEl.appendChild(nav);
+    nav.innerHTML='<button id="navN" aria-label="Turn the map north-up"><svg viewBox="0 0 32 32" aria-hidden="true"><g class="needle"><path d="M16 3 L21 16 L11 16 Z" fill="#E8483B" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/><path d="M16 29 L21 16 L11 16 Z" fill="#FFFDF7" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></g></svg></button>'+
+      '<button id="navIn" aria-label="Zoom in"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 7v18M7 16h18" stroke="#22203F" stroke-width="3.6" stroke-linecap="round"/></svg></button>'+
+      '<button id="navOut" aria-label="Zoom out"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 16h18" stroke="#22203F" stroke-width="3.6" stroke-linecap="round"/></svg></button>';
+    var needle=nav.querySelector(".needle");
+    nav.querySelector("#navN").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); S.click(); var h=homeView(); flyTo({yaw:0,tilt:h.tilt,dist:view.dist,tx:view.tx,tz:view.tz},700); });
+    nav.querySelector("#navIn").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); S.click(); view.goal=clamp(view.goal/1.8,DMIN,DMAX); });
+    nav.querySelector("#navOut").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); S.click(); view.goal=clamp(view.goal*1.8,DMIN,DMAX); });
+    var credit=document.createElement("div"); credit.className="credit"; credit.hidden=true; credit.textContent="Photo: Copernicus Sentinel-2 data 2024"; stageEl.appendChild(credit);
     function moveCloud(p){ if(!rayTo(p,UP,-2.2)) return; var l=root.worldToLocal(hit.clone()); cloudWant.set(clamp(l.x,-(GW-1)/2*CELL,(GW-1)/2*CELL),CLOUDY,clamp(l.z,-(GH-1)/2*CELL,(GH-1)/2*CELL)); }
     function fitPts(){ var w=(GW-1)/2*CELL, d=(GH-1)/2*CELL; return [[-w,0,-d],[w,0,-d],[-w,-1.6,d],[w,-1.6,d],[-w,7,-d],[w,CLOUDY+1,0]].map(function(q){ return root.localToWorld(new THREE.Vector3(q[0],q[1],q[2])); }); }
     wx.querySelector("#wxCold").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setT(T0-4); S.click(); speak(T0<=0?"Brrr! Snow all the way down.":"Colder! More snow up high."); });
@@ -1599,22 +1673,36 @@
     var api={
       name:"rain", root:root, goVisible:false, ownScene:true, fit:function(){ return fitPts(); },
       enter:function(){ cam.dir.set(0,1.05,1).normalize(); cam.off=0; root.updateMatrixWorld(true); cam.target.copy(root.localToWorld(new THREE.Vector3(0,0.6,0.6)));
-        cam.distWant=fitDist(fitPts(),0.95,0.62); cam.dist=cam.distWant; hud.hidden=false; wx.hidden=false; wchip.hidden=false; rainBtn.hidden=false; msg.hidden=!failed; if(!ground) loadGround(); if(!hudN.textContent.includes("/")) hudN.textContent="0 / "+cap;
+        cam.distWant=fitDist(fitPts(),0.95,0.62); cam.dist=cam.distWant; sky.visible=true; hazeU.value=HAZE; nav.hidden=!ground; credit.hidden=!ground; ptrs={}; gmode=null;
+        if(ground){ if(!viewInit){ viewInit=true; view.home=cam.distWant*0.86; view.dist=view.goal=view.home; view.ty=gY(0,0.6); }
+          if(lastLand&&home){ var L0=lastLand, back=home; lastLand=null; view.tx=L0.base.x; view.tz=L0.base.z; view.dist=view.goal=5.5; view.tilt=1.0; view.yaw=back.yaw; view.ty=gY(view.tx,view.tz); flyTo(back,1300); }
+          applyView(); }
+        hud.hidden=false; wx.hidden=false; wchip.hidden=false; rainBtn.hidden=false; msg.hidden=!failed; if(!ground) loadGround(); if(!hudN.textContent.includes("/")) hudN.textContent="0 / "+cap;
         if(hubBank.pending>0){ var got=Math.round(hubBank.pending); hubBank.pending=0; water+=got; saidEmpty=false; paintWater(); wchip.classList.remove("bump"); void wchip.offsetWidth; wchip.classList.add("bump"); tone(600,1200,0.3,"triangle",0.12);
           setTimeout(function(){ speak("You earned "+got+" raindrops! Fly over the mountains and hold the rain button."); },400); } },
-      exit:function(){ raining=false; wantRain=false; hud.hidden=true; wx.hidden=true; wchip.hidden=true; rainBtn.hidden=true; msg.hidden=true; setRumble(0); },
+      exit:function(){ raining=false; wantRain=false; fly=null; ptrs={}; gmode=null; sky.visible=false; hazeU.value=FOG.color.value; nav.hidden=true; credit.hidden=true; hud.hidden=true; wx.hidden=true; wchip.hidden=true; rainBtn.hidden=true; msg.hidden=true; setRumble(0); },
       ready:function(){ return !!(ground&&mesh); }, landPoint:function(lat,lon){ return wpos(cellOf(lat,lon)); },
       makeBackdrop:function(lat,lon,r0,r1){ // the real terrain, with a level clearing for the game that blends back into the true relief
         var lp=wpos(cellOf(lat,lon)), src=mesh.geometry, pos=src.attributes.position.array.slice(), gg=new THREE.BufferGeometry();
         for(var v=0;v<pos.length;v+=3){ var dx=pos[v]-lp.x, dz=pos[v+2]-lp.z, d=Math.sqrt(dx*dx+dz*dz); if(d<r1){ var t=d<=r0?0:(d-r0)/(r1-r0); t=t*t*(3-2*t); pos[v+1]=lp.y+(pos[v+1]-lp.y)*t; } }
-        gg.setAttribute("position",new THREE.BufferAttribute(pos,3)); gg.setAttribute("color",src.attributes.color); gg.setIndex(src.index); gg.computeVertexNormals();   // shares the map's colours, so snow and floods show here too
+        gg.setAttribute("position",new THREE.BufferAttribute(pos,3)); ["color","uv","ovl"].forEach(function(k){ gg.setAttribute(k,src.attributes[k]); }); gg.setIndex(src.index); gg.computeVertexNormals();   // shares the photo and the overlay, so snow and floods show here too
         var grp=new THREE.Group(); grp.add(new THREE.Mesh(gg,mesh.material)); return grp; },
       step:step, frame:frame, overlay:function(){},
-      down:function(p){ if(!ground) return true;
-        var best=null, bd=62; markers.forEach(function(m){ var q=toScreen(root.localToWorld(m.sp.position.clone())), d=Math.hypot(p.x-q.x,p.y-q.y); if(d<bd){ bd=d; best=m; } }); if(best){ goLand(best); return false; }   // tap a signpost: fly there and play (the nearest one)
-        moveCloud(p); S.tick(); return true; },
-      move:function(p){ if(ground) moveCloud(p); },
-      up:function(){},
+      // one finger: drag the ground to pan, drag the cloud to move it, tap a sign to play, tap the map to send the cloud.
+      // two fingers: pinch to zoom, twist to turn, slide both up or down to tilt. Mouse: wheel zooms, right-drag turns and tilts.
+      down:function(p,ev){ if(!ground) return true; fly=null; var id=ev?ev.pointerId:0; ptrs[id]={x:p.x,y:p.y,px:p.x,py:p.y,x0:p.x,y0:p.y,t0:now()};
+        var n=Object.keys(ptrs).length; if(n===1){ tapOK=true; startOne(p,ev); } else if(n===2){ tapOK=false; gmode="two"; two=twoState(); } return true; },
+      move:function(p,ev){ if(!ground) return; var id=ev?ev.pointerId:0, P=ptrs[id]; if(!P) return; P.px=P.x; P.py=P.y; P.x=p.x; P.y=p.y; if(Math.hypot(p.x-P.x0,p.y-P.y0)>10) tapOK=false;
+        if(gmode==="cloud") moveCloud(p);
+        else if(gmode==="pan") panTo(p);
+        else if(gmode==="orbit"){ view.yaw-=(p.x-P.px)*0.008; view.tilt-=(p.y-P.py)*0.006; clampView(); applyView(); }
+        else if(gmode==="two"&&Object.keys(ptrs).length>=2){ var t=twoState(); zoomAt(t.m,two.d/t.d); var da=t.a-two.a; if(da>Math.PI) da-=Math.PI*2; if(da<-Math.PI) da+=Math.PI*2; view.yaw-=da;
+          if(Math.abs(t.d-two.d)<3&&t.dyA*t.dyB>0) view.tilt-=(t.dyA+t.dyB)/2*0.008; clampView(); applyView(); two=t; } },
+      up:function(ev){ var id=ev?ev.pointerId:0, P=ptrs[id]; delete ptrs[id]; var left=Object.keys(ptrs).length;
+        if(P&&tapOK&&left===0&&gmode!=="cloud"&&gmode!=="orbit"&&now()-P.t0<500){ var m=pickMarker(P); if(m) goLand(m); else { moveCloud(P); S.tick(); } }   // a tap
+        if(left===1){ var k=Object.keys(ptrs)[0], Q=ptrs[k]; gmode="pan"; grab=planeHit(Q); } else if(left===0){ gmode=null; grab=null; }
+        return left>0; },
+      wheel:function(p,dy){ fly=null; zoomAt(p,Math.exp(clamp(dy,-120,120)*0.0022)); },
       idleOK:function(){ return !!ground&&!raining&&!auto&&!wantRain; },
       cancel:function(){ auto=false; raining=false; },
       demo:function(kind,tok){
@@ -1656,10 +1744,12 @@
   function touched(){ lastTouch=now(); cancelDemo(); }
   glc.addEventListener("pointerdown",function(ev){
     if(!started) return; touched();
-    if(cur.down(local(ev))!==false||cur===maze){ dragging=true; try{ glc.setPointerCapture(ev.pointerId); }catch(e){} glc.classList.add("grabbing"); }
+    if(cur.down(local(ev),ev)!==false||cur===maze){ dragging=true; try{ glc.setPointerCapture(ev.pointerId); }catch(e){} glc.classList.add("grabbing"); }
   });
-  glc.addEventListener("pointermove",function(ev){ if(!dragging) return; lastTouch=now(); cur.move(local(ev)); });
-  function up(){ if(dragging){ dragging=false; glc.classList.remove("grabbing"); cur.up(); } }
+  glc.addEventListener("pointermove",function(ev){ if(!dragging) return; lastTouch=now(); cur.move(local(ev),ev); });
+  function up(ev){ if(dragging){ if(cur.up(ev)===true) return; dragging=false; glc.classList.remove("grabbing"); } }   // true: other fingers are still down
+  glc.addEventListener("wheel",function(ev){ if(!started||!cur.wheel) return; ev.preventDefault(); touched(); cur.wheel(local(ev),ev.deltaY); },{passive:false});
+  glc.addEventListener("contextmenu",function(ev){ ev.preventDefault(); });
   glc.addEventListener("pointerup",up); glc.addEventListener("pointercancel",up);
   goBtn.addEventListener("pointerdown",function(ev){ ev.preventDefault(); if(!started||!cur.go) return; touched(); cur.go(); });
   goBtn.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&started&&cur.go){ ev.preventDefault(); touched(); cur.go(); } });
