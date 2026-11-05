@@ -1,0 +1,65 @@
+/* Fluid Tensor Analytics: shared style for the 3D pages. Works as a plain page of cards until fta-scene.js adds .scene to the body. */
+@import url('https://fonts.googleapis.com/css2?family=Exo:wght@400;600&display=swap');
+:root {
+  --c-night: #0A1628; --c-dusk: #1A2842; --c-cyan: #64C8FF; --c-ice: #A8D5FF; --c-pale: #E0F2FF; --c-white: #FFFFFF;
+  --c-coral: #FF8A5C; --c-mint: #7FE3C4; --c-glass: rgba(10, 22, 40, .78); --c-edge: rgba(100, 200, 255, .26); --c-hover: rgba(100, 200, 255, .12);
+  --font-head: 'Exo', 'Segoe UI', system-ui, sans-serif; --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+  --radius: 10px; --gutter: 16px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--c-night); color: var(--c-pale); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+a { color: var(--c-cyan); }
+h1 { font-family: var(--font-head); font-weight: 600; margin: 0; color: var(--c-white); font-size: clamp(30px, 5vw, 46px); line-height: 1.05; letter-spacing: -.5px; }
+:focus-visible { outline: 2px solid var(--c-cyan); outline-offset: 2px; }
+.skip { position: absolute; left: var(--gutter); top: -60px; z-index: 200; background: var(--c-cyan); color: var(--c-night); padding: 10px 14px; border-radius: 6px; }
+.skip:focus { top: 8px; }
+
+nav.top { position: fixed; inset: 0 0 auto 0; z-index: 100; background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--c-edge); }
+nav.top ul { list-style: none; display: flex; gap: 0 clamp(2px, 2vw, 24px); justify-content: center; align-items: center; margin: 0; padding: 4px var(--gutter); }
+nav.top a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; color: var(--c-ice); font-weight: 500; text-decoration: none; letter-spacing: .5px; transition: color .15s; }
+nav.top a:hover { color: var(--c-cyan); }
+nav.top a[aria-current] { color: var(--c-white); box-shadow: inset 0 -2px 0 var(--c-cyan); }
+
+/* the plain page: what you get with no WebGL2 or no scripts */
+.intro { padding: 72px var(--gutter) 12px; max-width: 1120px; margin: 0 auto; }
+.intro p { margin: 8px 0 0; max-width: 46ch; font-size: clamp(15px, 2vw, 18px); }
+.intro .contact { display: inline-flex; align-items: center; min-height: 44px; }
+#tools { list-style: none; margin: 0 auto; padding: 8px var(--gutter) 48px; max-width: 1120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.tool { display: block; height: 100%; min-height: 44px; padding: 14px 16px; color: inherit; text-decoration: none; background: var(--c-dusk); border: 1px solid var(--c-edge); border-radius: var(--radius); }
+.tool b { display: block; font-family: var(--font-head); font-weight: 600; font-size: 18px; color: var(--c-white); }
+.tool span { display: block; margin-top: 4px; font-size: 15px; color: var(--c-ice); }
+
+/* the scene: the same links, riding on their buoys */
+#sea { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#sea.drag { cursor: grabbing; }
+body.scene { height: 100vh; height: 100dvh; overflow: hidden; }
+.scene .intro { position: fixed; left: var(--gutter); top: 62px; width: min(400px, calc(100% - 2 * var(--gutter))); margin: 0; padding: 8px 12px 10px; pointer-events: none; z-index: 7; background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--c-edge); border-radius: var(--radius); }
+.scene .intro h1 { font-size: clamp(24px, 4vw, 34px); }
+.scene .intro p { margin-top: 4px; font-size: 15px; }
+.scene .intro a { pointer-events: auto; }
+.scene #tools { display: block; position: fixed; inset: 0; margin: 0; padding: 0; max-width: none; pointer-events: none; z-index: 6; }
+.scene #tools li { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+.scene .tool { height: auto; min-height: 0; padding: 4px 11px; white-space: nowrap; pointer-events: auto; background: var(--c-glass); border-radius: 999px; transition: border-color .15s, background-color .15s; }
+.scene .tool b { font-size: 14px; }
+.scene .tool span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
+.scene .tool:hover, .scene li.on .tool { border-color: var(--c-cyan); background: var(--c-dusk); }
+.scene li.lead .tool { border-color: var(--c-coral); }
+.scene li.far .tool { pointer-events: none; }
+#panel { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 20; width: min(620px, calc(100% - 2 * var(--gutter))); padding: 12px 14px; background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--c-edge); border-radius: var(--radius); }
+#ptext b { display: block; font-family: var(--font-head); font-weight: 600; font-size: 20px; color: var(--c-white); }
+#ptext span { display: block; font-size: 15px; color: var(--c-pale); min-height: 45px; }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.arrow, #open { min-height: 44px; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.arrow { min-width: 44px; background: none; color: var(--c-ice); border: 1px solid var(--c-edge); }
+.arrow:hover { border-color: var(--c-cyan); background: var(--c-hover); }
+.arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#open { flex: 1; background: var(--c-cyan); color: var(--c-night); padding: 0 14px; }
+#open:hover { background: var(--c-pale); }
+#hint { position: fixed; right: var(--gutter); top: 60px; z-index: 5; margin: 0; max-width: calc(100% - 450px); text-align: right; font-size: 14px; color: var(--c-ice); text-shadow: 0 1px 6px var(--c-night); pointer-events: none; }
+@media (max-width: 720px) {
+  #hint { display: none; }
+  #ptext span { min-height: 68px; }
+  nav.top ul { justify-content: space-between; padding: 4px 6px; gap: 0; }
+  nav.top a { padding: 0 6px; font-size: 14px; letter-spacing: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
