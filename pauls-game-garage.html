@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="A 3D toy-box games collection for a five-year-old: Marble Maze, Ramp Race, Marble Hill, Big Launch, Word Hill, Rain to the Lake and Tile Time, built on real physics and real Colorado terrain.">
+<meta name="description" content="A 3D toy-box games collection for a five-year-old: seven games plus Tile Time and Word Time between rounds, built on real physics and real Colorado terrain.">
 <title>Paul's Game Garage</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
 <style>
@@ -126,9 +126,36 @@
   .ttb.small{width:62px;height:62px;font-size:32px;padding:0} .ttb.ok{background:var(--grass)}
   .gridpick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border:4px solid var(--ink);border-radius:18px;padding:12px;
     box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;z-index:60}
-  .gpgrid{--cell:clamp(20px,min(7vw,5.2vh),32px);display:grid;grid-template-columns:repeat(10,var(--cell));grid-template-rows:repeat(10,var(--cell));gap:3px;touch-action:none}
+  .gpgrid{--cell:clamp(19px,min(6.6vw,4.8vh),31px);display:grid;grid-template-columns:repeat(11,var(--cell));grid-template-rows:repeat(11,var(--cell));gap:3px;touch-action:none}
+  .gph{display:grid;place-items:center;font-weight:700;font-size:calc(var(--cell)*0.6);color:#A9A5C2;font-variant-numeric:tabular-nums}
+  .gph.on{color:var(--ink)}
   .ttbtns.wx{left:12px;transform:none;align-items:center}
+  .ttbtns.ldial{left:auto;right:12px;bottom:12px;transform:none;flex-direction:column;align-items:center;gap:8px}
+  .angv{background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:4px 10px;display:flex;flex-direction:column;align-items:center;font-weight:700;font-size:clamp(22px,4.4vw,30px);font-variant-numeric:tabular-nums}
+  .angv svg{width:48px;height:32px}
+  .ttp{position:relative}
+  .ttfloat{position:absolute;right:-8px;top:-16px;font-weight:700;font-size:26px;opacity:0;pointer-events:none}
+  .ttfloat.up{color:#1E8F52} .ttfloat.down{color:var(--red)}
+  .ttfloat.go{animation:floatup .9s ease-out}
+  @keyframes floatup{0%{opacity:1;transform:translateY(10px)}100%{opacity:0;transform:translateY(-24px)}}
+  .explain{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:min(440px,46%);max-height:calc(100% - 24px);overflow:auto;background:var(--card);border:4px solid var(--ink);
+    border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);z-index:7;display:flex;flex-direction:column;gap:8px}
+  .explain h3{margin:0;font-size:clamp(22px,4.4vw,32px)}
+  .explain p{margin:4px 0 0;font-weight:600;color:var(--muted)}
+  .explain ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .explain li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:6px 10px;font-weight:700;font-variant-numeric:tabular-nums}
+  .explain li.mine{background:var(--yellow)}
+  .xeq{font-size:clamp(18px,3.6vw,26px);flex:1 1 auto;min-width:0} .xadd{color:var(--muted);font-weight:600}
+  .explain p.xbest{color:#1E8F52}
+  .explain #exOk{align-self:flex-end}
   .wxt{min-width:64px;text-align:center;font-weight:700;font-size:clamp(24px,4.6vw,34px);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:2px 8px;font-variant-numeric:tabular-nums}
+  .wtkeys{gap:10px;flex-wrap:wrap;justify-content:center;width:calc(100% - 24px);max-width:640px}
+  .wtk{font-size:44px;padding:0 0 6px;background:var(--paper)}
+  .wtk.used{opacity:.25}
+  .wtk.wob{animation:nope .4s}
+  .wtdots{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:8px;pointer-events:none}
+  .wtdots i{width:18px;height:18px;border-radius:50%;border:3px solid var(--ink);background:var(--paper)}
+  .wtdots i.done{background:var(--grass)} .wtdots i.now{background:var(--yellow)}
   .gpc{background:var(--paper);border:2px solid #CFCBE0;border-radius:5px}
   .gpc.on{background:var(--yellow);border-color:var(--ink)}
   .gprow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:clamp(22px,4.4vw,30px);font-variant-numeric:tabular-nums}
@@ -140,7 +167,8 @@
   footer{font-size:14px;color:var(--muted);line-height:1.5;max-width:68ch}
   footer a{color:var(--purple);font-weight:700}
   .err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-weight:600;font-size:18px;background:var(--sky)}
-  @media (max-width:520px){ .wordbar{top:60px;max-width:calc(100% - 16px)} .ttb{width:70px;height:70px;font-size:44px} .round{width:52px;height:52px} .round svg{width:27px;height:27px} .hbtns{gap:6px} .go{width:92px;height:92px} .start button{width:124px;height:124px} .place{width:42px;height:42px;font-size:24px;border-width:3px} .place.first{width:52px;height:52px;font-size:30px} h1{text-shadow:3px 3px 0 var(--yellow)} }
+  @media (max-width:699px){ .explain{left:8px;right:8px;top:auto;bottom:8px;transform:none;width:auto;max-height:52%;padding:10px 12px} .explain h3{font-size:22px} .xeq{font-size:18px} }
+  @media (max-width:520px){ .wtkeys{gap:7px;bottom:10px} .ttb.wtk{width:50px;height:50px;font-size:31px;border-width:4px} .wordbar{top:60px;max-width:calc(100% - 16px)} .ttb{width:70px;height:70px;font-size:44px} .round{width:52px;height:52px} .round svg{width:27px;height:27px} .hbtns{gap:6px} .go{width:92px;height:92px} .start button{width:124px;height:124px} .place{width:42px;height:42px;font-size:24px;border-width:3px} .place.first{width:52px;height:52px;font-size:30px} h1{text-shadow:3px 3px 0 var(--yellow)} }
   @media (prefers-reduced-motion: reduce){ .go.pulse,.start button{animation:none} .place{transition:none} }
 </style>
 
@@ -183,10 +211,11 @@
       <button class="tile" data-g="word" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD HILL</button>
       <button class="tile" data-g="rain" aria-pressed="false"><canvas width="144" height="108"></canvas>RAIN TO LAKE</button>
       <button class="tile" data-g="tiles" aria-pressed="false"><canvas width="144" height="108"></canvas>TILE TIME</button>
+      <button class="tile" data-g="wordtime" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD TIME</button>
     </div>
   </nav>
 
-  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go. At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The marble rolls at 5/7 · g · sin 8° with light grass drag, settling near 2.8 m/s. <b>Big Launch:</b> pull the ball back in the slingshot and let go; the pull direction sets the angle and the pull length sets the speed, up to 10.6 m/s. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The far bucket needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> the marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after each round the score becomes the target; + adds one tile and × adds a block of rows × columns, so 21 can be 5 × 4 + 1. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data). Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
+  <footer>For grown-ups. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go. At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The marble rolls at 5/7 · g · sin 8° with light grass drag, settling near 2.8 m/s. <b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> the marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number. so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data). Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells. <b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -827,143 +856,157 @@
   })();
 
   // =====================================================================
-  // BIG LAUNCH — pull the slingshot back and let go; land in three buckets.
-  // Released at bucket-rim height, so release and landing heights match and
-  // 45° really is the best angle: range = v² · sin(2θ) / g.
+  // BIG LAUNCH (3D) — pull the slingshot back and let go; land in three buckets
+  // spread across the field. Pull length is power, pulling sideways aims the other way,
+  // the dial sets the launch angle. Released at bucket-rim height, so release and
+  // landing heights match and 45° really is the best angle: range = v² · sin(2θ) / g.
+  // Local axes: x down the field, z to the right (from the camera behind the sling), y up.
   // =====================================================================
   var launch=(function(){
     var root=new THREE.Group(); root.visible=false; root.position.set(-200,0,0); scene.add(root);
-    var R=0.22, TOP=0.45, H0=TOP+R, BR=0.6, VMAX=10.6, PULLMAX=1.3, AMIN=10, AMAX=80;
-    // field
-    var field=new THREE.Mesh(new THREE.BoxGeometry(80,0.4,60),toon(C.grass)); field.position.set(6,-0.2,-14); root.add(field);
-    var strip=new THREE.Mesh(new THREE.BoxGeometry(14,0.02,1.7),toon(C.dirt)); strip.position.set(5.6,0.01,0); root.add(strip);
-    for(var m=2;m<=12;m+=2){ var tick=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.024,1.7),toon(C.dirt2)); tick.position.set(m,0.012,0); root.add(tick); }
+    var R=0.22, TOP=0.45, H0=TOP+R, BR=0.6, VMAX=10.6, PULLBACK=1.2, AMIN=10, AMAX=80, YAWMAX=40;
+    // field: lawn, a fan of dirt with distance arcs every 2 m, trees and hills around it
+    var field=new THREE.Mesh(new THREE.BoxGeometry(90,0.4,80),toon(C.grass)); field.position.set(10,-0.2,0); root.add(field);
+    var fan=new THREE.Mesh(new THREE.CircleGeometry(12.6,48,-rad(44),rad(88)),toon(C.dirt)); fan.rotation.x=-Math.PI/2; fan.position.y=0.01; root.add(fan);
+    for(var m=2;m<=12;m+=2){ var arc=new THREE.Mesh(new THREE.RingGeometry(m-0.04,m+0.04,48,1,-rad(44),rad(88)),new THREE.MeshBasicMaterial({color:C.dirt2,polygonOffset:true,polygonOffsetFactor:-2}));
+      arc.rotation.x=-Math.PI/2; arc.position.y=0.015; root.add(arc); }
     function lt(x,z,s){ var t=new THREE.Group(); var tr=post(0.09*s,C.dirt2); tr.scale.y=0.5*s; t.add(tr); var c1=cone(0.55*s,1.1*s,C.grass); c1.position.y=s; t.add(c1); t.position.set(x,0,z); root.add(t); }
-    lt(-3,-3.5,1.4); lt(1.5,-5,1.8); lt(6,-6.5,2.1); lt(10.5,-4.5,1.5); lt(14,-6,1.9); lt(-5,-7,2.2); lt(16.5,-2.5,1.3);
-    var lh1=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(10,1)),toon(C.hill)); lh1.scale.y=0.32; lh1.position.set(2,0,-26); root.add(lh1);
-    var lh2=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(12,1)),toon(C.grass)); lh2.scale.y=0.3; lh2.position.set(20,0,-30); root.add(lh2);
-    [[-2,5.2,-12,1.3],[9,6,-16,1.7]].forEach(function(c){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5]].forEach(function(p){ var b=sphere(p[2]*c[3],C.white,1); b.position.set(p[0]*c[3],p[1]*c[3],0); g.add(b); }); g.position.set(c[0],c[1],c[2]); root.add(g); });
+    lt(14.5,-6,1.9); lt(16,0.5,2.2); lt(14,7,1.7); lt(8,-11,1.6); lt(9,11,1.5); lt(3,-9,1.3); lt(2.5,9.5,1.4); lt(19,-11,2.3); lt(20,10,2.1);
+    var lh1=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(11,1)),toon(C.hill)); lh1.scale.y=0.32; lh1.position.set(32,0,-8); root.add(lh1);
+    var lh2=new THREE.Mesh(flat(new THREE.IcosahedronGeometry(13,1)),toon(C.grass)); lh2.scale.y=0.3; lh2.position.set(36,0,12); root.add(lh2);
+    [[22,6,-9,1.4],[26,7,8,1.8]].forEach(function(c){ var g=new THREE.Group(); [[0,0,0.55],[0.6,0.18,0.7],[1.25,0,0.5]].forEach(function(p){ var b=sphere(p[2]*c[3],C.white,1); b.position.set(0,p[1]*c[3],p[0]*c[3]); g.add(b); }); g.position.set(c[0],c[1],c[2]); root.add(g); });
     // slingshot: a base, two fork posts, a rubber band to the ball
     var base=box(0.5,0.12,1.0,C.dirt2); base.position.set(0.05,0.06,0); root.add(base);
     var tips=[new THREE.Vector3(0.05,H0+0.06,0.36),new THREE.Vector3(0.05,H0+0.06,-0.36)];
     tips.forEach(function(t){ var p=post(0.05,C.dirt2); p.scale.y=t.y; p.position.set(t.x,0,t.z); root.add(p); var k=sphere(0.07,C.red,0); k.position.copy(t); root.add(k); });
-    var UPV=new THREE.Vector3(0,1,0);
+    var UPV=new THREE.Vector3(0,1,0), XV=new THREE.Vector3(1,0,0), REST=new THREE.Vector3(0.05,H0,0);
     function band(){ var g=post(0.025,C.ink); root.add(g); return g; }
     var bands=[band(),band()];
     function setSeg(g,a,b){ var d=new THREE.Vector3().subVectors(b,a), L=Math.max(1e-3,d.length()); g.position.copy(a); g.scale.set(1,L,1); g.quaternion.setFromUnitVectors(UPV,d.multiplyScalar(1/L)); }
     var ballM=ball(C.red); ballM.group.scale.setScalar(R); ballM.hull.scale.setScalar(1+OUT/R); root.add(ballM.group);
     var bshadow=blob(0.3); root.add(bshadow);
-    // aim arrow (direction and power), shown only while pulling
-    var arrow=new THREE.Group(); var shaft=box(1,0.07,0.07,C.yellow); shaft.position.x=0.5; arrow.add(shaft);
-    var head=new THREE.Group(); var hc=cone(0.15,0.3,C.yellow); hc.rotation.z=-Math.PI/2; head.add(hc); arrow.add(head); arrow.visible=false; root.add(arrow);
-    var tag=el("tag"); tag.hidden=true;
+    // aim arrow along the launch direction: length shows power
+    var arrow=new THREE.Group(); var shaft=box(1,0.08,0.08,C.yellow); shaft.position.x=0.5; arrow.add(shaft);
+    var head=new THREE.Group(); var hc=cone(0.17,0.34,C.yellow); hc.rotation.z=-Math.PI/2; head.add(hc); arrow.add(head); root.add(arrow);
     var hud=el("gems"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="#FFD23F" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><span>0</span>'; hud.hidden=true;
     var hudN=hud.querySelector("span");
+    // the angle dial: up, the angle with a little ramp picture, down
+    var dial=document.createElement("div"); dial.className="ttbtns ldial"; dial.hidden=true; stageEl.appendChild(dial);
+    dial.innerHTML='<button class="ttb small" id="angUp" aria-label="Launch higher">▲</button><div class="angv"><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M4 28 H44" stroke="#22203F" stroke-width="3" stroke-linecap="round"/><path id="angLine" d="M6 28 L40 28" stroke="#FF4D4D" stroke-width="4" stroke-linecap="round"/></svg><b id="angN">45°</b></div><button class="ttb small" id="angDn" aria-label="Launch lower">▼</button>';
+    var angN=dial.querySelector("#angN"), angLine=dial.querySelector("#angLine");
     // buckets and flight paths
     var buckets=[], bucketG=null, paths=[], dotGeo=new THREE.SphereGeometry(0.06,8,6);
     var dotNew=new THREE.MeshBasicMaterial({color:C.paper}), dotOld=new THREE.MeshBasicMaterial({color:C.paper,transparent:true,opacity:0.4});
-    var st={x:0,y:H0,vx:0,vy:0,px:0,py:H0}, phase="aim", aim={angle:45,power:0,on:false}, lastAngle=null, dotT=0, restT=0, inT=0, inB=null, stars=0, misses=0, newT=null, curPath=null, landed=false;
+    var st={x:0,y:H0,z:0,vx:0,vy:0,vz:0,px:0,py:H0,pz:0}, phase="aim", aim={angle:30,yaw:0,power:0,on:false,p0:null}, lastShot=null, dotT=0, restT=0, inT=0, stars=0, misses=0, newT=null, curPath=null, landed=false;
+    function setAngle(a){ aim.angle=clamp(Math.round(a/5)*5,AMIN,AMAX); angN.textContent=aim.angle+"°"; var t=rad(aim.angle); angLine.setAttribute("d","M6 28 L"+(6+34*Math.cos(t)).toFixed(1)+" "+(28-34*Math.sin(t)).toFixed(1)); }
+    function dirOf(angle,yaw){ var t=rad(angle), y=rad(yaw); return new THREE.Vector3(Math.cos(t)*Math.cos(y),Math.sin(t),Math.cos(t)*Math.sin(y)); }
     function layout(){
       if(bucketG){ root.remove(bucketG); disposeTree(bucketG); } bucketG=new THREE.Group(); root.add(bucketG); buckets=[];
-      [[3+Math.random()*1.2,C.red],[6+Math.random()*1.4,C.yellow],[9.2+Math.random()*1.4,C.teal]].forEach(function(b){
-        var g=new THREE.Group(); g.position.set(b[0],0,0); bucketG.add(g);
+      var yaws=[-24,0,24].map(function(y){ return y+(Math.random()*10-5); }); for(var i=2;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=yaws[i]; yaws[i]=yaws[j]; yaws[j]=t; }
+      [[3+Math.random()*1.2,C.red],[6+Math.random()*1.4,C.yellow],[9.2+Math.random()*1.4,C.teal]].forEach(function(b,k){
+        var yaw=yaws[k], x=b[0]*Math.cos(rad(yaw)), z=b[0]*Math.sin(rad(yaw)), g=new THREE.Group(); g.position.set(x,0,z); bucketG.add(g);
         var body=disk(BR,TOP,b[1]); body.position.y=TOP/2; g.add(body);
         var mouth=new THREE.Mesh(new THREE.CircleGeometry(BR-0.08,24),new THREE.MeshBasicMaterial({color:C.ink})); mouth.rotation.x=-Math.PI/2; mouth.position.y=TOP+0.006; g.add(mouth);
         var star=new THREE.Group(); star.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.22+OUT,0),inkMat)); star.add(new THREE.Mesh(flat(new THREE.OctahedronGeometry(0.22,0)),toon(C.yellow)));
         star.position.y=TOP+0.75; star.scale.y=1.3; star.visible=false; g.add(star);
         var sh=blob(0.2); sh.scale.setScalar(BR*1.25); sh.position.y=0.004; g.add(sh);
-        buckets.push({x:b[0],g:g,star:star,hit:false,pop:0});
+        buckets.push({x:x,z:z,d:b[0],yaw:yaw,g:g,star:star,hit:false,pop:0});
       });
       paths.forEach(function(p){ root.remove(p); }); paths=[];
     }
-    function reload(){ st.x=st.px=0; st.y=st.py=H0; st.vx=st.vy=0; phase="aim"; landed=false; ballM.group.visible=true; S.pop(true); }
+    function reload(){ st.x=st.px=REST.x; st.y=st.py=H0; st.z=st.pz=0; st.vx=st.vy=st.vz=0; phase="aim"; landed=false; ballM.group.visible=true; S.pop(true); }
     function newRound(){ clearTimeout(newT); layout(); reload(); }
     function fire(){
-      if(aim.power<0.1){ aim.on=false; S.soft(); return; }
-      var th=rad(aim.angle), v=VMAX*aim.power; lastAngle=aim.angle; aim.on=false;
-      st.x=st.px=0; st.y=st.py=H0; st.vx=v*Math.cos(th); st.vy=v*Math.sin(th); phase="fly"; dotT=0; landed=false;
-      paths.forEach(function(p){ p.children.forEach(function(d){ d.material=dotOld; }); });
+      if(aim.power<0.1){ aim.on=false; aim.power=0; S.soft(); return; }
+      var v=VMAX*aim.power, d=dirOf(aim.angle,aim.yaw); lastShot={angle:aim.angle,yaw:aim.yaw}; aim.on=false;
+      st.x=st.px=REST.x; st.y=st.py=H0; st.z=st.pz=0; st.vx=v*d.x; st.vy=v*d.y; st.vz=v*d.z; phase="fly"; dotT=0; landed=false; aim.power=0;
+      paths.forEach(function(p){ p.children.forEach(function(q){ q.material=dotOld; }); });
       while(paths.length>=3){ var o=paths.shift(); root.remove(o); }
       curPath=new THREE.Group(); root.add(curPath); paths.push(curPath);
       tone(300,900,0.25,"triangle",0.13); noise(0.15,0.08);
     }
-    function bucketAt(x){ for(var i=0;i<buckets.length;i++) if(Math.abs(x-buckets[i].x)<BR-0.06) return buckets[i]; return null; }
-    function landIn(b,x){
-      phase="in"; inT=0; inB=b; st.x=x; st.y=H0; st.vx=st.vy=0; S.plink(); b.pop=1; addDot(x,H0);
+    function bucketAt(x,z){ for(var i=0;i<buckets.length;i++) if(Math.hypot(x-buckets[i].x,z-buckets[i].z)<BR-0.06) return buckets[i]; return null; }
+    function landIn(b,x,z){
+      phase="in"; inT=0; st.x=x; st.y=H0; st.z=z; st.vx=st.vy=st.vz=0; S.plink(); b.pop=1; addDot(x,H0,z);
       if(!b.hit){ b.hit=true; b.star.visible=true; if(!demo.active){ stars++; hudN.textContent=String(stars); hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump"); } }
       var p=toScreen(b.g.localToWorld(new THREE.Vector3(0,TOP+0.6,0))); confetti(p.x,p.y); S.tada();
-      if(buckets.every(function(q){ return q.hit; })){ if(!demo.active) speak(pick(["All three buckets, Paul! You did it!","Wow! All three! Super launching!"])); if(!afterRound(buckets.reduce(function(a,q){ return a+Math.round(q.x); },0),"launch")) newT=setTimeout(newRound,3200); } // score: the three distances added up
-      else if(!demo.active){ var far=b===buckets[2]; speak(far&&Math.abs(lastAngle-45)<=10?"The far bucket! That's the sweet spot!":pick(["In the bucket!","Bullseye!","Nice launch, Paul!"])); }
+      if(buckets.every(function(q){ return q.hit; })){ if(!demo.active) speak(pick(["All three buckets, Paul! You did it!","Wow! All three! Super launching!"])); if(!afterRound(buckets.reduce(function(a,q){ return a+Math.round(q.d); },0),"launch")) newT=setTimeout(newRound,3200); } // score: the three distances added up
+      else if(!demo.active){ var far=b===buckets[2]; speak(far&&Math.abs(lastShot.angle-45)<=10?"The far bucket! That's the sweet spot!":pick(["In the bucket!","Bullseye!","Nice launch, Paul!"])); }
     }
-    function missed(x){
-      misses++; if(demo.active||misses%2===0) return; var next=null; for(var i=0;i<buckets.length;i++) if(!buckets[i].hit){ next=buckets[i]; break; }
-      if(next) speak(x<next.x?pick(["A bit more!","Too short! Pull harder, or try a new angle."]):pick(["Whoa, too far!","Over it! A little less."]));
+    function missed(x,z){
+      misses++; if(demo.active||misses%2===0) return; var next=null, best=1e9;
+      buckets.forEach(function(b){ var d=Math.hypot(x-b.x,z-b.z); if(!b.hit&&d<best){ best=d; next=b; } }); if(!next) return;
+      var d=Math.hypot(x,z), side=Math.atan2(z,x)*180/Math.PI-next.yaw;
+      if(Math.abs(side)>7&&Math.abs(d-next.d)<1.5) speak(side>0?"A little more to the left!":"A little more to the right!");
+      else speak(d<next.d?pick(["A bit more!","Too short! Pull harder, or try a new angle."]):pick(["Whoa, too far!","Over it! A little less."]));
     }
-    function addDot(x,y){ if(!curPath) return; var d=new THREE.Mesh(dotGeo,dotNew); d.position.set(x,y,0); curPath.add(d); }
+    function addDot(x,y,z){ if(!curPath) return; var d=new THREE.Mesh(dotGeo,dotNew); d.position.set(x,y,z); curPath.add(d); }
+    function bump(){ buckets.forEach(function(b){ var dx=st.x-b.x, dz=st.z-b.z, d=Math.hypot(dx,dz); if(d<BR+R&&d>BR-0.2){ var nx=dx/d, nz=dz/d, vn=st.vx*nx+st.vz*nz; st.x=b.x+nx*(BR+R); st.z=b.z+nz*(BR+R); if(vn<0){ st.vx-=1.4*vn*nx; st.vz-=1.4*vn*nz; S.hit(2); } } }); }
     function step(){
-      st.px=st.x; st.py=st.y;
+      st.px=st.x; st.py=st.y; st.pz=st.z;
       if(phase==="fly"){
-        st.vy-=G*DT; st.x+=st.vx*DT; st.y+=st.vy*DT;            // no drag: a clean parabola
-        dotT+=DT; if(dotT>=0.07){ dotT=0; addDot(st.x,st.y); }
-        if(st.vy<0&&st.py>=H0&&st.y<H0&&!landed){ var f=(st.py-H0)/(st.py-st.y), xl=st.px+(st.x-st.px)*f, b=bucketAt(xl); if(b){ landIn(b,xl); return; } }
-        if(st.y<TOP+R*0.4) buckets.forEach(function(b){ var dx=st.x-b.x; if(Math.abs(dx)<BR+R&&Math.abs(dx)>BR-0.2){ st.x=b.x+Math.sign(dx)*(BR+R); st.vx=Math.sign(dx)*Math.abs(st.vx)*0.4; S.hit(2); } });
-        if(st.y<=R){ st.y=R; if(!landed){ landed=true; addDot(st.x,R); missed(st.x); } if(Math.abs(st.vy)>1.2){ st.vy=-st.vy*0.35; st.vx*=0.7; S.clack(); } else { st.vy=0; phase="roll"; } }
+        st.vy-=G*DT; st.x+=st.vx*DT; st.y+=st.vy*DT; st.z+=st.vz*DT;          // no drag: a clean parabola, in whichever direction it was aimed
+        dotT+=DT; if(dotT>=0.07){ dotT=0; addDot(st.x,st.y,st.z); }
+        if(st.vy<0&&st.py>=H0&&st.y<H0&&!landed){ var f=(st.py-H0)/(st.py-st.y), xl=st.px+(st.x-st.px)*f, zl=st.pz+(st.z-st.pz)*f, b=bucketAt(xl,zl); if(b){ landIn(b,xl,zl); return; } }
+        if(st.y<TOP+R*0.4) bump();
+        if(st.y<=R){ st.y=R; if(!landed){ landed=true; addDot(st.x,R,st.z); missed(st.x,st.z); } if(Math.abs(st.vy)>1.2){ st.vy=-st.vy*0.35; st.vx*=0.7; st.vz*=0.7; S.clack(); } else { st.vy=0; phase="roll"; } }
       } else if(phase==="roll"){
-        var dv=3*DT; st.vx=Math.abs(st.vx)<=dv?0:st.vx-Math.sign(st.vx)*dv; st.x+=st.vx*DT;
-        buckets.forEach(function(b){ var dx=st.x-b.x; if(Math.abs(dx)<BR+R){ st.x=b.x+Math.sign(dx||1)*(BR+R); st.vx=-st.vx*0.3; } });
-        if(st.vx===0){ phase="rest"; restT=0; }
+        var sp=Math.hypot(st.vx,st.vz), dv=3*DT; if(sp<=dv){ st.vx=st.vz=0; } else { st.vx-=st.vx/sp*dv; st.vz-=st.vz/sp*dv; }
+        st.x+=st.vx*DT; st.z+=st.vz*DT; bump();
+        if(st.vx===0&&st.vz===0){ phase="rest"; restT=0; }
       } else if(phase==="rest"){ restT+=DT; if(restT>0.9) reload(); }
       else if(phase==="in"){ inT+=DT; if(inT>0.55) reload(); }
     }
-    var clock=0;
+    var clock=0, q=new THREE.Quaternion();
     function frame(dt,alpha){
       clock+=dt;
-      var x=st.px+(st.x-st.px)*alpha, y=st.py+(st.y-st.py)*alpha;
-      if(phase==="aim"&&aim.on){ var th=rad(aim.angle), L=aim.power*PULLMAX; x=-Math.cos(th)*L; y=H0-Math.sin(th)*L; y=Math.max(R,y); }
+      var x=st.px+(st.x-st.px)*alpha, y=st.py+(st.y-st.py)*alpha, z=st.pz+(st.z-st.pz)*alpha, d=dirOf(aim.angle,aim.yaw);
+      if(phase==="aim"&&aim.on){ var L=aim.power*PULLBACK; x=REST.x-d.x*L; y=Math.max(R,H0-d.y*L); z=-d.z*L; }
       if(phase==="in"){ var t=Math.min(1,inT/0.4); y=H0-t*(R*2.4); }
-      ballM.group.position.set(x,y,0); ballM.spin.rotation.z=-x/R;
+      ballM.group.position.set(x,y,z); ballM.spin.rotation.set(0,0,-Math.hypot(x,z)/R);
       ballM.group.visible=!(phase==="in"&&inT>0.4);
-      bshadow.position.set(x,0.026,0); var hh=Math.max(0,y-R), k=Math.max(0.3,1-0.12*hh); bshadow.scale.setScalar(R*1.1*k); bshadow.material.opacity=0.3*k;
-      var bp=phase==="aim"?new THREE.Vector3(x,y,0):new THREE.Vector3(0.05,H0,0); setSeg(bands[0],tips[0],bp); setSeg(bands[1],tips[1],bp); // the band snaps back once the ball is away
-      arrow.visible=phase==="aim"&&aim.on&&aim.power>0.05;
-      if(arrow.visible){ var len=0.4+aim.power*1.4; arrow.position.set(x,y,0); arrow.rotation.z=rad(aim.angle); shaft.scale.x=len; shaft.position.x=len/2; head.position.x=len+0.12; }
+      bshadow.position.set(x,0.026,z); var hh=Math.max(0,y-R), k=Math.max(0.3,1-0.12*hh); bshadow.scale.setScalar(R*1.1*k); bshadow.material.opacity=0.3*k;
+      var bp=phase==="aim"?new THREE.Vector3(x,y,z):REST; setSeg(bands[0],tips[0],bp); setSeg(bands[1],tips[1],bp); // the band snaps back once the ball is away
+      arrow.visible=phase==="aim";
+      if(arrow.visible){ var len=0.55+aim.power*1.5; arrow.position.set(x,y,z); arrow.quaternion.copy(q.setFromUnitVectors(XV,d)); shaft.scale.x=len; shaft.position.x=len/2; head.position.x=len+0.14;
+        arrow.children.forEach(function(c){ c.traverse(function(m){ if(m.material&&m.material!==inkMat) m.material=toon(aim.on?C.yellow:C.paper); }); }); }
       buckets.forEach(function(b,i){ if(b.star.visible){ b.star.rotation.y=clock*2+i; } if(b.pop>0){ b.pop=Math.max(0,b.pop-dt*3); b.g.scale.set(1+0.15*Math.sin(b.pop*Math.PI),1-0.12*Math.sin(b.pop*Math.PI),1+0.15*Math.sin(b.pop*Math.PI)); } });
       setRumble(0);
     }
     function W2(v){ return root.localToWorld(v.clone()); }
-    function fitPts(){ return [new THREE.Vector3(-1.4,0,1),new THREE.Vector3(-1.4,0,-1),new THREE.Vector3(12.2,0,1),new THREE.Vector3(12.2,0,-1),new THREE.Vector3(-1,3.6,0),new THREE.Vector3(12,3.6,0)].map(W2); }
-    function setAim(p){
-      if(!rayTo(p,FWD,0)) return; var l=root.worldToLocal(hit.clone()), dx=l.x-0, dy=l.y-H0;
-      var a=Math.atan2(-dy,-dx)*180/Math.PI; if(a<0&&a<-90) a=AMAX; aim.angle=Math.round(clamp(a,AMIN,AMAX));
-      var rs=toScreen(W2(new THREE.Vector3(0,H0,0))); aim.power=clamp(Math.hypot(p.x-rs.x,p.y-rs.y)/(Math.min(W,H)*0.32),0,1); aim.on=true; // power by finger distance on screen, the same on any phone
+    function fitPts(){ return [[-0.6,0,1.1],[-0.6,0,-1.1],[11.6,0,6.6],[11.6,0,-6.6],[6,3.4,0],[11,0,0]].map(function(a){ return W2(new THREE.Vector3(a[0],a[1],a[2])); }); }
+    function setPull(p){ // pull back (down the screen) for power; pull sideways to aim the other way
+      var dx=p.x-aim.p0.x, dy=Math.max(0,p.y-aim.p0.y), s=Math.min(W,H)*0.32;
+      aim.power=clamp(Math.hypot(dx,dy)/s,0,1); aim.yaw=clamp(-Math.atan2(dx,Math.max(s*0.25,dy))*180/Math.PI,-YAWMAX,YAWMAX); aim.on=true;
     }
+    dial.querySelector("#angUp").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setAngle(aim.angle+5); S.tick(); });
+    dial.querySelector("#angDn").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setAngle(aim.angle-5); S.tick(); });
     var lastTick=0;
     return {
       name:"launch", root:root, goVisible:false, ownScene:true, fit:function(){ return fitPts(); },
-      enter:function(){ cam.dir.set(-0.1,0.24,1).normalize(); root.updateMatrixWorld(true); cam.target.copy(W2(new THREE.Vector3(5.4,1.5,0))); cam.off=0;
-        if(!bucketG||buckets.every(function(q){ return q.hit; })) newRound(); cam.distWant=fitDist(fitPts()); cam.dist=cam.distWant; hud.hidden=false; tag.hidden=false; },
-      exit:function(){ clearTimeout(newT); aim.on=false; hud.hidden=true; tag.hidden=true; },
-      step:step, frame:frame,
-      overlay:function(){ var show=(phase==="aim"&&aim.on)||lastAngle!==null; tag.style.visibility=show?"visible":"hidden";
-        tag.textContent=(phase==="aim"&&aim.on?aim.angle:lastAngle)+"°"; var p=toScreen(W2(new THREE.Vector3(-0.3,H0+1.0,0))); tag.style.left=clamp(p.x,34,W-34)+"px"; tag.style.top=p.y+"px"; },
-      down:function(p){ if(phase==="aim"){ setAim(p); S.tick(); } else S.soft(); return true; },
-      move:function(p){ if(phase!=="aim") return; var a0=aim.angle; setAim(p); if(aim.angle!==a0&&now()-lastTick>60){ lastTick=now(); S.tick(); } },
-      up:function(){ if(phase==="aim"&&aim.on) fire(); },
+      enter:function(){ cam.dir.set(-1,0.62,0).normalize(); root.updateMatrixWorld(true); cam.target.copy(W2(new THREE.Vector3(5.6,0.6,0))); cam.off=0;
+        if(!bucketG||buckets.every(function(q){ return q.hit; })){ newRound(); setAngle(pick([25,30,60,65])); aim.yaw=0; }
+        cam.distWant=fitDist(fitPts(),0.92,0.74); cam.dist=cam.distWant; hud.hidden=false; dial.hidden=false; },
+      exit:function(){ clearTimeout(newT); aim.on=false; aim.power=0; hud.hidden=true; dial.hidden=true; },
+      step:step, frame:frame, overlay:function(){},
+      down:function(p){ if(phase==="aim"){ aim.p0={x:p.x,y:p.y}; aim.power=0; aim.on=true; S.tick(); } else S.soft(); return true; },
+      move:function(p){ if(phase!=="aim"||!aim.p0) return; var y0=aim.yaw, p0=aim.power; setPull(p); if((Math.abs(aim.yaw-y0)>2||Math.abs(aim.power-p0)>0.08)&&now()-lastTick>70){ lastTick=now(); S.tick(); } },
+      up:function(){ if(phase==="aim"&&aim.on) fire(); aim.p0=null; },
       idleOK:function(){ return phase==="aim"&&!aim.on; },
-      cancel:function(){ aim.on=false; if(phase==="aim") reload(); },
+      cancel:function(){ aim.on=false; aim.power=0; if(phase==="aim") reload(); },
       demo:function(kind,tok){
-        newRound(); var far=buckets[2].x, pw=Math.sqrt(far*G)/VMAX, gap=(buckets[0].x+buckets[1].x)/2, v2=Math.pow(pw*VMAX,2), high=Math.round(90-Math.asin(clamp(gap*G/v2,0,1))*90/Math.PI); // a high arc that lands in the gap
-        if(kind==="intro") speak("Big launch! Pull the ball back and let go. Land it in the buckets. Watch!");
+        newRound(); var far=buckets[2], pw=Math.sqrt(far.d*G)/VMAX; aim.yaw=0; setAngle(70);
+        if(kind==="intro") speak("Big launch! Pull the ball back and let go. Pull to the side to aim. The arrows change the angle. Land it in the buckets. Watch!");
         demo.target={world:function(){ return ballM.group.getWorldPosition(new THREE.Vector3()); }};
-        function pull(ang,pwr,tk){ var steps=12, i=0; aim.on=true; aim.angle=ang; aim.power=0; finger.hidden=false; finger.classList.add("press");
-          return (function nx(){ return wait(70,tk).then(function(){ i++; aim.power=pwr*i/steps; if(i<steps) return nx(); }); })()
-            .then(function(){ return wait(500,tk); }).then(function(){ finger.classList.remove("press"); fire(); }); }
-        return wait(900,tok).then(function(){ return pull(high,pw,tok); })
+        function pull(ang,yaw,pwr,tk){ var steps=12, i=0; setAngle(ang); aim.on=true; aim.yaw=0; aim.power=0; finger.hidden=false; finger.classList.add("press");
+          return (function nx(){ return wait(70,tk).then(function(){ i++; aim.power=pwr*i/steps; aim.yaw=yaw*i/steps; if(i<steps) return nx(); }); })()
+            .then(function(){ return wait(450,tk); }).then(function(){ finger.classList.remove("press"); fire(); }); }
+        return wait(900,tok).then(function(){ return pull(70,far.yaw,pw,tok); })             // too steep: falls short
           .then(function(){ finger.hidden=true; return until(function(){ return phase==="aim"; },tok); })
-          .then(function(){ return wait(500,tok); }).then(function(){ return pull(45,pw,tok); })
+          .then(function(){ return wait(500,tok); }).then(function(){ return pull(45,far.yaw,pw,tok); })   // 45°: lands in the far bucket
           .then(function(){ finger.hidden=true; return until(function(){ return phase==="aim"; },tok); })
           .then(function(){ return wait(700,tok); })
-          .then(function(){ newRound(); lastAngle=null; if(kind==="intro") speak("Your turn!",true); });
+          .then(function(){ newRound(); aim.yaw=0; setAngle(pick([25,30,60,65])); if(kind==="intro") speak("Your turn!",true); });
       }
     };
   })();
@@ -1123,64 +1166,135 @@
   })();
 
   // =====================================================================
-  // TILE TIME — make the last game's score with + (one tile) and × (a block of rows × columns)
+  // TILE TIME — make the last game's score with × (a block of rows × columns) and + (one tile).
+  // Points: multiplying earns a point for every tile a × block makes; every addition (each + tile, and each block
+  // joined onto what is already there) costs a point. So the most points always means the least adding.
+  // After a win, an explainer shows the ways with the fewest additions.
   // =====================================================================
   var tilesG=(function(){
     var root=new THREE.Group(); root.visible=false; root.position.set(600,0,0); scene.add(root);
-    var P=0.36, TS=0.3, GAPG=0.45, PAL=[C.red,C.yellow,C.teal,C.purple,C.orange];
+    var P=0.36, TS=0.3, GAPG=0.62, PAL=[C.red,C.yellow,C.teal,C.purple,C.orange], START_PTS=0, NMAX=10;
     var lawn=new THREE.Mesh(new THREE.BoxGeometry(90,0.4,70),toon(C.grass)); lawn.position.set(0,-0.62,-10); root.add(lawn);
-    var table=box(16,0.4,9,C.wood); table.position.set(4,-0.2,-1.5); root.add(table);
+    var table=box(9,0.4,8,C.wood); table.position.set(1.62,-0.2,1.5); root.add(table);
     [[-6,-9,1.6],[3,-11,2],[12,-9,1.8],[16,-4,1.3],[-7,-3,1.2]].forEach(function(q){ var t=new THREE.Group(), tr=post(0.09*q[2],C.dirt2); tr.scale.y=0.5*q[2]; t.add(tr); var c1=cone(0.55*q[2],1.1*q[2],C.grass); c1.position.y=q[2]; t.add(c1); t.position.set(q[0],-0.42,q[1]); root.add(t); });
     var tileGeoI=new THREE.BoxGeometry(TS+2*OUT,TS*0.6+2*OUT,TS+2*OUT), tileGeo=new THREE.BoxGeometry(TS,TS*0.6,TS);
     function tile(hex){ var g=new THREE.Group(); g.add(new THREE.Mesh(tileGeoI,inkMat)); g.add(new THREE.Mesh(tileGeo,toon(hex))); return g; }
-    // HUD: target, total, the number sentence, and the three buttons
+    // counting numbers beside each block: columns along the front edge, rows down the left side
+    var numCache={};
+    function numMat(n){ if(numCache[n]) return numCache[n]; var cv=document.createElement("canvas"); cv.width=cv.height=64; var g=cv.getContext("2d");
+      g.font="700 44px Fredoka, 'Arial Rounded MT Bold', Arial, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.lineJoin="round";
+      g.lineWidth=9; g.strokeStyle=C.paper; g.strokeText(String(n),32,35); g.fillStyle=C.ink; g.fillText(String(n),32,35);
+      return (numCache[n]=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false})); }
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ Object.keys(numCache).forEach(function(k){ var m=numCache[k]; delete numCache[k]; var fresh=numMat(k); m.map=fresh.map; m.needsUpdate=true; numCache[k]=m; }); });
+    function label(n){ var s=new THREE.Sprite(numMat(n)); s.scale.setScalar(0.38); s.renderOrder=5; root.add(s); return s; }
+    // a 10 × 10 multiplication grid on the table, numbered 1 to 10 along the top and down the left side; covered squares light up
+    var cellOff=new THREE.MeshBasicMaterial({color:"#F3E6C8"}), cellOn=new THREE.MeshBasicMaterial({color:C.yellow}), cellGeo=new THREE.PlaneGeometry(P*0.9,P*0.9), cellMs=[], colNums=[], rowNums=[];
+    var gridLine=box(10*P+0.06,0.02,10*P+0.06,C.ink); gridLine.position.set(4.5*P,0.0,4.5*P); root.add(gridLine);
+    for(var gr=0;gr<10;gr++) for(var gc=0;gc<10;gc++){ var cm=new THREE.Mesh(cellGeo,cellOff); cm.rotation.x=-Math.PI/2; cm.position.set(gc*P,0.022,gr*P); root.add(cm); cellMs.push(cm); }
+    for(var gi=1;gi<=10;gi++){ var cs=label(gi); cs.material=numMat(gi).clone(); cs.position.set((gi-1)*P,0.08,-0.42); colNums.push(cs);
+      var rs=label(gi); rs.material=numMat(gi).clone(); rs.position.set(-0.42,0.08,(gi-1)*P); rowNums.push(rs); }
+    // HUD: target, points, the number sentence, and the three buttons
     var bar=el("ttbar"); bar.hidden=true;
-    bar.innerHTML='<div class="ttt"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FF4D4D" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#FFFDF7" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="#FF4D4D"/></svg><b id="ttTarget">0</b></div><div class="tteq" id="ttEq"></div>';
+    bar.innerHTML='<div class="ttt"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FF4D4D" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#FFFDF7" stroke="#22203F" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="#FF4D4D"/></svg><b id="ttTarget">0</b></div>'+
+      '<div class="ttt ttp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="#FFD23F" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><b id="ttPts">10</b><span class="ttfloat" id="ttFloat"></span></div><div class="tteq" id="ttEq"></div>';
     var btns=document.createElement("div"); btns.className="ttbtns"; btns.hidden=true; stageEl.appendChild(btns);
     btns.innerHTML='<button class="ttb" id="ttTimes" aria-label="Add a block of tiles">×</button><button class="ttb" id="ttPlus" aria-label="Add one tile">+</button><button class="ttb undo" id="ttUndo" aria-label="Take the last tiles away"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 9 L5 15 L11 21 M5 15 H20 a7 7 0 0 1 0 14 H14" fill="none" stroke="#22203F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+    // the rows × columns picker, numbered 1 to 10 along the top and down the left side
     var gp=document.createElement("div"); gp.className="gridpick"; gp.hidden=true; stageEl.appendChild(gp);
     gp.innerHTML='<div class="gpgrid" id="gpGrid"></div><div class="gprow"><b id="gpLabel">1 × 1</b><button class="ttb small" id="gpNo" aria-label="Cancel">✕</button><button class="ttb small ok" id="gpOk" aria-label="Put the tiles down">✓</button></div>';
-    var gpGrid=gp.querySelector("#gpGrid"), gpLabel=gp.querySelector("#gpLabel"), cells=[], NMAX=10, selR=1, selC=1;
-    for(var r=0;r<NMAX;r++) for(var c=0;c<NMAX;c++){ var d=document.createElement("div"); d.className="gpc"; d.dataset.r=r; d.dataset.c=c; gpGrid.appendChild(d); cells.push(d); }
-    function paintPick(){ cells.forEach(function(d){ d.classList.toggle("on",+d.dataset.r<selR&&+d.dataset.c<selC); }); gpLabel.textContent=selR+" × "+selC+" = "+selR*selC; }
+    var gpGrid=gp.querySelector("#gpGrid"), gpLabel=gp.querySelector("#gpLabel"), cells=[], heads=[], selR=1, selC=1;
+    for(var r=-1;r<NMAX;r++) for(var c=-1;c<NMAX;c++){ var d=document.createElement("div");
+      if(r<0&&c<0) d.className="gph corner"; else if(r<0||c<0){ d.className="gph"; d.textContent=String((r<0?c:r)+1); d.dataset.axis=r<0?"c":"r"; d.dataset.n=(r<0?c:r)+1; heads.push(d); }
+      else { d.className="gpc"; d.dataset.r=r; d.dataset.c=c; cells.push(d); } gpGrid.appendChild(d); }
+    function paintPick(){ cells.forEach(function(d){ d.classList.toggle("on",+d.dataset.r<selR&&+d.dataset.c<selC); });
+      heads.forEach(function(h){ h.classList.toggle("on",+h.dataset.n<=(h.dataset.axis==="r"?selR:selC)); }); gpLabel.textContent=selR+" × "+selC+" = "+selR*selC; }
     function pickAt(ev){ var el2=document.elementFromPoint(ev.clientX,ev.clientY); if(el2&&el2.classList.contains("gpc")){ var nr=+el2.dataset.r+1, nc=+el2.dataset.c+1; if(nr!==selR||nc!==selC){ selR=nr; selC=nc; paintPick(); S.tick(); } } }
     var picking=false;
     gpGrid.addEventListener("pointerdown",function(ev){ ev.preventDefault(); picking=true; try{ gpGrid.setPointerCapture(ev.pointerId); }catch(e){} pickAt(ev); });
     gpGrid.addEventListener("pointermove",function(ev){ if(picking) pickAt(ev); });
     gpGrid.addEventListener("pointerup",function(){ picking=false; });
-    var groups=[], target=0, from=null, won=false, backT=null, clock=0;
+    // the explainer shown after a win
+    var ex=document.createElement("div"); ex.className="explain"; ex.hidden=true; stageEl.appendChild(ex);
+
+    var groups=[], target=0, from=null, won=false, backT=null, clock=0, pts=START_PTS;
+    function scoreOf(list){ var s2=0; list.forEach(function(p,i){ s2+=(p[0]===1&&p[1]===1?0:p[0]*p[1])-(i>0?1:0); }); return s2; }   // tiles made by ×, minus one per addition
     function total(){ return groups.reduce(function(a,g){ return a+g.r*g.c; },0); }
-    function eqText(){ var parts=[], ones=0; groups.forEach(function(g){ if(g.one) ones+=g.c; else parts.push(g.r+" × "+g.c); }); if(ones) parts.push(ones===1?"1":String(ones)); return parts.join(" + "); }
-    function sayEq(){ var parts=[], ones=0; groups.forEach(function(g){ if(g.one) ones+=g.c; else parts.push(g.r+" times "+g.c); }); if(ones) parts.push(String(ones)); return parts.join(" plus "); }
-    function layout(){ // groups left to right; each block is rows deep (toward the back) and columns wide
-      var x=0; groups.forEach(function(g){ g.x0=x; g.meshes.forEach(function(m,k){ var rr=Math.floor(k/g.c), cc=k%g.c; m.userData.tx=x+cc*P; m.userData.tz=-rr*P; }); x+=g.c*P+GAPG; });
-      var w=Math.max(1.5,x), deep=Math.max(1,groups.reduce(function(a,g){ return Math.max(a,g.r); },1)*P);
-      cam.target.copy(root.localToWorld(new THREE.Vector3(w/2-0.2,0,-deep/2+0.2)));
-      var pts=[new THREE.Vector3(-0.6,0,0.8),new THREE.Vector3(w+0.2,0,0.8),new THREE.Vector3(-0.6,0.5,-deep-0.6),new THREE.Vector3(w+0.2,0.5,-deep-0.6)].map(function(v){ return root.localToWorld(v); });
-      cam.distWant=Math.max(5,fitDist(pts,0.82,0.45));
+    function pressCount(){ return groups.reduce(function(a,g){ return a+(g.one?g.c:1); },0); }
+    function eqText(gs){ var parts=[]; gs.forEach(function(g){ if(g.one) for(var k=0;k<g.c;k++) parts.push("1"); else parts.push(g.r+" × "+g.c); }); return parts.join(" + "); }   // every addition shows
+    function sayEq(gs){ var parts=[], ones=0; gs.forEach(function(g){ if(g.one) ones+=g.c; else parts.push(g.r+" times "+g.c); }); if(ones) parts.push(ones===1?"1":ones+" ones"); return parts.join(" plus "); }
+    // fewest additions: exact search over every block up to 10 × 10 and single tiles
+    function ways(T){
+      var pieces=[]; for(var a=1;a<=NMAX;a++) for(var b=a;b<=NMAX;b++) if(a*b>=2) pieces.push([a,b]);
+      var out=[], seen2={};
+      function add(list){ var key=list.map(function(p){ return p.join("x"); }).sort().join("+"); if(seen2[key]) return; seen2[key]=1;
+        var gs=list.map(function(p){ return p[0]===1&&p[1]===1?{r:1,c:1,one:true}:{r:p[0],c:p[1],one:false}; });
+        var ones=gs.filter(function(g){ return g.one; }).length, blocks=gs.filter(function(g){ return !g.one; });
+        var merged=blocks.slice(); if(ones) merged.push({r:1,c:ones,one:true});
+        out.push({gs:merged,adds:list.length-1,pts:Math.max(0,START_PTS+scoreOf(list))}); }
+      pieces.forEach(function(p){ if(p[0]*p[1]===T) add([p]); });
+      pieces.forEach(function(p){ var rest=T-p[0]*p[1]; if(rest===1) add([p,[1,1]]); else if(rest>=2) pieces.forEach(function(q){ if(q[0]*q[1]===rest) add([p,q]); }); });
+      if(!out.length){ var list=[], left=T; while(left>0){ var big=null; pieces.forEach(function(p){ var v=p[0]*p[1]; if(v<=left&&(!big||v>big[0]*big[1]||(v===big[0]*big[1]&&Math.abs(p[0]-p[1])<Math.abs(big[0]-big[1])))) big=p; }); if(!big) big=[1,1]; list.push(big); left-=big[0]*big[1]; } add(list); }
+      out.sort(function(x,y){ return y.pts-x.pts||x.adds-y.adds||Math.abs(x.gs[0].r-x.gs[0].c)-Math.abs(y.gs[0].r-y.gs[0].c); });
+      return out;
     }
-    function paint(){ var t=total(); bar.querySelector("#ttTarget").textContent=String(target); var eq=eqText();
+    function allTiles(){ var all=[]; groups.forEach(function(g){ g.meshes.forEach(function(m){ all.push(m); }); }); return all; }
+    function layout(){ // every tile goes onto the grid, row by row, as wide as the first × block
+      var all=allTiles(), first=groups.filter(function(g){ return !g.one; })[0], w=first?first.c:10;
+      while(w<10&&Math.ceil(all.length/w)>10) w++; placeAll(all,w);
+    }
+    function placeAll(all,w){
+      var N=all.length, rows=Math.ceil(N/w);
+      all.forEach(function(m,k){ m.userData.tx=(k%w)*P; m.userData.tz=Math.floor(k/w)*P; });
+      cellMs.forEach(function(cm,i){ var r=Math.floor(i/10), c=i%10; cm.material=(c<w&&r*w+c<N)?cellOn:cellOff; });
+      colNums.forEach(function(sp,i){ sp.material.opacity=(i<Math.min(w,N))?1:0.28; }); rowNums.forEach(function(sp,i){ sp.material.opacity=i<rows?1:0.28; });
+    }
+    function aimCamera(side){ cam.target.copy(root.localToWorld(new THREE.Vector3(4.5*P+(side?1.5:0),0,4.5*P+0.1)));
+      var pts2=[[-0.75,0,-0.7],[10*P,0,-0.7],[-0.75,0,10*P+0.3],[10*P,0,10*P+0.3]].map(function(a){ return root.localToWorld(new THREE.Vector3(a[0]+(side?0:0),a[1],a[2])); });
+      if(side) pts2.push(root.localToWorld(new THREE.Vector3(10*P+3.2,0,4.5*P)));
+      cam.distWant=fitDist(pts2,0.86,0.5); }
+    function relabel(){}
+    function paint(){ var t=total(); bar.querySelector("#ttTarget").textContent=String(target); bar.querySelector("#ttPts").textContent=String(Math.max(0,pts)); /* shown never below zero; kept exact so undo is exact */ var eq=eqText(groups);
       bar.querySelector("#ttEq").innerHTML=(eq?eq+" = ":"")+'<b class="'+(t===target?"hit":t>target?"over":"")+'">'+t+'</b>';
       btns.querySelector("#ttUndo").classList.toggle("pulse",t>target); }
+    function floatPts(d){ if(!d) return; var f=bar.querySelector("#ttFloat"); f.textContent=(d>0?"+":"−")+Math.abs(d); f.className="ttfloat "+(d>0?"up":"down"); void f.offsetWidth; f.classList.add("go"); }
     function add(r,c,one){
-      if(won) return; var g;
-      var lastG=groups[groups.length-1];
-      if(one&&lastG&&lastG.one){ g=lastG; g.c++; } else { g={r:r,c:c,one:!!one,meshes:[],col:PAL[groups.length%PAL.length]}; groups.push(g); }
+      if(won) return; var g, lastG=groups[groups.length-1];
+      if(one&&lastG&&lastG.one){ g=lastG; g.c++; } else { g={r:r,c:c,one:!!one,meshes:[],labels:[],col:PAL[groups.length%PAL.length]}; groups.push(g); }
+      var joins=groups.length>1||(groups.length===1&&g!==groups[0])||(one&&g.c>1), d=(one?0:r*c)-(joins?1:0); pts+=d; g.ptsLog=(g.ptsLog||[]); g.ptsLog.push(d); floatPts(d);
       var need=g.r*g.c-g.meshes.length;
       for(var k=0;k<need;k++){ var m=tile(one?C.paper:g.col); m.position.set(0,3+Math.random()*0.5,0); m.userData.delay=k*0.025; m.userData.t=0; root.add(m); g.meshes.push(m); }
       layout(); g.meshes.forEach(function(m){ if(m.userData.t===0){ m.position.x=m.userData.tx; m.position.z=m.userData.tz; } });
-      S.pop(!one); paint(); check();
+      S.pop(!one); if(one) tone(330,260,0.12,"sine",0.06); paint(); check();
     }
-    function undo(){ if(won||!groups.length) return; var g=groups[groups.length-1], n=g.one?1:g.r*g.c;
-      for(var k=0;k<n;k++){ var m=g.meshes.pop(); m.userData.gone=0.0001; } if(g.one){ g.c--; if(g.c===0) groups.pop(); } else groups.pop();
+    function undo(){ if(won||!groups.length) return; var g=groups[groups.length-1], n=g.one?1:g.r*g.c, d=g.ptsLog.pop();
+      pts-=d; for(var k=0;k<n;k++){ var m=g.meshes.pop(); m.userData.gone=0.0001; }
+      if(g.one){ g.c--; if(g.c===0) groups.pop(); } else groups.pop();
       layout(); S.soft(); paint(); }
     function check(){ var t=total();
       if(t===target){ won=true; S.tada(); var p=toScreen(root.localToWorld(new THREE.Vector3(1,0.6,0))); confetti(W/2,H/2); confetti(p.x,p.y);
-        speak(target+"! "+sayEq()+" makes "+target+"!"); bar.querySelector("#ttEq").classList.add("win");
-        backT=setTimeout(function(){ if(cur!==api) return; if(from) select(from); else start(4+Math.floor(Math.random()*27),null); },4200); }
+        bar.querySelector("#ttEq").classList.add("win"); setTimeout(explain,1300); }
       else if(t>target){ speak("Too many! Take some away."); } }
-    function start(n,back){ clearTimeout(backT); groups.forEach(function(g){ g.meshes.forEach(function(m){ root.remove(m); }); }); groups=[]; target=n; from=back; won=false;
-      bar.querySelector("#ttEq").classList.remove("win"); layout(); cam.dist=cam.distWant; paint(); gp.hidden=true; }
+    function row(w,cls){ return '<li class="'+(cls||"")+'"><span class="xeq">'+target+' = '+eqText(w.gs)+'</span><span class="xadd">'+(w.adds===0?"no adding":w.adds===1?"1 add":w.adds+" adds")+'</span><span class="xpts">★ '+w.pts+'</span></li>'; }
+    function explain(){
+      if(cur!==api) return;
+      var mine={gs:groups,adds:pressCount()-1,pts:Math.max(0,pts)}, all=ways(target), better=all.filter(function(w){ return w.pts>mine.pts; }).slice(0,3);
+      var h='<h3>You made '+target+'!</h3><ul>'+row(mine,"mine")+'</ul>';
+      if(better.length){ h+='<p>Ways with less adding, and more points:</p><ul>'+better.map(function(w){ return row(w); }).join("")+'</ul>'; }
+      else h+='<p class="xbest">That is the fewest adds there is, and the most points!</p>';
+      h+='<button class="ttb small ok" id="exOk" aria-label="Next">✓</button>';
+      if(better.length){ var all=allTiles(), bw=better[0], idx=0; bw.gs.forEach(function(g2,gi2){ for(var t=0;t<g2.r*g2.c&&idx<all.length;t++,idx++) all[idx].children[1].material=toon(g2.one?C.paper:PAL[gi2%PAL.length]); });
+        placeAll(all,bw.gs[0].one?10:bw.gs[0].c); noise(0.3,0.08); tone(400,800,0.3,"triangle",0.1); }   // slide the tiles into the best way
+      aimCamera(W>=700);
+      ex.innerHTML=h; ex.querySelector("#exOk").addEventListener("click",function(){ S.click(); next(); });
+      if(W>=700) ex.hidden=false; else setTimeout(function(){ if(cur===api&&won) ex.hidden=false; },2600);   // on a phone, watch the tiles move first
+      var line=target+"! "+sayEq(groups)+" makes "+target+". You got "+Math.max(0,pts)+" points.";
+      if(better.length){ line+=" With less adding: "+sayEq(better[0].gs)+"."+(better[0].adds===0?" No adding at all!":""); } else line+=" That's the fewest adds!";
+      speak(line);
+      clearTimeout(backT); backT=setTimeout(next,16000);
+    }
+    function next(){ clearTimeout(backT); ex.hidden=true; aimCamera(false); if(cur!==api) return; if(from) select(from); else start(4+Math.floor(Math.random()*27),null); }
+    function start(n,back){ clearTimeout(backT); ex.hidden=true; groups.forEach(function(g){ g.meshes.forEach(function(m){ root.remove(m); }); g.labels.forEach(function(s){ root.remove(s); }); }); groups=[]; target=n; from=back; won=false; pts=START_PTS;
+      bar.querySelector("#ttEq").classList.remove("win"); layout(); aimCamera(false); cam.dist=cam.distWant; paint(); gp.hidden=true; }
     btns.querySelector("#ttPlus").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; add(1,1,true); });
     btns.querySelector("#ttTimes").addEventListener("click",function(){ touchedTiles(); S.click(); if(won) return; gp.hidden=!gp.hidden; selR=Math.min(4,NMAX); selC=Math.min(5,NMAX); paintPick(); });
     btns.querySelector("#ttUndo").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; undo(); });
@@ -1197,20 +1311,93 @@
       setRumble(0);
     }
     var api={
-      name:"tiles", root:root, goVisible:false, ownScene:true, fit:function(){ return [root.localToWorld(new THREE.Vector3(-0.6,0,0.8)),root.localToWorld(new THREE.Vector3(1.5,0.5,-1.5))]; },
-      enter:function(){ cam.dir.set(-0.15,1.25,1).normalize(); cam.off=0; root.updateMatrixWorld(true); bar.hidden=false; btns.hidden=false; if(!target) start(4+Math.floor(Math.random()*27),null); else { layout(); cam.dist=cam.distWant; } },
-      exit:function(){ clearTimeout(backT); bar.hidden=true; btns.hidden=true; gp.hidden=true; },
+      name:"tiles", root:root, goVisible:false, ownScene:true, fit:function(){ return [[-0.75,0,-0.7],[10*P,0,-0.7],[-0.75,0,10*P+0.3],[10*P,0,10*P+0.3]].map(function(a){ return root.localToWorld(new THREE.Vector3(a[0],a[1],a[2])); }); },
+      enter:function(){ cam.dir.set(-0.15,1.25,1).normalize(); cam.off=0; root.updateMatrixWorld(true); bar.hidden=false; btns.hidden=false; if(!target) start(4+Math.floor(Math.random()*27),null); else { layout(); aimCamera(!ex.hidden&&W>=700); cam.dist=cam.distWant; } },
+      exit:function(){ clearTimeout(backT); bar.hidden=true; btns.hidden=true; gp.hidden=true; ex.hidden=true; },
       step:function(){}, frame:frame, overlay:function(){},
       down:function(){ S.soft(); return false; }, move:function(){}, up:function(){},
       idleOK:function(){ return false; }, cancel:function(){},
-      demo:function(kind){ if(kind==="intro") speak("Tile time! Make "+target+". Press times for a block of tiles, and plus for one more."); return Promise.resolve(); },
-      start:function(n,back){ start(n,back); speak("Tile time! Make "+n+"."); }
+      demo:function(kind){ if(kind==="intro") speak("Tile time! Make "+target+". Times makes a block of tiles, and every tile is a point. Every plus takes a point away."); return Promise.resolve(); },
+      start:function(n,back){ start(n,back); speak("Tile time! Make "+n+"."); },
+      _ways:ways
     };
     return api;
   })();
-  function afterRound(score,from){ // after a round, the score becomes the Tile Time target
-    if(demo.active||!started||!(score>0)) return false;
-    setTimeout(function(){ if(cur!==GAMES[from]) return; select("tiles"); seen.tiles=true; tilesG.start(score,from); },2600);
+  // =====================================================================
+  // WORD TIME — spell the picture. One word per point from the last game, up to three.
+  // A word spelled with no misses scores its letter count; with misses it scores 1.
+  // =====================================================================
+  var wordT=(function(){
+    var root=new THREE.Group(); root.visible=false; root.position.set(1000,0,0); scene.add(root);
+    var WORDS=[["cat","🐱"],["dog","🐶"],["sun","☀️"],["bus","🚌"],["hat","🎩"],["pig","🐷"],["bed","🛏️"],["fox","🦊"],["box","📦"],["egg","🥚"],["car","🚗"],["bug","🐛"],
+      ["hen","🐔"],["cow","🐮"],["ant","🐜"],["owl","🦉"],["fish","🐟"],["frog","🐸"],["duck","🦆"],["cake","🎂"],["moon","🌙"],["star","⭐"],["tree","🌳"],["boat","⛵"],["bell","🔔"],["milk","🥛"]];
+    var ALPHA="abcdefghijklmnoprstuvwy", BW=0.62, GAP=0.12;
+    var lawn=new THREE.Mesh(new THREE.BoxGeometry(90,0.4,70),toon(C.grass)); lawn.position.set(0,-0.62,-10); root.add(lawn);
+    var table=box(9,0.4,5,C.wood); table.position.set(0,-0.2,0.6); root.add(table);
+    [[-6,-7,1.6],[5,-9,2],[9,-4,1.4],[-9,-3,1.3]].forEach(function(q){ var t=new THREE.Group(), tr=post(0.09*q[2],C.dirt2); tr.scale.y=0.5*q[2]; t.add(tr); var c1=cone(0.55*q[2],1.1*q[2],C.grass); c1.position.y=q[2]; t.add(c1); t.position.set(q[0],-0.42,q[1]); root.add(t); });
+    // the easel with the picture card
+    var easel=new THREE.Group(); easel.position.set(0,0,-0.9); easel.rotation.x=-0.12; root.add(easel);
+    [-1.05,1.05].forEach(function(x){ var leg=post(0.06,C.dirt2); leg.scale.y=2.6; leg.position.set(x,0,-0.05); easel.add(leg); });
+    var cardFrame=box(2.3,2.3,0.12,C.orange); cardFrame.position.set(0,1.45,0); easel.add(cardFrame);
+    var picCv=document.createElement("canvas"); picCv.width=picCv.height=256; var picTex=new THREE.CanvasTexture(picCv);
+    var pic=new THREE.Mesh(new THREE.PlaneGeometry(2.0,2.0),new THREE.MeshBasicMaterial({map:picTex})); pic.position.set(0,1.45,0.065); easel.add(pic);
+    function drawPic(emo){ var g=picCv.getContext("2d"); g.fillStyle=C.paper; g.fillRect(0,0,256,256); g.font="190px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(emo,128,140); picTex.needsUpdate=true; }
+    var blankMat=new THREE.MeshBasicMaterial({color:C.paper});
+    var hud=el("gems"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="#FFD23F" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><span>0</span>'; hud.hidden=true;
+    var hudN=hud.querySelector("span"), dots=el("wtdots"); dots.hidden=true;
+    var keys=document.createElement("div"); keys.className="ttbtns wtkeys"; keys.hidden=true; stageEl.appendChild(keys);
+    var slotG=null, slots=[], word="", wi=0, k=0, miss=0, missHere=0, nWords=3, pts=0, from=null, used=[], busy=false, nextT=null, clock=0;
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function paintDots(){ var h=""; for(var i=0;i<nWords;i++) h+='<i class="'+(i<wi?"done":i===wi?"now":"")+'"></i>'; dots.innerHTML=h; }
+    function newWord(){
+      clearTimeout(nextT); busy=false; var pool=WORDS.filter(function(w){ return used.indexOf(w[0])<0; }); if(!pool.length){ used=[]; pool=WORDS; }
+      var w=pick(pool); used.push(w[0]); word=w[0]; k=0; miss=0; missHere=0; drawPic(w[1]);
+      if(slotG){ root.remove(slotG); disposeTree(slotG); } slotG=new THREE.Group(); root.add(slotG); slots=[];
+      var x0=-(word.length*BW+(word.length-1)*GAP)/2+BW/2;
+      for(var i=0;i<word.length;i++){ var b=new THREE.Group(); b.add(box(BW,BW,0.3,C.wood)); var face=new THREE.Mesh(new THREE.PlaneGeometry(BW*0.84,BW*0.84),blankMat); face.position.z=0.155; b.add(face);
+        b.position.set(x0+i*(BW+GAP),BW/2,0.75); slotG.add(b); slots.push({g:b,face:face,pop:0}); }
+      var letters=word.split(""), extra=[]; while(extra.length<2){ var c=ALPHA[Math.floor(Math.random()*ALPHA.length)]; if(word.indexOf(c)<0&&extra.indexOf(c)<0) extra.push(c); }
+      keys.innerHTML=""; shuffle(letters.concat(extra)).forEach(function(ch){ var bt=document.createElement("button"); bt.className="ttb wtk"; bt.textContent=ch; bt.setAttribute("aria-label","Letter "+ch);
+        bt.addEventListener("click",function(){ tap(ch,bt); }); keys.appendChild(bt); });
+      paintDots(); speak(word+"!");
+    }
+    function tap(ch,bt){
+      lastTouch=now(); if(busy||bt.disabled) return;
+      if(ch===word[k]){
+        var s=slots[k]; s.face.material=new THREE.MeshBasicMaterial({map:glyphTex(ch)}); s.pop=1; bt.disabled=true; bt.classList.add("used"); bt.classList.remove("pulse");
+        tone(700+k*90,1100+k*90,0.12,"triangle",0.1); speak(ch); k++; missHere=0;
+        if(k===word.length){ busy=true; var got=miss===0?word.length:1; pts+=got; hudN.textContent=String(pts); hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump");
+          var p=toScreen(root.localToWorld(new THREE.Vector3(0,1.45,-0.9))); confetti(p.x,p.y); S.tada();
+          speak(word+"! "+(miss===0?"No misses! "+got+" points!":"1 point."),true);
+          nextT=setTimeout(function(){ wi++; if(wi>=nWords) finish(); else newWord(); },2200); }
+      } else {
+        miss++; missHere++; bt.classList.remove("wob"); void bt.offsetWidth; bt.classList.add("wob"); S.boing(1.1); speak("That's "+ch+". Find "+word[k]+".");
+        if(missHere>=2){ [].forEach.call(keys.children,function(b2){ if(!b2.disabled&&b2.textContent===word[k]){ b2.classList.add("pulse"); } }); }   // a hint after two misses
+      }
+    }
+    function finish(){ paintDots(); S.tada(); confetti(W/2,H/3); speak("You spelled "+nWords+(nWords===1?" word":" words")+"! "+pts+" points!");
+      nextT=setTimeout(function(){ if(cur!==api) return; if(from) select(from); else start(3,null); },3800); }
+    function start(n,back){ clearTimeout(nextT); from=back; nWords=Math.max(1,Math.min(3,n)); wi=0; pts=0; hudN.textContent="0"; newWord(); }
+    function frame(dt){ clock+=dt; slots.forEach(function(s,i){ if(s.pop>0){ s.pop=Math.max(0,s.pop-dt*3); s.g.position.y=BW/2+Math.sin(s.pop*Math.PI)*0.35; s.g.rotation.y=(1-s.pop)*Math.PI*2*(s.pop>0?1:0); } }); setRumble(0); }
+    var api={
+      name:"wordtime", root:root, goVisible:false, ownScene:true,
+      fit:function(){ return [[-2.6,0,1.4],[2.6,0,1.4],[-1.4,3.1,-1],[1.4,3.1,-1]].map(function(a){ return root.localToWorld(new THREE.Vector3(a[0],a[1],a[2])); }); },
+      enter:function(){ cam.dir.set(0,0.42,1).normalize(); cam.off=0; root.updateMatrixWorld(true); cam.target.copy(root.localToWorld(new THREE.Vector3(0,1.15,0)));
+        cam.distWant=fitDist(api.fit(),0.86,0.5); cam.dist=cam.distWant; hud.hidden=false; dots.hidden=false; keys.hidden=false; if(!word) start(3,null); },
+      exit:function(){ clearTimeout(nextT); hud.hidden=true; dots.hidden=true; keys.hidden=true; },
+      step:function(){}, frame:frame, overlay:function(){},
+      down:function(){ S.soft(); return false; }, move:function(){}, up:function(){},
+      idleOK:function(){ return false; }, cancel:function(){},
+      demo:function(kind){ if(kind==="intro") speak("Word time! Spell the picture. Tap the letters in order. "+word+"!"); return Promise.resolve(); },
+      start:function(n,back){ start(n,back); setTimeout(function(){ speak("Word time! Spell the picture. "+word+"!"); },150); },
+      _state:function(){ return {word:word,k:k,miss:miss,pts:pts,wi:wi,nWords:nWords}; }
+    };
+    return api;
+  })();
+  var interlude="tiles";
+  function afterRound(score,from){ // after a round: Tile Time and Word Time take turns, using the score
+    if(demo.active||!started||!(score>0)) return false; var go=interlude; interlude=go==="tiles"?"wordtime":"tiles";
+    setTimeout(function(){ if(cur!==GAMES[from]) return; select(go); seen[go]=true; GAMES[go].start(score,from); },2600);
     return true;
   }
 
@@ -1397,7 +1584,7 @@
   })();
 
   // ---------- game switching ----------
-  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,tiles:tilesG}, cur=null, seen={};
+  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,tiles:tilesG,wordtime:wordT}, cur=null, seen={};
   var tiles=[].slice.call(document.querySelectorAll(".tile[data-g]"));
   function runDemo(kind){
     if(kind==="intro") seen[cur.name]=true;
@@ -1410,7 +1597,7 @@
     if(cur){ cur.exit(); cur.root.visible=false; }
     cur=GAMES[name]; cur.root.visible=true; shared.visible=!cur.ownScene; tilt.g0=null; cur.enter(); goBtn.hidden=!cur.goVisible;
     tiles.forEach(function(t){ t.setAttribute("aria-pressed",t.dataset.g===name?"true":"false"); });
-    stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",rain:"Rain to the Lake: make rain and snow over real Colorado mountains and watch the water run down Clear Creek",tiles:"Tile Time: make the target number with blocks of tiles"}[name]);
+    stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",rain:"Rain to the Lake: make rain and snow over real Colorado mountains and watch the water run down Clear Creek",tiles:"Tile Time: make the target number with blocks of tiles",wordtime:"Word Time: spell the picture with letter blocks"}[name]);
   }
 
   // ---------- touch ----------
@@ -1429,7 +1616,7 @@
   document.getElementById("startBtn").addEventListener("click",function(){
     started=true; ac(); startRumble(); S.click(); document.getElementById("start").hidden=true; demo.token++; demo.active=false; cur.cancel(); runDemo("intro");
   });
-  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",tiles:"Tile time!"};
+  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",tiles:"Tile time!",wordtime:"Word time!"};
   tiles.forEach(function(t){ t.addEventListener("click",function(){ var g=t.dataset.g; S.click(); select(g); if(!started) runDemo("attract"); else if(!seen[g]) runDemo("intro"); else { lastTouch=now(); speak(NAMES[g]); } }); });
 
   // tile icons
@@ -1463,6 +1650,11 @@
     for(var ty=0;ty<3;ty++) for(var tx=0;tx<4;tx++){ tl.fillStyle=C.teal; tl.fillRect(14+tx*22,18+ty*22,18,18); tl.strokeRect(14+tx*22,18+ty*22,18,18); }
     tl.fillStyle=C.yellow; tl.fillRect(112,62,18,18); tl.strokeRect(112,62,18,18);
     tl.font="700 34px Fredoka, Arial, sans-serif"; tl.fillStyle=C.ink; tl.textAlign="center"; tl.fillText("+",120,44);
+    var wt=document.querySelector('.tile[data-g="wordtime"] canvas').getContext("2d"); wt.lineJoin="round"; wt.strokeStyle=C.ink; wt.lineWidth=4;
+    wt.fillStyle=C.orange; wt.fillRect(46,6,52,52); wt.strokeRect(46,6,52,52); wt.fillStyle=C.paper; wt.fillRect(52,12,40,40);
+    wt.fillStyle=C.yellow; wt.beginPath(); wt.arc(72,32,13,0,Math.PI*2); wt.fill(); wt.stroke();
+    wt.font="700 26px Fredoka, Arial, sans-serif"; wt.textAlign="center"; wt.textBaseline="middle";
+    ["s","u","n"].forEach(function(ch,i){ var x=30+i*42; wt.fillStyle=C.wood; wt.fillRect(x-17,66,34,34); wt.strokeRect(x-17,66,34,34); wt.fillStyle=C.ink; wt.fillText(ch,x,84); });
     var rn=document.querySelector('.tile[data-g="rain"] canvas').getContext("2d"); rn.lineJoin="round"; rn.lineCap="round"; rn.strokeStyle=C.ink; rn.lineWidth=4;
     rn.fillStyle="#3F9446"; rn.beginPath(); rn.moveTo(0,100); rn.lineTo(40,40); rn.lineTo(62,62); rn.lineTo(84,30); rn.lineTo(144,100); rn.closePath(); rn.fill(); rn.stroke();
     rn.fillStyle=C.white; rn.beginPath(); rn.moveTo(74,45); rn.lineTo(84,30); rn.lineTo(95,46); rn.closePath(); rn.fill();
@@ -1482,6 +1674,7 @@
   // ---------- loop: fixed 1/120 s physics, interpolated drawing ----------
   var last=now(), acc=0;
   function frame(t){
+    try{
     var dt=Math.min(0.1,(t-last)/1000); last=t; acc+=dt;
     var n=0; while(acc>=DT&&n<24){ cur.step(); acc-=DT; n++; } if(n>=24) acc=0;
     cur.frame(dt,acc/DT);
@@ -1492,6 +1685,7 @@
     if(started&&!demo.active&&!dragging&&cur.idleOK()&&now()-lastTouch>20000) runDemo("attract");
     placeFinger(); drawFx(dt);
     renderer.render(scene,camera);
+    }catch(e){ if(window.console) console.error(e); }   // one game's error must not stop the whole page
     requestAnimationFrame(frame);
   }
   resize(); select("maze");
