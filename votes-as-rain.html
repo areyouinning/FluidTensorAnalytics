@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Votes as Rain</title>
+<title>Votes as Rain | FluidTA</title>
 <meta name="description" content="U.S. House votes from official state results files, falling as rain on their counties and mixing under real fluid equations.">
 <!--
   A static page, built by elections/build_public_edition.py from elections/2026-11-03/public/counts.json, which comes only from
@@ -64,11 +64,11 @@ code { background: var(--c-orange-soft); border-radius: 4px; padding: 0 4px; fon
 #tip { position: fixed; z-index: 10; background: var(--c-ink); color: var(--c-paper); font-size: 13px; padding: 3px 8px; border-radius: 5px; pointer-events: none; max-width: 280px; }
 @media (max-width: 860px) { .btn { min-height: 44px; } }
 </style>
+<script src="/fta.js" data-guest defer></script>
 </head>
 <body>
 <div class="page">
   <a class="skip" href="#rainsec">Skip to the rain</a>
-  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Fluid Tensor Analytics</a> <span aria-hidden="true">/</span> <a href="/analytics.html">Analytics</a></nav>
   <h1>Votes as rain</h1>
   <hr class="brand-rule">
   <p class="lede">U.S. House votes from the 2026 election, read from official state results files. Each drop is real counted votes falling on its county, and the fluid equations do the rest.</p>
