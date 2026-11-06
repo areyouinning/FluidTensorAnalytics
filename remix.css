@@ -1,6 +1,6 @@
 /* The DataGenetics remix pages: an article beside a fixed 3D stage. Without WebGL2 the page stays a plain article and the stage is hidden. */
 #stage { display: none; }
-main { max-width: 680px; margin: 0 auto; padding: 72px var(--gutter) 48px; }
+main { max-width: 680px; margin: 0 auto; padding: 8px var(--gutter) 48px; }
 main h2 { font-family: var(--font-head); font-weight: 600; color: var(--c-white); font-size: 21px; margin: 28px 0 6px; }
 main p { margin: 0 0 12px; }
 main ul { margin: 0 0 12px; padding-left: 20px; }
@@ -8,8 +8,8 @@ main code { font-size: 14px; color: var(--c-mint); }
 .lede { font-size: 18px; color: var(--c-white); margin-top: 8px; }
 .credit { margin-top: 28px; padding: 12px 14px; background: var(--c-dusk); border: 1px solid var(--c-edge); border-radius: var(--radius); font-size: 15px; }
 .back { display: inline-flex; align-items: center; min-height: 44px; }
-.live #stage { display: block; position: fixed; left: 480px; right: 0; top: 53px; bottom: 0; }
-.live main { margin: 0; width: 480px; max-width: none; padding-top: 68px; border-right: 1px solid var(--c-edge); }
+.live #stage { display: block; position: fixed; left: 480px; right: 0; top: 57px; bottom: 0; }
+.live main { margin: 0; width: 480px; max-width: none; padding-top: 12px; border-right: 1px solid var(--c-edge); }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #gl.drag { cursor: grabbing; }
 #hud { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 10px; pointer-events: none; }
@@ -27,16 +27,18 @@ main code { font-size: 14px; color: var(--c-mint); }
 #ctl label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; font-size: 14px; background: var(--c-glass); border: 1px solid var(--c-edge); border-radius: 6px; }
 #ctl input { width: 96px; accent-color: var(--c-cyan); }
 #ctl output { min-width: 3ch; color: var(--c-white); font-variant-numeric: tabular-nums; }
+/* On a phone the stage is a figure in the page: picture, then controls, then readouts, each at a size you can read. */
 @media (max-width: 1000px) {
   .live main { width: auto; max-width: 680px; margin: 0 auto; padding-top: 12px; border-right: 0; }
-  .live #stage { position: sticky; left: auto; right: auto; top: 53px; bottom: auto; height: 62dvh; margin-top: 53px; z-index: 5; background: var(--c-night); border-bottom: 1px solid var(--c-edge); }
-  #hud { left: 6px; right: 6px; bottom: 6px; grid-template-columns: minmax(0, 1fr) 150px; gap: 6px; }
-  #hud > * { padding: 5px 7px; }
-  #chart { height: 84px; padding: 0; }
-  #read { font-size: 12px; line-height: 1.3; }
-  #read b { font-size: 13px; }
-  #ctl { left: 6px; right: 6px; top: 6px; gap: 4px; }
-  #ctl button { padding: 0 8px; font-size: 13px; }
-  #ctl label { padding: 0 8px; font-size: 13px; }
-  #ctl input { width: 70px; }
+  .live #stage { display: flex; flex-direction: column; position: relative; left: auto; right: auto; top: auto; bottom: auto; }
+  #gl { position: relative; order: 1; height: min(86vw, 58dvh); }
+  #ctl { position: static; order: 2; padding: 8px var(--gutter) 0; gap: 8px; }
+  #ctl button { padding: 0 12px; font-size: 15px; }
+  #ctl label { flex: 1 1 200px; font-size: 15px; }
+  #ctl input { flex: 1; width: auto; }
+  #hud { position: static; order: 3; display: block; padding: 8px var(--gutter) 14px; }
+  #hud > * { margin-top: 8px; }
+  #chart { height: 120px; }
+  #read { font-size: 16px; }
+  #read b { font-size: 17px; }
 }

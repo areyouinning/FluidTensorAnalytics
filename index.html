@@ -2,23 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fluid Tensor Analytics</title>
-<meta name="description" content="Where fluid mechanics meets data science.">
-<link rel="stylesheet" href="fta-scene.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FluidTA</title>
+<meta name="description" content="Water, math and puzzles you can poke: interactive explainers, games and short books.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
 </head>
-<body data-scene="home">
-<a class="skip" href="#tools">Skip to the links</a>
-<nav class="top" aria-label="Site"><ul><li><a href="/" aria-current="page">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html">Blowup</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/remix.html">Remix</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
-<header class="intro"><h1>Fluid Tensor Analytics</h1><p>Where fluid mechanics meets data science</p><a class="contact" href="mailto:taylor@fluidtensoranalytics.com">taylor@fluidtensoranalytics.com</a></header>
-<ul id="tools" aria-label="Home links">
-  <li class="lead"><a class="tool" href="/fluid.html"><b>Fluid</b><span>Simulations and optimization: flow, mixing, channel networks and reservoir operations.</span></a></li>
-  <li><a class="tool" href="/tensor.html"><b>Tensor</b><span>Multidimensional methods: climate data, ensembles and tensor analysis.</span></a></li>
-  <li><a class="tool" href="/analytics.html"><b>Analytics</b><span>Tools for water, weather, votes and mountains, and some puzzles.</span></a></li>
-  <li><a class="tool" href="/blowup.html"><b>Blowup</b><span>Can a smooth fluid reach infinite speed in finite time? Three exact vortices in 3D.</span></a></li>
-  <li><a class="tool" href="/way-of.html"><b>Way Of</b><span>Five short books of verse and working mathematics, from stirred water to black holes.</span></a></li>
-  <li><a class="tool" href="/remix.html"><b>Remix</b><span>Posts from the DataGenetics blog, rebuilt as new 3D experiments.</span></a></li>
-</ul>
-<script src="fta-scene.js"></script>
+<body data-tab="home">
+<main id="main" class="wrap">
+  <div class="page-head">
+    <h1>Why does it do that?</h1>
+    <p>Water, math and puzzles you can poke, with a picture for every idea.</p>
+  </div>
+  <figure class="pond" data-diagram="pond"><p>Touch the water</p></figure>
+
+  <div class="shelf-head"><h2>New</h2></div>
+  <div data-hrefs="/queens-tiling.html /tensor-analysis.html /ensemble-methods.html"></div>
+
+  <div class="shelf-head"><h2>Explore</h2><a href="/explore.html">See all</a></div>
+  <div data-hrefs="/optimal-channel-networks.html /remix-parrondo.html /blowup.html /navier-stokes-demo.html"></div>
+
+  <div class="shelf-head"><h2>Play</h2><a href="/play.html">See all</a></div>
+  <div data-hrefs="/pauls-game-garage.html /eight-queens.html /impossible-escape.html /connections.html"></div>
+
+  <div class="shelf-head"><h2>Way Of</h2><a href="/way-of.html">See all</a></div>
+  <div data-hrefs="/way-of-water.html /way-of-incompleteness.html"></div>
+
+  <noscript><ul><li><a href="/explore.html">Explore</a></li><li><a href="/play.html">Play</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/tools.html">Tools</a></li></ul></noscript>
+</main>
 </body>
 </html>

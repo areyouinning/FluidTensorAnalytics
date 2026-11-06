@@ -1,0 +1,8 @@
+/* The older puzzles keep their own markup and logic. This maps their variables onto the kit and takes away the neon. */
+@import url('/fta-tokens.css');
+:root { color-scheme: light dark; --bg-primary: var(--paper); --bg-secondary: var(--panel); --bg-tertiary: var(--sunk); --accent-primary: var(--blue); --accent-secondary: var(--orange-t); --accent-tertiary: var(--purple); --text-primary: var(--ink); --text-secondary: var(--ink-soft); --text-dim: var(--ink-soft); --border-color: var(--line); --success: var(--green); --warning: var(--gold); --error: var(--red); --shadow-glow: var(--shadow); }
+body { background: var(--paper) !important; color: var(--ink); font-family: var(--font) !important; font-size: 18px; line-height: 1.6; }
+body::before, body::after { display: none !important; }
+h1, h2, h3, h4, h5, button, .btn { font-family: var(--font) !important; letter-spacing: 0 !important; text-transform: none !important; text-shadow: none !important; }
+h1, h2, h3, h4, h5 { font-weight: 600 !important; color: var(--ink) !important; background: none !important; -webkit-text-fill-color: currentColor !important; animation: none !important; }
+button, .btn { min-height: 44px; border-radius: 999px !important; }
