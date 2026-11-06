@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Scramble 3D - Fluid Tensor Analytics</title>
+    <title>Math Scramble 3D | FluidTA</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -36,9 +36,10 @@
             border-color: rgba(100, 200, 255, 0.6);
         }
     </style>
+<script src="/fta.js" data-guest defer></script>
 </head>
 <body>
-    <a href="/" class="back-link">← Back to Home</a>
+    
     <div id="root"></div>
 
     <script type="text/babel">
@@ -423,7 +424,7 @@
                 
                 <div className="flex justify-center mb-4">
                   <div className="inline-grid gap-1" style={{
-                    gridTemplateColumns: `repeat(${puzzle.gridSize}, 50px)`
+                    gridTemplateColumns: `repeat(${puzzle.gridSize}, minmax(0, 50px))`
                   }}>
                     {displayGrid.map((row, rowIdx) => (
                       row.map((cell, colIdx) => {
@@ -449,7 +450,7 @@
                             onDragOver={cell.isActive ? handleDragOver : null}
                             onDrop={cell.isActive ? (e) => handleDropOnCell(e, actualRow, actualCol, actualLayer) : null}
                             onClick={() => cell.isActive && setSelectedCell([actualRow, actualCol, actualLayer])}
-                            className={`w-12 h-12 border-2 flex items-center justify-center font-bold text-sm transition-all ${
+                            className={`w-full aspect-square max-w-[48px] border-2 flex items-center justify-center font-bold text-sm transition-all ${
                               !cell.isActive 
                                 ? 'bg-gray-800 border-gray-800 cursor-default' 
                                 : selectedCell && selectedCell[0] === actualRow && selectedCell[1] === actualCol && selectedCell[2] === actualLayer

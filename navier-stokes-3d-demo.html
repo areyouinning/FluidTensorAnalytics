@@ -85,6 +85,7 @@
             max-width: 300px;
         }
     </style>
+<script src="/fta.js" data-guest defer></script>
 </head>
 <body>
     <div id="container"></div>
@@ -112,9 +113,9 @@
     </div>
     <div id="info">
         <strong>Controls:</strong><br>
-        • Mouse: Rotate view<br>
-        • Scroll: Zoom<br>
-        • Right-click: Pan<br><br>
+        • Drag: Rotate view<br>
+        • Scroll: Zoom (mouse)<br>
+        <br>
         <strong>Physics:</strong><br>
         Incompressible Navier-Stokes with density-driven buoyancy
     </div>
@@ -414,7 +415,13 @@
             mouseY = e.clientY;
         });
 
-        renderer.domElement.addEventListener('wheel', (e) => {
+        // A finger drives the same handlers as the mouse.
+['touchstart', 'touchmove', 'touchend'].forEach((type, k) => renderer.domElement.addEventListener(type, (e) => {
+    e.preventDefault();
+    const p = e.changedTouches[0];
+    renderer.domElement.dispatchEvent(new MouseEvent(['mousedown', 'mousemove', 'mouseup'][k], { clientX: p.clientX, clientY: p.clientY, button: 0, bubbles: true }));
+}, { passive: false }));
+renderer.domElement.addEventListener('wheel', (e) => {
             cameraRadius = Math.max(N * 0.5, Math.min(N * 3, cameraRadius + e.deltaY * 0.1));
         });
 

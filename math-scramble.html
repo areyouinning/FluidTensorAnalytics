@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Scramble - Fluid Tensor Analytics</title>
+    <title>Math Scramble | FluidTA</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -37,9 +37,10 @@
             border-color: rgba(100, 200, 255, 0.6);
         }
     </style>
+<script src="/fta.js" data-guest defer></script>
 </head>
 <body>
-    <a href="/" class="back-link">← Back to Home</a>
+    
     <div id="root"></div>
 
     <script type="text/babel">
@@ -410,7 +411,7 @@
               <div className="bg-white rounded-lg p-6 mb-4 shadow">
                 <div className="flex justify-center mb-4">
                   <div className="inline-grid gap-1" style={{
-                    gridTemplateColumns: `repeat(${puzzle?.gridSize || 0}, 50px)`
+                    gridTemplateColumns: `repeat(${puzzle?.gridSize || 0}, minmax(0, 50px))`
                   }}>
                     {grid.map((row, rowIdx) => (
                       row.map((cell, colIdx) => (
@@ -419,7 +420,7 @@
                           onDragOver={cell.isActive ? handleDragOver : null}
                           onDrop={cell.isActive ? (e) => handleDropOnCell(e, rowIdx, colIdx) : null}
                           onClick={() => cell.isActive && setSelectedCell([rowIdx, colIdx])}
-                          className={`w-12 h-12 border-2 flex items-center justify-center font-bold text-lg transition-all ${
+                          className={`w-full aspect-square max-w-[48px] border-2 flex items-center justify-center font-bold text-lg transition-all ${
                             !cell.isActive 
                               ? 'bg-gray-800 border-gray-800 cursor-default' 
                               : selectedCell && selectedCell[0] === rowIdx && selectedCell[1] === colIdx
