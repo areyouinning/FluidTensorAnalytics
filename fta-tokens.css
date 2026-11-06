@@ -1,0 +1,24 @@
+/* FluidTA colors and type, once, for light and dark. Every page that shares the look starts here. */
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap');
+:root {
+  color-scheme: light dark;
+  --paper: #FCFBF9; --panel: #FFFFFF; --sunk: #F1EFEA; --ink: #1B1D21; --ink-soft: #4A4F57; --line: #DCDFE4;
+  /* marks: checked with the palette validator for both themes. text: the same hues, darkened to pass 4.5:1 as words. */
+  --blue: #1F6FEB; --orange: #D4640A; --purple: #7C3AED; --green: #1E9E5A; --red: #C8321F; --gold: #FFC21A;
+  --blue-t: #1459C7; --orange-t: #A94C08; --purple-t: #6A2BD9; --green-t: #147A44;
+  --link: #1459C7; --on-accent: #FFFFFF; --on-gold: #1B1D21; --tint: rgba(31, 111, 235, .1);
+  --shadow: 0 1px 2px rgba(27, 29, 33, .07), 0 8px 24px rgba(27, 29, 33, .08);
+  --sky: #8CCBFF; --spruce: #0B6E3A; --snow: #FFFFFF; --drop: #1E88FF; /* Bright Field, the Game Garage's colors; same in both themes */
+  --font: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+  --mono: 'Atkinson Hyperlegible Mono', ui-monospace, Menlo, Consolas, monospace;
+  --radius: 18px; --radius-sm: 10px; --gutter: 16px; --measure: 66ch; --tabs: 64px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #10161D; --panel: #19222C; --sunk: #0B1016; --ink: #EEF1F4; --ink-soft: #B6BFC9; --line: #303C49;
+    --blue: #4D94EA; --orange: #DB7A26; --purple: #9B7AE8; --green: #34AE72; --red: #FF8A75;
+    --blue-t: #8CC2FF; --orange-t: #FFB070; --purple-t: #C4A8FF; --green-t: #6FD9A4;
+    --link: #8CC2FF; --on-accent: #10161D; --tint: rgba(108, 176, 255, .14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .28);
+  }
+}

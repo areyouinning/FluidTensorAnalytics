@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Queens Tiling Challenge | FluidTA</title>
+<meta name="description" content="IMO 2025 Problem 6 with one extra rule: the uncovered squares must be non-attacking queens. Tile small boards, then try to beat 3039 on the 2025 board.">
+<link rel="stylesheet" href="/fta.css">
+<link rel="stylesheet" href="/queens-tiling.css">
+<script src="/fta.js" defer></script>
+</head>
+<body>
+<main id="main" class="article">
+  <a class="crumb" href="/play.html">Play</a>
+  <h1>Queens Tiling Challenge</h1>
+  <p class="lede" style="margin-top:14px">Cover a 2025 × 2025 grid with as few rectangles as you can, leaving exactly one square empty in every row and column. Problem 6 of the 2025 International Mathematical Olympiad says the answer is 2112.</p>
+  <p>This challenge adds one rule: the empty squares must be non-attacking queens, so no two share a diagonal either. That changes the answer on some small boards. On the 2025 board, I don't know what it does, and I haven't found anyone who does.</p>
+  <div class="read targets">
+    <div class="stat"><small>Without queens</small><b>2112</b></div>
+    <div class="stat"><small>Best so far</small><b>3039</b></div>
+    <div class="stat"><small>True minimum</small><b>?</b></div>
+  </div>
+  <figure class="fig hero-fig">
+    <svg id="hero-board" viewBox="-1 -1 62 62" role="img" aria-label="A 6 by 6 board with six queens and the remaining 30 squares covered by 8 rectangular tiles"></svg>
+    <figcaption>A solved 6 × 6 board: six queens, 8 tiles. No arrangement does better, with or without the queens rule.</figcaption>
+  </figure>
+
+  <h2 id="play">Tile a small board</h2>
+  <p>Place the queens, then cover every other square with as few rectangles as you can. Par depends on where the queens stand, so choosing them is half the puzzle.</p>
+  <div class="fig">
+    <div class="modes" role="group" aria-label="Board size">
+      <button class="btn tab" id="tab-8" aria-pressed="true" data-n="8">8 × 8, record 12</button>
+      <button class="btn tab" id="tab-9" aria-pressed="false" data-n="9">9 × 9, record 14</button>
+    </div>
+    <svg id="board" role="img" aria-label="Playable board"></svg>
+    <div class="modes" role="group" aria-label="What a touch does">
+      <button class="btn" id="mode-q" aria-pressed="true">Place queens</button>
+      <button class="btn" id="mode-t" aria-pressed="false">Lay tiles</button>
+    </div>
+    <p class="msg" id="msg" aria-live="polite">Place 8 queens so that no two share a row, column or diagonal.</p>
+    <div class="read">
+      <div class="stat"><small>Queens</small><b id="s-queens">0</b></div>
+      <div class="stat"><small>Tiles laid</small><b id="s-tiles">0</b></div>
+      <div class="stat"><small>Squares left</small><b id="s-left">64</b></div>
+      <div class="stat"><small>Par for these queens</small><b id="s-par">–</b></div>
+    </div>
+    <div class="ctl">
+      <button class="btn" id="undo">Undo tile</button>
+      <button class="btn" id="clear-tiles">Clear tiles</button>
+      <button class="btn" id="clear-all">Clear board</button>
+      <button class="btn" id="random">Random queens</button>
+    </div>
+    <ul class="howto">
+      <li><b>Place queens:</b> tap a square to add or remove one. Attacking pairs turn red.</li>
+      <li><b>Lay tiles:</b> drag across squares for a rectangle, or tap for a 1 × 1. Tap a tile to lift it. Switch back to Place queens to scroll past the board.</li>
+      <li>Par is the exact minimum for these queens. The record is the lowest par over every placement.</li>
+    </ul>
+  </div>
+
+  <h2 id="big">The 2025 board</h2>
+  <p>Submit 2025 non-attacking queens. You don't draw any tiles: this page computes the exact minimum your queens allow, so your score depends only on where they stand. Lower is better. The best so far, 3039, comes from the textbook construction that solves the n-queens puzzle for every n.</p>
+  <div class="fig">
+    <div class="field">
+      <label for="placement">Your placement</label>
+      <textarea id="placement" spellcheck="false" placeholder="2025 whole numbers: the column (1 to 2025) of the queen in row 1, row 2 and so on. Separate them with spaces, commas or line breaks."></textarea>
+      <input type="file" id="file" accept=".txt,.csv,text/plain" aria-label="Load a placement from a text file">
+      <div class="ctl">
+        <button class="btn go" id="check">Check and score</button>
+        <button class="btn" id="load-textbook">Load the textbook construction</button>
+      </div>
+    </div>
+    <div aria-live="polite">
+      <span class="tag idle" id="big-chip">Waiting for a placement</span>
+      <div class="read">
+        <div class="stat"><small>Minimum tiles</small><b id="b-tiles">–</b></div>
+        <div class="stat"><small>Above 2112</small><b id="b-gap">–</b></div>
+      </div>
+      <p id="big-msg" class="msg">Load the textbook construction to see how scoring works, then try to beat it.</p>
+      <canvas id="preview" width="600" height="600" aria-label="Map of the queens on the 2025 by 2025 board"></canvas>
+      <p class="howto" style="padding:0">Each dot is a queen. Row 1 is at the top, column 1 at the left.</p>
+      <div class="field" id="code-field" hidden>
+        <span class="lbl">Result code</span>
+        <div class="ctl"><span class="code" id="code"></span><button class="btn" id="copy">Copy</button></div>
+        <p class="howto" id="submit-note" style="padding:0"></p>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="known">What the queens rule costs</h2>
+  <p>On most small boards, nothing. On 8, 9 and 11, it costs extra tiles. These come from searching every queens placement on each board.</p>
+  <figure class="fig" data-diagram="queengap"><figcaption>Fewest tiles at each board size. The search was run a second time, separately, for this page, and the numbers match.</figcaption></figure>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th scope="col">Board</th><th scope="col">Without queens</th><th scope="col">With queens</th><th scope="col">Extra</th><th scope="col">Placements that reach it</th></tr></thead>
+      <tbody id="known-rows"></tbody>
+    </table>
+  </div>
+  <p style="margin-top:14px">Placements are counted up to rotation and reflection. The without-queens column uses the proved formula <span class="num">n + ⌈2√n⌉ − 3</span>.</p>
+
+  <h3>Why 2025 is hard</h3>
+  <p>The placements that reach the olympiad's bound are sheared lattices: <span class="m">a</span> bands of <span class="m">b</span> rows, with the columns interleaved. Such a lattice is non-attacking exactly when gcd(<span class="m">b</span>+1, <span class="m">a</span>−1) = 1 and gcd(<span class="m">b</span>−1, <span class="m">a</span>+1) = 1. Because 2025 is odd, every factor pair is odd, so both of those gcds are even and every lattice fails.</p>
+  <h3>Nearby boards are easy</h3>
+  <p>A 42 × 48 lattice gives 2016 queens in <span class="num">2103</span> tiles, and a 39 × 52 lattice gives 2028 queens in <span class="num">2116</span> tiles. Both equal the answer without the queens rule. Deleting holes from the larger one, inserting holes into the smaller one, joining lattices in blocks and repairing the 45 × 45 lattice all failed to beat 3039 on the 2025 board.</p>
+
+  <h2 id="rules">Rules</h2>
+  <ol>
+    <li>A placement is 2025 whole numbers. The <span class="m">k</span>-th is the column, from 1 to 2025, of the queen in row <span class="m">k</span>.</li>
+    <li>Every column is used once and no two queens share a diagonal.</li>
+    <li>Your score is the fewest rectangles covering every other square, computed exactly in your browser. Nothing is uploaded.</li>
+    <li>Below 3039 beats the best so far. A score of 2112 would show the queens rule costs nothing on this board. A proof that some score is the minimum settles the question.</li>
+  </ol>
+
+  <p class="credit">Problem source: <a href="https://www.imo-official.org/problems.aspx">IMO 2025, Problem 6</a>. For the intuition behind 2112, see 3Blue1Brown's <a href="https://3blue1brown.substack.com/p/the-last-imo-problem-ai-could-not">The last IMO problem AI could not solve</a>. Tile counts use the rectilinear partition theorem: minimum rectangles = reflex vertices − maximum non-crossing chords − enclosed holes + 1, with the chord count found by bipartite matching.</p>
+  <a data-next></a>
+</main>
+<script src="/queens-tiling.js"></script>
+</body>
+</html>

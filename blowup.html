@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blowup | Fluid Tensor Analytics</title>
+<title>Blowup | FluidTA</title>
 <meta name="description" content="Can a smooth fluid reach infinite speed in finite time? Three exact vortices in 3D, and where the Navier-Stokes blowup question stands.">
-<link rel="stylesheet" href="fta-scene.css">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
 <style>
   .skip:focus { top: 56px; }
   #stage { display: none; }
@@ -58,9 +59,9 @@
   .btns button { flex: 1; }
 
   @media (max-width: 1000px) {
-    .live #stage { position: sticky; left: auto; right: auto; top: 53px; bottom: auto; height: calc(34vh + 104px); height: calc(34dvh + 104px); z-index: 5; border-bottom: 1px solid var(--c-edge); }
+    .live #stage { position: relative; left: auto; right: auto; top: auto; bottom: auto; height: calc(34vh + 104px); height: calc(34dvh + 104px); z-index: 5; border-bottom: 1px solid var(--c-edge); }
     .live #story { width: auto; max-width: 620px; margin: 0 auto; padding: 24px var(--gutter) 64px; border-right: 0; }
-    .live main { display: flex; flex-direction: column; padding-top: 53px; }
+    .live main { display: flex; flex-direction: column; padding-top: 0; }
     #vortex { height: 34vh; height: 34dvh; bottom: auto; }
     #cases { top: 4px; left: 6px; right: 6px; flex-wrap: nowrap; gap: 4px; }
     #cases button { flex: 1 1 0; min-width: 0; padding: 0 2px; font-size: 12px; line-height: 1.15; background: rgba(10, 22, 40, .9); }
@@ -80,9 +81,6 @@
 </style>
 </head>
 <body>
-<a class="skip" href="#story">Skip to the explanation</a>
-<nav class="top" aria-label="Site"><ul><li><a href="/">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html" aria-current="page">Blowup</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/remix.html">Remix</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
-<script>(a=>{a.closest('ul').scrollLeft=a.offsetLeft-120})(document.querySelector('nav.top [aria-current]'))</script>
 <main>
 <div id="stage">
   <canvas id="vortex" tabindex="0" role="img" aria-label="A vortex tube in 3D"></canvas>
