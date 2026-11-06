@@ -9,7 +9,6 @@ window.NS3D = (() => {
   const probe = document.createElement('canvas').getContext('webgl2');
   if (!probe) return null;
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches, N = fluid.N, W = N + 2, HS = .46, BASE = -.52, STEP = innerWidth < 720 ? 2 : 1, LIFT = .007;
-  const PX_PER_CELL = 3;   // the 2D view's force is per canvas pixel, at about this many pixels to a cell on a typical window
   const TAU = 800, BG = [.055, .075, .12];   // the stretch relaxes with this time constant, in ms
   const CAM = { yaw: -.55, pitch: .78, zoom: 1 }, STATE = { on: true, mode: null, scale: 1, last: 0, pushes: true, frame: 0, divShare: 0 };
   const F = new Float32Array(N * N * 4);
@@ -156,7 +155,7 @@ window.NS3D = (() => {
   cv.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; const [px, py] = local(e); pts.set(e.pointerId, [px, py]); if (!act) return;
     if (act.kind === 'pinch' && pts.size >= 2) { const [a, b] = [...pts.values()], cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2, dist = Math.hypot(a[0] - b[0], a[1] - b[1]); CAM.yaw = act.yaw - (cx - act.cx) / w * 3.2; CAM.pitch = clampPitch(act.pitch + (cy - act.cy) / h * 1.8); CAM.zoom = Math.max(.5, Math.min(1.6, act.zoom * act.dist / (dist || 1))); return; }
     if (act.kind === 'turn') { CAM.yaw = act.yaw - (px - act.px) / w * 3.2; CAM.pitch = clampPitch(act.pitch + (py - act.py) / h * 1.8); return; }
-    if (act.kind === 'push') { act.moved = Math.max(act.moved, Math.hypot(px - act.px, py - act.py)); const on = hit(px, py); if (!on) return; const dx = on.x - act.last.x, dy = on.y - act.last.y; if (Math.hypot(dx, dy) > .6) { fluid.addForce(on.x - .5, on.y - .5, dx * PX_PER_CELL * forceMagnitude * .1, dy * PX_PER_CELL * forceMagnitude * .1, N, N); act.last = on; } } });
+    if (act.kind === 'push') { act.moved = Math.max(act.moved, Math.hypot(px - act.px, py - act.py)); const on = hit(px, py); if (!on) return; const dx = on.x - act.last.x, dy = on.y - act.last.y; if (Math.hypot(dx, dy) > .6) { fluid.addForce(on.x - .5, on.y - .5, dx * forceMagnitude * PUSH, dy * forceMagnitude * PUSH, N, N); act.last = on; } } });
   const up = e => { pts.delete(e.pointerId); cv.classList.remove('drag'); if (act && act.kind === 'push' && e.type === 'pointerup' && act.moved < 10 && performance.now() - act.at < 200) { const on = hit(act.px, act.py); if (on) fluid.addVortexAt(on.x - .5, on.y - .5, N, N); } act = null; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   cv.addEventListener('wheel', e => { e.preventDefault(); CAM.zoom = Math.max(.5, Math.min(1.6, CAM.zoom * Math.exp(e.deltaY * .001))); }, { passive: false });
