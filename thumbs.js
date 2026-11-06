@@ -29,6 +29,16 @@
       return o;
     },
     queens: function () { var q = [0, 4, 7, 5, 2, 6, 1, 3], s = 20, x = 80, y = 10, o = board(8, s, x, y); q.forEach(function (c, r) { o += crown(x + c * s + 2, y + r * s + 2, 1.6, O); }); return o; },
+    halves: function () {
+      /* two kinds of vehicle arriving; one cell got both halves, one was half ruined */
+      var o = line('M66 46 L124 78', S, 2, .4) + line('M254 46 L196 78', S, 2, .4);
+      [[30, 30], [56, 20], [44, 52]].forEach(function (p) { o += dot(p[0], p[1], 7, B); });
+      [[290, 30], [264, 20], [276, 52]].forEach(function (p) { o += dot(p[0], p[1], 7, O); });
+      o += rect(118, 72, 84, 66, W, 12) + rect(127, 81, 29, 48, G, 6) + rect(164, 81, 29, 48, G, 6);
+      o += rect(30, 100, 56, 46, W, 10) + rect(36, 106, 20, 34, G, 4) + rect(60, 106, 20, 34, O, 4);
+      o += rect(234, 100, 56, 46, W, 10) + rect(240, 106, 20, 34, O, 4) + rect(264, 106, 20, 34, L, 4);
+      return o;
+    },
     coins: function () { var R = rng(7), o = ''; for (var r = 0; r < 6; r++) for (var c = 0; c < 6; c++) o += dot(100 + c * 24, 30 + r * 24, 9, R() > .5 ? B : L); return o + '<circle cx="172" cy="78" r="13" fill="none" stroke="' + O + '" stroke-width="4"/>'; },
     numbers: function () {
       var n = [2, 15, 3, 16, 9, 7, 25, 8, 21, 36, 11, 49], hot = { 2: 1, 3: 1, 7: 1, 11: 1 }, o = '';

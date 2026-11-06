@@ -2,6 +2,7 @@
    shelf: explore | play | way | tools. thumb: a drawing in thumbs.js. Blurbs say what you get to do. */
 window.FTA_CATALOG = [
   { href: '/queens-tiling.html', shelf: 'play', topics: ['math'], thumb: 'tiling', title: 'Can queens make a tiling harder?', blurb: 'A math olympiad problem with one extra rule. Beat 3039 on the 2025 board.', fresh: true },
+  { href: '/two-halves.html', shelf: 'play', topics: ['chance', 'math'], thumb: 'halves', title: 'Can you fix both copies at once?', blurb: 'An editor too big to ship whole, two copies to mend, and a dose that costs you cells. Beat 7.32%.', fresh: true },
   { href: '/eight-queens.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'queens', title: 'Can eight queens keep the peace?', blurb: 'Place them so that no two attack. There are 92 ways.' },
   { href: '/impossible-escape.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'coins', title: 'Can one coin flip say where the key is?', blurb: 'A prison puzzle that parity makes possible.' },
   { href: '/connections.html', shelf: 'play', topics: ['math'], thumb: 'numbers', title: 'C0nn3ct10ns', blurb: 'Find four numbers that share a property.' },
