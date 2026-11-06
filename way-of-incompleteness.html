@@ -1,0 +1,779 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Way of Incompleteness</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap">
+<style>
+/* Layout: one chapter at a time. Verse column and a square generative plate side by side; stacked (plate first) on phones. Monochrome ink on paper. */
+:root{
+  --paper:#f7f7f5; --ink:#141517; --muted:#686b72; --rule:#d6d7da; --wash:#ececea;
+  --verse:"Spectral", Georgia, "Times New Roman", serif;
+  --mono:"DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#0f1012; --ink:#e7e7e4; --muted:#8d9098; --rule:#2c2e33; --wash:#1a1b1e; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --paper:#0f1012; --ink:#e7e7e4; --muted:#8d9098; --rule:#2c2e33; --wash:#1a1b1e; color-scheme:dark }
+
+html,body{ background:var(--paper); color:var(--ink) }
+body{
+  font-family:var(--verse);
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-block:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{ max-width:1180px; margin:0 auto; min-height:100%; display:flex; flex-direction:column }
+header{
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+  padding-block:22px 18px; border-bottom:1px solid var(--rule);
+  font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+}
+header .name{ color:var(--ink) }
+header .count{ color:var(--muted); font-variant-numeric:tabular-nums }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0 }
+button:focus-visible, a:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px }
+.hbtn{ letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
+.hbtn:hover{ color:var(--ink) }
+
+main{
+  flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:56px; padding-block:48px 32px; align-items:start;
+}
+.text{ min-width:0; max-width:34rem }
+.num{ font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--muted) }
+h1{ font-weight:300; font-size:clamp(1.9rem, 3.6vw, 2.7rem); line-height:1.1; margin:.35em 0 1.1em; text-wrap:balance; letter-spacing:-.01em }
+.verse{ font-size:clamp(1.08rem, 1.6vw, 1.22rem); line-height:1.62; font-weight:300 }
+.verse p{ margin:0 0 1.15em }
+.verse em{ font-style:italic }
+.notes{
+  margin-top:2.2em; padding-top:1.1em; border-top:1px solid var(--rule);
+  font-family:var(--mono); font-size:12.5px; line-height:1.7; color:var(--muted);
+}
+.notes .lbl{ display:block; letter-spacing:.14em; text-transform:uppercase; font-size:11px; margin-bottom:.6em; color:var(--ink) }
+.notes p{ margin:0 0 .8em }
+.notes code{ font-family:var(--mono); color:var(--ink) }
+
+.plate{ min-width:0; position:sticky; top:24px }
+.frame{ width:100%; max-width:min(100%, 74vh); aspect-ratio:1/1; margin-left:auto; position:relative; background:var(--paper); border:1px solid var(--rule) }
+canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none }
+.caption{ max-width:min(100%, 74vh); margin:12px 0 0 auto; font-family:var(--mono); font-size:11.5px; line-height:1.6; color:var(--muted) }
+
+nav.pager{
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
+  border-top:1px solid var(--rule); padding-block:18px 26px;
+  font-family:var(--mono); font-size:12px; letter-spacing:.06em;
+}
+nav.pager button{ color:var(--muted); display:flex; gap:10px; align-items:baseline; min-height:44px; text-align:left }
+nav.pager button:hover:not([disabled]){ color:var(--ink) }
+nav.pager button[disabled]{ opacity:.3; cursor:default }
+nav.pager .t{ text-transform:none; letter-spacing:0; font-family:var(--verse); font-style:italic; font-size:15px }
+.dots{ display:flex; gap:7px; flex-wrap:wrap; justify-content:center }
+.dots button{ width:7px; height:7px; border-radius:50%; background:var(--rule) }
+.dots button[aria-current="true"]{ background:var(--ink) }
+
+.index{
+  position:fixed; inset:0; z-index:20; background:var(--paper);
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-block:calc(env(safe-area-inset-top,0px) + 22px) 32px; overflow-y:auto;
+}
+.index .in{ max-width:720px; margin:0 auto }
+.index .top{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; padding-bottom:18px; border-bottom:1px solid var(--rule) }
+.index ol{ list-style:none; margin:0; padding:0 }
+.index li button{ width:100%; display:grid; grid-template-columns:3.2rem 1fr; gap:12px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--rule); text-align:left }
+.index li .n{ font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.1em }
+.index li .tt{ font-size:1.35rem; font-weight:300 }
+.index li button:hover .tt{ font-style:italic }
+header{ flex-wrap:wrap }
+.hgroup{ display:flex; gap:20px }
+.notes .lbl{ display:flex; justify-content:space-between; gap:12px }
+.symlink{ letter-spacing:.14em; text-transform:uppercase; font-size:11px; color:var(--muted); text-decoration:underline; text-underline-offset:3px }
+.symlink:hover{ color:var(--ink) }
+.sym h2{ font-family:var(--mono); font-weight:400; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .4em }
+.sym .lead{ font-size:1.05rem; font-weight:300; line-height:1.6; margin:1.4em 0 0; max-width:36rem }
+.sym dl{ margin:0 }
+.sym .row{ display:grid; grid-template-columns:6.2rem minmax(0,1fr); gap:16px; padding:12px 0; border-bottom:1px solid var(--rule); align-items:baseline }
+.sym dt{ font-family:var(--mono); font-size:1.05rem; color:var(--ink); overflow-wrap:anywhere }
+.sym dd{ margin:0; min-width:0 }
+.sym .nm{ display:block; font-size:1.08rem; font-weight:400 }
+.sym .ds{ display:block; font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--muted); margin-top:3px }
+.sym .ds code{ font-family:var(--mono); color:var(--ink) }
+@media (max-width:480px){ .sym .row{ grid-template-columns:4.6rem minmax(0,1fr); gap:12px } }
+
+@media (max-width:860px){
+  main{ grid-template-columns:minmax(0,1fr); gap:28px; padding-block:24px 24px }
+  .plate{ position:static; order:-1 }
+  .frame, .caption{ max-width:100%; margin-left:0 }
+  .text{ max-width:none }
+  nav.pager .t{ display:none }
+}
+@media (prefers-reduced-motion: reduce){ *{ scroll-behavior:auto } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="name">The Way of Incompleteness</span>
+    <span class="count" id="count">I / XI</span>
+    <span class="hgroup">
+      <a class="hbtn" href="/way-of.html" style="text-decoration:none;display:inline-flex;align-items:center">All books</a>
+      <button class="hbtn" id="openSymbols" aria-haspopup="dialog">Symbols</button>
+      <button class="hbtn" id="openIndex" aria-haspopup="dialog">Contents</button>
+    </span>
+  </header>
+
+  <main id="main">
+    <section class="text" id="text" aria-live="polite">
+      <div class="num" id="num">I</div>
+      <h1 id="title"></h1>
+      <div class="verse" id="verse"></div>
+      <div class="notes" id="notes"></div>
+    </section>
+    <figure class="plate" style="margin:0">
+      <div class="frame"><canvas id="cv" aria-label="Generative illustration for this chapter" role="img"></canvas></div>
+      <figcaption class="caption" id="caption"></figcaption>
+    </figure>
+  </main>
+
+  <nav class="pager" aria-label="Chapters">
+    <button id="prev"><span>←</span><span class="t" id="prevT"></span></button>
+    <div class="dots" id="dots"></div>
+    <button id="next"><span class="t" id="nextT"></span><span>→</span></button>
+  </nav>
+</div>
+
+<div class="index" id="index" hidden role="dialog" aria-label="Contents">
+  <div class="in">
+    <div class="top"><span>Contents</span><button class="hbtn" id="closeIndex">Close</button></div>
+    <ol id="indexList"></ol>
+  </div>
+</div>
+
+<div class="index" id="symbols" hidden role="dialog" aria-label="Symbol guide">
+  <div class="in sym">
+    <div class="top"><span>Symbol guide</span><button class="hbtn" id="closeSymbols">Close</button></div>
+    <p class="lead">The language of arithmetic needs very few symbols. Everything else on these pages is either ordinary logic or shorthand for talking about the system from outside.</p>
+
+    <h2>The language of arithmetic</h2>
+    <dl>
+      <div class="row"><dt>0</dt><dd><span class="nm">Zero</span><span class="ds">The only constant. Every other number is built from it.</span></dd></div>
+      <div class="row"><dt>S</dt><dd><span class="nm">Successor</span><span class="ds"><code>Sx</code> means x + 1. There is no symbol for 2; it is written <code>SS0</code>, the successor of the successor of zero. A string of S's in front of 0 is called a <i>numeral</i>.</span></dd></div>
+      <div class="row"><dt>+</dt><dd><span class="nm">Addition</span><span class="ds">Defined by two axioms: <code>x+0=x</code> and <code>x+Sy=S(x+y)</code>.</span></dd></div>
+      <div class="row"><dt>·</dt><dd><span class="nm">Multiplication</span><span class="ds">Defined by <code>x·0=0</code> and <code>x·Sy=(x·y)+x</code>. Without it, arithmetic becomes complete (Presburger, chapter XI).</span></dd></div>
+      <div class="row"><dt>=</dt><dd><span class="nm">Equals</span><span class="ds">Every atomic sentence of arithmetic is an equation between two terms.</span></dd></div>
+      <div class="row"><dt>x, y, p, s</dt><dd><span class="nm">Variables</span><span class="ds">Stand for natural numbers. A variable left free in an axiom, as in <code>x+0=x</code>, is read as "for every x".</span></dd></div>
+      <div class="row"><dt>( )</dt><dd><span class="nm">Grouping</span><span class="ds"><code>S(x+y)</code> is the successor of the sum, not <code>Sx + y</code>.</span></dd></div>
+      <div class="row"><dt>ℕ</dt><dd><span class="nm">The natural numbers</span><span class="ds">0, 1, 2, 3, … with ordinary + and ·. "True" in these chapters means true in ℕ.</span></dd></div>
+    </dl>
+
+    <h2>Logic</h2>
+    <dl>
+      <div class="row"><dt>¬</dt><dd><span class="nm">Not</span><span class="ds"><code>¬(0=S0)</code>: zero is not one.</span></dd></div>
+      <div class="row"><dt>→</dt><dd><span class="nm">If … then</span><span class="ds"><code>A → B</code> is false only when A is true and B is false.</span></dd></div>
+      <div class="row"><dt>↔</dt><dd><span class="nm">If and only if</span><span class="ds">Both sides are true or both are false. <code>G ↔ ¬Prov(⌜G⌝)</code> says G holds exactly when G is not provable.</span></dd></div>
+      <div class="row"><dt>∃</dt><dd><span class="nm">There exists</span><span class="ds"><code>∃p Proof(p, s)</code>: some number p is a proof of s.</span></dd></div>
+      <div class="row"><dt>∴</dt><dd><span class="nm">Therefore</span><span class="ds">Marks a conclusion on the chapter IV plate.</span></dd></div>
+    </dl>
+
+    <h2>Talking about the system</h2>
+    <dl>
+      <div class="row"><dt>T</dt><dd><span class="nm">A theory</span><span class="ds">Any formal system that is consistent, effectively axiomatized, and strong enough for basic arithmetic.</span></dd></div>
+      <div class="row"><dt>PA, Q</dt><dd><span class="nm">Peano and Robinson arithmetic</span><span class="ds">PA has the arithmetic axioms plus induction. Q drops induction; it is already enough for the first theorem.</span></dd></div>
+      <div class="row"><dt>⊢ &nbsp;⊬</dt><dd><span class="nm">Proves, does not prove</span><span class="ds"><code>T ⊢ A</code>: A has a proof in T. This is a statement made <i>about</i> T, from outside it.</span></dd></div>
+      <div class="row"><dt>φ, ψ</dt><dd><span class="nm">Formulas</span><span class="ds">Greek letters stand for arbitrary formulas. <code>φ(x)</code> has one free variable x.</span></dd></div>
+      <div class="row"><dt>⌜A⌝</dt><dd><span class="nm">Gödel number of A</span><span class="ds">Inside a formula it means the numeral for A's code, <code>SSS…0</code>. This is how one sentence can mention another.</span></dd></div>
+      <div class="row"><dt>Proof(p, s)</dt><dd><span class="nm">Proof relation</span><span class="ds">p codes a correct proof whose last line is the formula coded by s. A mechanical check.</span></dd></div>
+      <div class="row"><dt>Prov(s)</dt><dd><span class="nm">Provable</span><span class="ds">Short for <code>∃p Proof(p, s)</code>. The system's own word for "has a proof".</span></dd></div>
+      <div class="row"><dt>Con(T)</dt><dd><span class="nm">T is consistent</span><span class="ds"><code>¬Prov(⌜0=S0⌝)</code>: T never proves 0 = 1. Any contradiction would yield that, so this captures consistency.</span></dd></div>
+      <div class="row"><dt>G, G₁, G₂</dt><dd><span class="nm">Gödel sentences</span><span class="ds">G is T's unprovable sentence. G₁ belongs to T + G, G₂ to T + G + G₁, and so on.</span></dd></div>
+      <div class="row"><dt>ε₀</dt><dd><span class="nm">Epsilon-nought</span><span class="ds">The first ordinal beyond ω, ω<sup>ω</sup>, ω<sup>ω<sup>ω</sup></sup>, …. Induction up to ε₀ proves Con(PA) and Goodstein's theorem; PA cannot.</span></dd></div>
+    </dl>
+
+    <h2>Plate labels</h2>
+    <dl>
+      <div class="row"><dt>Ax 1–3</dt><dd><span class="nm">Axioms</span><span class="ds">1: <code>x+0=x</code> &nbsp;2: <code>x·0=0</code> &nbsp;3: <code>x+Sy=S(x+y)</code></span></dd></div>
+      <div class="row"><dt>Sub n</dt><dd><span class="nm">Substitution</span><span class="ds">Replace a variable in line n with any term, everywhere it occurs.</span></dd></div>
+      <div class="row"><dt>Cong n</dt><dd><span class="nm">Congruence</span><span class="ds">From <code>a=b</code> on line n, conclude <code>Sa=Sb</code>.</span></dd></div>
+      <div class="row"><dt>Sym n</dt><dd><span class="nm">Symmetry</span><span class="ds">From <code>a=b</code> on line n, conclude <code>b=a</code>.</span></dd></div>
+      <div class="row"><dt>2³ · 3⁵ …</dt><dd><span class="nm">Prime-power code</span><span class="ds">The nth prime raised to the code of the nth symbol: 0→1, S→3, =→5, +→7, ·→9, ¬→11, (→13, )→15, x→17.</span></dd></div>
+    </dl>
+  </div>
+</div>
+
+<script>
+const CH = [
+{ n:"I", id:"the-dream", title:"The Dream", art:"dream",
+  verse:[
+   ["Write down the rules.","Let a machine follow them.","Let every true thing","arrive at the end of some line of steps."],
+   ["Leave nothing out.","Let nothing contradict.","Then prove, with small and certain tools,","that it will always hold."],
+   ["This was the hope,","and it was a reasonable one."]],
+  notes:`<p><b>Hilbert's program</b> (1920s): formalize mathematics as an axiomatic system, then prove that system <i>consistent</i> using only finitary reasoning.</p><p><i>Complete</i> means every sentence in the system's language is either provable or refutable. At the 1928 Bologna congress Hilbert posed completeness, consistency and decidability as open problems.</p>`,
+  caption:"Points settling toward a perfect lattice. Touch to disturb them; tap to scatter." },
+
+{ n:"II", id:"the-game", title:"A Game of Marks", art:"derive",
+  verse:[
+   ["A formal system is a game with marks.","The axioms are where you begin.","The rules say what may follow."],
+   ["A proof is a list of strings,","each one allowed by those above it."],
+   ["The game does not know what the marks mean.","It only checks that each move is legal.","That is its strength,","and in the end its limit."]],
+  notes:`<p>The plate runs three real axioms of Peano arithmetic and three sound rules: substitute a term for a variable, apply successor to both sides of an equation, and swap sides.</p><p>What matters is that checking a proof is <b>mechanical</b>. A system whose axioms and rules can be listed and checked by an algorithm is called <i>effectively axiomatized</i>. The theorems below are about exactly these systems.</p>`,
+  caption:"A live derivation. Each line cites the line it came from." },
+
+{ n:"III", id:"every-mark-a-number", title:"Every Mark a Number", art:"godel",
+  verse:[
+   ["Give each symbol a number.","Give each string one number,","built from the primes in order:","the first symbol in the power of 2,","the second in the power of 3."],
+   ["Primes factor only one way,","so nothing is lost."],
+   ["Now a formula is a number.","A proof is a number.","Talk <em>about</em> the system","becomes arithmetic <em>inside</em> it."]],
+  notes:`<p><b>Gödel numbering.</b> A string <code>s₁s₂…sₖ</code> is coded as <code>2^c(s₁) · 3^c(s₂) · … · pₖ^c(sₖ)</code>. Unique factorization guarantees the string can be recovered from its number.</p><p>The code table here (0→1, S→3, =→5, +→7, ·→9, ¬→11, (→13, )→15, x→17) is one arbitrary choice. Any computable one-to-one coding works.</p>`,
+  caption:"Each ring is one position in the formula: its prime, and as many dots as the symbol's code. Tap for another formula." },
+
+{ n:"IV", id:"proof-is-arithmetic", title:"Proof Is Arithmetic", art:"checker",
+  verse:[
+   ["Is <em>p</em> a proof of <em>s</em>?","Unpack <em>p</em> into lines.","Check each line against the rules.","Check that the last line is <em>s</em>."],
+   ["Every step is counting and comparing exponents.","So the question is about numbers,","and the system can ask it."],
+   ["Write <em>Prov(s)</em>:","there is some number that proves <em>s</em>.","The system now has a word","for its own provability."]],
+  notes:`<p><code>Proof(p, s)</code>, “<code>p</code> codes a proof of the formula coded by <code>s</code>,” is a <i>primitive recursive</i> relation, so it is representable in the system.</p><p><code>Prov(s) := ∃p Proof(p, s)</code>. Note the unbounded quantifier: Prov is not decidable, only “semi-decidable.” If a proof exists, a search will find it; if none exists, the search never ends.</p>`,
+  caption:"A four-line proof being checked, line by line, as arithmetic." },
+
+{ n:"V", id:"the-diagonal", title:"The Diagonal", art:"diagonal",
+  verse:[
+   ["Make a table.","Each row a formula with one empty place.","Each column a formula's number.","Each cell: does this formula hold of that number?"],
+   ["Along the diagonal","each formula is handed its own name."],
+   ["Cantor walked this line","to show some infinities are larger than others.","Gödel walked it","to build a sentence that speaks of itself."]],
+  notes:`<p><b>Diagonal (fixed-point) lemma.</b> For any formula <code>φ(x)</code> with one free variable there is a sentence <code>ψ</code> with <code>T ⊢ ψ ↔ φ(⌜ψ⌝)</code>.</p><p>Gödel built the one instance he needed in 1931. The general form was stated by Carnap in 1934. The flipped diagonal row on the plate is Cantor's version: it differs from every row, so it is not in the table.</p>`,
+  caption:"The flipped diagonal differs from row φₖ at column ⌜φₖ⌝, for every k." },
+
+{ n:"VI", id:"g", title:"G", art:"loop",
+  verse:[
+   ["Take the formula <em>x is not provable</em>.","Find the sentence equivalent","to saying it of its own number.","Call it G."],
+   ["G says: I cannot be proved here."],
+   ["This is not the liar.","The liar talks about truth","and collapses.","G talks only about proof,","and stands."]],
+  notes:`<p><code>G ↔ ¬Prov(⌜G⌝)</code>, provable in T. G does not literally contain its own number; it is equivalent, inside T, to a statement about that number.</p><p>The liar sentence cannot be built this way, because by <b>Tarski's undefinability theorem</b> (1933–36) truth for arithmetic is not definable in arithmetic. Provability is.</p>`,
+  caption:"A sentence that refers back to itself. Touch to change its speed." },
+
+{ n:"VII", id:"true-unprovable", title:"True, Unprovable", art:"flood",
+  verse:[
+   ["Suppose the system proves G.","Then a proof exists, a real number,","and the system can verify it,","so it also proves that G is false.","It has contradicted itself."],
+   ["A consistent system never proves G.","That is exactly what G says.","So G is true."],
+   ["Add G as a new axiom.","The larger system has its own G.","The hole moves.","It never closes."]],
+  notes:`<p><b>First incompleteness theorem.</b> If T is consistent, effectively axiomatized, and interprets enough arithmetic (Robinson's Q suffices), then T ⊬ G. To also show T ⊬ ¬G, Gödel assumed <i>ω-consistency</i>; <b>Rosser</b> (1936) used a modified sentence and needed only plain consistency.</p><p>“True” means true in the standard natural numbers. T + G still meets every hypothesis, so it has its own unprovable sentence.</p>`,
+  caption:"Provable sentences spreading through the true ones. The ringed cell is G. Tap to add G as an axiom." },
+
+{ n:"VIII", id:"the-second-theorem", title:"The Second Theorem", art:"frames",
+  verse:[
+   ["Let Con be the sentence","<em>no proof ends in 0 = 1</em>."],
+   ["The argument of the last chapter","can be carried out inside the system.","It shows: if Con, then G."],
+   ["So if the system proved Con,","it would prove G.","It cannot.","A consistent system cannot vouch for itself.","A stronger one can,","and then it cannot vouch for itself."]],
+  notes:`<p><b>Second incompleteness theorem.</b> <code>T ⊢ Con(T) → G</code>, so if T is consistent then <code>T ⊬ Con(T)</code>. This needs T's provability predicate to satisfy the Hilbert–Bernays–Löb derivability conditions, which holds for Peano arithmetic and anything stronger.</p><p><b>Gentzen</b> (1936) proved Con(PA) using transfinite induction up to the ordinal ε₀, a principle PA itself cannot prove. That is the shape of every such proof: a stronger system vouching for a weaker one.</p>`,
+  caption:"Each frame tries to contain the frame that contains it. Move to shift the vanishing point." },
+
+{ n:"IX", id:"the-machine", title:"The Machine", art:"machines",
+  verse:[
+   ["Five years later Turing asked","about machines instead of proofs:","given a program, will it ever stop?"],
+   ["No program answers that for every program.","The same diagonal, a different room."],
+   ["If a sound system proved every true sentence","of the form <em>this machine never halts</em>,","we could search its proofs and decide.","We cannot.","So it cannot."]],
+  notes:`<p><b>Turing (1936)</b> and, independently, <b>Church</b> showed Hilbert's <i>Entscheidungsproblem</i> has no solution. The halting problem is undecidable.</p><p>This gives a second route to incompleteness: run every machine and every proof in parallel. A sound, effectively axiomatized system that proved every true non-halting statement would make halting decidable. The plate runs real random 2-state, 2-symbol machines.</p>`,
+  caption:"Live Turing machines. Some halt; some never will. Tap to deal new machines." },
+
+{ n:"X", id:"goodstein", title:"Goodstein", art:"goodstein",
+  verse:[
+   ["For decades the unprovable sentences","were strange, built for the purpose."],
+   ["Then came sequences a child could compute.","Start at 4. Write it in base 2,","and its exponents too, all the way down.","Change every 2 to a 3. Subtract one.","Repeat with 3 and 4, then 4 and 5."],
+   ["The numbers climb for an unthinkable time,","then fall to zero.","Every start reaches zero.","Peano arithmetic cannot prove it."]],
+  notes:`<p><b>Goodstein's theorem</b> (1944): every Goodstein sequence terminates. <b>Kirby and Paris</b> (1982) showed it is unprovable in PA. It is provable using induction up to ε₀, for example in ZFC. Paris–Harrington (1977) gave an earlier natural example from Ramsey theory.</p><p>Starting from 4, the sequence reaches 0 when the base is 3·2<sup>402,653,211</sup> − 1. Starting from 3, it takes five steps. The plate computes the sequence exactly, with arbitrary-precision integers.</p>`,
+  caption:"Goodstein(4), computed live, on a log scale. Tap to switch to Goodstein(3), which reaches zero." },
+
+{ n:"XI", id:"what-remains", title:"What Remains", art:"final",
+  verse:[
+   ["It does not say mathematics is unsound.","It does not say truth is a matter of taste."],
+   ["It says this:","any consistent set of rules","a machine can list and check,","strong enough to do arithmetic,","leaves some arithmetic truth unproved,","and cannot prove its own consistency."],
+   ["The rules are not wrong.","They are not the whole."]],
+  notes:`<p>The hypotheses matter. Complete, decidable theories exist: <b>Presburger arithmetic</b> (addition without multiplication) and Tarski's theory of <b>real closed fields</b>. They escape because they cannot express enough arithmetic.</p><p>The theorems also say nothing about systems that are not effectively axiomatized; the set of all true arithmetic sentences is complete, but no algorithm lists it.</p>`,
+  caption:"The lattice, finished except for one place, which keeps moving." }
+];
+
+/* ---------- utilities ---------- */
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const SUP = {"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+const sup = n => String(n).split("").map(d=>SUP[d]).join("");
+const SUB = {"0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉"};
+const sub = n => String(n).split("").map(d=>SUB[d]).join("");
+const MONO = '"DM Mono", ui-monospace, Menlo, monospace';
+const SERIF = 'Spectral, Georgia, serif';
+
+let PAL = {};
+function readPal(){
+  const cs = getComputedStyle(document.documentElement);
+  PAL = { ink:cs.getPropertyValue("--ink").trim(), paper:cs.getPropertyValue("--paper").trim(),
+          muted:cs.getPropertyValue("--muted").trim(), rule:cs.getPropertyValue("--rule").trim(),
+          wash:cs.getPropertyValue("--wash").trim() };
+}
+
+/* ---------- arts ---------- */
+const ARTS = {};
+
+function lattice(final){
+  return {
+    init(s,W,H){
+      const n=11; s.n=n; s.m=W*0.14; s.step=(W-2*s.m)/(n-1);
+      s.pts=[]; s.occ=[]; s.lastMove=0;
+      for(let j=0;j<n;j++){ s.occ[j]=[]; for(let i=0;i<n;i++){
+        if(final && i===5 && j===5){ s.occ[j][i]=-1; s.gap={i,j}; s.prev=null; continue; }
+        const tx=s.m+i*s.step, ty=s.m+j*s.step;
+        s.occ[j][i]=s.pts.length;
+        s.pts.push({tx,ty,x:final?tx:rnd(0,W),y:final?ty:rnd(0,H),vx:0,vy:0});
+      }}
+    },
+    draw(ctx,W,H,s,dt,P){
+      if(final && s.t-s.lastMove>1300){
+        s.lastMove=s.t; const g=s.gap;
+        const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>({i:g.i+a,j:g.j+b}))
+          .filter(q=>q.i>=0&&q.j>=0&&q.i<s.n&&q.j<s.n&&!(s.prev&&q.i===s.prev.i&&q.j===s.prev.j));
+        const q=pick(nb), idx=s.occ[q.j][q.i];
+        s.occ[g.j][g.i]=idx; s.pts[idx].tx=s.m+g.i*s.step; s.pts[idx].ty=s.m+g.j*s.step;
+        s.occ[q.j][q.i]=-1; s.prev={...g}; s.gap=q;
+      }
+      const k = final ? 0.05 : 0.004 + Math.min(s.t/9000,1)*0.03;
+      const R=W*0.17;
+      for(const p of s.pts){
+        let ax=(p.tx-p.x)*k, ay=(p.ty-p.y)*k;
+        if(P.on){ const dx=p.x-P.x, dy=p.y-P.y, d=Math.hypot(dx,dy)||1;
+          if(d<R){ const f=(1-d/R)*1.6; ax+=dx/d*f; ay+=dy/d*f; } }
+        p.vx=(p.vx+ax)*0.86; p.vy=(p.vy+ay)*0.86; p.x+=p.vx; p.y+=p.vy;
+      }
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+      for(let j=0;j<s.n;j++) for(let i=0;i<s.n;i++){
+        const a=s.occ[j][i]; if(a<0) continue; const p=s.pts[a];
+        for(const [di,dj] of [[1,0],[0,1]]){
+          if(i+di>=s.n||j+dj>=s.n) continue; const b=s.occ[j+dj][i+di]; if(b<0) continue; const q=s.pts[b];
+          const off=Math.hypot(p.x-p.tx,p.y-p.ty)+Math.hypot(q.x-q.tx,q.y-q.ty);
+          const al=Math.max(0,1-off/(s.step*0.7)); if(al<0.03) continue;
+          ctx.globalAlpha=al; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha=1; ctx.fillStyle=PAL.ink;
+      const r=Math.max(1.8,W*0.0055);
+      for(const p of s.pts){ ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill(); }
+      if(final){
+        const gx=s.m+s.gap.i*s.step, gy=s.m+s.gap.j*s.step;
+        ctx.strokeStyle=PAL.muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.arc(gx,gy,r*3.2,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      }
+    },
+    tap(s,x,y,W,H){ if(final) return; for(const p of s.pts){ p.x=rnd(0,W); p.y=rnd(0,H); p.vx=p.vy=0; } s.t=0; }
+  };
+}
+ARTS.dream = lattice(false);
+ARTS.final = lattice(true);
+
+/* II derivations */
+const TERMS=["0","S0","SS0","(0+S0)","(S0·S0)"];
+function wrapped(t){ if(t[0]!=="("||t[t.length-1]!==")") return false; let d=0;
+  for(let i=0;i<t.length;i++){ if(t[i]==="(")d++; if(t[i]===")")d--; if(d===0&&i<t.length-1) return false; } return true; }
+const Sx = t => (/^S*[0xy]$/.test(t)||wrapped(t)) ? "S"+t : "S("+t+")";
+const splitEq = f => { const i=f.indexOf("="); return [f.slice(0,i), f.slice(i+1)]; };
+ARTS.derive = {
+  init(s){ s.lines=[["x+0=x","Ax 1"],["x·0=0","Ax 2"],["x+Sy=S(x+y)","Ax 3"]].map(([f,j])=>({f,j,born:-1e4})); s.next=700; },
+  step(s){
+    for(let tries=0;tries<30;tries++){
+      const i=Math.floor(Math.random()*s.lines.length), L=s.lines[i].f, r=Math.floor(Math.random()*3);
+      let nf, j;
+      if(r===0){ const vs=["x","y"].filter(v=>L.includes(v)); if(!vs.length) continue; const v=pick(vs); nf=L.split(v).join(pick(TERMS)); j=`Sub ${i+1}`; }
+      else if(r===1){ const [a,b]=splitEq(L); nf=Sx(a)+"="+Sx(b); j=`Cong ${i+1}`; }
+      else { const [a,b]=splitEq(L); if(a===b) continue; nf=b+"="+a; j=`Sym ${i+1}`; }
+      if(nf.length>22 || s.lines.some(l=>l.f===nf)) continue;
+      s.lines.push({f:nf,j,born:s.t}); break;
+    }
+    if(s.lines.length>120) this.init(s);
+  },
+  draw(ctx,W,H,s){
+    if(s.t>s.next){ s.next=s.t+1000; this.step(s); }
+    const lh=Math.max(19,W*0.052), fs=Math.min(lh*0.6, 17), top=H*0.06;
+    const vis=Math.floor((H*0.88)/lh), start=Math.max(0,s.lines.length-vis);
+    ctx.font=`${fs}px ${MONO}`; ctx.textBaseline="middle";
+    for(let k=start;k<s.lines.length;k++){
+      const L=s.lines[k], y=top+(k-start+0.5)*lh, a=Math.min(1,(s.t-L.born)/500);
+      const fade=0.35+0.65*((k-start+1)/Math.min(vis,s.lines.length-start));
+      ctx.globalAlpha=a*fade;
+      ctx.fillStyle=PAL.muted; ctx.textAlign="right"; ctx.fillText(String(k+1),W*0.12,y);
+      ctx.fillStyle=PAL.ink; ctx.textAlign="left"; ctx.fillText(L.f,W*0.16,y);
+      ctx.fillStyle=PAL.muted; ctx.textAlign="right"; ctx.fillText(L.j,W*0.94,y);
+    }
+    ctx.globalAlpha=1; ctx.textAlign="left";
+  }
+};
+
+/* III Gödel numbering */
+const CODE={"0":1,"S":3,"=":5,"+":7,"·":9,"¬":11,"(":13,")":15,"x":17};
+const PR=[2,3,5,7,11,13,17,19,23];
+const FORMS=["0=0","S0=S0","¬(0=S0)","x+0=x","x·0=0"];
+const gnum = f => [...f].reduce((n,ch,i)=>n*BigInt(PR[i])**BigInt(CODE[ch]),1n);
+ARTS.godel = {
+  init(s){ s.k=0; s.since=0; },
+  tap(s){ s.k=(s.k+1)%FORMS.length; s.since=s.t; },
+  draw(ctx,W,H,s){
+    if(s.t-s.since>7000){ s.k=(s.k+1)%FORMS.length; s.since=s.t; }
+    const f=FORMS[s.k], syms=[...f], cx=W/2, cy=H*0.43;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle=PAL.ink; ctx.font=`300 ${Math.min(W*0.075,34)}px ${SERIF}`;
+    ctx.fillText(f,cx,H*0.085);
+    const r0=W*0.07, dr=W*0.041, dot=Math.max(1.7,W*0.0058);
+    syms.forEach((ch,i)=>{
+      const r=r0+i*dr, c=CODE[ch], dir=i%2?1:-1, rot=s.t*0.00018*dir*(1+i*0.25);
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle=PAL.ink;
+      for(let d=0;d<c;d++){ const a=rot+d/c*Math.PI*2; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,dot,0,Math.PI*2); ctx.fill(); }
+      const fs=Math.min(W*0.026,12); ctx.font=`${fs}px ${MONO}`;
+      const lx=cx+r, w=ctx.measureText(ch).width+6;
+      ctx.fillStyle=PAL.paper; ctx.fillRect(lx-w/2,cy-fs*0.7,w,fs*1.4);
+      ctx.fillStyle=PAL.muted; ctx.fillText(ch,lx,cy);
+    });
+    const fs2=Math.min(W*0.03,13); ctx.font=`${fs2}px ${MONO}`; ctx.fillStyle=PAL.ink;
+    ctx.fillText(syms.map((ch,i)=>PR[i]+sup(CODE[ch])).join(" · "), cx, H*0.79);
+    const num=gnum(f).toString(); ctx.fillStyle=PAL.muted; ctx.font=`${Math.min(W*0.026,11.5)}px ${MONO}`;
+    const cw=ctx.measureText("0").width, per=Math.max(10,Math.floor(W*0.86/cw));
+    const rows=[]; for(let i=0;i<num.length;i+=per) rows.push(num.slice(i,i+per));
+    rows.forEach((row,i)=>ctx.fillText((i===0?"= ":"")+row, cx, H*0.855+i*fs2*1.35));
+  }
+};
+
+/* IV proof checker */
+const PROOF=[["x+0=x","Ax 1"],["S0+0=S0","Sub 1"],["S0=S0+0","Sym 2"],["SS0=S(S0+0)","Cong 3"]];
+ARTS.checker = {
+  init(s){},
+  draw(ctx,W,H,s){
+    const T=1200+PROOF.length*1100+3200, ph=s.t%T, cur=Math.floor((ph-1200)/1100);
+    const fs=Math.min(W*0.042,17), small=Math.min(W*0.03,12.5);
+    ctx.textBaseline="middle"; ctx.textAlign="left";
+    ctx.font=`${small}px ${MONO}`; ctx.fillStyle=PAL.muted;
+    ctx.fillText("p = 2^⌜1⌝ · 3^⌜2⌝ · 5^⌜3⌝ · 7^⌜4⌝", W*0.08, H*0.1);
+    ctx.fillText("s = ⌜SS0=S(S0+0)⌝", W*0.08, H*0.1+small*1.7);
+    const y0=H*0.3, lh=Math.max(fs*2.4,H*0.1);
+    PROOF.forEach(([f,j],i)=>{
+      const y=y0+i*lh, done=i<cur || ph>1200+PROOF.length*1100, active=i===cur;
+      if(active){ ctx.fillStyle=PAL.wash; ctx.fillRect(W*0.05,y-lh*0.42,W*0.9,lh*0.84); }
+      ctx.font=`${fs}px ${MONO}`;
+      ctx.fillStyle=PAL.muted; ctx.textAlign="right"; ctx.fillText(String(i+1),W*0.13,y);
+      ctx.fillStyle=PAL.ink; ctx.textAlign="left"; ctx.globalAlpha=(done||active)?1:0.35; ctx.fillText(f,W*0.17,y);
+      ctx.globalAlpha=1; ctx.font=`${small}px ${MONO}`; ctx.fillStyle=PAL.muted; ctx.textAlign="right";
+      ctx.fillText(done?`${j}  ✓`:(active?`${j}  …`:j),W*0.93,y);
+    });
+    ctx.textAlign="left";
+    if(ph>1200+PROOF.length*1100){
+      const y=y0+PROOF.length*lh+lh*0.2; ctx.fillStyle=PAL.ink; ctx.font=`${fs}px ${MONO}`;
+      ctx.fillText("Proof(p, s) holds", W*0.08, y);
+      ctx.fillStyle=PAL.muted; ctx.font=`${small}px ${MONO}`;
+      ctx.fillText("∴  Prov(s)", W*0.08, y+fs*1.8);
+    }
+  }
+};
+
+/* V diagonal */
+ARTS.diagonal = {
+  init(s){ s.cycle=-1; s.N=9; },
+  draw(ctx,W,H,s){
+    const N=s.N, T=800+N*650+2600, cyc=Math.floor(s.t/T), ph=s.t%T, cur=Math.min(N-1,Math.floor((ph-800)/650));
+    if(cyc!==s.cycle){ s.cycle=cyc; s.b=[...Array(N)].map(()=>[...Array(N)].map(()=>Math.random()<0.5?1:0)); }
+    const cs=Math.min((W*0.74)/N,(H*0.66)/(N+2)), gx=(W-N*cs)/2+cs*0.35, gy=H*0.1;
+    const fs=Math.min(cs*0.32,12); ctx.font=`${fs}px ${MONO}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle=PAL.muted;
+    for(let j=0;j<N;j++) ctx.fillText(`⌜φ${sub(j)}⌝`, gx+j*cs+cs/2, gy-cs*0.45);
+    for(let i=0;i<N;i++){ ctx.textAlign="right"; ctx.fillText(`φ${sub(i)}`, gx-cs*0.25, gy+i*cs+cs/2); }
+    ctx.textAlign="center";
+    const pad=cs*0.18;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const x=gx+j*cs+pad, y=gy+i*cs+pad, w=cs-2*pad, diag=i===j;
+      ctx.globalAlpha = diag?1:0.55;
+      if(s.b[i][j]){ ctx.fillStyle=PAL.ink; ctx.fillRect(x,y,w,w); }
+      else { ctx.strokeStyle=PAL.muted; ctx.lineWidth=1; ctx.strokeRect(x+0.5,y+0.5,w-1,w-1); }
+      if(diag){ ctx.globalAlpha=1; ctx.strokeStyle=PAL.ink; ctx.lineWidth=1; ctx.strokeRect(x-pad*0.6,y-pad*0.6,w+pad*1.2,w+pad*1.2); }
+    }
+    ctx.globalAlpha=1;
+    const fy=gy+N*cs+cs*0.9;
+    ctx.textAlign="right"; ctx.fillStyle=PAL.muted; ctx.fillText("flip", gx-cs*0.25, fy+cs/2); ctx.textAlign="center";
+    for(let k=0;k<N;k++){
+      const x=gx+k*cs+pad, y=fy+pad, w=cs-2*pad;
+      if(k<=cur && ph>800){
+        if(1-s.b[k][k]){ ctx.fillStyle=PAL.ink; ctx.fillRect(x,y,w,w); }
+        else { ctx.strokeStyle=PAL.ink; ctx.lineWidth=1; ctx.strokeRect(x+0.5,y+0.5,w-1,w-1); }
+      } else { ctx.strokeStyle=PAL.rule; ctx.setLineDash([2,2]); ctx.strokeRect(x+0.5,y+0.5,w-1,w-1); ctx.setLineDash([]); }
+    }
+    if(ph>800 && ph<800+N*650){
+      const k=cur, ax=gx+k*cs+cs/2, ay=gy+k*cs+cs/2;
+      ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(ax,ay,cs*0.62,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth=1; ctx.globalAlpha=0.5; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(ax,ay+cs*0.62); ctx.lineTo(ax,fy+pad); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+      ctx.fillStyle=PAL.muted; ctx.font=`${Math.min(W*0.03,12.5)}px ${MONO}`;
+      ctx.fillText(`φ${sub(k)}(⌜φ${sub(k)}⌝) = ${s.b[k][k]}   →   flip = ${1-s.b[k][k]}`, W/2, fy+cs*1.6);
+    } else if(ph>=800+N*650){
+      ctx.fillStyle=PAL.muted; ctx.font=`${Math.min(W*0.03,12.5)}px ${MONO}`;
+      ctx.fillText("the flipped row is none of the rows", W/2, fy+cs*1.6);
+    }
+  }
+};
+
+/* VI the loop */
+ARTS.loop = {
+  init(s){ s.ang=0; },
+  draw(ctx,W,H,s,dt,P){
+    const cx=W/2, cy=H/2, R=W*0.34;
+    let speed=0.00022; if(P.on){ speed*= 0.2+ 3*(Math.hypot(P.x-cx,P.y-cy)/(W*0.5)); }
+    s.ang+=dt*speed;
+    const phrase="G ↔ ¬Prov(⌜G⌝)  ·  ";
+    const fs=Math.min(W*0.038,17); ctx.font=`${fs}px ${MONO}`; ctx.fillStyle=PAL.ink; ctx.textBaseline="middle"; ctx.textAlign="center";
+    const pw=ctx.measureText(phrase).width, reps=Math.max(1,Math.round((2*Math.PI*R)/pw));
+    const text=phrase.repeat(reps), scale=(2*Math.PI*R)/(pw*reps);
+    let a=s.ang;
+    for(const ch of text){
+      const w=ctx.measureText(ch).width*scale;
+      a+=w/(2*R);
+      ctx.save(); ctx.translate(cx+Math.cos(a)*R, cy+Math.sin(a)*R); ctx.rotate(a+Math.PI/2); ctx.fillText(ch,0,0); ctx.restore();
+      a+=w/(2*R);
+    }
+    // spiral from ring into center
+    ctx.strokeStyle=PAL.muted; ctx.lineWidth=1; ctx.beginPath();
+    const turns=2.2, steps=220, st=s.ang*1.0;
+    for(let i=0;i<=steps;i++){ const u=i/steps, r=(R*0.86)*(1-u)+W*0.07*u, th=st+u*turns*Math.PI*2;
+      const x=cx+Math.cos(th)*r, y=cy+Math.sin(th)*r; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke();
+    // traveller
+    const u=(s.t%4200)/4200, r=(R*0.86)*(1-u)+W*0.07*u, th=st+u*turns*Math.PI*2;
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(cx+Math.cos(th)*r, cy+Math.sin(th)*r, Math.max(2.2,W*0.007),0,Math.PI*2); ctx.fill();
+    ctx.font=`italic 300 ${W*0.12}px ${SERIF}`; ctx.fillText("G",cx,cy+W*0.005);
+  }
+};
+
+/* VII true but unprovable */
+ARTS.flood = {
+  init(s,W,H){
+    s.M=34; s.R=W*0.4; s.cx=W/2; s.cy=H*0.5; s.cell=(2*s.R)/s.M;
+    const M=s.M; s.inside=new Uint8Array(M*M); s.fill=new Uint8Array(M*M); s.block=new Uint8Array(M*M);
+    s.born=new Float32Array(M*M);
+    for(let j=0;j<M;j++) for(let i=0;i<M;i++){ const x=(i+0.5)*s.cell-s.R, y=(j+0.5)*s.cell-s.R; if(Math.hypot(x,y)<s.R-s.cell*0.4) s.inside[j*M+i]=1; }
+    const ins=[]; for(let q=0;q<M*M;q++) if(s.inside[q]) ins.push(q);
+    for(const q of ins) if(Math.random()<0.03) s.block[q]=2;
+    s.g=pick(ins.filter(q=>!s.block[q])); s.block[s.g]=1;
+    s.front=new Set(); s.k=0; s.flash=-1e4;
+    for(let a=0;a<3;a++){ let q; do{ q=pick(ins);}while(s.block[q]); this.fillCell(s,q); }
+  },
+  fillCell(s,q){
+    const M=s.M; s.fill[q]=1; s.born[q]=s.t; s.front.delete(q);
+    const i=q%M, j=(q/M)|0;
+    for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){ const ii=i+a, jj=j+b; if(ii<0||jj<0||ii>=M||jj>=M) continue;
+      const r=jj*M+ii; if(s.inside[r]&&!s.fill[r]&&!s.block[r]) s.front.add(r); }
+  },
+  tap(s){
+    s.block[s.g]=0; this.fillCell(s,s.g); s.flash=s.t; s.k++;
+    let cand=[]; for(let q=0;q<s.block.length;q++) if(s.block[q]===2) cand.push(q);
+    if(!cand.length){ for(let q=0;q<s.inside.length;q++) if(s.inside[q]&&!s.fill[q]) cand.push(q); }
+    if(!cand.length){ for(let q=0;q<s.inside.length;q++) if(s.inside[q]) cand.push(q); }
+    const ng=pick(cand); if(s.fill[ng]){ s.fill[ng]=0; } s.block[ng]=1; s.g=ng;
+    for(let q=0;q<s.block.length;q++) if(s.inside[q]&&!s.fill[q]&&!s.block[q]&&Math.random()<0.02) s.block[q]=2;
+    // re-seed frontier
+    for(let q=0;q<s.fill.length;q++) if(s.fill[q]) this.fillCell(s,q);
+  },
+  draw(ctx,W,H,s){
+    for(let n=0;n<4 && s.front.size;n++){ const arr=[...s.front]; this.fillCell(s,pick(arr)); }
+    const M=s.M, c=s.cell, x0=s.cx-s.R, y0=s.cy-s.R;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(s.cx,s.cy,s.R+c*0.2,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=PAL.ink;
+    for(let q=0;q<M*M;q++){ if(!s.fill[q]) continue; const i=q%M, j=(q/M)|0;
+      ctx.globalAlpha=Math.min(1,(s.t-s.born[q])/400)*0.85; const g=c*0.16; ctx.fillRect(x0+i*c+g,y0+j*c+g,c-2*g,c-2*g); }
+    ctx.globalAlpha=1;
+    const gi=s.g%M, gj=(s.g/M)|0, gx=x0+(gi+0.5)*c, gy=y0+(gj+0.5)*c;
+    const pulse=1+0.15*Math.sin(s.t*0.004);
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(gx,gy,c*1.1*pulse,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=PAL.paper; const fs=Math.min(W*0.034,14); ctx.font=`italic ${fs*1.2}px ${SERIF}`;
+    const lbl="G"+(s.k?sub(s.k):""); const lw=ctx.measureText(lbl).width;
+    const lx=gx+c*1.6, ly=gy-c*1.6; ctx.fillRect(lx-3,ly-fs*0.75,lw+6,fs*1.5);
+    ctx.fillStyle=PAL.ink; ctx.textAlign="left"; ctx.textBaseline="middle"; ctx.fillText(lbl,lx,ly);
+    ctx.font=`${fs}px ${MONO}`; ctx.fillStyle=PAL.muted;
+    let sys="T"; for(let i=0;i<s.k;i++) sys+=" + G"+(i?sub(i):""); if(sys.length>26) sys="T + G + … + G"+sub(s.k-1);
+    ctx.fillText(sys, W*0.04, H*0.05);
+    ctx.textAlign="right"; ctx.fillText("true in ℕ", W*0.96, H*0.05);
+    ctx.textAlign="center"; ctx.fillText(s.front.size? "proving…" : "tap: add G as an axiom", W/2, H*0.96);
+    if(s.t-s.flash<700){ ctx.globalAlpha=1-(s.t-s.flash)/700; ctx.strokeStyle=PAL.ink; ctx.beginPath(); ctx.arc(s.cx,s.cy,s.R+c*0.2+(s.t-s.flash)*0.03,0,Math.PI*2); ctx.stroke(); ctx.globalAlpha=1; }
+  }
+};
+
+/* VIII nested frames */
+ARTS.frames = {
+  init(s,W,H){ s.vx=W/2; s.vy=H/2; },
+  draw(ctx,W,H,s,dt,P){
+    const tx=P.on?P.x:W/2, ty=P.on?P.y:H/2; s.vx+=(tx-s.vx)*0.04; s.vy+=(ty-s.vy)*0.04;
+    const ph=(s.t*0.00011)%1, K=16, base=0.8;
+    ctx.lineWidth=1; ctx.textAlign="left"; ctx.textBaseline="top";
+    for(let i=-1;i<K;i++){
+      const e=i+ph, sc=Math.pow(base,e), size=W*0.92*sc; if(size<2) continue;
+      const mix=1-sc, cx=W/2+(s.vx-W/2)*mix, cy=H/2+(s.vy-H/2)*mix, rot=e*0.045;
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+      ctx.globalAlpha=Math.min(1,sc*1.6)*(i<0?Math.max(0,1-ph*2):1);
+      ctx.strokeStyle=PAL.ink; ctx.strokeRect(-size/2,-size/2,size,size);
+      if(size>W*0.12){ ctx.fillStyle=PAL.muted; ctx.font=`${Math.max(8,size*0.03)}px ${MONO}`;
+        ctx.fillText(i%2? "⊢ Con(T)?" : "T", -size/2+size*0.02, -size/2+size*0.02); }
+      ctx.restore();
+    }
+    ctx.globalAlpha=1;
+  }
+};
+
+/* IX Turing machines */
+ARTS.machines = {
+  init(s){ s.rows=10; s.ms=[...Array(s.rows)].map(()=>this.make()); s.clock=0; s.global=0; s.doneAt=-1; },
+  make(){
+    const tr={}; for(const st of [0,1]) for(const sy of [0,1]){
+      tr[st+""+sy]={w:Math.random()<0.5?1:0, m:Math.random()<0.5?-1:1, n:Math.random()<0.2?2:(Math.random()<0.5?0:1)}; }
+    return {tr, tape:new Map(), head:0, st:0, steps:0};
+  },
+  tap(s){ this.init(s); },
+  draw(ctx,W,H,s,dt){
+    s.clock+=dt;
+    while(s.clock>110){ s.clock-=110; s.global++;
+      for(const m of s.ms){ if(m.st===2) continue; const sy=m.tape.get(m.head)||0, r=m.tr[m.st+""+sy];
+        m.tape.set(m.head,r.w); m.head+=r.m; m.st=r.n; m.steps++; } }
+    const allHalt=s.ms.every(m=>m.st===2);
+    if((allHalt||s.global>420) && s.doneAt<0) s.doneAt=s.t;
+    if(s.doneAt>=0 && s.t-s.doneAt>3000) this.init(s);
+    const C=23, lab=W*0.24, cs=Math.min((W*0.9-lab)/C, (H*0.8)/s.rows*0.8), x0=W*0.05, rh=(H*0.82)/s.rows, y0=H*0.08;
+    const fs=Math.min(W*0.028,12); ctx.font=`${fs}px ${MONO}`; ctx.textBaseline="middle";
+    s.ms.forEach((m,r)=>{
+      const y=y0+r*rh+rh/2, half=Math.floor(C/2);
+      for(let c=0;c<C;c++){ const pos=c-half, v=m.tape.get(pos)||0, x=x0+c*cs;
+        ctx.globalAlpha=m.st===2?0.45:1;
+        if(v){ ctx.fillStyle=PAL.ink; ctx.fillRect(x+cs*0.12,y-cs*0.38,cs*0.76,cs*0.76); }
+        else { ctx.fillStyle=PAL.rule; ctx.fillRect(x+cs*0.42,y-cs*0.08,cs*0.16,cs*0.16); } }
+      ctx.globalAlpha=1;
+      const hp=m.head+half;
+      if(hp>=0&&hp<C){ const hx=x0+hp*cs+cs/2; ctx.fillStyle=m.st===2?PAL.muted:PAL.ink;
+        ctx.beginPath(); ctx.moveTo(hx,y+cs*0.48); ctx.lineTo(hx-cs*0.28,y+cs*0.82); ctx.lineTo(hx+cs*0.28,y+cs*0.82); ctx.fill(); }
+      else { ctx.fillStyle=PAL.muted; ctx.textAlign=hp<0?"left":"right"; ctx.fillText(hp<0?"◂":"▸", hp<0?x0-cs*0.6:x0+C*cs+cs*0.6, y); }
+      ctx.textAlign="right"; ctx.fillStyle=m.st===2?PAL.muted:PAL.ink;
+      ctx.fillText(m.st===2?`halt · ${m.steps}`:`${m.steps} …`, W*0.96, y);
+    });
+    ctx.textAlign="center"; ctx.fillStyle=PAL.muted;
+    const h=s.ms.filter(m=>m.st===2).length;
+    ctx.fillText(`${h} halted · ${s.rows-h} still running`, W/2, H*0.95);
+  }
+};
+
+/* X Goodstein */
+function bump(n,b){ let r=0n, p=0n; while(n>0n){ const d=n%b; if(d>0n) r+=d*((b+1n)**bump(p,b)); n/=b; p++; } return r; }
+function log10Big(n){ if(n<=0n) return 0; const s=n.toString(); const head=Number(s.slice(0,15)); return Math.log10(head)+(s.length-Math.min(15,s.length)); }
+ARTS.goodstein = {
+  init(s){ s.start=s.start||4; s.n=BigInt(s.start); s.b=2n; s.step=0; s.hist=[[0,log10Big(s.n)]]; s.zeroAt=-1; s.acc=0; },
+  tap(s){ s.start = s.start===4?3:4; this.init(s); },
+  draw(ctx,W,H,s,dt){
+    if(s.n>0n){
+      s.acc+=dt; const per = s.start===3 ? 900 : 16;
+      while(s.acc>per && s.n>0n){ s.acc-=per;
+        const k = s.start===3?1:Math.min(400,1+Math.floor(s.step/40));
+        for(let i=0;i<k && s.n>0n;i++){ s.n=bump(s.n,s.b)-1n; s.b++; s.step++; }
+        s.hist.push([s.step,log10Big(s.n)]);
+        if(s.hist.length>700) s.hist=s.hist.filter((_,i)=>i%2===0||i===s.hist.length-1);
+      }
+      if(s.n===0n) s.zeroAt=s.t;
+    } else if(s.t-s.zeroAt>4000){ this.init(s); }
+    const L=W*0.12, R=W*0.94, T=H*0.2, B=H*0.78;
+    const maxX=Math.max(5,s.step), maxY=Math.max(1,...s.hist.map(h=>h[1]))*1.15;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    const fs=Math.min(W*0.028,12); ctx.font=`${fs}px ${MONO}`; ctx.fillStyle=PAL.muted; ctx.textBaseline="middle";
+    const yt=Math.max(1,Math.ceil(maxY/4));
+    for(let v=0; v<=maxY; v+=yt){ const y=B-(v/maxY)*(B-T); ctx.textAlign="right"; ctx.fillText(`10${sup(v)}`,L-6,y);
+      ctx.globalAlpha=0.5; ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(R,y); ctx.stroke(); ctx.globalAlpha=1; }
+    ctx.textAlign="right"; ctx.fillText(`step ${s.step.toLocaleString()}`, R, B+fs*1.6);
+    ctx.textAlign="left"; ctx.fillText("0", L, B+fs*1.6);
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.6; ctx.beginPath();
+    s.hist.forEach(([x,y],i)=>{ const px=L+(x/maxX)*(R-L), py=B-(y/maxY)*(B-T); i?ctx.lineTo(px,py):ctx.moveTo(px,py); });
+    ctx.stroke();
+    const last=s.hist[s.hist.length-1]; const ex=L+(last[0]/maxX)*(R-L), ey=B-(last[1]/maxY)*(B-T);
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(ex,ey,3.2,0,Math.PI*2); ctx.fill();
+    ctx.textAlign="left"; ctx.font=`${Math.min(W*0.034,14)}px ${MONO}`; ctx.fillStyle=PAL.ink;
+    ctx.fillText(`Goodstein(${s.start})`, W*0.05, H*0.06);
+    ctx.font=`${fs}px ${MONO}`; ctx.fillStyle=PAL.muted;
+    const vs=s.n.toString(); const val = vs.length>14 ? `${vs[0]}.${vs.slice(1,4)}×10${sup(vs.length-1)}` : BigInt(vs).toLocaleString();
+    ctx.fillText(`base ${s.b.toLocaleString()}   value ${val}`, W*0.05, H*0.06+fs*1.8);
+    ctx.textAlign="center";
+    ctx.fillText(s.n===0n ? `reached 0 at step ${s.step}` : (s.start===4 ? "zero arrives at base 3·2⁴⁰²⁶⁵³²¹¹ − 1" : "…"), W/2, H*0.93);
+  }
+};
+
+/* ---------- engine ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=0,H=0, cur=0, art=null, st={}, raf=0, last=0;
+const P={x:0,y:0,on:false};
+
+function size(){
+  const r=cv.getBoundingClientRect(), dpr=Math.min(2,window.devicePixelRatio||1);
+  W=r.width; H=r.height; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function paint(dt){
+  st.t+=dt; ctx.fillStyle=PAL.paper; ctx.fillRect(0,0,W,H);
+  ctx.save(); art.draw(ctx,W,H,st,dt,P); ctx.restore();
+  ctx.globalAlpha=1; ctx.setLineDash([]);
+}
+function frame(now){ const dt=Math.min(50, now-(last||now)); last=now; paint(dt); raf=requestAnimationFrame(frame); }
+function still(){ for(let i=0;i<260;i++) paint(16); }
+function startArt(){
+  cancelAnimationFrame(raf); size(); readPal();
+  art=ARTS[CH[cur].art]; st={t:0}; art.init(st,W,H); last=0;
+  if(reduced) still(); else raf=requestAnimationFrame(frame);
+}
+
+function pos(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+let down=null;
+cv.addEventListener("pointermove",e=>{ [P.x,P.y]=pos(e); P.on=true; if(reduced) still(); });
+cv.addEventListener("pointerleave",()=>{ P.on=false; });
+cv.addEventListener("pointerdown",e=>{ down=pos(e); [P.x,P.y]=down; P.on=true; });
+cv.addEventListener("pointerup",e=>{ const p=pos(e); if(down && Math.hypot(p[0]-down[0],p[1]-down[1])<10 && art.tap){ art.tap(st,p[0],p[1],W,H); if(reduced) still(); }
+  down=null; if(e.pointerType!=="mouse") P.on=false; });
+
+/* ---------- chapters ---------- */
+const ROMAN=CH.map(c=>c.n);
+function render(i){
+  cur=i; const c=CH[i];
+  $("num").textContent=`Chapter ${c.n}`;
+  $("title").textContent=c.title;
+  $("verse").innerHTML=c.verse.map(st=>`<p>${st.join("<br>")}</p>`).join("");
+  $("notes").innerHTML=`<span class="lbl"><span>Notes</span><button class="symlink" data-sym>Symbol guide</button></span>${c.notes}`;
+  $("caption").textContent=c.caption;
+  $("count").textContent=`${c.n} / ${ROMAN[ROMAN.length-1]}`;
+  $("prev").disabled=i===0; $("next").disabled=i===CH.length-1;
+  $("prevT").textContent=i>0?CH[i-1].title:""; $("nextT").textContent=i<CH.length-1?CH[i+1].title:"";
+  [...$("dots").children].forEach((d,k)=>d.setAttribute("aria-current", k===i?"true":"false"));
+  document.title = "The Way of Incompleteness";
+  startArt();
+}
+function go(i){ i=Math.max(0,Math.min(CH.length-1,i)); if(location.hash!=="#"+CH[i].id) location.hash=CH[i].id; else render(i); window.scrollTo({top:0}); }
+function fromHash(){ const h=location.hash.slice(1); const i=CH.findIndex(c=>c.id===h); render(i<0?0:i); }
+
+CH.forEach((c,i)=>{
+  const b=document.createElement("button"); b.setAttribute("aria-label",`Chapter ${c.n}: ${c.title}`); b.onclick=()=>go(i); $("dots").appendChild(b);
+  const li=document.createElement("li"); li.innerHTML=`<button><span class="n">${c.n}</span><span class="tt">${c.title}</span></button>`;
+  li.querySelector("button").onclick=()=>{ $("index").hidden=true; go(i); }; $("indexList").appendChild(li);
+});
+$("prev").onclick=()=>go(cur-1); $("next").onclick=()=>go(cur+1);
+$("openIndex").onclick=()=>{ $("index").hidden=false; $("closeIndex").focus(); };
+$("closeIndex").onclick=()=>{ $("index").hidden=true; $("openIndex").focus(); };
+const openSym=()=>{ $("symbols").hidden=false; $("symbols").scrollTop=0; $("closeSymbols").focus(); };
+$("openSymbols").onclick=openSym;
+$("notes").addEventListener("click",e=>{ if(e.target.closest("[data-sym]")) openSym(); });
+$("closeSymbols").onclick=()=>{ $("symbols").hidden=true; $("openSymbols").focus(); };
+addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ $("index").hidden=true; $("symbols").hidden=true; }
+  if(!$("index").hidden || !$("symbols").hidden) return;
+  if(e.key==="ArrowRight") go(cur+1); if(e.key==="ArrowLeft") go(cur-1);
+});
+let sx=null,sy=null;
+$("text").addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+$("text").addEventListener("touchend",e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.5) go(cur+(dx<0?1:-1)); sx=null; });
+addEventListener("hashchange",fromHash);
+let rt; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(startArt,150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readPal);
+new MutationObserver(readPal).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+readPal(); fromHash();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{});
+</script>
+
+</body></html>
