@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Way of Water</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Martian+Mono:wght@300;400&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: one chapter at a time, verse beside a square living plate; plate first on phones.
+   Pale water-grey paper, ink, and two dyes that mean the same thing on every plate:
+   vermilion for water leaving a saddle (unstable), blue for water arriving (stable). */
+:root{
+  --paper:#f2f5f5; --ink:#101c22; --muted:#5d6c73; --rule:#d0d9db; --wash:#e3eaeb;
+  --u:#c4452c; --s:#1d5f9b; --o:#b07d1f;
+  --verse:"Newsreader", Georgia, "Times New Roman", serif;
+  --mono:"Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#0b1316; --ink:#e1e9eb; --muted:#8b9aa1; --rule:#24323a; --wash:#142027; --u:#ef7c5e; --s:#6ea9de; --o:#d9a647; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --paper:#0b1316; --ink:#e1e9eb; --muted:#8b9aa1; --rule:#24323a; --wash:#142027; --u:#ef7c5e; --s:#6ea9de; --o:#d9a647; color-scheme:dark }
+
+html,body{ margin:0; background:var(--paper); color:var(--ink) }
+body{
+  font-family:var(--verse);
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-font-smoothing:antialiased;
+}
+[hidden]{ display:none !important }
+.wrap{ max-width:1180px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column }
+header{
+  display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px 16px;
+  padding-block:22px 18px; border-bottom:1px solid var(--rule);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:300;
+}
+header .name{ color:var(--ink) }
+header .count{ color:var(--muted); font-variant-numeric:tabular-nums }
+.hgroup{ display:flex; gap:20px }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0 }
+button:focus-visible, a:focus-visible, input:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px }
+.hbtn{ letter-spacing:.08em; text-transform:uppercase; color:var(--muted); min-height:32px }
+.hbtn:hover{ color:var(--ink) }
+
+main{ flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:56px; padding-block:48px 32px; align-items:start }
+.text{ min-width:0; max-width:34rem }
+.num{ font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; font-weight:300 }
+h1{ font-weight:300; font-size:clamp(1.9rem, 3.6vw, 2.7rem); line-height:1.1; margin:.35em 0 1.1em; text-wrap:balance; letter-spacing:-.01em }
+.verse{ font-size:clamp(1.1rem, 1.6vw, 1.24rem); line-height:1.62; font-weight:300 }
+.verse p{ margin:0 0 1.15em }
+.notes{ margin-top:2.2em; padding-top:1.1em; border-top:1px solid var(--rule); font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.75; color:var(--muted) }
+.notes .lbl{ display:flex; justify-content:space-between; gap:12px; letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; margin-bottom:.7em; color:var(--ink) }
+.notes p{ margin:0 0 .85em }
+.notes b{ font-weight:400; color:var(--ink) }
+.notes code{ font-family:var(--mono); color:var(--ink) }
+.notes .u{ color:var(--u) } .notes .s{ color:var(--s) }
+.symlink{ letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; color:var(--muted); text-decoration:underline; text-underline-offset:3px }
+.symlink:hover{ color:var(--ink) }
+
+.plate{ min-width:0; position:sticky; top:24px; margin:0 }
+.frame{ width:100%; max-width:min(100%, 74vh); aspect-ratio:1/1; margin-left:auto; position:relative; background:var(--paper); border:1px solid var(--rule) }
+canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none }
+.caption{ max-width:min(100%, 74vh); margin:12px 0 0 auto; font-family:var(--mono); font-weight:300; font-size:11px; line-height:1.65; color:var(--muted) }
+.ctls{ max-width:min(100%, 74vh); margin:12px 0 0 auto; display:flex; flex-direction:column; gap:6px; font-family:var(--mono); font-weight:300; font-size:11px; color:var(--muted) }
+.ctl{ display:grid; grid-template-columns:7.5rem minmax(0,1fr) 4.2rem; gap:12px; align-items:center }
+.ctl output{ text-align:right; color:var(--ink); font-variant-numeric:tabular-nums }
+input[type=range]{ width:100%; accent-color:var(--ink); min-height:28px; margin:0 }
+
+nav.pager{ display:flex; justify-content:space-between; align-items:center; gap:16px; border-top:1px solid var(--rule); padding-block:18px 26px; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.06em }
+nav.pager button{ color:var(--muted); display:flex; gap:10px; align-items:baseline; min-height:44px; text-align:left }
+nav.pager button:hover:not([disabled]){ color:var(--ink) }
+nav.pager button[disabled]{ opacity:.3; cursor:default }
+nav.pager .t{ text-transform:none; letter-spacing:0; font-family:var(--verse); font-style:italic; font-size:15px }
+.dots{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center }
+.dots button{ width:22px; height:22px; display:grid; place-items:center }
+.dots button::after{ content:""; width:7px; height:7px; border-radius:50%; background:var(--rule) }
+.dots button[aria-current="true"]::after{ background:var(--ink) }
+
+.index{ position:fixed; inset:0; z-index:20; background:var(--paper); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:calc(env(safe-area-inset-top,0px) + 22px) 32px; overflow-y:auto }
+.index .in{ max-width:720px; margin:0 auto }
+.index .top{ display:flex; justify-content:space-between; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; padding-bottom:18px; border-bottom:1px solid var(--rule) }
+.index ol{ list-style:none; margin:0; padding:0 }
+.index li button{ width:100%; display:grid; grid-template-columns:3.2rem 1fr; gap:12px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--rule); text-align:left }
+.index li .n{ font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.1em }
+.index li .tt{ font-size:1.35rem; font-weight:300 }
+.index li button:hover .tt{ font-style:italic }
+.sym .lead{ font-size:1.05rem; font-weight:300; line-height:1.6; margin:1.4em 0 0; max-width:36rem }
+.sym h2{ font-family:var(--mono); font-weight:300; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .4em }
+.sym dl{ margin:0 }
+.sym .row{ display:grid; grid-template-columns:6.2rem minmax(0,1fr); gap:16px; padding:12px 0; border-bottom:1px solid var(--rule); align-items:baseline }
+.sym dt{ font-family:var(--mono); font-size:1rem; color:var(--ink); overflow-wrap:anywhere }
+.sym dd{ margin:0; min-width:0 }
+.sym .nm{ display:block; font-size:1.08rem; font-weight:400 }
+.sym .ds{ display:block; font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.7; color:var(--muted); margin-top:3px }
+.sym .ds code{ color:var(--ink) }
+header{ align-items:center }
+.mix{ display:flex; align-items:center; gap:10px; text-transform:none; letter-spacing:.02em; color:var(--muted); font-size:11px }
+.mix input{ width:clamp(90px,16vw,200px); min-height:28px }
+.talk{ font-family:"STIX Two Text", Georgia, serif; font-size:clamp(1.08rem,1.5vw,1.2rem); line-height:1.66; transition:opacity .35s }
+.talk p{ margin:0 0 1em }
+.talk i{ font-style:italic }
+.verse{ transition:opacity .35s }
+.foot{ border-top:1px solid var(--rule); padding-block:16px 30px; font-family:var(--mono); font-weight:300; font-size:10.5px; line-height:1.7; color:var(--muted); max-width:80ch }
+body.explainer h1{ font-family:"STIX Two Text", Georgia, serif; font-weight:400 }
+body.explainer main{ grid-template-columns:minmax(0,1fr); gap:26px; padding-block:28px 28px }
+body.explainer .plate{ position:static; order:-1 }
+body.explainer .frame{ aspect-ratio:16/9; max-width:100%; margin:0 auto; border-color:transparent }
+body.explainer .caption, body.explainer .ctls{ max-width:100%; margin-left:0 }
+body.explainer .text{ max-width:44rem; margin:0 auto; width:100% }
+body.frameonly header, body.frameonly .text, body.frameonly nav.pager, body.frameonly .foot, body.frameonly .caption, body.frameonly .ctls{ display:none }
+body.frameonly main{ padding:0; display:block }
+body.frameonly .plate{ position:static }
+body.frameonly .frame{ width:min(100vw - 32px, (100vh - 32px) * var(--ar,1)); max-width:none; margin:16px auto; border-color:transparent }
+.exitframe{ position:fixed; right:max(12px,env(safe-area-inset-right,0px)); top:calc(env(safe-area-inset-top,0px) + 10px); z-index:30; font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:8px 12px; min-height:36px }
+@media (max-width:860px){
+  body.explainer .frame{ aspect-ratio:1/1 }
+  .mix{ order:3; width:100% }
+  .mix input{ flex:1 }
+  main{ grid-template-columns:minmax(0,1fr); gap:28px; padding-block:24px 24px }
+  .plate{ position:static; order:-1 }
+  .frame, .caption, .ctls{ max-width:100%; margin-left:0 }
+  .text{ max-width:none }
+  nav.pager .t{ display:none }
+  .ctl{ grid-template-columns:6.2rem minmax(0,1fr) 3.8rem }
+}
+@media (max-width:480px){ .sym .row{ grid-template-columns:4.6rem minmax(0,1fr); gap:12px } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="name">The Way of Water</span>
+    <span class="count" id="count">I / XI</span>
+    <label class="mix"><span>The Way of Water</span><input type="range" id="mix" min="0" max="1" step="0.01" value="0" aria-label="Style, from The Way of Water to a 3Blue1Brown-style explainer"><span>3Blue1Brown</span></label>
+    <span class="hgroup">
+      <a class="hbtn" href="/way-of.html" style="text-decoration:none;display:inline-flex;align-items:center">All books</a>
+      <button class="hbtn" id="frameOnly">Frame only</button>
+      <button class="hbtn" id="openSymbols" aria-haspopup="dialog">Symbols</button>
+      <button class="hbtn" id="openIndex" aria-haspopup="dialog">Contents</button>
+    </span>
+  </header>
+  <main id="main">
+    <section class="text" id="text" aria-live="polite">
+      <div class="num" id="num">Chapter I</div>
+      <h1 id="title"></h1>
+      <div class="verse" id="verse"></div>
+      <div class="talk" id="talk" hidden></div>
+      <div class="notes" id="notes"></div>
+    </section>
+    <figure class="plate">
+      <div class="frame"><canvas id="cv" aria-label="Living plate for this chapter" role="img"></canvas></div>
+      <figcaption class="caption" id="caption"></figcaption>
+      <div class="ctls" id="ctls"></div>
+    </figure>
+  </main>
+  <nav class="pager" aria-label="Chapters">
+    <button id="prev"><span>←</span><span class="t" id="prevT"></span></button>
+    <div class="dots" id="dots"></div>
+    <button id="next"><span class="t" id="nextT"></span><span>→</span></button>
+  </nav>
+  <footer class="foot">The right end of the style slider is a homage to the look of 3Blue1Brown's videos: a dark ground, blue and yellow, a faint coordinate grid, equations on the frame, narration in place of verse. Nothing on this page is from or endorsed by 3Blue1Brown. The plates compute the same mathematics at every setting.</footer>
+</div>
+<button class="exitframe" id="exitFrame" hidden aria-label="Leave frame-only view">Exit frame</button>
+
+<div class="index" id="index" hidden role="dialog" aria-label="Contents">
+  <div class="in">
+    <div class="top"><span>Contents</span><button class="hbtn" id="closeIndex">Close</button></div>
+    <ol id="indexList"></ol>
+  </div>
+</div>
+
+<div class="index" id="symbols" hidden role="dialog" aria-label="Symbol guide">
+  <div class="in sym">
+    <div class="top"><span>Symbol guide</span><button class="hbtn" id="closeSymbols">Close</button></div>
+    <p class="lead">One flow carries most of these pages: a sheared layer of water with a row of slow eddies in it, set swaying. The symbols below are the ones the notes use to talk about it.</p>
+    <h2>The flow</h2>
+    <dl>
+      <div class="row"><dt>x, y</dt><dd><span class="nm">Position</span><span class="ds">x runs along the layer and repeats every 2π, so the left and right edges of a plate are the same water. y runs across it.</span></dd></div>
+      <div class="row"><dt>u, v</dt><dd><span class="nm">Velocity</span><span class="ds">u along x, v along y. Here <code>u = y</code> and <code>v = −sin x + ε sin ωt</code>.</span></dd></div>
+      <div class="row"><dt>ψ, H₀</dt><dd><span class="nm">Stream function</span><span class="ds"><code>ψ = y²/2 − cos x</code> for the steady flow; <code>u = ∂ψ/∂y</code>, <code>v = −∂ψ/∂x</code>. Water moves along curves of constant ψ. The notes call the same quantity H₀ when they treat it as the energy of a pendulum.</span></dd></div>
+      <div class="row"><dt>ε</dt><dd><span class="nm">Sway amplitude</span><span class="ds">How hard the layer is pushed side to side. ε = 0 is steady water.</span></dd></div>
+      <div class="row"><dt>ω, T</dt><dd><span class="nm">Sway frequency, period</span><span class="ds"><code>T = 2π/ω</code>. These pages use ω = 1.5, so T ≈ 4.19.</span></dd></div>
+      <div class="row"><dt>t₀</dt><dd><span class="nm">Phase</span><span class="ds">Where in the sway cycle a measurement starts.</span></dd></div>
+    </dl>
+    <h2>Looking once per period</h2>
+    <dl>
+      <div class="row"><dt>P</dt><dd><span class="nm">Period map</span><span class="ds">Takes a drop's position at the start of a sway to its position one period later. Also called the stroboscopic or Poincaré map. It preserves area because water is incompressible.</span></dd></div>
+      <div class="row"><dt>p</dt><dd><span class="nm">Hyperbolic fixed point</span><span class="ds">The saddle, as P sees it: a point P returns to itself, with one direction that stretches and one that squeezes.</span></dd></div>
+      <div class="row"><dt>λ</dt><dd><span class="nm">Stretching factor or rate</span><span class="ds">For P at p, the factor by which the stretching direction grows each period (here about 66). For a steady saddle, the rate in <code>e^(λt)</code>.</span></dd></div>
+      <div class="row"><dt>Wᵘ</dt><dd><span class="nm">Unstable manifold</span><span class="ds">Every point that came from p, run backward far enough. Drawn in vermilion.</span></dd></div>
+      <div class="row"><dt>Wˢ</dt><dd><span class="nm">Stable manifold</span><span class="ds">Every point that goes to p, run forward far enough. Drawn in blue.</span></dd></div>
+      <div class="row"><dt>M(t₀)</dt><dd><span class="nm">Melnikov function</span><span class="ds">To first order in ε, the signed gap between Wᵘ and Wˢ, times the flow speed. Where M has a simple zero, the two curves cross.</span></dd></div>
+      <div class="row"><dt>sech</dt><dd><span class="nm">Hyperbolic secant</span><span class="ds"><code>sech z = 1 / cosh z</code>. Falls off like <code>2e^(−z)</code>.</span></dd></div>
+    </dl>
+    <h2>Stirring and mixing</h2>
+    <dl>
+      <div class="row"><dt>σ, τ</dt><dd><span class="nm">Finite-time Lyapunov exponent</span><span class="ds">σ is how fast neighbours separate over a window of length τ, on a log scale, per unit time.</span></dd></div>
+      <div class="row"><dt>Γ</dt><dd><span class="nm">Circulation</span><span class="ds">The strength of a stirrer, modelled as a point vortex.</span></dd></div>
+      <div class="row"><dt>a</dt><dd><span class="nm">Cup radius</span><span class="ds">Lengths in the cup chapters are in units of a.</span></dd></div>
+      <div class="row"><dt>κ</dt><dd><span class="nm">Diffusivity</span><span class="ds">How fast molecules spread a dissolved substance on their own. Sugar in water: about 5 × 10⁻¹⁰ m²/s.</span></dd></div>
+      <div class="row"><dt>Pe</dt><dd><span class="nm">Péclet number</span><span class="ds">Stirring speed times size, divided by κ. Large when stirring beats diffusion.</span></dd></div>
+      <div class="row"><dt>ℓ_B</dt><dd><span class="nm">Batchelor scale</span><span class="ds">The layer thickness at which diffusion across a layer keeps pace with the stretching that thins it, about <code>√(κ/λ)</code>.</span></dd></div>
+    </dl>
+  </div>
+</div>
+<script>
+const CH = [
+{ n:"I", id:"two-currents", title:"Two Currents", art:"saddle",
+  verse:[
+   ["Where two currents meet head on,","the water has to choose."],
+   ["It slows almost to stillness,","turns,","and leaves along another line,","faster than it came."],
+   ["A drop that lands here","is pressed thin from both sides","and pulled long between them."]],
+  notes:`<p>A <b>hyperbolic stagnation point</b>: <code>u = λx</code>, <code>v = −λy</code>. Streamlines are the hyperbolas <code>xy = constant</code>. Water arrives along the <span class="s">stable line</span> and leaves along the <span class="u">unstable line</span>.</p><p>A drop of dye is squeezed by <code>e^(−λt)</code> across and stretched by <code>e^(λt)</code> along, so its area never changes. Water is incompressible: everything that follows is stretching and folding at constant area.</p><p>Saddles sit wherever flow divides: between two eddies, on the nose of a bridge pier, where a tributary meets the main stem.</p>`,
+  caption:"A stagnation point. Blue is the line water arrives on, vermilion the line it leaves on. Tap to drop dye." },
+
+{ n:"II", id:"the-dividing-line", title:"The Dividing Line", art:"eye",
+  verse:[
+   ["A row of slow eddies","sits inside a sheared layer."],
+   ["Water above runs one way,","water below runs the other,","and the eddies turn between them, going nowhere."],
+   ["One streamline leaves a saddle","and comes back to it.","In steady water, nothing ever crosses it."]],
+  notes:`<p><code>ψ = y²/2 − cos x</code>, so <code>u = y</code> and <code>v = −sin x</code>: a uniform shear with a row of eddies in it. These are <b>Kelvin's cat's eyes</b>, the streamline pattern of a critical layer in a shear flow. The same equations describe a pendulum, with x the angle and y the angular speed; swinging is the eye, spinning over the top is the passing stream.</p><p>The boundary of the eye is <code>y = ±2 cos(x/2)</code>. Because x repeats every 2π, the saddles at x = ±π are the same point, and the boundary leaves that saddle and returns to it: a <b>homoclinic orbit</b>.</p><p>In a steady two-dimensional flow, water moves along streamlines, so dye inside the eye stays inside forever. Near the saddle it slows without limit; going all the way round the boundary takes infinitely long.</p>`,
+  caption:"Kelvin's cat's eyes. Dye inside the eye stays inside; dye outside passes by; dye on the boundary stalls at the saddle. Tap to drop dye." },
+
+{ n:"III", id:"the-stroboscope", title:"The Stroboscope", art:"strobe",
+  verse:[
+   ["Now let the whole layer sway,","side to side, once every few seconds."],
+   ["The streamlines change at every instant,","so they no longer show","where the water goes."],
+   ["Look once per sway.","Mark where each drop is.","The marks draw what the motion hides."]],
+  notes:`<p>Add a sway across the layer: <code>v = −sin x + ε sin ωt</code>. The flow is still incompressible, but it now depends on time, so streamlines and the paths of water part company.</p><p>The <b>period map</b> P takes each drop from where it is at the start of a sway to where it is one period <code>T = 2π/ω</code> later. P preserves area. The saddle survives as a <b>hyperbolic fixed point</b> of P, displaced by a distance of order ε; in the flow it is a small periodic orbit.</p><p>Drops started deep in the eye mark out closed curves. Drops started near the old boundary scatter. Chapters IV to VIII are about why.</p><p class="k">Plate: ε = 0.12, ω = 1.5.</p>`,
+  caption:"Drops moving continuously, and where each one is once per period. The trails fade; the marks stay." },
+
+{ n:"IV", id:"the-split", title:"The Split", art:"split",
+  verse:[
+   ["Without the sway, the way out of the saddle","and the way back in","are one line."],
+   ["With the sway, they come apart.","The water leaving","no longer meets the water returning."],
+   ["They cannot simply slide past each other.","They cross."]],
+  notes:`<p>The <span class="u">unstable manifold Wᵘ</span> is all the water that came from the saddle; the <span class="s">stable manifold Wˢ</span> is all the water going back to it. The plate computes both by running the period map P outward from its fixed point.</p><p><b>Melnikov</b> (1963) gave their gap to first order in ε. With <code>f = (y, −sin x)</code>, sway <code>g = (0, sin ωt)</code> and the steady boundary <code>y₀(t) = 2 sech t</code>:</p><p><code>M(t₀) = ∫ f∧g dt = 2π sech(πω/2) sin(ωt₀)</code></p><p>M has simple zeros at <code>ωt₀ = 0, π</code>, so for any small ε ≠ 0 the curves cross transversally, twice per period of the sway. Because <code>sech(πω/2)</code> is exponentially small when ω is large, fast sloshing barely splits the boundary at all.</p>`,
+  caption:"Vermilion: water that came from the saddle. Blue: water on its way back. Circles: where they cross. Below: Melnikov's prediction, εM(t₀); each zero is a crossing.",
+  ctl:[{k:"eps",label:"sway ε",min:0,max:0.3,step:0.01,def:0.12}] },
+
+{ n:"V", id:"the-tangle", title:"The Tangle", art:"tangle",
+  verse:[
+   ["One crossing is never one.","The flow carries the crossing point along,","and it lands on both curves again."],
+   ["Near the saddle the crossings crowd together.","The loops between them cannot lose area,","so they grow long and thin."],
+   ["Each curve folds through the other,","back and forth, without end.","Poincaré found this, and would not try to draw it."]],
+  notes:`<p>A point on both Wᵘ and Wˢ is a <b>homoclinic point</b>. P maps each manifold to itself, so P of that point, and P of that, are homoclinic points too: infinitely many, accumulating on the saddle from both sides.</p><p>Toward the saddle, Wˢ is squeezed by about <code>1/λ</code> per period (λ ≈ 66 here), so successive crossings along it crowd together. The lobes between crossings keep their area, so they must lengthen by about λ each period. That is the tangle.</p><p><b>Poincaré</b> met it while correcting his 1889 prize memoir on the three-body problem; he paid to have the flawed printing destroyed. In <i>Les Méthodes nouvelles de la mécanique céleste</i> (vol. 3, 1899) he wrote: <i>"On sera frappé de la complexité de cette figure, que je ne cherche même pas à tracer"</i>: one will be struck by the complexity of this figure, which I am not even trying to draw.</p>`,
+  caption:"Both branches of both manifolds, grown period by period at ε = 0.2. The curves never end; the drawing stops at a few thousand points each." },
+
+{ n:"VI", id:"the-turnstile", title:"The Turnstile", art:"lobes",
+  verse:[
+   ["Draw the edge of the eddy","with a piece of each curve:","out along one to a crossing, home along the other."],
+   ["Every sway, one lobe of outside water","turns into the eddy,","and one lobe of eddy water turns out."],
+   ["Equal areas, in and out.","The eddy keeps its shape","and slowly loses its water."]],
+  notes:`<p><b>Lobe dynamics</b> (MacKay, Meiss & Percival 1984; Rom-Kedar, Leonard & Wiggins 1990). Make a boundary from Wᵘ, running from the saddle to a crossing, and Wˢ from that crossing back. One period later the boundary has moved only by two lobes: one carries water in, one carries the same area out. That is a <b>turnstile</b>.</p><p>To first order the lobe area is <code>ε∫|M(t₀)|dt₀</code> between successive zeros of M, here <code>4πε sech(πω/2)/ω</code>, with one turnstile on each side of the eye.</p><p>The plate colours every point by where its water was k periods earlier: in the eye, in the stream above, or in the stream below. The fingers are lobes, and their edges trace the manifolds. The percentage is measured across the fixed dashed oval rather than a lobe boundary, so it shows exchange, not lobe area.</p>`,
+  caption:"Each point coloured by where its water was k periods ago: blue in the eye, vermilion in the stream above, ochre in the stream below. ε = 0.2." },
+
+{ n:"VII", id:"the-horseshoe", title:"The Horseshoe", art:"horseshoe",
+  verse:[
+   ["Squeeze a square of water thin,","pull it long,","bend it, and lay it back across itself."],
+   ["Most of it leaves.","What stays forever","is dust: a set with no area."],
+   ["Name each grain by the side it took","at every fold.","Every sequence you can write down is some grain's path."]],
+  notes:`<p><b>Smale's horseshoe</b> (1960s). Squeeze the unit square S to a third of its width, stretch it to three times its height, and fold it so both legs cross S. Then S ∩ f(S) is two vertical strips, and S ∩ f⁻¹(S) two horizontal ones.</p><p>After n folds, 4ⁿ small squares remain, with total area (4/9)ⁿ → 0. The points that stay for all time, forward and backward, form a Cantor set, and on it f acts exactly like shifting a two-sided infinite string of 0s and 1s. So there are periodic orbits of every period, orbits that come arbitrarily close to every point of the set, and sensitive dependence on initial conditions.</p><p>The <b>Smale–Birkhoff homoclinic theorem</b> says a transverse homoclinic point, like those in chapter V, forces some power of the period map to contain a horseshoe. The swaying eddy has one.</p>`,
+  caption:"Vermilion: what survives n folds forward. Blue: n folds backward. Ink: both, the grains that stay. Tap for another fold." },
+
+{ n:"VIII", id:"islands", title:"Islands", art:"islands",
+  verse:[
+   ["Not all the water joins the tangle."],
+   ["Deep in the eddy","drops still trace closed loops,","bent a little, unbroken."],
+   ["Sway harder and the islands shrink,","but for a gentle sway they hold.","A mixer can run all day around them."]],
+  notes:`<p><b>KAM theory</b> (Kolmogorov 1954, Arnold 1963, Moser 1962): under a small, smooth, area-preserving perturbation of an integrable twist map, most invariant curves survive, especially those whose rotation numbers are far from rational. Here the twist is the eye's turnover time, which grows toward its edge.</p><p>The chaos lives in a layer around the broken boundary. Between the layer and the surviving curves sit chains of small islands at resonances, each a tiny eddy of its own.</p><p>In laminar mixers, such islands are regions that stay unmixed however long you stir (Ottino, <i>The Kinematics of Mixing</i>, 1989).</p>`,
+  caption:"Drops marked once per period for hundreds of periods. Closed curves are islands; scattered dots are the chaotic sea.",
+  ctl:[{k:"eps",label:"sway ε",min:0.02,max:0.4,step:0.01,def:0.15}] },
+
+{ n:"IX", id:"stirring-a-cup", title:"Stirring a Cup", art:"cup",
+  verse:[
+   ["Two stirrers in a cup,","turning one at a time."],
+   ["Either one alone","only carries water round itself.","Taking turns, they stretch a thread of dye longer every turn."],
+   ["Stirred gently, its length adds.","Stirred chaotically, its length multiplies.","That is the whole difference, to a cook."]],
+  notes:`<p><b>Aref's blinking vortex</b> ("Stirring by chaotic advection", <i>J. Fluid Mech.</i> 1984). Two point vortices in a circular cup, each switched on for half a period. At every instant the flow is laminar and simple; together they make particle paths chaotic. Aref called this <b>chaotic advection</b>.</p><p>The strength is <code>ΓT/(2πa²)</code>. The cup wall is enforced by an image vortex outside it, and each vortex core is smoothed over 0.08a so the numerics behave.</p><p>A line of dye in a regular flow lengthens roughly in proportion to time. In a chaotic flow it lengthens exponentially, at a rate set by the Lyapunov exponent. The inset plots the natural log of length, so exponential growth is a straight line.</p>`,
+  caption:"A thread of dye in a cup whose two stirrers take turns. The filled dot is the stirrer on now. Inset: log of the thread's length, period by period. Tap to start a new thread.",
+  ctl:[{k:"mu",label:"strength",min:0.1,max:1.2,step:0.05,def:0.6}] },
+
+{ n:"X", id:"ridges", title:"Ridges", art:"ftle",
+  verse:[
+   ["Real water does not repeat itself,","and there is no saddle to start from."],
+   ["So start everywhere.","Set two drops down side by side","and see how far apart they end up."],
+   ["Where neighbours part fastest, a ridge appears.","Run time backward for the other set.","The tangle shows itself without being solved for."]],
+  notes:`<p>The <b>finite-time Lyapunov exponent</b>: run the flow for a time τ, take the gradient of the map from start to finish, and measure its largest stretching. <code>σ = (1/|τ|) ln √λmax(C)</code>, where <code>C = (∇Φ)ᵀ∇Φ</code>.</p><p>Ridges of forward-time σ approximate repelling material lines, which play the part of stable manifolds. Backward-time ridges approximate attracting lines, the unstable manifolds. Together they draw the tangle (Haller 2001; Shadden, Lekien & Marsden 2005).</p><p>Nothing here needs a fixed point or a periodic flow, only velocities over a window of time. Oceanographers compute the same field from HF-radar surface currents and model output to find the lines that spills and larvae will not cross.</p>`,
+  caption:"Lyapunov exponents over two periods of the swaying eddy at ε = 0.2. Blue ridges repel, vermilion ridges attract. Compare chapter V." },
+
+{ n:"XI", id:"the-last-step", title:"The Last Step", art:"batch",
+  verse:[
+   ["Stirring never mixes anything.","It only makes the boundary long","and the layers thin."],
+   ["Molecules do the rest.","Alone, sugar takes a day or two","to spread across a centimetre of still tea."],
+   ["Fold the layers thin enough","and the day becomes a second.","The tangle builds the surface. Diffusion finishes it."]],
+  notes:`<p>Stirring stretches the interface between two waters and thins the layers, but only molecular diffusion makes them one. Diffusing a distance L takes about <code>L²/κ</code>. For sugar, <code>κ ≈ 5 × 10⁻¹⁰ m²/s</code>: about two days for a centimetre, about two seconds for thirty microns.</p><p><b>Batchelor</b> (1959): stretching at rate λ thins layers until diffusion across them keeps pace, at a thickness near <code>ℓ_B ≈ √(κ/λ)</code>. From then on the unmixedness decays exponentially. With chaotic stirring, the time to mix grows only like <code>(1/λ) ln Pe</code>, not like Pe as it would for diffusion alone.</p><p>The plate carries a dye field through the cup of chapter IX on a 180 × 180 grid. Interpolating on a grid adds diffusion of its own, so even the lowest κ setting is not zero. The inset is the variance of concentration on a log scale.</p>`,
+  caption:"Two waters in a cup, stirred. Inset: how unmixed the cup is, log variance of concentration, period by period. Tap to start again.",
+  ctl:[{k:"mu",label:"stirring",min:0.1,max:1.2,step:0.05,def:0.6},{k:"lk",label:"log₁₀ κ",min:-4.5,max:-2.5,step:0.1,def:-3.5}] }
+];
+/* Narration and on-frame equations for the explainer end of the style slider. Keyed by chapter id. */
+const TALK = {
+"two-currents":{ eq:"u = λx,   v = −λy", talk:[
+ "Here's a question to carry through every chapter: when you stir water, what actually does the mixing?",
+ "Start with the simplest place where something interesting happens, a point where two streams collide. Water comes in along the vertical line and leaves along the horizontal one. Tap to drop some dye and watch its shape.",
+ "It gets squeezed by a factor of <i>e</i><sup>−λ<i>t</i></sup> in one direction and stretched by <i>e</i><sup>λ<i>t</i></sup> in the other. Multiply those and you get exactly 1. The area never changes, and that's no accident: water is incompressible. Everything that follows is this same move, stretch one way and squeeze the other, done over and over."]},
+"the-dividing-line":{ eq:"ψ = y²/2 − cos x", talk:[
+ "Now put saddles to work. Take a sheared layer, water above moving right and water below moving left, and set a row of eddies in it. The stream function ψ = <i>y</i>²/2 − cos <i>x</i> draws the whole picture. If it looks familiar, it should: it's exactly the phase portrait of a pendulum.",
+ "One curve is special. It leaves the saddle, wraps around the eddy, and arrives back at the very same saddle, because <i>x</i> repeats every 2π.",
+ "In a steady flow, water moves along these curves, so anything inside the eye stays inside forever. No amount of waiting mixes it with the outside. So how does anything ever mix?"]},
+"the-stroboscope":{ eq:"ẋ = y,   ẏ = −sin x + ε sin ωt", talk:[
+ "Let's make the flow wobble, pushing the whole layer side to side with a little ε sin ω<i>t</i>. Now the picture changes every instant, and the streamlines stop telling you where the water goes.",
+ "Here's the trick that makes this tractable. Don't watch continuously. Look once per period, like a strobe light, and mark where each drop is. That gives a map <i>P</i> from the plane to itself, and because the flow is incompressible, <i>P</i> preserves area.",
+ "Notice that some drops trace tidy closed curves, while the ones that started near the old boundary scatter. Why the difference?"]},
+"the-split":{ eq:"M(t₀) = 2π sech(πω/2) sin ωt₀", talk:[
+ "Go back to the saddle. Under the strobe map it's a fixed point. There's a curve of points that came from it, and a curve of points that will eventually return to it. With no wobble, they're the same curve.",
+ "Turn on the wobble and they separate. Melnikov worked out the gap to first order: it's proportional to <i>M</i>(<i>t</i>₀) = 2π sech(πω/2) sin ω<i>t</i>₀.",
+ "The key observation is that this function changes sign. Wherever <i>M</i> passes through zero, the two curves have to cross, and since the sign flips twice per period, they cross twice per period. Drag ε toward zero and watch the gap close."]},
+"the-tangle":{ eq:"P(Wᵘ) = Wᵘ,   P(Wˢ) = Wˢ", talk:[
+ "Now for the strange part. Suppose a point sits on both curves, and apply the map. Its image is still on the first curve, because that curve maps to itself, and still on the second, for the same reason. So the image is another crossing. And its image is another, forever, with the crossings piling up toward the saddle.",
+ "Near the saddle, those crossings are squeezed closer together by a factor of about 66 each period. The loops between them have to keep their area, so they stretch about 66 times longer.",
+ "Keep going and you get this, the homoclinic tangle. Poincaré ran into it around 1890, and years later wrote that he would not even try to draw it."]},
+"the-turnstile":{ eq:"lobe area ≈ 4πε sech(πω/2) / ω", talk:[
+ "So what does the tangle do to actual water? Color every point by where its water was a few periods ago: blue if it was in the eddy, red if it was in the stream above, yellow if it was below.",
+ "The fingers reaching across the old boundary are lobes. If you draw the eddy's edge with a piece of one curve and a piece of the other, then each period exactly one lobe carries water in, and one lobe of the same area carries water out. It's a turnstile.",
+ "To first order, each lobe's area is 4πε sech(πω/2)/ω. Small, but it never stops, and the eddy slowly trades away all its water."]},
+"the-horseshoe":{ eq:"area remaining after n folds = (4/9)ⁿ", talk:[
+ "Why does a tangle mean chaos? Here's the cleanest model, due to Smale. Squish a square to a third of its width, stretch it to three times its height, and fold it back over itself like a horseshoe. Only two vertical strips land back in the square. Do it again and you get four.",
+ "Run it backward too and you get horizontal strips. The points that stay forever, in both directions, live where they intersect: 4ⁿ little squares with total area (4/9)ⁿ, shrinking toward a dust.",
+ "Label each grain by which strip, 0 or 1, it visits at every step, and the map just shifts that sequence over by one. Every sequence is allowed, so there are periodic orbits of every period and orbits that wander without pattern. The Smale–Birkhoff theorem says crossings like the ones in chapter IV force a horseshoe like this to exist."]},
+"islands":{ eq:"small ε  ⇒  most invariant curves survive", talk:[
+ "Not everything gets caught. Strobe hundreds of drops for hundreds of periods. The scattered dust is the chaotic sea around the old boundary.",
+ "Deep in the eddy, though, drops still trace closed curves, bent a little but unbroken. That's the KAM theorem: under a small, smooth, area-preserving nudge, most of these invariant curves survive. Turn up ε and watch the islands shrink.",
+ "For anyone designing a mixer, these islands are the enemy: regions that stay unmixed however long you stir."]},
+"stirring-a-cup":{ eq:"L(n) ∝ e^(λn)", talk:[
+ "Let's test the stretching idea in a cup. Put two stirrers in it and let them take turns, each switched on for half a period. Either one alone just carries water around in circles. Together they can be chaotic. This is Aref's blinking vortex, from 1984.",
+ "Draw a thread of dye and measure its length every period. The inset plots the logarithm of the length, so exponential growth shows up as a straight line.",
+ "With gentle stirring, the length creeps up. With strong stirring, it multiplies every period. That multiplication is what chaotic advection buys you."]},
+"ridges":{ eq:"σ = (1/|τ|) ln √λmax(C)", talk:[
+ "Real currents never repeat exactly, so there's no fixed point to start from and no period to strobe. Is the tangle lost?",
+ "No. Place pairs of neighboring drops everywhere, run the flow forward for a while, and measure how far apart each pair ends up, on a log scale. Wherever neighbors separate unusually fast, you get a ridge.",
+ "Forward-time ridges, in blue, behave like the stable curves. Run time backward and the ridges, in red, behave like the unstable ones. Together they reveal the tangle without solving for a single fixed point. These are finite-time Lyapunov exponents, and they're how people find transport barriers in measured ocean currents."]},
+"the-last-step":{ eq:"t_mix ∼ (1/λ) ln Pe", talk:[
+ "Final twist: stirring, by itself, never mixes anything. It stretches the boundary between two waters and thins the layers. Molecules diffusing across those layers finish the job.",
+ "Diffusing a distance <i>L</i> takes roughly <i>L</i>²/κ. Sugar needs about two days to spread a centimeter through still tea, but only a couple of seconds to cross thirty microns.",
+ "Chaotic stirring thins layers exponentially, which is why the time to mix grows only like (1/λ) ln Pe. So, back to the opening question: the tangle builds the surface, and diffusion does the mixing."]}
+};
+/* ---------- utilities ---------- */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI*2;
+const MONO = '"Martian Mono", ui-monospace, Menlo, monospace';
+const SERIF = 'Newsreader, Georgia, serif';
+let PAL = {};
+function readPal(){
+  const cs = getComputedStyle(document.documentElement), g=k=>cs.getPropertyValue("--"+k).trim();
+  PAL = { ink:g("ink"), paper:g("paper"), muted:g("muted"), rule:g("rule"), wash:g("wash"), u:g("u"), s:g("s"), o:g("o") };
+}
+const hexRGB = c => { const m=c.replace("#",""); return [0,2,4].map(i=>parseInt(m.slice(i,i+2),16)); };
+function mulberry(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const wrapX = x => { let w=(x+Math.PI)%TAU; if(w<0) w+=TAU; return w-Math.PI; };
+function label(ctx,txt,x,y,al,col){ const sz=Math.max(10,Math.min(12,ctx.canvas._W*0.024)); ctx.font=LITAL?`italic 400 ${sz*1.25}px ${LFONT}`:`300 ${sz}px ${MONO}`; ctx.fillStyle=col||PAL.muted; ctx.textAlign=al||"left"; ctx.textBaseline="middle"; ctx.fillText(txt,x,y); }
+// run a generator for at most ms milliseconds this frame
+function work(s, ms){ if(!s.job) return; const t0=performance.now(); while(performance.now()-t0<ms){ const r=s.job.next(); if(r.done){ s.job=null; break; } } }
+
+/* ---------- the swaying eddy: u = y, v = -sin x + eps sin(OM t) ---------- */
+const OM = 1.5, NS = 96, TP = TAU/OM, DT = TP/NS;
+const OUT = [0,0];
+function strobe(x, y, eps, dir, n){
+  const h = dir*DT;
+  for(let k=0;k<n;k++){
+    let t = dir>0 ? 0 : TP;
+    for(let i=0;i<NS;i++){
+      const k1x=y, k1y=-Math.sin(x)+eps*Math.sin(OM*t);
+      const x2=x+0.5*h*k1x, y2=y+0.5*h*k1y, sh=eps*Math.sin(OM*(t+0.5*h));
+      const k2x=y2, k2y=-Math.sin(x2)+sh;
+      const x3=x+0.5*h*k2x, y3=y+0.5*h*k2y;
+      const k3x=y3, k3y=-Math.sin(x3)+sh;
+      const x4=x+h*k3x, y4=y+h*k3y; t+=h;
+      const k4x=y4, k4y=-Math.sin(x4)+eps*Math.sin(OM*t);
+      x+=h/6*(k1x+2*k2x+2*k3x+k4x); y+=h/6*(k1y+2*k2y+2*k3y+k4y);
+    }
+  }
+  OUT[0]=x; OUT[1]=y; return OUT;
+}
+// continuous-time RK4 step (for plates that show motion, not just strobes)
+function stepEye(p, t, h, eps){
+  const x=p[0], y=p[1];
+  const k1x=y, k1y=-Math.sin(x)+eps*Math.sin(OM*t);
+  const x2=x+0.5*h*k1x, y2=y+0.5*h*k1y, sh=eps*Math.sin(OM*(t+0.5*h));
+  const k2x=y2, k2y=-Math.sin(x2)+sh;
+  const x3=x+0.5*h*k2x, y3=y+0.5*h*k2y;
+  const k3x=y3, k3y=-Math.sin(x3)+sh;
+  const x4=x+h*k3x, y4=y+h*k3y;
+  const k4x=y4, k4y=-Math.sin(x4)+eps*Math.sin(OM*(t+h));
+  p[0]=x+h/6*(k1x+2*k2x+2*k3x+k4x); p[1]=y+h/6*(k1y+2*k2y+2*k3y+k4y);
+}
+function saddle(eps){
+  let x=Math.PI, y=-eps*OM/(1+OM*OM);
+  const h=1e-6, jac=(x,y)=>{ const p=[...strobe(x,y,eps,1,1)], a=[...strobe(x+h,y,eps,1,1)], b=[...strobe(x,y+h,eps,1,1)];
+    return {p, J:[[(a[0]-p[0])/h,(b[0]-p[0])/h],[(a[1]-p[1])/h,(b[1]-p[1])/h]]}; };
+  for(let it=0;it<40;it++){ const {p,J}=jac(x,y), fx=p[0]-x, fy=p[1]-y, A=J[0][0]-1, B=J[0][1], C=J[1][0], D=J[1][1]-1, det=A*D-B*C;
+    const dx=(D*fx-B*fy)/det, dy=(-C*fx+A*fy)/det, n=Math.hypot(dx,dy), sc=Math.min(1,0.05/(n||1)); x-=dx*sc; y-=dy*sc; if(n<1e-12) break; }
+  const {J}=jac(x,y), tr=J[0][0]+J[1][1], det=J[0][0]*J[1][1]-J[0][1]*J[1][0], disc=Math.sqrt(Math.max(0,tr*tr-4*det));
+  const lu=(tr+disc)/2, ls=(tr-disc)/2;
+  const ev=l=>{ let v=Math.abs(J[0][1])>1e-12?[J[0][1], l-J[0][0]]:[l-J[1][1], J[1][0]]; const n=Math.hypot(v[0],v[1]); v=[v[0]/n,v[1]/n]; return v[0]<0?[-v[0],-v[1]]:v; };
+  return {x,y,lu,ls,eu:ev(lu),es:ev(ls)};
+}
+// one branch of a manifold, grown period by period from a fundamental segment; yields so it can run across frames
+function* growBranch(eps, z, e, sgn, dir, levels, hmax, cap, sink){
+  const d=1e-4, a0=[z.x+sgn*d*e[0], z.y+sgn*d*e[1]], a1=[...strobe(a0[0],a0[1],eps,dir,1)];
+  const q=s=>[a0[0]+s*(a1[0]-a0[0]), a0[1]+s*(a1[1]-a0[1])];
+  let S=[0,0.25,0.5,0.75,1], P=S.map(q), work=0;
+  for(let k=0;k<=levels;k++){
+    if(k>0){ P=P.map(p=>[...strobe(p[0],p[1],eps,dir,1)]); work+=P.length; }
+    for(let i=0;i<P.length-1 && P.length<cap;){
+      const g=Math.hypot(P[i+1][0]-P[i][0], P[i+1][1]-P[i][1]);
+      if(g>hmax && S[i+1]-S[i]>1e-13){ const s=(S[i]+S[i+1])/2, p0=q(s), p=k?[...strobe(p0[0],p0[1],eps,dir,k)]:p0; S.splice(i+1,0,s); P.splice(i+1,0,p); work+=k; }
+      else i++;
+      if(work>400){ work=0; yield; }
+    }
+    sink.push(P.map(p=>[p[0],p[1]]));
+    yield;
+  }
+}
+// join levels into one polyline with cumulative arc length
+function joinLevels(levels){ const pts=[]; for(const L of levels){ for(let i=(pts.length?1:0);i<L.length;i++) pts.push(L[i]); }
+  const len=new Float64Array(pts.length); for(let i=1;i<pts.length;i++) len[i]=len[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+  return {pts,len}; }
+// draw a polyline in (x,y) model coords up to arc length maxL, wrapping x every 2pi and breaking at the wrap
+function drawWrapped(ctx, V, br, maxL, col, lw){
+  if(!br||!br.pts.length) return; ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.lineJoin="round"; ctx.beginPath();
+  let px=null;
+  for(let i=0;i<br.pts.length;i++){ if(br.len[i]>maxL) break; const x=wrapX(br.pts[i][0]), y=br.pts[i][1];
+    if(px===null || Math.abs(x-px)>Math.PI) ctx.moveTo(V.X(x),V.Y(y)); else ctx.lineTo(V.X(x),V.Y(y)); px=x; }
+  ctx.stroke();
+}
+function eyeView(W,H,y0,y1,top,bot){ // map y in [y0,y1] into the band [top,bot] of the plate, x in [-pi,pi] across, same scale
+  const s=Math.min(W/TAU,(bot-top)/(y1-y0)), cx=W/2, cy=(top+bot)/2, ym=(y0+y1)/2;
+  return {s, X:x=>cx+x*s, Y:y=>cy-(y-ym)*s, ix:X=>(X-cx)/s, iy:Y=>ym-(Y-cy)/s, left:cx-Math.PI*s, right:cx+Math.PI*s};
+}
+function drawSeparatrix(ctx,V,col,dash,upper){ ctx.strokeStyle=col; ctx.lineWidth=1; ctx.setLineDash(dash||[]); for(const sg of (upper?[1]:[1,-1])){ ctx.beginPath();
+  for(let i=0;i<=160;i++){ const x=-Math.PI+TAU*i/160, y=sg*2*Math.cos(x/2); i?ctx.lineTo(V.X(x),V.Y(y)):ctx.moveTo(V.X(x),V.Y(y)); } ctx.stroke(); } ctx.setLineDash([]); }
+function drawStreamlines(ctx,V,y0,y1){ // contours of psi = y^2/2 - cos x
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+  for(const H of [-0.85,-0.55,-0.15,0.35,0.75,1.45,2.2,3.1,4.2]){
+    for(const sg of [1,-1]){ ctx.beginPath(); let on=false;
+      for(let i=0;i<=200;i++){ const x=-Math.PI+TAU*i/200, r=2*(H+Math.cos(x)); if(r<0){ on=false; continue; } const y=sg*Math.sqrt(r); if(y<y0||y>y1){ on=false; continue; }
+        if(!on){ ctx.moveTo(V.X(x),V.Y(y)); on=true; } else ctx.lineTo(V.X(x),V.Y(y)); }
+      ctx.stroke(); }
+  }
+}
+function blob(cx,cy,r,n,rnd){ const a=[]; for(let i=0;i<n;i++){ const t=rnd()*TAU, q=r*Math.sqrt(rnd()); a.push([cx+q*Math.cos(t), cy+q*Math.sin(t)]); } return a; }
+
+const ARTS = {};
+
+/* I. the saddle */
+ARTS.saddle = {
+  init(s,W,H){ s.lam=0.55; s.blobs=[]; s.rnd=mulberry(3); s.next=0; s.sc=Math.min(W,H)*0.44; },
+  drop(s,x,y){ s.blobs.push({t0:s.t, pts:blob(x,y,0.09,500,s.rnd)}); if(s.blobs.length>4) s.blobs.shift(); },
+  tap(s,X,Y,W,H){ this.drop(s,(X-W/2)/s.sc,-(Y-H/2)/s.sc); },
+  draw(ctx,W,H,s){
+    const sc=s.sc, cx=W/2, cy=H/2, X=x=>cx+x*sc, Y=y=>cy-y*sc;
+    if(s.t>s.next){ s.next=s.t+6500; const r=s.rnd; this.drop(s,(r()-0.5)*0.5,(r()<0.5?-1:1)*(0.82+r()*0.1)); }
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+    for(const c of [0.02,0.06,0.12,0.2,0.3,0.42,0.56,0.72]) for(const [sx,sy] of [[1,1],[-1,1],[1,-1],[-1,-1]]){
+      ctx.beginPath(); for(let i=0;i<=80;i++){ const x=c/1.1+(1.1-c/1.1)*i/80, y=c/x; if(y>1.1) continue; const px=X(sx*x), py=Y(sy*y); if(i) ctx.lineTo(px,py); else ctx.moveTo(px,py); } ctx.stroke(); }
+    ctx.lineWidth=1.6; ctx.strokeStyle=PAL.u; ctx.beginPath(); ctx.moveTo(X(-1.1),cy); ctx.lineTo(X(1.1),cy); ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.beginPath(); ctx.moveTo(cx,Y(1.1)); ctx.lineTo(cx,Y(-1.1)); ctx.stroke();
+    const chev=(x,y,dx,dy,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=1.6; const a=7; ctx.beginPath(); ctx.moveTo(X(x)-a*dx-a*dy, Y(y)+a*dy-a*dx); ctx.lineTo(X(x),Y(y)); ctx.lineTo(X(x)-a*dx+a*dy, Y(y)+a*dy+a*dx); ctx.stroke(); };
+    chev(0.7,0,1,0,PAL.u); chev(-0.7,0,-1,0,PAL.u); chev(0,0.7,0,-1,PAL.s); chev(0,-0.7,0,1,PAL.s);
+    ctx.fillStyle=PAL.ink;
+    for(const b of s.blobs){ const tau=(s.t-b.t0)/1000, ex=Math.exp(s.lam*tau), ey=1/ex; let any=false;
+      for(const p of b.pts){ const x=p[0]*ex, y=p[1]*ey; if(Math.abs(x)>1.15) continue; any=true; ctx.globalAlpha=0.75; ctx.fillRect(X(x)-1,Y(y)-1,2,2); }
+      b.gone=!any; }
+    ctx.globalAlpha=1; s.blobs=s.blobs.filter(b=>!b.gone);
+    label(ctx,"stable",cx+8,Y(1.02),"left",PAL.s); label(ctx,"unstable",X(1.02),cy-12,"right",PAL.u);
+  }
+};
+
+/* II. steady cat's eyes */
+ARTS.eye = {
+  init(s,W,H){ s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.96); s.rnd=mulberry(7); s.blobs=[];
+    this.drop(s,0,1.25,0.16); this.drop(s,0.3,1.97,0.07); this.drop(s,-1.2,2.55,0.12); s.next=9000; },
+  drop(s,x,y,r){ s.blobs.push({pts:blob(x,y,r||0.12,420,s.rnd)}); if(s.blobs.length>6) s.blobs.shift(); },
+  tap(s,X,Y){ const x=s.V.ix(X), y=s.V.iy(Y); if(Math.abs(x)<=Math.PI) this.drop(s,x,y,0.12); },
+  draw(ctx,W,H,s,dt){
+    const V=s.V; drawStreamlines(ctx,V,-3.1,3.1); drawSeparatrix(ctx,V,PAL.ink);
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(V.X(-Math.PI),V.Y(0),3,0,TAU); ctx.arc(V.X(Math.PI),V.Y(0),3,0,TAU); ctx.fill();
+    const h=Math.min(0.05,dt/1000*1.1), n=Math.max(1,Math.round(dt/1000*1.1/0.025));
+    for(const b of s.blobs) for(const p of b.pts){ for(let k=0;k<n;k++) stepEye(p,0,dt/1000*1.1/n,0); p[0]=wrapX(p[0]); }
+    ctx.fillStyle=PAL.s; ctx.globalAlpha=0.8;
+    for(const b of s.blobs) for(const p of b.pts) ctx.fillRect(V.X(p[0])-1,V.Y(p[1])-1,2,2);
+    ctx.globalAlpha=1; label(ctx,"saddle",V.X(-Math.PI)+6,V.Y(0)+14,"left"); label(ctx,"same saddle",V.X(Math.PI)-6,V.Y(0)+14,"right");
+  }
+};
+
+/* III. stroboscope */
+ARTS.strobe = {
+  init(s,W,H){ s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.96); s.eps=0.12; s.ft=0; s.marks=[]; s.ps=[]; s.tr=[];
+    const seeds=[[0,0.45],[0,0.9],[0,1.3],[0,1.62],[0,1.82],[0,1.95],[0,2.05],[0,2.2],[0,2.5],[0,-0.7],[0,-1.5],[0,-1.9],[0,-2.02],[0,-2.35],[-2.9,0.15]];
+    for(const p of seeds){ s.ps.push([p[0],p[1]]); s.tr.push([]); s.marks.push([]); } s.k=0; },
+  draw(ctx,W,H,s,dt){
+    const V=s.V, rate=TP/2.4, adv=dt/1000*rate, n=Math.max(1,Math.ceil(adv/0.03)), h=adv/n;
+    for(let i=0;i<n;i++){ for(const p of s.ps) stepEye(p,s.ft,h,s.eps); s.ft+=h;
+      if(Math.floor(s.ft/TP)>s.k){ s.k=Math.floor(s.ft/TP); s.flash=s.t; s.ps.forEach((p,j)=>{ s.marks[j].push([wrapX(p[0]),p[1]]); if(s.marks[j].length>900) s.marks[j].shift(); }); } }
+    s.ps.forEach((p,j)=>{ s.tr[j].push([wrapX(p[0]),p[1]]); if(s.tr[j].length>34) s.tr[j].shift(); });
+    drawSeparatrix(ctx,V,PAL.rule,[3,4]);
+    ctx.fillStyle=PAL.ink; for(const m of s.marks) for(const q of m) ctx.fillRect(V.X(q[0])-1.1,V.Y(q[1])-1.1,2.2,2.2);
+    ctx.lineWidth=1.4;
+    s.tr.forEach(tr=>{ for(let i=1;i<tr.length;i++){ if(Math.abs(tr[i][0]-tr[i-1][0])>Math.PI) continue; ctx.strokeStyle=PAL.s; ctx.globalAlpha=i/tr.length*0.8;
+      ctx.beginPath(); ctx.moveTo(V.X(tr[i-1][0]),V.Y(tr[i-1][1])); ctx.lineTo(V.X(tr[i][0]),V.Y(tr[i][1])); ctx.stroke(); } });
+    ctx.globalAlpha=1; ctx.fillStyle=PAL.s; for(const p of s.ps){ ctx.beginPath(); ctx.arc(V.X(wrapX(p[0])),V.Y(p[1]),3,0,TAU); ctx.fill(); }
+    // clock
+    const cx=W-28, cy=26, r=14, ph=(s.ft%TP)/TP; ctx.strokeStyle=PAL.muted; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,r,0,TAU); ctx.stroke();
+    ctx.strokeStyle=PAL.ink; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.sin(ph*TAU)*r,cy-Math.cos(ph*TAU)*r); ctx.stroke();
+    if(s.t-(s.flash||-1e9)<160){ ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(cx,cy-r,3,0,TAU); ctx.fill(); }
+    label(ctx,`period ${s.k}`,cx-r-8,cy,"right");
+  }
+};
+
+/* IV. the split */
+ARTS.split = {
+  init(s,W,H){ s.V=eyeView(W,H,-0.45,2.75,H*0.03,H*0.64); s.eps=s.prm.eps; s.rev=0; s.U=null; s.S=null; s.X=null; this.compute(s); },
+  param(s){ s.eps=s.prm.eps; s.rev=0; s.X=null; this.compute(s); },
+  compute(s){ const eps=s.eps; s.U=s.S=null;
+    if(eps===0){ const pts=[],len=[]; for(let i=0;i<=400;i++){ const x=-Math.PI+TAU*i/400; pts.push([x,2*Math.cos(x/2)]); } const br=joinLevels([pts]); s.U=br; s.S={pts:br.pts.slice().reverse(),len:br.len}; s.S.len=joinLevels([s.S.pts]).len; return; }
+    const z=saddle(eps), zl={x:z.x-TAU,y:z.y}, Ul=[], Sl=[];
+    const gu=growBranch(eps,zl,z.eu,1,1,3,0.015,5000,Ul), gs=growBranch(eps,z,z.es,-1,-1,3,0.015,5000,Sl);
+    s.job=(function*(){ yield* gu; yield* gs; s.U=joinLevels(Ul); s.S=joinLevels(Sl); })();
+  },
+  crossings(s,L){ const A=s.U, B=s.S, out=[]; const pa=[], pb=[];
+    for(let i=0;i<A.pts.length&&A.len[i]<=L;i++) pa.push(A.pts[i]); for(let i=0;i<B.pts.length&&B.len[i]<=L;i++) pb.push(B.pts[i]);
+    for(let i=1;i<pa.length;i++){ const a=pa[i-1], b=pa[i]; const minx=Math.min(a[0],b[0]), maxx=Math.max(a[0],b[0]), miny=Math.min(a[1],b[1]), maxy=Math.max(a[1],b[1]);
+      for(let j=1;j<pb.length;j++){ const c=pb[j-1], d=pb[j]; if(Math.max(c[0],d[0])<minx||Math.min(c[0],d[0])>maxx||Math.max(c[1],d[1])<miny||Math.min(c[1],d[1])>maxy) continue;
+        const r=[b[0]-a[0],b[1]-a[1]], q=[d[0]-c[0],d[1]-c[1]], den=r[0]*q[1]-r[1]*q[0]; if(Math.abs(den)<1e-14) continue;
+        const t=((c[0]-a[0])*q[1]-(c[1]-a[1])*q[0])/den, u=((c[0]-a[0])*r[1]-(c[1]-a[1])*r[0])/den;
+        if(t>=0&&t<1&&u>=0&&u<1){ const x=a[0]+t*r[0]; if(Math.abs(wrapX(x)-x)<1e-9 && Math.abs(x)<Math.PI-0.12) out.push([x,a[1]+t*r[1]]); } } }
+    return out; },
+  draw(ctx,W,H,s,dt){
+    work(s,12); const V=s.V, Lmax=7.6;
+    drawSeparatrix(ctx,V,PAL.rule,[3,4],true);
+    if(s.U&&s.S){ s.rev=Math.min(Lmax,s.rev+dt/1000*2.2);
+      drawWrapped(ctx,V,s.S,s.rev,PAL.s,1.8); drawWrapped(ctx,V,s.U,s.rev,PAL.u,1.8);
+      if(s.rev>=Lmax && s.eps>0){ if(!s.X) s.X=this.crossings(s,Lmax);
+        ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.2; for(const p of s.X){ ctx.beginPath(); ctx.arc(V.X(p[0]),V.Y(p[1]),5,0,TAU); ctx.stroke(); } }
+    } else label(ctx,"growing the manifolds…",W/2,H*0.3,"center");
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(V.X(-Math.PI),V.Y(0),3,0,TAU); ctx.arc(V.X(Math.PI),V.Y(0),3,0,TAU); ctx.fill();
+    // Melnikov inset
+    const L=W*0.1, R=W*0.94, mid=H*0.83, amp=H*0.1, sech=1/Math.cosh(Math.PI*OM/2), Mmax=0.3*TAU*sech;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,mid); ctx.lineTo(R,mid); ctx.moveTo(L,mid-amp); ctx.lineTo(L,mid+amp); ctx.stroke();
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.6; ctx.beginPath();
+    for(let i=0;i<=200;i++){ const t0=TP*i/200, M=s.eps*TAU*sech*Math.sin(OM*t0), px=L+(R-L)*i/200, py=mid-M/Mmax*amp; i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.stroke();
+    if(s.eps>0){ ctx.fillStyle=PAL.ink; for(const z of [0,0.5,1]){ ctx.beginPath(); ctx.arc(L+(R-L)*z,mid,3.5,0,TAU); ctx.fill(); } }
+    label(ctx,"εM(t₀)",L+4,mid-amp-10); label(ctx,"t₀ →",R,mid+amp+12,"right"); label(ctx,"one period",L,mid+amp+12);
+    if(s.X&&s.rev>=Lmax) label(ctx,`${s.X.length} crossings shown`,W*0.94,H*0.66,"right",PAL.ink);
+    if(s.eps===0) label(ctx,"ε = 0: the two curves are the same line",W*0.94,H*0.66,"right",PAL.ink);
+  }
+};
+
+/* V. the tangle */
+ARTS.tangle = {
+  init(s,W,H){ s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.96); s.eps=0.2; s.br=null; s.rev=0;
+    const eps=s.eps, z=saddle(eps), zl={x:z.x-TAU,y:z.y}, L=[[],[],[],[]];
+    const G=[growBranch(eps,zl,z.eu,1,1,4,0.03,7000,L[0]), growBranch(eps,z,z.es,-1,-1,4,0.03,7000,L[1]), growBranch(eps,z,z.eu,-1,1,4,0.03,7000,L[2]), growBranch(eps,zl,z.es,1,-1,4,0.03,7000,L[3])];
+    s.job=(function*(){ for(const g of G) yield* g; s.br=L.map(joinLevels); s.tot=Math.max(...s.br.map(b=>b.len[b.len.length-1])); })(); s.z=z; },
+  draw(ctx,W,H,s,dt){
+    work(s,12); const V=s.V;
+    drawSeparatrix(ctx,V,PAL.rule,[3,4]);
+    if(!s.br){ label(ctx,"growing the manifolds…",W/2,H/2,"center"); return; }
+    s.rev = s.rev? Math.min(s.tot, s.rev*Math.exp(dt/1000*0.32)) : 3;
+    if(s.rev>=s.tot){ s.hold=(s.hold||0)+dt; if(s.hold>6000){ s.rev=3; s.hold=0; } }
+    drawWrapped(ctx,V,s.br[1],s.rev,PAL.s,1); drawWrapped(ctx,V,s.br[3],s.rev,PAL.s,1);
+    drawWrapped(ctx,V,s.br[0],s.rev,PAL.u,1); drawWrapped(ctx,V,s.br[2],s.rev,PAL.u,1);
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(V.X(wrapX(s.z.x)),V.Y(s.z.y),3,0,TAU); ctx.arc(V.X(-Math.PI),V.Y(s.z.y),3,0,TAU); ctx.fill();
+    label(ctx,`arc length drawn ${s.rev.toFixed(0)}`,W*0.04,H*0.03);
+  }
+};
+
+/* VI. the turnstile */
+ARTS.lobes = {
+  init(s,W,H){ s.eps=0.2; s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.94); const g=Math.round(Math.min(170,Math.max(110,W*0.34))); s.gw=g; s.gh=g;
+    s.x0=new Float32Array(g*g); s.y0=new Float32Array(g*g); s.bx=new Float64Array(g*g); s.by=new Float64Array(g*g);
+    for(let j=0;j<g;j++) for(let i=0;i<g;i++){ const k=j*g+i, x=-Math.PI+TAU*(i+0.5)/g, y=3.1-6.2*(j+0.5)/g; s.x0[k]=x; s.y0[k]=y; s.bx[k]=x; s.by[k]=y; }
+    s.k=0; s.off=document.createElement("canvas"); s.off.width=g; s.off.height=g; s.since=s.t; s.job=null; s.paint=ARTS.lobes.paintFn; s.paint(s); },
+  stage(s){ const g=s.gw*s.gh, eps=s.eps; let i=0; s.job=(function*(){ for(;i<g;i++){ const r=strobe(s.bx[i],s.by[i],eps,-1,1); s.bx[i]=r[0]; s.by[i]=r[1]; if(i%600===599) yield; } s.k++; s.paint(s); })(); },
+  draw(ctx,W,H,s,dt){
+    work(s,12);
+    if(!s.job && s.t-s.since>2300){ s.since=s.t; if(s.k<7) this.stage(s); else { this.init(s,W,H); return; } }
+    const V=s.V; ctx.imageSmoothingEnabled=true; ctx.drawImage(s.off,V.left,V.Y(3.1),V.right-V.left,V.Y(-3.1)-V.Y(3.1));
+    drawSeparatrix(ctx,V,PAL.ink,[3,4]);
+    label(ctx,`k = ${s.k} period${s.k===1?"":"s"} ago`,W*0.04,H*0.97);
+    if(s.k>0) label(ctx,`${(s.share*100).toFixed(1)}% of the oval's water was outside it`,W*0.96,H*0.97,"right");
+    if(s.job) label(ctx,"…",W*0.5,H*0.97,"center");
+  },
+  paintFn(s){ const g=s.gw, img=s.off.getContext("2d").createImageData(g,g), d=img.data;
+    const P=hexRGB(PAL.paper), B=hexRGB(PAL.s), R=hexRGB(PAL.u), O=hexRGB(PAL.o); let inn=0, came=0;
+    for(let k=0;k<g*g;k++){ const x=s.bx[k], y=s.by[k], was=y*y/2-Math.cos(x)<1, now=s.y0[k]*s.y0[k]/2-Math.cos(s.x0[k])<1;
+      const C=was?B:(y>0?R:O), a=was?0.42:0.3; if(now){ inn++; if(!was) came++; }
+      d[k*4]=P[0]+(C[0]-P[0])*a; d[k*4+1]=P[1]+(C[1]-P[1])*a; d[k*4+2]=P[2]+(C[2]-P[2])*a; d[k*4+3]=255; }
+    s.off.getContext("2d").putImageData(img,0,0); s.share=inn?came/inn:0; }
+};
+
+/* VII. the horseshoe */
+ARTS.horseshoe = {
+  init(s){ s.n=1; s.chg=-1e9; },
+  tap(s){ s.n=s.n%4+1; s.chg=s.t; },
+  draw(ctx,W,H,s){
+    if(s.t-s.chg>7000){ s.n=s.n%4+1; s.chg=s.t; }
+    const n=s.n, side=Math.min(W,H)*0.56, x0=(W-side)/2, y0=H*0.2, fade=Math.min(1,(s.t-s.chg)/600);
+    const cantor=k=>{ let iv=[[0,1]]; for(let i=0;i<k;i++){ const nx=[]; for(const [a,b] of iv){ const w=(b-a)/3; nx.push([a,a+w],[b-w,b]); } iv=nx; } return iv; };
+    const iv=cantor(n), ru=hexRGB(PAL.u), rs=hexRGB(PAL.s);
+    ctx.fillStyle=`rgba(${ru},${0.28*fade})`; for(const [a,b] of iv) ctx.fillRect(x0+a*side,y0,(b-a)*side,side);
+    ctx.fillStyle=`rgba(${rs},${0.28*fade})`; for(const [a,b] of iv) ctx.fillRect(x0,y0+(1-b)*side,side,(b-a)*side);
+    ctx.fillStyle=PAL.ink; ctx.globalAlpha=fade; for(const [a,b] of iv) for(const [c,d] of iv) ctx.fillRect(x0+a*side,y0+(1-d)*side,(b-a)*side,(d-c)*side); ctx.globalAlpha=1;
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.2; ctx.strokeRect(x0,y0,side,side);
+    if(n===1){ // the folded image f(S), schematic
+      ctx.strokeStyle=PAL.u; ctx.setLineDash([4,4]); ctx.lineWidth=1.2; const w=side/3, top=y0-side*0.12, bot=y0+side*1.1;
+      ctx.beginPath(); ctx.moveTo(x0,bot); ctx.lineTo(x0,top); ctx.arc(x0+side/2,top,side/2,Math.PI,0); ctx.lineTo(x0+side,bot); ctx.lineTo(x0+side-w,bot); ctx.lineTo(x0+side-w,top); ctx.arc(x0+side/2,top,side/2-w,0,Math.PI,true); ctx.lineTo(x0+w,bot); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+      label(ctx,"f(S)",x0+side/2,top-side/2-10,"center",PAL.u);
+      ["0","1"].forEach((t,i)=>{ label(ctx,t,x0+side*(i?5/6:1/6),y0+side+side*0.16,"center",PAL.u); label(ctx,t,x0-12,y0+side*(i?1/6:5/6),"right",PAL.s); });
+    }
+    label(ctx,"S",x0+side+8,y0+8,"left",PAL.ink);
+    const fs=Math.min(12,W*0.024); ctx.font=`300 ${fs}px ${MONO}`; ctx.fillStyle=PAL.ink; ctx.textAlign="center";
+    ctx.fillText(`n = ${n}   ${4**n} squares   total area (4/9)${["","¹","²","³","⁴"][n]} = ${(Math.pow(4/9,n)).toFixed(3)}`, W/2, H*0.92);
+  }
+};
+
+/* VIII. islands */
+ARTS.islands = {
+  init(s,W,H){ s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.96); s.eps=s.prm.eps; this.seed(s); },
+  param(s){ s.eps=s.prm.eps; this.seed(s); },
+  seed(s){ const ys=[]; for(let i=0;i<24;i++) ys.push(0.1+2.75*i/23); for(let i=0;i<14;i++) ys.push(-0.25-2.6*i/13);
+    s.orb=ys.map(y=>({x:0,y,pts:[]})); s.orb.push({x:Math.PI-0.02,y:0.05,pts:[]}); const N=420, eps=s.eps;
+    s.job=(function*(){ for(let it=0;it<N;it++){ for(const o of s.orb){ const r=strobe(o.x,o.y,eps,1,1); o.x=r[0]; o.y=r[1]; o.pts.push(wrapX(o.x),o.y); } yield; } })(); },
+  draw(ctx,W,H,s){
+    work(s,14); const V=s.V; drawSeparatrix(ctx,V,PAL.rule,[3,4]);
+    s.orb.forEach((o,j)=>{ ctx.fillStyle=j%2?PAL.s:PAL.ink; ctx.globalAlpha=0.8; for(let i=0;i<o.pts.length;i+=2) ctx.fillRect(V.X(o.pts[i])-0.7,V.Y(o.pts[i+1])-0.7,1.4,1.4); });
+    ctx.globalAlpha=1; label(ctx,`${s.orb[0].pts.length/2} periods`,W*0.04,H*0.03);
+  }
+};
+
+/* IX. the blinking vortex cup (Aref 1984) */
+const CORE2=0.0064;
+function cupVel(x,y,side,G,o){ const sx=side*0.5, ix=1/sx; let dx=x-sx, dy=y, r2=dx*dx+dy*dy+CORE2, k=G/TAU;
+  let u=-k*dy/r2, v=k*dx/r2; dx=x-ix; r2=dx*dx+dy*dy; u+=k*dy/r2; v-=k*dx/r2; o[0]=u; o[1]=v; }
+const CV=[0,0];
+function cupStep(p,side,G,h){ const x=p[0], y=p[1]; cupVel(x,y,side,G,CV); const ax=CV[0], ay=CV[1];
+  cupVel(x+0.5*h*ax,y+0.5*h*ay,side,G,CV); const bx=CV[0], by=CV[1]; cupVel(x+0.5*h*bx,y+0.5*h*by,side,G,CV); const cx=CV[0], cy=CV[1];
+  cupVel(x+h*cx,y+h*cy,side,G,CV); p[0]=x+h/6*(ax+2*bx+2*cx+CV[0]); p[1]=y+h/6*(ay+2*by+2*cy+CV[1]); }
+ARTS.cup = {
+  init(s,W,H){ s.R=Math.min(W,H)*0.4; s.cx=W/2; s.cy=H*0.43; s.ct=0; this.line(s,0,0.25); },
+  param(s){ this.line(s,s.lx,s.ly); },
+  line(s,x,y){ s.lx=x; s.ly=y; s.L=[]; for(let i=0;i<=40;i++) s.L.push([x-0.3+0.6*i/40,y]); s.ct=0; s.L0=this.len(s.L); s.hist=[[0,0]]; s.cap=false; },
+  len(L){ let a=0; for(let i=1;i<L.length;i++) a+=Math.hypot(L[i][0]-L[i-1][0],L[i][1]-L[i-1][1]); return a; },
+  tap(s,X,Y){ const x=(X-s.cx)/s.R, y=-(Y-s.cy)/s.R; if(Math.hypot(x,y)<0.9) this.line(s,Math.max(-0.65,Math.min(0.65,x)),y); },
+  draw(ctx,W,H,s,dt){
+    const G=TAU*s.prm.mu, per=2.6, adv=Math.min(0.03,dt/1000/per), nsub=Math.max(1,Math.ceil(adv/0.004)), h=adv/nsub;
+    if(s.hist.length<=10) for(let k=0;k<nsub;k++){ const side=(s.ct%1)<0.5?1:-1; for(const p of s.L) cupStep(p,side,G,h); s.ct+=h;
+      if(!s.cap){ const M=[s.L[0]]; for(let i=1;i<s.L.length;i++){ const a=s.L[i-1], b=s.L[i]; if(Math.hypot(b[0]-a[0],b[1]-a[1])>0.006) M.push([(a[0]+b[0])/2,(a[1]+b[1])/2]); M.push(b); } s.L=M; if(s.L.length>36000) s.cap=true; }
+      const pn=Math.floor(s.ct+1e-9); if(pn>s.hist[s.hist.length-1][0] && !s.cap) s.hist.push([pn,Math.log(this.len(s.L)/s.L0)]); }
+    const R=s.R, cx=s.cx, cy=s.cy, side=(s.ct%1)<0.5?1:-1;
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=0.8; ctx.globalAlpha=0.9; ctx.beginPath();
+    for(let i=0;i<s.L.length;i++){ const X=cx+s.L[i][0]*R, Y=cy-s.L[i][1]*R; i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); } ctx.stroke(); ctx.globalAlpha=1;
+    for(const sd of [1,-1]){ ctx.beginPath(); ctx.arc(cx+sd*0.5*R,cy,5,0,TAU); if(sd===side){ ctx.fillStyle=PAL.u; ctx.fill(); } else { ctx.strokeStyle=PAL.u; ctx.lineWidth=1.2; ctx.stroke(); } }
+    // inset: ln(L/L0) vs period
+    const L=W*0.12, Rr=W*0.94, B=H*0.97, T=H*0.86, ymax=8;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(Rr,B); ctx.stroke();
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.4; ctx.beginPath(); s.hist.forEach(([p,v],i)=>{ const X=L+(Rr-L)*p/10, Y=B-(B-T)*Math.min(1,v/ymax); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke();
+    ctx.fillStyle=PAL.ink; for(const [p,v] of s.hist){ ctx.beginPath(); ctx.arc(L+(Rr-L)*p/10,B-(B-T)*Math.min(1,v/ymax),2.2,0,TAU); ctx.fill(); }
+    label(ctx,"ln(L/L₀)",L-6,T,"right"); label(ctx,"8",L-6,T+12,"right"); label(ctx,"10 periods",Rr,B-8,"right");
+    label(ctx,`period ${Math.floor(s.ct)}   ${s.L.length.toLocaleString()} points${s.cap?" (limit; tap to restart)":""}`,W*0.04,H*0.03);
+  }
+};
+
+/* X. finite-time Lyapunov exponents */
+ARTS.ftle = {
+  init(s,W,H){ s.eps=0.2; s.V=eyeView(W,H,-3.1,3.1,H*0.04,H*0.96); const g=Math.round(Math.min(180,Math.max(120,W*0.34))); s.g=g;
+    s.fx=new Float64Array(g*g); s.fy=new Float64Array(g*g); s.bxa=new Float64Array(g*g); s.bya=new Float64Array(g*g);
+    s.sf=null; s.sb=null; s.off=document.createElement("canvas"); s.off.width=g; s.off.height=g; s.done=0;
+    const eps=s.eps, tau=2, self=this;
+    s.job=(function*(){ for(let j=0;j<g;j++){ for(let i=0;i<g;i++){ const k=j*g+i, x=-Math.PI+TAU*i/g, y=3.1-6.2*j/(g-1);
+        let r=strobe(x,y,eps,1,tau); s.fx[k]=r[0]; s.fy[k]=r[1]; r=strobe(x,y,eps,-1,tau); s.bxa[k]=r[0]; s.bya[k]=r[1]; } s.done=j+1; yield; }
+      s.sf=self.field(s,s.fx,s.fy,tau); s.sb=self.field(s,s.bxa,s.bya,tau); self.paint(s); })(); },
+  field(s,FX,FY,tau){ const g=s.g, out=new Float32Array(g*g), dx=TAU/g, dy=6.2/(g-1), T=tau*TP;
+    for(let j=0;j<g;j++) for(let i=0;i<g;i++){ const k=j*g+i, ip=j*g+(i+1)%g, im=j*g+(i-1+g)%g, jp=Math.min(g-1,j+1)*g+i, jm=Math.max(0,j-1)*g+i;
+      let ax=FX[ip]-FX[im], ay=FY[ip]-FY[im]; if(i===g-1) ax+=TAU; if(i===0) ax+=TAU; ax/=2*dx; ay/=2*dx;
+      const sy=(Math.min(g-1,j+1)-Math.max(0,j-1))*dy, bx=-(FX[jp]-FX[jm])/sy, by=-(FY[jp]-FY[jm])/sy;
+      const c11=ax*ax+ay*ay, c22=bx*bx+by*by, c12=ax*bx+ay*by, tr=c11+c22, det=c11*c22-c12*c12, lm=tr/2+Math.sqrt(Math.max(0,tr*tr/4-det));
+      out[k]=Math.log(Math.sqrt(Math.max(lm,1e-12)))/T; }
+    return out; },
+  paint(s){ const g=s.g, img=s.off.getContext("2d").createImageData(g,g), d=img.data, P=hexRGB(PAL.paper), B=hexRGB(PAL.s), R=hexRGB(PAL.u);
+    const q=a=>{ const v=Array.from(a).sort((x,y)=>x-y); return [v[Math.floor(v.length*0.05)], v[Math.floor(v.length*0.995)]]; }, [f0,f1]=q(s.sf), [b0,b1]=q(s.sb);
+    for(let k=0;k<g*g;k++){ const af=Math.pow(Math.max(0,Math.min(1,(s.sf[k]-f0)/(f1-f0))),2.2), ab=Math.pow(Math.max(0,Math.min(1,(s.sb[k]-b0)/(b1-b0))),2.2);
+      for(let c=0;c<3;c++){ let v=P[c]; v+= (B[c]-P[c])*af*0.95; v+= (R[c]-v)*ab*0.85; d[k*4+c]=v; } d[k*4+3]=255; }
+    s.off.getContext("2d").putImageData(img,0,0); },
+  draw(ctx,W,H,s){
+    work(s,14); const V=s.V;
+    if(s.sf){ ctx.imageSmoothingEnabled=true; ctx.drawImage(s.off,V.left,V.Y(3.1),V.right-V.left,V.Y(-3.1)-V.Y(3.1)); }
+    else { label(ctx,`computing ${Math.round(100*s.done/s.g)}%`,W/2,H/2,"center"); }
+    drawSeparatrix(ctx,V,PAL.muted,[2,5]);
+  }
+};
+
+/* XI. mixing in the cup: dye field, semi-Lagrangian advection plus diffusion */
+ARTS.batch = {
+  init(s,W,H){ const N=180; s.N=N; s.c=new Float32Array(N*N); s.c2=new Float32Array(N*N); s.m=new Uint8Array(N*N); s.ct=0;
+    for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const k=j*N+i, x=-1+2*(i+0.5)/N, y=1-2*(j+0.5)/N; s.m[k]=x*x+y*y<0.995?1:0; s.c[k]=x<0?1:0; }
+    s.v0=this.variance(s); s.hist=[[0,0]]; s.off=document.createElement("canvas"); s.off.width=N; s.off.height=N; s.R=Math.min(W,H)*0.4; s.cx=W/2; s.cy=H*0.43; },
+  param(s,k){ if(k==="mu") this.init(s,s._W,s._H); },
+  tap(s){ this.init(s,s._W,s._H); },
+  variance(s){ let n=0, a=0, b=0; for(let k=0;k<s.c.length;k++) if(s.m[k]){ n++; a+=s.c[k]; b+=s.c[k]*s.c[k]; } a/=n; return b/n-a*a; },
+  sample(s,x,y){ const N=s.N; let r=Math.hypot(x,y); if(r>0.99){ x*=0.99/r; y*=0.99/r; }
+    const fi=(x+1)/2*N-0.5, fj=(1-y)/2*N-0.5, i=Math.max(0,Math.min(N-2,Math.floor(fi))), j=Math.max(0,Math.min(N-2,Math.floor(fj))), a=fi-i, b=fj-j, c=s.c, k=j*N+i;
+    const v=(kk,fallback)=>s.m[kk]?c[kk]:fallback;
+    const c00=c[k], f=s.m[k]?c00:(s.m[k+1]?c[k+1]:(s.m[k+N]?c[k+N]:c[k+N+1]));
+    return (1-a)*(1-b)*v(k,f)+a*(1-b)*v(k+1,f)+(1-a)*b*v(k+N,f)+a*b*v(k+N+1,f); },
+  step(s,h){ const N=s.N, G=TAU*s.prm.mu, side=(s.ct%1)<0.5?1:-1, kap=Math.pow(10,s.prm.lk), dx=2/N, D=kap*h/(dx*dx), c=s.c, c2=s.c2;
+    for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const k=j*N+i; if(!s.m[k]){ c2[k]=0; continue; } const x=-1+2*(i+0.5)/N, y=1-2*(j+0.5)/N;
+      cupVel(x,y,side,G,CV); const mx=x-0.5*h*CV[0], my=y-0.5*h*CV[1]; cupVel(mx,my,side,G,CV); c2[k]=this.sample(s,x-h*CV[0],y-h*CV[1]); }
+    for(let j=1;j<N-1;j++) for(let i=1;i<N-1;i++){ const k=j*N+i; if(!s.m[k]) continue; const v=c2[k], nb=(kk)=>s.m[kk]?c2[kk]:v;
+      c[k]=v+D*(nb(k-1)+nb(k+1)+nb(k-N)+nb(k+N)-4*v); }
+    s.ct+=h; },
+  draw(ctx,W,H,s,dt){
+    const per=3.2, adv=Math.min(0.02,dt/1000/per), nsub=Math.max(1,Math.ceil(adv/0.006)), h=adv/nsub;
+    if(s.ct<12) for(let k=0;k<nsub;k++){ this.step(s,h); const pn=Math.floor(s.ct+1e-9); if(pn>s.hist[s.hist.length-1][0]) s.hist.push([pn,Math.log10(Math.max(1e-6,this.variance(s)/s.v0))]); }
+    const N=s.N, img=s.off.getContext("2d").createImageData(N,N), d=img.data, P=hexRGB(PAL.paper), A=hexRGB(PAL.s), B=hexRGB(PAL.o);
+    for(let k=0;k<N*N;k++){ if(!s.m[k]){ d[k*4+3]=0; continue; } const v=s.c[k]; for(let q=0;q<3;q++) d[k*4+q]=B[q]+(A[q]-B[q])*v; d[k*4+3]=255; }
+    s.off.getContext("2d").putImageData(img,0,0);
+    const R=s.R, cx=s.cx, cy=s.cy; ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.clip(); ctx.imageSmoothingEnabled=true; ctx.drawImage(s.off,cx-R,cy-R,2*R,2*R); ctx.restore();
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    const side=(s.ct%1)<0.5?1:-1; for(const sd of [1,-1]){ ctx.beginPath(); ctx.arc(cx+sd*0.5*R,cy,5,0,TAU); if(sd===side){ ctx.fillStyle=PAL.u; ctx.fill(); } else { ctx.strokeStyle=PAL.u; ctx.lineWidth=1.2; ctx.stroke(); } }
+    const L=W*0.12, Rr=W*0.94, B2=H*0.97, T=H*0.86, ymin=-3;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B2); ctx.lineTo(Rr,B2); ctx.stroke();
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.4; ctx.beginPath(); s.hist.forEach(([p,v],i)=>{ const X=L+(Rr-L)*p/12, Y=T+(B2-T)*Math.min(1,v/ymin); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke();
+    ctx.fillStyle=PAL.ink; for(const [p,v] of s.hist){ ctx.beginPath(); ctx.arc(L+(Rr-L)*p/12,T+(B2-T)*Math.min(1,v/ymin),2.2,0,TAU); ctx.fill(); }
+    label(ctx,"variance",L-6,T,"right"); label(ctx,"10⁻³",L-6,B2,"right"); label(ctx,"12 periods",Rr,B2-8,"right");
+    label(ctx,`period ${Math.floor(s.ct)}   κ = 10${(""+s.prm.lk).replace("-","⁻").replace(/\d/g,d=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[d]).replace(".","·")}`,W*0.04,H*0.03);
+  }
+};
+/* ---------- the style slider: The Way of Water (0) to a 3Blue1Brown-style explainer (1) ---------- */
+const PALS = {
+  wayL:{ paper:"#f2f5f5", ink:"#101c22", muted:"#5d6c73", rule:"#d0d9db", wash:"#e3eaeb", u:"#c4452c", s:"#1d5f9b", o:"#b07d1f" },
+  wayD:{ paper:"#0b1316", ink:"#e1e9eb", muted:"#8b9aa1", rule:"#24323a", wash:"#142027", u:"#ef7c5e", s:"#6ea9de", o:"#d9a647" },
+  b3:  { paper:"#0e0e10", ink:"#ffffff", muted:"#a8a8a8", rule:"#2c2c30", wash:"#1a1a1e", u:"#fc6255", s:"#58c4dd", o:"#f7d96f" }
+};
+let MIX = 0, LWM = 1, LFONT = MONO, LITAL = false;
+const ease = m => m*m*(3-2*m);
+function isDark(){ const r=document.documentElement.getAttribute("data-theme"); if(r==="dark") return true; if(r==="light") return false; return matchMedia("(prefers-color-scheme: dark)").matches; }
+function mixHex(a,b,t){ const A=hexRGB(a), B=hexRGB(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join(""); }
+function applyMix(m){
+  MIX=m; const e=ease(m), base=isDark()?PALS.wayD:PALS.wayL, root=document.documentElement.style;
+  const lum=h=>{ const c=hexRGB(h); return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255; };
+  const paper=mixHex(base.paper, PALS.b3.paper, e), darkGround=lum(paper)<0.42;
+  for(const k of Object.keys(base)){
+    let v=mixHex(base[k], PALS.b3[k], e);
+    // text never fades through grey on grey: on a light ground it stays dark, on a dark ground it is light
+    if((k==="ink"||k==="muted") && !isDark()) v = darkGround ? mixHex(PALS.wayD[k], PALS.b3[k], e) : base[k];
+    root.setProperty("--"+k, v); }
+  root.setProperty("color-scheme", (m>=0.5||isDark())?"dark":"light");
+  LWM = 1 + 0.9*e; LFONT = m>=0.5 ? '"STIX Two Text", Georgia, serif' : MONO; LITAL = m>=0.5;
+  readPal();
+}
+// thicker strokes toward the explainer end, without touching every plate
+const LW = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,"lineWidth");
+function scaleStrokes(c){ Object.defineProperty(c,"lineWidth",{ configurable:true, get(){ return LW.get.call(this)/LWM; }, set(v){ LW.set.call(this, v*LWM); } }); }
+// a faint coordinate grid under the plate, and the chapter's equation on top of it
+function underlay(ctx,W,H){
+  if(MIX<0.02) return; const a=0.3*ease(MIX), n=16, step=Math.max(W,H)/n;
+  ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle="#29abca"; LW.set.call(ctx,1);
+  ctx.beginPath(); for(let x=W/2%step;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.globalAlpha=a*0.4; ctx.beginPath(); for(let x=W/2%step+step/2;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step+step/2;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.restore();
+}
+function overlay(ctx,W,H,eq){
+  if(!eq || MIX<0.45) return; const a=Math.min(1,(MIX-0.45)/0.35), fs=Math.max(14,Math.min(22,W*0.026));
+  ctx.save(); ctx.font=`italic 400 ${fs}px "STIX Two Text", Georgia, serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  const w=ctx.measureText(eq).width, y=fs*1.3;
+  ctx.globalAlpha=a*0.78; ctx.fillStyle=PAL.paper; ctx.fillRect(W/2-w/2-12,y-fs*0.85,w+24,fs*1.7);
+  ctx.globalAlpha=a; ctx.fillStyle=PAL.ink; ctx.fillText(eq,W/2,y); ctx.restore();
+}
+/* ---------- engine ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d"); scaleStrokes(ctx);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=0,H=0, cur=0, art=null, st={}, raf=0, last=0;
+const P={x:0,y:0,on:false};
+
+function size(){
+  const r=cv.getBoundingClientRect(), dpr=Math.min(2,window.devicePixelRatio||1);
+  W=r.width; H=r.height; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); cv._W=W;
+}
+function paint(dt){
+  st.t+=dt; ctx.fillStyle=PAL.paper; ctx.fillRect(0,0,W,H); underlay(ctx,W,H);
+  ctx.save(); art.draw(ctx,W,H,st,dt,P); ctx.restore();
+  overlay(ctx,W,H,(TALK[CH[cur].id]||{}).eq);
+  ctx.globalAlpha=1; ctx.setLineDash([]);
+}
+function frame(now){ const dt=Math.min(50, now-(last||now)); last=now; paint(dt); raf=requestAnimationFrame(frame); }
+function still(){ const t0=performance.now(); for(let i=0;i<400 && performance.now()-t0<2500;i++) paint(16); if(st.job) setTimeout(still,50); }
+function defaults(c){ const p={}; for(const q of (c.ctl||[])) p[q.k]=q.def; return p; }
+function startArt(keep){
+  cancelAnimationFrame(raf); size(); readPal();
+  const c=CH[cur]; art=ARTS[c.art]; const prm=keep&&st.prm?st.prm:defaults(c);
+  st={t:0, prm, _W:W, _H:H}; art.init(st,W,H); last=0;
+  if(reduced) still(); else raf=requestAnimationFrame(frame);
+}
+function renderCtls(c){
+  const box=$("ctls"); box.innerHTML="";
+  for(const q of (c.ctl||[])){
+    const id="c-"+c.id+"-"+q.k, row=document.createElement("div"); row.className="ctl";
+    row.innerHTML=`<label for="${id}">${q.label}</label><input type="range" id="${id}" min="${q.min}" max="${q.max}" step="${q.step}" value="${st.prm[q.k]}"><output for="${id}"></output>`;
+    const inp=row.children[1], out=row.children[2], dec=String(q.step).split(".")[1]?.length||0;
+    out.textContent=(+inp.value).toFixed(dec);
+    let tm=null;
+    inp.addEventListener("input",()=>{ out.textContent=(+inp.value).toFixed(dec); clearTimeout(tm); tm=setTimeout(()=>{ st.prm[q.k]=+inp.value; if(art.param) art.param(st,q.k); else art.init(st,W,H); if(reduced) still(); },180); });
+    box.appendChild(row);
+  }
+}
+
+function pos(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+let down=null;
+cv.addEventListener("pointermove",e=>{ [P.x,P.y]=pos(e); P.on=true; });
+cv.addEventListener("pointerleave",()=>{ P.on=false; });
+cv.addEventListener("pointerdown",e=>{ down=pos(e); [P.x,P.y]=down; P.on=true; });
+cv.addEventListener("pointerup",e=>{ const p=pos(e); if(down && Math.hypot(p[0]-down[0],p[1]-down[1])<10 && art.tap){ art.tap(st,p[0],p[1],W,H); if(reduced) still(); }
+  down=null; if(e.pointerType!=="mouse") P.on=false; });
+
+/* ---------- chapters ---------- */
+const ROMAN=CH.map(c=>c.n);
+function render(i){
+  cur=i; const c=CH[i];
+  $("num").textContent=`Chapter ${c.n}`;
+  $("title").textContent=c.title;
+  $("verse").innerHTML=c.verse.map(s=>`<p>${s.join("<br>")}</p>`).join("");
+  $("talk").innerHTML=((TALK[c.id]||{}).talk||[]).map(p=>`<p>${p}</p>`).join(""); setText();
+  $("notes").innerHTML=`<span class="lbl"><span>Notes</span><button class="symlink" data-sym>Symbol guide</button></span>${c.notes}`;
+  $("caption").textContent=c.caption;
+  $("count").textContent=`${c.n} / ${ROMAN[ROMAN.length-1]}`;
+  $("prev").disabled=i===0; $("next").disabled=i===CH.length-1;
+  $("prevT").textContent=i>0?CH[i-1].title:""; $("nextT").textContent=i<CH.length-1?CH[i+1].title:"";
+  [...$("dots").children].forEach((d,k)=>d.setAttribute("aria-current", k===i?"true":"false"));
+  startArt(false); renderCtls(c);
+}
+function go(i){ i=Math.max(0,Math.min(CH.length-1,i)); if(location.hash!=="#"+CH[i].id) location.hash=CH[i].id; else render(i); window.scrollTo({top:0}); }
+function fromHash(){ const h=location.hash.slice(1); const i=CH.findIndex(c=>c.id===h); render(i<0?0:i); }
+
+CH.forEach((c,i)=>{
+  const b=document.createElement("button"); b.setAttribute("aria-label",`Chapter ${c.n}: ${c.title}`); b.onclick=()=>go(i); $("dots").appendChild(b);
+  const li=document.createElement("li"); li.innerHTML=`<button><span class="n">${c.n}</span><span class="tt">${c.title}</span></button>`;
+  li.querySelector("button").onclick=()=>{ $("index").hidden=true; go(i); }; $("indexList").appendChild(li);
+});
+$("prev").onclick=()=>go(cur-1); $("next").onclick=()=>go(cur+1);
+$("openIndex").onclick=()=>{ $("index").hidden=false; $("closeIndex").focus(); };
+$("closeIndex").onclick=()=>{ $("index").hidden=true; $("openIndex").focus(); };
+const openSym=()=>{ $("symbols").hidden=false; $("symbols").scrollTop=0; $("closeSymbols").focus(); };
+$("openSymbols").onclick=openSym;
+$("notes").addEventListener("click",e=>{ if(e.target.closest("[data-sym]")) openSym(); });
+$("closeSymbols").onclick=()=>{ $("symbols").hidden=true; $("openSymbols").focus(); };
+addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ $("index").hidden=true; $("symbols").hidden=true; if(document.body.classList.contains("frameonly")) frameOnly(false); }
+  if(!$("index").hidden || !$("symbols").hidden) return;
+  if(e.target.closest&&e.target.closest("input")) return;
+  if(e.key==="ArrowRight") go(cur+1); if(e.key==="ArrowLeft") go(cur-1);
+});
+let sx=null,sy=null;
+$("text").addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+$("text").addEventListener("touchend",e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.5) go(cur+(dx<0?1:-1)); sx=null; });
+addEventListener("hashchange",fromHash);
+let rt, lastW=0; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ const w=cv.getBoundingClientRect().width; if(Math.abs(w-lastW)>2){ lastW=w; startArt(true); } },180); });
+function repaintImages(){ if(st.paint&&st.off) st.paint(st); if(art===ARTS.ftle&&st.sf) ARTS.ftle.paint(st); }
+const repal=()=>{ applyMix(MIX); repaintImages(); };
+function setText(){ const talk=MIX>=0.5; $("verse").hidden=talk; $("talk").hidden=!talk; }
+function setLayout(){ const ex=MIX>=0.5, was=document.body.classList.contains("explainer"); document.body.classList.toggle("explainer",ex); setText();
+  if(ex!==was){ $("main").style.setProperty("--ar", (ex&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); } }
+let mixQueued=false;
+$("mix").addEventListener("input",e=>{ applyMix(+e.target.value); setLayout(); try{ localStorage.setItem("way-of-water-mix",e.target.value); }catch(_){}
+  if(!mixQueued){ mixQueued=true; requestAnimationFrame(()=>{ mixQueued=false; repaintImages(); }); } if(reduced) still(); });
+function frameOnly(on){ document.body.classList.toggle("frameonly",on); $("exitFrame").hidden=!on; document.documentElement.style.setProperty("--ar", (MIX>=0.5&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); $("main").style.removeProperty("--ar");
+  requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); if(!on) $("frameOnly").focus(); }
+$("frameOnly").onclick=()=>frameOnly(true); $("exitFrame").onclick=()=>frameOnly(false);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",repal);
+new MutationObserver(repal).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+let m0=0; try{ m0=+(localStorage.getItem("way-of-water-mix")||0)||0; }catch(_){}
+$("mix").value=m0; applyMix(m0); document.body.classList.toggle("explainer",m0>=0.5); fromHash(); lastW=cv.getBoundingClientRect().width;
+</script>
+</body>
+</html>

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Way of the Unlost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Martian+Mono:wght@300;400&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&family=Caveat:wght@400;500;600&display=swap">
+<style>
+/* Layout: one chapter at a time, verse beside a square living plate; plate first on phones.
+   Pale water-grey paper, ink, and two dyes that mean the same thing on every plate:
+   vermilion for water leaving a saddle (unstable), blue for water arriving (stable). */
+:root{
+  --paper:#f4f4f2; --ink:#111111; --muted:#6b6b6b; --rule:#d9d9d6; --wash:#ebebe8;
+  --u:#111111; --s:#7d7d7d; --o:#b5b5b2;
+  --verse:"Newsreader", Georgia, "Times New Roman", serif;
+  --mono:"Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#101010; --ink:#ececec; --muted:#8f8f8f; --rule:#2e2e2e; --wash:#1b1b1b; --u:#ececec; --s:#8a8a8a; --o:#5a5a5a; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --paper:#101010; --ink:#ececec; --muted:#8f8f8f; --rule:#2e2e2e; --wash:#1b1b1b; --u:#ececec; --s:#8a8a8a; --o:#5a5a5a; color-scheme:dark }
+
+html,body{ margin:0; background:var(--paper); color:var(--ink) }
+body{
+  font-family:var(--verse);
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-font-smoothing:antialiased;
+}
+[hidden]{ display:none !important }
+.wrap{ max-width:1180px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column }
+header{
+  display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px 16px;
+  padding-block:22px 18px; border-bottom:1px solid var(--rule);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:300;
+}
+header .name{ color:var(--ink) }
+header .count{ color:var(--muted); font-variant-numeric:tabular-nums }
+.hgroup{ display:flex; gap:20px }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0 }
+button:focus-visible, a:focus-visible, input:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px }
+.hbtn{ letter-spacing:.08em; text-transform:uppercase; color:var(--muted); min-height:32px }
+.hbtn:hover{ color:var(--ink) }
+
+main{ flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:56px; padding-block:48px 32px; align-items:start }
+.text{ min-width:0; max-width:34rem }
+.num{ font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; font-weight:300 }
+h1{ font-weight:300; font-size:clamp(1.9rem, 3.6vw, 2.7rem); line-height:1.1; margin:.35em 0 1.1em; text-wrap:balance; letter-spacing:-.01em }
+.verse{ font-size:clamp(1.1rem, 1.6vw, 1.24rem); line-height:1.62; font-weight:300 }
+.verse p{ margin:0 0 1.15em }
+.notes{ margin-top:2.2em; padding-top:1.1em; border-top:1px solid var(--rule); font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.75; color:var(--muted) }
+.notes .lbl{ display:flex; justify-content:space-between; gap:12px; letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; margin-bottom:.7em; color:var(--ink) }
+.notes p{ margin:0 0 .85em }
+.notes b{ font-weight:400; color:var(--ink) }
+.notes code{ font-family:var(--mono); color:var(--ink) }
+.notes .u{ color:var(--u) } .notes .s{ color:var(--s) }
+.symlink{ letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; color:var(--muted); text-decoration:underline; text-underline-offset:3px }
+.symlink:hover{ color:var(--ink) }
+
+.plate{ min-width:0; position:sticky; top:24px; margin:0 }
+.frame{ width:100%; max-width:min(100%, 74vh); aspect-ratio:1/1; margin-left:auto; position:relative; background:var(--paper); border:1px solid var(--rule) }
+canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none }
+.caption{ max-width:min(100%, 74vh); margin:12px 0 0 auto; font-family:var(--mono); font-weight:300; font-size:11px; line-height:1.65; color:var(--muted) }
+.ctls{ max-width:min(100%, 74vh); margin:12px 0 0 auto; display:flex; flex-direction:column; gap:6px; font-family:var(--mono); font-weight:300; font-size:11px; color:var(--muted) }
+.ctl{ display:grid; grid-template-columns:7.5rem minmax(0,1fr) 4.2rem; gap:12px; align-items:center }
+.ctl output{ text-align:right; color:var(--ink); font-variant-numeric:tabular-nums }
+input[type=range]{ width:100%; accent-color:var(--ink); min-height:28px; margin:0 }
+
+nav.pager{ display:flex; justify-content:space-between; align-items:center; gap:16px; border-top:1px solid var(--rule); padding-block:18px 26px; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.06em }
+nav.pager button{ color:var(--muted); display:flex; gap:10px; align-items:baseline; min-height:44px; text-align:left }
+nav.pager button:hover:not([disabled]){ color:var(--ink) }
+nav.pager button[disabled]{ opacity:.3; cursor:default }
+nav.pager .t{ text-transform:none; letter-spacing:0; font-family:var(--verse); font-style:italic; font-size:15px }
+.dots{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center }
+.dots button{ width:22px; height:22px; display:grid; place-items:center }
+.dots button::after{ content:""; width:7px; height:7px; border-radius:50%; background:var(--rule) }
+.dots button[aria-current="true"]::after{ background:var(--ink) }
+
+.index{ position:fixed; inset:0; z-index:20; background:var(--paper); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:calc(env(safe-area-inset-top,0px) + 22px) 32px; overflow-y:auto }
+.index .in{ max-width:720px; margin:0 auto }
+.index .top{ display:flex; justify-content:space-between; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; padding-bottom:18px; border-bottom:1px solid var(--rule) }
+.index ol{ list-style:none; margin:0; padding:0 }
+.index li button{ width:100%; display:grid; grid-template-columns:3.2rem 1fr; gap:12px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--rule); text-align:left }
+.index li .n{ font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.1em }
+.index li .tt{ font-size:1.35rem; font-weight:300 }
+.index li button:hover .tt{ font-style:italic }
+.sym .lead{ font-size:1.05rem; font-weight:300; line-height:1.6; margin:1.4em 0 0; max-width:36rem }
+.sym h2{ font-family:var(--mono); font-weight:300; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .4em }
+.sym dl{ margin:0 }
+.sym .row{ display:grid; grid-template-columns:6.2rem minmax(0,1fr); gap:16px; padding:12px 0; border-bottom:1px solid var(--rule); align-items:baseline }
+.sym dt{ font-family:var(--mono); font-size:1rem; color:var(--ink); overflow-wrap:anywhere }
+.sym dd{ margin:0; min-width:0 }
+.sym .nm{ display:block; font-size:1.08rem; font-weight:400 }
+.sym .ds{ display:block; font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.7; color:var(--muted); margin-top:3px }
+.sym .ds code{ color:var(--ink) }
+header{ align-items:center }
+.mix{ display:flex; align-items:center; gap:10px; text-transform:none; letter-spacing:.02em; color:var(--muted); font-size:11px }
+.branch{ position:relative; display:block; width:clamp(150px,20vw,240px); height:46px }
+.branch canvas{ position:absolute; left:0; top:0; width:100%; height:110px; pointer-events:none; z-index:2 }
+.branch input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:grab }
+.branch input:focus-visible + canvas, .branch:focus-within{ outline:1.5px solid var(--ink); outline-offset:3px; border-radius:3px }
+.frame{ transform:rotate(calc(var(--wel,0) * -0.6deg)); box-shadow:0 calc(var(--wel,0) * 10px) calc(var(--wel,0) * 28px) rgba(30,24,16,calc(var(--wel,0) * .28)); transition:box-shadow .2s }
+body.welch .frame{ border-color:#d9d1bd }
+.talk .q{ display:none }
+body.welch .talk .q{ display:block; font-family:"Caveat","Segoe Print",cursive; font-weight:600; font-size:clamp(1.6rem,2.6vw,2.1rem); line-height:1.15; color:var(--u); margin:0 0 .7em }
+body.welch.explainer h1{ font-family:"Caveat","Segoe Print",cursive; font-weight:600; font-size:clamp(2.6rem,5vw,3.6rem) }
+.talk{ font-family:"STIX Two Text", Georgia, serif; font-size:clamp(1.08rem,1.5vw,1.2rem); line-height:1.66; transition:opacity .35s }
+.talk p{ margin:0 0 1em }
+.talk i{ font-style:italic }
+.verse{ transition:opacity .35s }
+.foot{ border-top:1px solid var(--rule); padding-block:16px 30px; font-family:var(--mono); font-weight:300; font-size:10.5px; line-height:1.7; color:var(--muted); max-width:80ch }
+body.explainer h1{ font-family:"STIX Two Text", Georgia, serif; font-weight:400 }
+body.explainer main{ grid-template-columns:minmax(0,1fr); gap:26px; padding-block:28px 28px }
+body.explainer .plate{ position:static; order:-1 }
+body.explainer .frame{ aspect-ratio:16/9; max-width:100%; margin:0 auto; border-color:transparent }
+body.explainer .caption, body.explainer .ctls{ max-width:100%; margin-left:0 }
+body.explainer .text{ max-width:44rem; margin:0 auto; width:100% }
+body.frameonly header, body.frameonly .text, body.frameonly nav.pager, body.frameonly .foot, body.frameonly .caption, body.frameonly .ctls{ display:none }
+body.frameonly main{ padding:0; display:block }
+body.frameonly .plate{ position:static }
+body.frameonly .frame{ width:min(100vw - 32px, (100vh - 32px) * var(--ar,1)); max-width:none; margin:16px auto; border-color:transparent }
+.exitframe{ position:fixed; right:max(12px,env(safe-area-inset-right,0px)); top:calc(env(safe-area-inset-top,0px) + 10px); z-index:30; font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:8px 12px; min-height:36px }
+@media (max-width:860px){
+  body.explainer .frame{ aspect-ratio:1/1 }
+  .mix{ order:3; width:100% }
+  .branch{ flex:1 }
+  main{ grid-template-columns:minmax(0,1fr); gap:28px; padding-block:24px 24px }
+  .plate{ position:static; order:-1 }
+  .frame, .caption, .ctls{ max-width:100%; margin-left:0 }
+  .text{ max-width:none }
+  nav.pager .t{ display:none }
+  .ctl{ grid-template-columns:6.2rem minmax(0,1fr) 3.8rem }
+}
+@media (max-width:480px){ .sym .row{ grid-template-columns:4.6rem minmax(0,1fr); gap:12px } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="name">The Way of the Unlost</span>
+    <span class="count" id="count">I / XI</span>
+    <div class="mix"><span>Zen</span><span class="branch"><canvas id="branch" aria-hidden="true"></canvas><input type="range" id="mix" min="0" max="2" step="0.01" value="0" aria-label="Style: black-and-white zen at the left, a 3Blue1Brown-style explainer at the middle mark, pen on graph paper in the manner of Welch Labs at the right"></span><span>Welch</span></div>
+    <span class="hgroup">
+      <a class="hbtn" href="/way-of.html" style="text-decoration:none;display:inline-flex;align-items:center">All books</a>
+      <button class="hbtn" id="frameOnly">Frame only</button>
+      <button class="hbtn" id="openSymbols" aria-haspopup="dialog">Symbols</button>
+      <button class="hbtn" id="openIndex" aria-haspopup="dialog">Contents</button>
+    </span>
+  </header>
+  <main id="main">
+    <section class="text" id="text" aria-live="polite">
+      <div class="num" id="num">Chapter I</div>
+      <h1 id="title"></h1>
+      <div class="verse" id="verse"></div>
+      <div class="talk" id="talk" hidden></div>
+      <div class="notes" id="notes"></div>
+    </section>
+    <figure class="plate">
+      <div class="frame"><canvas id="cv" aria-label="Living plate for this chapter" role="img"></canvas></div>
+      <figcaption class="caption" id="caption"></figcaption>
+      <div class="ctls" id="ctls"></div>
+    </figure>
+  </main>
+  <nav class="pager" aria-label="Chapters">
+    <button id="prev"><span>←</span><span class="t" id="prevT"></span></button>
+    <div class="dots" id="dots"></div>
+    <button id="next"><span class="t" id="nextT"></span><span>→</span></button>
+  </nav>
+  <footer class="foot">An explainer built for Leonard Susskind, whose answer to Hawking's paradox this follows: the stretched horizon and black hole complementarity (with Thorlacius and Uglum, 1993), the holographic principle (’t Hooft, 1993; Susskind, 1994), and fast scrambling (with Sekino, 2008). It is not by him and not endorsed by him, and where the field has not settled — which is most of the last chapter — the notes say so. The style slider runs from plain ink on paper, through a homage to the look of 3Blue1Brown's videos at the middle mark, to pen on graph paper in the manner of Welch Labs at the right; nothing here is from or endorsed by either.</footer>
+</div>
+<button class="exitframe" id="exitFrame" hidden aria-label="Leave frame-only view">Exit frame</button>
+
+<div class="index" id="index" hidden role="dialog" aria-label="Contents">
+  <div class="in">
+    <div class="top"><span>Contents</span><button class="hbtn" id="closeIndex">Close</button></div>
+    <ol id="indexList"></ol>
+  </div>
+</div>
+
+<div class="index" id="symbols" hidden role="dialog" aria-label="Symbol guide">
+  <div class="in sym">
+    <div class="top"><span>Symbol guide</span><button class="hbtn" id="closeSymbols">Close</button></div>
+    <p class="lead">The quantities this book keeps returning to. Nothing here is more than one line of arithmetic; the hard part is always which entropy is meant.</p>
+    <h2>Two different entropies</h2>
+    <dl>
+      <div class="row"><dt>S<sub>fine</sub></dt><dd><span class="nm">Fine-grained (von Neumann) entropy</span><span class="ds"><code>−tr ρ log ρ</code>. Zero for a state you know exactly. Unitary evolution never changes it. This is the one that must come back down.</span></dd></div>
+      <div class="row"><dt>S<sub>coarse</sub></dt><dd><span class="nm">Coarse-grained (thermodynamic) entropy</span><span class="ds">What you get after throwing away detail you cannot resolve. It rises when things mix, and it is allowed to. Most arguments that information is lost quietly swap this one in for the other.</span></dd></div>
+    </dl>
+    <h2>The black hole</h2>
+    <dl>
+      <div class="row"><dt>S<sub>BH</sub></dt><dd><span class="nm">Bekenstein–Hawking entropy</span><span class="ds"><code>S = A / 4G</code> in units where <code>ħ = c = k = 1</code>, which is one quarter of the horizon's area in Planck areas. Bekenstein, 1972–73; the factor of a quarter, Hawking, 1975.</span></dd></div>
+      <div class="row"><dt>A</dt><dd><span class="nm">Horizon area</span><span class="ds"><code>A = 16πG²M²</code> for a non-rotating, uncharged hole. It scales as the square of the mass, so the entropy does too.</span></dd></div>
+      <div class="row"><dt>ℓ<sub>P</sub></dt><dd><span class="nm">Planck length</span><span class="ds"><code>√(ħG/c³) ≈ 1.6 × 10⁻³⁵ m</code>. A Planck area is <code>ℓ<sub>P</sub>²</code>, and the horizon holds about one bit per four of them.</span></dd></div>
+      <div class="row"><dt>T, β</dt><dd><span class="nm">Hawking temperature, and its inverse</span><span class="ds"><code>T = ħc³/8πGMk</code>; <code>β = 1/T</code>. Big holes are cold: a solar-mass hole is about 60 nanokelvin.</span></dd></div>
+      <div class="row"><dt>t<sub>*</sub></dt><dd><span class="nm">Scrambling time</span><span class="ds">How long until a dropped bit is spread over the whole horizon: about <code>β log S</code>. Sekino and Susskind, 2008.</span></dd></div>
+      <div class="row"><dt>t<sub>Page</sub></dt><dd><span class="nm">Page time</span><span class="ds">When the radiation's fine-grained entropy peaks, roughly when the hole has given up about half its entropy. Page, 1993.</span></dd></div>
+    </dl>
+    <h2>Quantum states</h2>
+    <dl>
+      <div class="row"><dt>|Ψ⟩</dt><dd><span class="nm">A pure state</span><span class="ds">Everything there is to know about a system. Its fine-grained entropy is exactly zero.</span></dd></div>
+      <div class="row"><dt>ρ</dt><dd><span class="nm">A density matrix</span><span class="ds">What one part of a pure state looks like on its own. Entangle two halves and each half, looked at alone, appears mixed and hot even though the whole is pure.</span></dd></div>
+      <div class="row"><dt>U</dt><dd><span class="nm">Unitary evolution</span><span class="ds">The rule that quantum mechanics runs by. It is invertible: run <code>U</code> backward and you are exactly where you started. "Information is not lost" is the claim that gravity obeys it too.</span></dd></div>
+      <div class="row"><dt>S<sub>gen</sub></dt><dd><span class="nm">Generalized entropy</span><span class="ds"><code>Area/4G + S<sub>bulk</sub></code>. Extremize it over candidate surfaces and take the smallest answer: the rule behind the island formula.</span></dd></div>
+    </dl>
+  </div>
+</div>
+<script>
+/* ---------- utilities ---------- */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI*2;
+const MONO = '"Martian Mono", ui-monospace, Menlo, monospace';
+const SERIF = 'Newsreader, Georgia, serif';
+let PAL = {};
+function readPal(){
+  const cs = getComputedStyle(document.documentElement), g=k=>cs.getPropertyValue("--"+k).trim();
+  PAL = { ink:g("ink"), paper:g("paper"), muted:g("muted"), rule:g("rule"), wash:g("wash"), u:g("u"), s:g("s"), o:g("o") };
+}
+const hexRGB = c => { const m=c.replace("#",""); return [0,2,4].map(i=>parseInt(m.slice(i,i+2),16)); };
+function mulberry(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const wrapX = x => { let w=(x+Math.PI)%TAU; if(w<0) w+=TAU; return w-Math.PI; };
+function label(ctx,txt,x,y,al,col){ const sz=Math.max(10,Math.min(12,ctx.canvas._W*0.024)); ctx.font=LHAND?`500 ${sz*1.42}px ${LFONT}`:(LITAL?`italic 400 ${sz*1.25}px ${LFONT}`:`300 ${sz}px ${MONO}`); ctx.fillStyle=col||PAL.muted; ctx.textAlign=al||"left"; ctx.textBaseline="middle"; ctx.fillText(txt,x,y); }
+// run a generator for at most ms milliseconds this frame
+function work(s, ms){ if(!s.job) return; const t0=performance.now(); while(performance.now()-t0<ms){ const r=s.job.next(); if(r.done){ s.job=null; break; } } }
+/* ---------- the chapters ---------- */
+const CH = [
+{ n:"I", id:"the-unstirring", title:"The Unstirring", art:"unstir",
+  verse:[
+   ["Stir the dye into the glycerin.","Watch the thread go grey.","Ask where the thread went."],
+   ["Turn the handle backward.","The grey gathers.","The thread comes back."],
+   ["Nothing was lost in the stirring.","It was only spread","past the width of your eye."]],
+  notes:`<p>Two different quantities are both called entropy, and the whole paradox lives in the gap between them. <b>Fine-grained</b> (von Neumann) entropy, <code>−tr ρ log ρ</code>, is zero for a state you know exactly, and unitary evolution never changes it. <b>Coarse-grained</b> entropy is what is left after you throw away detail you cannot resolve, and it rises freely.</p><p>The plate runs <b>Arnold's cat map</b>, <code>(x,y) → (2x+y, x+y) mod 1</code>, on a picture. The map has determinant 1, so it is exactly invertible, and on an <code>N×N</code> grid of pixels it is a permutation: keep iterating and the picture returns, whole. For <code>N = 101</code> the period is 25 steps; for <code>N = 124</code> it is 15. The recurrence time jumps around with <code>N</code> in a famously irregular way (Dyson and Falk, <i>American Mathematical Monthly</i>, 1992).</p><p>The physical version is G. I. Taylor's demonstration, filmed for the National Committee for Fluid Mechanics Films in the 1960s: a blob of dye in glycerin between concentric cylinders, sheared into invisibility and then sheared back. Nothing is unmixed by magic. The flow is reversible because it is slow enough that diffusion has not yet had its say.</p>`,
+  caption:"Arnold's cat map on a 101-pixel grid: a permutation of the pixels, so the picture must return. Below, the two entropies — coarse-grained rises and falls with the mixing, fine-grained stays flat at zero. Tap for the dye and the glycerin." },
+
+{ n:"II", id:"hawkings-pairs", title:"Hawking's Pairs", art:"pairs",
+  verse:[
+   ["At the edge, the vacuum is not empty.","It comes in pairs:","one falls, one flies."],
+   ["The one that flies is warm","and says nothing","about what the hole ate."],
+   ["Add up the escaping warmth.","It is the same warmth","whatever you fed it."]],
+  notes:`<p>Hawking's 1974 result (<i>Nature</i> 248, 30) and its 1975 derivation (<i>Communications in Mathematical Physics</i> 43, 199) are that a black hole radiates with a thermal spectrum at <code>T = ħc³/8πGMk</code>. For a solar-mass hole that is about 60 nanokelvin, far colder than the sky.</p><p>The cartoon of pair creation is a cartoon: the quantum field's modes are not local particles, and the precise statement is that the outside state is thermal because it is the reduced density matrix of a state entangled with modes behind the horizon. But the cartoon carries the right moral. Each escaping quantum is entangled with a partner inside, so by itself it is maximally mixed. Trace out the inside and the outside is hot, structureless and the same whatever formed the hole.</p><p>Hawking's 1976 conclusion (<i>Physical Review D</i> 14, 2460) was that evaporation takes a pure state to a mixed one: not just unknown information, but destroyed information. That breaks the rule that quantum evolution is invertible. Everything after this chapter is an argument about where the cartoon goes wrong.</p>`,
+  caption:"Pairs made at the horizon: the escaping quantum is entangled with a partner that falls in, so alone it looks thermal. The bars show the escaping spectrum, which is the same for every infalling encyclopedia. Tap for the entanglement bookkeeping, and the slider sets the hole's mass.",
+  ctl:[{k:"M",label:"Mass (M☉)",min:0.5,max:30,step:0.5,def:6}] },
+
+{ n:"III", id:"the-area", title:"The Area", art:"area",
+  verse:[
+   ["Ask how much a region can hold.","Not how much it can contain","but how much it can be."],
+   ["The answer is not the volume.","The answer is the wall,","counted in Planck squares, divided by four."],
+   ["Everything inside","is written on the outside","in a smaller hand than you expected."]],
+  notes:`<p>Bekenstein argued in 1972–73 that a black hole's entropy is proportional to its horizon area, since otherwise dropping a hot cup of tea through the horizon would let you lower the world's entropy for free. Hawking's temperature fixed the constant: <code>S = A/4G</code> with <code>ħ = c = k = 1</code>, that is, one quarter of the area in Planck units, or about one bit per four Planck areas.</p><p>This is strange because entropy usually scales with volume. If a region's entropy is capped by its boundary area, then the number of independent degrees of freedom inside is set by a surface, not by what the region encloses. That is the <b>holographic principle</b>: ’t Hooft, "Dimensional reduction in quantum gravity" (1993), and Susskind, "The world as a hologram" (<i>Journal of Mathematical Physics</i> 36, 6377, 1995; arXiv 1994).</p><p>Numbers, for scale: a solar-mass hole has <code>S ≈ 10<sup>77</sup></code> in units of bits, which is roughly twenty orders of magnitude more than the thermodynamic entropy of the Sun as it is now. Black holes are the most entropic objects of their size that exist, and the bound says nothing can beat them.</p>`,
+  caption:"The horizon tiled in Planck squares, one bit per four. Drag the mass: the area grows as M², the entropy with it, and the temperature falls. The grey column is what you would have guessed from the volume; it is not even close. Tap for the holographic statement.",
+  ctl:[{k:"M",label:"Mass (M☉)",min:1,max:100,step:1,def:10}] },
+
+{ n:"IV", id:"the-page-curve", title:"The Page Curve", art:"page",
+  verse:[
+   ["Count the entanglement in the radiation.","Hawking's count only climbs.","At the end, a hole is gone and the climb remains."],
+   ["But nothing is left to be entangled with.","A curve that climbs forever","is a curve that has nowhere to land."],
+   ["If the evolution is honest,","the count must turn over","and come home to zero."]],
+  notes:`<p>Don Page's argument (<i>Physical Review Letters</i> 71, 1291 and 71, 3743, both 1993) is pure quantum bookkeeping, with no gravity in it. Take a random pure state of a big system split in two. The smaller half is very nearly maximally mixed, so its entropy is almost its maximum; the larger half has the same entropy, since the whole is pure.</p><p>Apply that to a hole plus its radiation. Early on the radiation is the small half, so its entropy climbs at roughly one bit per emitted bit. Once the hole is the smaller half, the radiation's entropy must track the <i>hole's</i> shrinking capacity, <code>S<sub>BH</sub> = A/4G</code>, and fall to zero as the hole disappears. The turnover is the <b>Page time</b>, roughly when the hole has emitted about half its entropy. In the simple model the plate draws — mass falling as <code>M³</code> linear in time, radiation entropy <code>(4/3)(S₀ − S<sub>BH</sub>)</code> — the crossing is at 57% of the lifetime; greybody factors shift it, and the number is model-dependent.</p><p>So the test is sharp. Hawking's calculation gives the rising line. Unitarity demands the tent. Neither is a matter of taste: they differ by an amount of order the whole entropy of the hole. The chapters after this are about which calculation is wrong and why.</p>`,
+  caption:"Two predictions for the entanglement entropy of the radiation. Hawking's climbs and never returns; unitarity requires the tent, peaking at the Page time and falling to zero. Drag the clock. Tap to see why the falling side is forced: the hole's own capacity is the ceiling.",
+  ctl:[{k:"tt",label:"Time",min:0,max:1,step:0.01,def:0.35}] },
+
+{ n:"V", id:"two-stories", title:"Two Stories", art:"compl",
+  verse:[
+   ["She falls through and feels nothing.","He watches from far away","and sees her burn on the surface."],
+   ["Both are right.","The error is in the third person","who claims to have heard both accounts."],
+   ["There is no such person.","No light can carry her story out","to where his story is told."]],
+  notes:`<p><b>Black hole complementarity</b>: Susskind, Thorlacius and Uglum, "The stretched horizon and black hole complementarity" (<i>Physical Review D</i> 48, 3743, 1993), building on ’t Hooft's work on the horizon's degrees of freedom.</p><p>The outside description is that the horizon is a hot membrane — the <b>stretched horizon</b>, sitting about a Planck length above it — that absorbs, thermalizes and re-emits everything, like any other hot body. The infalling description is that the horizon is unremarkable, as general relativity's equivalence principle demands. Taken together these seem to clone a bit: once in the radiation, once inside.</p><p>The resolution is that no observer can check. To compare the two copies, an infalling observer would have to receive the outside copy before hitting the singularity, which requires waiting out the scrambling time and then signalling inward; the required energy exceeds the hole's mass. Cloning is forbidden, but only operationally — no experiment can catch it happening. Critics have always found this unsatisfying, and Chapter X is where that dissatisfaction returns with a name.</p>`,
+  caption:"Two worldlines on the same spacetime. Hers crosses the horizon and finds nothing there; his stays outside and sees the stretched horizon radiate her away. The shaded wedge is what each can ever learn. Tap for the signalling attempt that would catch the contradiction, and why it cannot be made." },
+
+{ n:"VI", id:"the-scrambler", title:"The Scrambler", art:"scramble",
+  verse:[
+   ["Drop one bit on the surface.","Count how long until it is everywhere.","Not long."],
+   ["Not the size of the surface,","not the square root of it:","the logarithm of it."],
+   ["Nothing in nature hides a thing faster.","That is not the same","as destroying it."]],
+  notes:`<p>Sekino and Susskind, "Fast scramblers" (2008), conjecture that the fastest any system can spread information across itself is a time logarithmic in its number of degrees of freedom, and that black holes saturate the bound: <code>t<sub>*</sub> ≈ β log S</code>. For a solar-mass hole that is of order a millisecond, against an evaporation time of about 10<sup>67</sup> years.</p><p>Why logarithmic: if every degree of freedom can talk to every other, an initially local disturbance can double its reach each step, so it covers <code>N</code> sites in <code>log N</code> steps. Local systems cannot do that — a spin chain needs a time that grows like its length — and the claim is that gravity's non-locality on the horizon is exactly what permits the log.</p><p>Scrambling is not loss. A scrambled state is still a pure state reached by a unitary; the information is in correlations spread across nearly every degree of freedom, so no small measurement finds it. The modern diagnostic is the out-of-time-order correlator, whose growth rate obeys the chaos bound <code>λ ≤ 2π/β</code> (Maldacena, Shenker and Stanford, 2016), with black holes saturating that too.</p>`,
+  caption:"One flipped bit on a horizon of N sites. On the left it spreads locally and takes time of order N; on the right every site talks to every other and the front doubles, so it takes log N. The readout is the fraction of sites correlated with the dropped bit. Tap for the time axis on a log scale." },
+
+{ n:"VII", id:"the-mirror", title:"The Mirror", art:"mirror",
+  verse:[
+   ["Keep every photon it has ever emitted.","Then throw in a diary.","Wait a millisecond."],
+   ["The next few photons out","are enough","to read the diary back."],
+   ["An old hole is not a vault.","It is a mirror","with a short delay."]],
+  notes:`<p>Hayden and Preskill, "Black holes as mirrors: quantum information in random subsystems" (<i>JHEP</i> 0709:120, 2007). Suppose a hole is <b>old</b> — past the Page time, so its radiation is already maximally entangled with it — and that you have collected all of that early radiation. Throw in <code>k</code> qubits. After the scrambling time, roughly <code>k + c</code> further qubits of Hawking radiation suffice to reconstruct them, for a small constant <code>c</code>.</p><p>The mechanism is decoupling: scrambling by a random unitary makes the thrown-in qubits' information spread so evenly that almost any slightly-larger-than-<code>k</code> piece of the output, combined with the reference you already hold, determines them. It is the quantum version of the fact that a random linear code with a few extra bits is already a good code.</p><p>Two honest caveats. First, this assumes the hole scrambles like a random unitary and that evolution is unitary to begin with: it is a consistency result about where the information goes, not a proof that it goes anywhere. Second, actually doing the decoding requires a quantum computation whose complexity is believed to be enormous (Harlow and Hayden, 2013) — which is itself the beginning of an answer to Chapter X.</p>`,
+  caption:"The old hole as a mirror. Drag how much of the early radiation you have kept: below the Page time the diary is unreadable, above it a handful of later quanta is enough. The bar is the mutual information between the diary and what you hold. Tap for the circuit this models.",
+  ctl:[{k:"held",label:"Radiation kept",min:0,max:1,step:0.01,def:0.75},{k:"k",label:"Diary qubits",min:1,max:12,step:1,def:4}] },
+
+{ n:"VIII", id:"the-boundary", title:"The Boundary", art:"boundary",
+  verse:[
+   ["Put the hole in a box","whose wall is an ordinary quantum system","with no gravity in it at all."],
+   ["The wall evolves by a unitary.","Nothing on a wall like that","can lose anything."],
+   ["Whatever happens inside,","the inside is the wall","in another handwriting."]],
+  notes:`<p>Maldacena's correspondence (1997) says that quantum gravity in anti-de Sitter space is the <i>same theory</i> as an ordinary quantum field theory living on that space's boundary, with no gravity. A black hole in the middle of the box is a thermal state of the boundary theory; forming and evaporating it is just the boundary theory evolving.</p><p>That settles the question of principle. The boundary theory is a perfectly ordinary quantum system, its evolution is unitary by construction, and so nothing it describes can destroy information. Any argument that a black hole destroys information must therefore have an error, because the same process on the boundary manifestly does not.</p><p>Two caveats worth keeping. The correspondence is a conjecture — very well tested, not proved — and our universe is not anti-de Sitter; it is expanding, with a small positive cosmological constant. And "unitary by construction" tells you the answer without telling you the mechanism: it does not say where Hawking's calculation goes wrong, only that it must. Chapter IX is the first argument that locates the error inside gravity itself.</p>`,
+  caption:"The same physics twice. Inside the cylinder, a black hole forming and evaporating in a box; on its wall, an ordinary quantum system with no gravity, evolving by a unitary. The dictionary runs between them. Tap for the thermal state the hole corresponds to." },
+
+{ n:"IX", id:"the-island", title:"The Island", art:"island",
+  verse:[
+   ["Ask what the radiation is a picture of.","Early on, only itself.","Later, something else as well."],
+   ["A region behind the horizon","belongs to the radiation,","though no signal ever crossed."],
+   ["Take the smaller of the two answers.","The curve bends","where the island appears."]],
+  notes:`<p>In 2019 the Page curve was derived from the gravity side. The rule is the <b>quantum extremal surface</b> prescription: compute the generalized entropy <code>S<sub>gen</sub> = Area(∂I)/4G + S<sub>bulk</sub></code> for candidate regions, extremize, and take the <i>smallest</i> extremum. For the radiation, one candidate is the empty region, which gives Hawking's rising answer; another includes an <b>island</b> behind the horizon, which gives the falling answer. The minimum switches at the Page time, and the curve bends.</p><p>Penington (arXiv:1905.08255) and Almheiri, Engelhardt, Marolf and Maxfield (arXiv:1905.08762) made the case; Almheiri, Mahajan, Maldacena and Zhao got the Page curve from semiclassical geometry (arXiv:1908.10996). Later that year two groups — Penington, Shenker, Stanford and Yang (arXiv:1911.11977), and Almheiri, Hartman, Maldacena, Shaghoulian and Tajdini (arXiv:1911.12333) — showed the island term comes from <b>replica wormholes</b>: in the gravitational path integral, the copies of spacetime used to compute the entropy can be joined to each other, and those joined geometries dominate after the Page time.</p><p>What this is and is not. It is a calculation within semiclassical gravity that reproduces the unitary answer, which nobody expected semiclassical gravity to be able to do. It is not a derivation of how an individual Hawking quantum carries its bit; the island formula computes an entropy, not a decoding. Most of the sharp results are in two-dimensional models, above all JT gravity, and how far they generalise is still being worked out.</p>`,
+  caption:"Generalized entropy for two candidate regions. Without an island the answer climbs; with one it falls. The curve you get is the lower envelope, and the kink is the Page time. Drag the clock to watch which candidate wins. Tap for where the island sits in the spacetime.",
+  ctl:[{k:"tt",label:"Time",min:0,max:1,step:0.01,def:0.35}] },
+
+{ n:"X", id:"what-is-not-settled", title:"What Is Not Settled", art:"open",
+  verse:[
+   ["Three sentences, each one reasonable.","Hold any two","and the third breaks."],
+   ["That is not a proof of anything.","It is the shape of the room","the argument is still in."],
+   ["The curve has come home.","Nobody can yet tell you","which photon carried which bit."]],
+  notes:`<p>The <b>firewall</b> argument — Almheiri, Marolf, Polchinski and Sully, 2012 — sets out three claims that cannot all hold for an old black hole: that evaporation is unitary, that an infalling observer sees nothing special at the horizon, and that physics outside is well described by ordinary field theory on a smooth background. A late Hawking quantum must be fully entangled with the early radiation (unitarity) and also with its interior partner (smoothness), and monogamy of entanglement forbids both. Dropping smoothness means the horizon is a wall of high-energy quanta.</p><p>Candidate answers: complementarity read more strongly, with the interior built out of the radiation itself (ER = EPR: Maldacena and Susskind, 2013); computational complexity as the protector, since decoding the radiation is believed to take exponentially long (Harlow and Hayden, 2013); and the island results, which suggest the radiation's entanglement wedge already contains the interior, so the two "partners" were never independent. None of these is settled.</p><p>What is as settled as such things get: the Page curve is the right answer, and semiclassical gravity can produce it. What is open: the mechanism by which an individual bit comes out, what an infalling observer actually experiences, whether any of this survives outside anti-de Sitter space, and what it means that the interior seems to be encoded in a way no local measurement can reach. Hawking conceded the bet in 2004; Thorne has not.</p>`,
+  caption:"The three claims of the firewall argument, and the monogamy of entanglement that will not let all three stand. Tap a corner to drop that claim and see what is left standing — and tap again for the three candidate ways out." }
+,
+{ n:"XI", id:"the-horizon-we-are-inside", title:"The Horizon We Are Inside", art:"cosmic",
+  verse:[
+   ["At fourteen and a half billion light years","the galaxies are receding faster than light.","We see them anyway."],
+   ["The wall is further out, and quieter.","Past it, what a galaxy does today","is never done to us."],
+   ["It has a temperature. It has an area.","It is a black hole turned inside out,","and we are the ones inside."]],
+  notes:`<p>Two surfaces get confused, and they are not the same one. The <b>Hubble sphere</b> is where the recession velocity reaches <i>c</i>: <code>c/H₀</code>, about <b>14.5 Gly</b> for <code>H₀ = 67.4</code> (13.4 Gly at 73 — the Hubble tension moves it). It is <i>not</i> a horizon. Galaxies past <code>z ≈ 1.5</code> recede faster than light and we observe them without difficulty. As Davis and Lineweaver put it in <i>Expanding Confusion</i> (2004), "the Hubble sphere is not an horizon," and "we routinely observe galaxies that have, and always have had, superluminal recession velocities."</p><p>The real boundary is the <b>cosmological event horizon</b>, the limit on what can ever reach us. It exists only because the expansion accelerates, and in standard parameters it sits at about <b>16.6 Gly</b> today; galaxies at <code>z ≈ 1.85</code> are crossing it now. The edge of what we can see at all is the <b>particle horizon</b>, about 47 Gly. The Hubble sphere and the event horizon coincide only under pure exponential expansion, which is where the universe is heading: the asymptotic de Sitter radius is <code>c/H₀√Ω<sub>Λ</sub> ≈ 17.5 Gly</code>.</p><p>What is right about the comparison with a black hole is stronger than the slogan. Gibbons and Hawking (<i>Physical Review D</i> 15, 2738, 1977) showed the de Sitter horizon radiates at <code>T = ħH/2πk<sub>B</sub>c</code> — for our Λ, about <b>2.2 × 10⁻³⁰ K</b> — and carries entropy <code>A/4G ≈ 3 × 10¹²²</code>, some forty orders of magnitude more than everything inside it. Near either horizon the geometry is Rindler, so locally, over a patch, the two are the same thing.</p><p>What is wrong with it: the causal structure is inverted, and the horizon is observer-dependent. A black hole's horizon surrounds a region you cannot leave, and every outside observer agrees where it is. The cosmic horizon surrounds <i>you</i>, it is the outside you cannot reach, and every observer has a different one centred on themselves. That is not a quibble — it is why this case is unsolved. The argument of Chapter VIII worked because anti-de Sitter space has a boundary to put a unitary theory on. De Sitter space has none, and its finite entropy suggests a finite-dimensional Hilbert space that nobody knows how to construct. Susskind's own cosmological attempt with Fischler (<i>Holography and cosmology</i>, 1998) bounded entropy on the past light cone by its boundary area and did not survive every cosmology; Bousso's covariant bound on light-sheets (1999) is the version that generalizes.</p>`,
+  caption:"The three surfaces, drawn to scale: the Hubble sphere at 14.5 Gly where recession reaches c, the event horizon at 16.6 Gly, and the particle horizon at 47 Gly. Lines show galaxies whose light still reaches us — including many receding faster than light. Drag a galaxy out and watch which statements fail, and in which order. Tap for the comparison with a black hole horizon.",
+  ctl:[{k:"d",label:"Distance (Gly)",min:0.5,max:50,step:0.5,def:15.5}] }
+
+];
+/* Narration, on-frame equations, and the Welch-end question for each chapter. */
+const TALK = {
+"the-unstirring":{ q:"If you can't see it any more, is it gone?", eq:"S_fine = −tr ρ log ρ = 0, always", talk:[
+ "Before any black holes, a warm-up, because almost every argument that information gets destroyed makes the same slip. Here is a picture, and a map that stretches and folds it — Arnold's cat map. After a few steps the picture is grey mush. It looks like the picture is gone.",
+ "It isn't. The map is a permutation of the pixels, so it has to come back, and on this grid it comes back in 25 steps. What rose was the <i>coarse-grained</i> entropy, the one that only counts what you can resolve. The <i>fine-grained</i> entropy never budged from zero. Keep those two apart and the next nine chapters are much easier."]},
+"hawkings-pairs":{ q:"Why does the radiation seem to say nothing?", eq:"T = ħc³ / 8πGMk", talk:[
+ "Hawking's 1974 result: a black hole glows, at a temperature set only by its mass. The cartoon is that the vacuum near the horizon makes pairs, one falls in and one escapes. The cartoon is crude, but it gets the key point right.",
+ "The escaping quantum is entangled with its partner inside. On its own, it is maximally mixed — thermal, structureless. Add up all the escaping quanta and you get the same hot spectrum whether the hole swallowed a star or a library. Run that to the end and a pure state has become a mixed one. That is the paradox: not that the information is hidden, but that it appears to have been destroyed."]},
+"the-area":{ q:"How much can a region of space actually hold?", eq:"S = A / 4G,  one bit per four Planck areas", talk:[
+ "Bekenstein's question was what stops you lowering the entropy of the universe by dropping a hot cup of tea into a hole. The answer: the hole's own entropy goes up, and it goes up with the <i>area</i> of the horizon.",
+ "Hawking fixed the constant at a quarter, in Planck units. Look at what that says. Entropy normally scales with volume, but the most a region can hold scales with its boundary. The degrees of freedom live on the wall. Susskind and ’t Hooft called it the holographic principle, and it is the reason the next few chapters can talk about a surface rather than an interior."]},
+"the-page-curve":{ q:"What curve would unitarity actually demand?", eq:"S_rad(t) = min( S_thermal(t), S_BH(t) )", talk:[
+ "Don Page asked a sharper question than anyone had: never mind the mechanism, what should the entanglement entropy of the radiation look like if nothing is lost? He answered it with no gravity at all, just the statistics of random pure states.",
+ "Early on, the radiation is the small half of the system, so its entropy climbs. But once the hole is smaller than the radiation, the hole's own capacity becomes the ceiling, and that ceiling is shrinking. So the curve must turn over at the Page time and come back to zero. Hawking's calculation gives the rising line instead. The two differ by an amount the size of the whole hole, which means somebody's calculation is badly wrong."]},
+"two-stories":{ q:"Can two contradictory accounts both be true?", eq:"no observer sees both copies", talk:[
+ "Susskind, Thorlacius and Uglum's move was to deny that the two descriptions have to be glued together. Outside, the horizon is a hot membrane that absorbs and re-radiates everything. Falling in, there's nothing there at all — the equivalence principle insists on that.",
+ "Both accounts seem to need the same bit in two places, which quantum mechanics forbids. The reply is that no observer can ever hold both. To catch the duplication you'd have to collect the outside copy, which takes the scrambling time, then dive in and signal to the infalling observer before she hits the singularity. Work out the energy that signal needs and it exceeds the mass of the hole. The contradiction is unobservable, and complementarity says that's the same as it not being there."]},
+"the-scrambler":{ q:"How fast can a system hide a bit?", eq:"t_* ≈ β log S", talk:[
+ "Drop a bit onto the horizon. How long until it's smeared over everything, so that no small measurement can find it? For a local system — a spin chain, a gas — the answer grows with the size of the system.",
+ "Sekino and Susskind's conjecture is that black holes do it in a time logarithmic in their entropy, which is as fast as anything can. The intuition is doubling: if everything can talk to everything, the affected region doubles each step. For a solar-mass hole that's a millisecond, against an evaporation time of 10<sup>67</sup> years. Nothing in nature hides a bit faster — but hiding is a statement about what measurements can reach, not about what exists."]},
+"the-mirror":{ q:"Can you ever get the information back out?", eq:"k qubits in  →  ~k + c qubits out", talk:[
+ "Hayden and Preskill asked the question an engineer would ask. Suppose you've been collecting the radiation since the hole formed, and the hole is old, past its Page time. Now you throw in a diary. How long until you can read it?",
+ "The answer is almost no time: wait the scrambling time, catch a handful of further quanta, and together with the radiation you already hold, they determine the diary. An old black hole behaves like a mirror with a short delay. It's a consistency result rather than a proof — it assumes unitarity and perfect scrambling — and decoding would take a quantum computation of forbidding size. That size turns out to matter later."]},
+"the-boundary":{ q:"Is there any setting where we already know the answer?", eq:"gravity in the box  =  a unitary theory on its wall", talk:[
+ "Maldacena's correspondence is the strongest single argument in this whole story. Put the gravitational system in a box — anti-de Sitter space — and the claim is that the physics inside is <i>the same theory</i> as an ordinary quantum field theory living on the wall, with no gravity in it.",
+ "A black hole in the middle is a hot state of that wall theory. Wall theories are unitary by construction, so nothing they describe can lose information. That settles the question of principle, but notice what it doesn't give you: it says Hawking's calculation must be wrong without saying where. And our universe isn't in a box."]},
+"the-island":{ q:"Can gravity itself produce the falling side of the curve?", eq:"S_gen = Area(∂I)/4G + S_bulk,  take the minimum", talk:[
+ "In 2019 the falling side came out of gravity. The rule is to compute a generalized entropy — a surface's area in Planck units plus the entropy of the quantum fields inside it — then extremize over candidate surfaces and take the smallest answer.",
+ "One candidate region is empty, and gives Hawking's rising line. The other includes an <b>island</b>: a region behind the horizon that counts as part of the radiation, even though nothing ever travelled from one to the other. After the Page time the island wins and the curve bends down. Later work traced the island term to replica wormholes in the gravitational path integral. This computes the right entropy. It does not yet tell you which photon carried which bit."]},
+"what-is-not-settled":{ q:"So what is still broken?", eq:"unitarity · smooth horizon · ordinary field theory outside", talk:[
+ "The firewall argument lines up three reasonable claims and shows that an old black hole can't satisfy all three. A late Hawking quantum has to be fully entangled with the early radiation if evolution is unitary, and fully entangled with its interior partner if the horizon is smooth. Entanglement is monogamous. Something has to give.",
+ "Three candidate escapes: that the interior is <i>built out of</i> the radiation rather than separate from it; that decoding is so computationally hard that the contradiction can never be assembled; and that the islands already told us the interior belongs to the radiation. None is settled. What is settled is the shape of the curve. Hawking conceded the bet in 2004. Thorne never did."]},
+"the-horizon-we-are-inside":{ q:"Are we already inside a horizon?", eq:"T = ħH / 2πk_B c  ,  S = A / 4G", talk:[
+ "One last horizon, and it is the one we live inside. Everybody knows the headline: space expands, so far-off galaxies recede, and past a certain distance they recede faster than light. That distance is the Hubble sphere, about 14.5 billion light years. The headline then usually adds that we cannot see past it, and that part is simply false — we observe galaxies beyond it every night. Receding faster than light does not cut you off.",
+ "The surface that does cut you off is further out, at about 16.6 billion light years, and it exists only because the expansion is speeding up. That one behaves like a black hole horizon in the ways that matter: Gibbons and Hawking showed it has a temperature, it carries entropy equal to its area over 4G, and the geometry right next to it is the same Rindler geometry you find next to a black hole. But it is inside out — it surrounds us rather than something else — and every observer has a different one. Which is why the argument of Chapter VIII does not reach here, and why the case nearest to home is the one nobody has solved."]}
+};
+/* ---------- 3D: a turntable camera ---------- */
+function camera(W,H,cx,cy,sc,rot,tilt){ const c=Math.cos(rot), sn=Math.sin(rot), ct=Math.cos(tilt), st=Math.sin(tilt);
+  return (x,y,z)=>{ const xr=c*x-sn*y, yr=sn*x+c*y; return [cx+xr*sc, cy-(z*ct+yr*st)*sc, (1-yr)/2]; }; } // third value: 1 = nearest
+function arrow(ctx,x0,y0,x1,y1,col,lw){ ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw||2; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0), h=8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-h*Math.cos(a-0.4),y1-h*Math.sin(a-0.4)); ctx.lineTo(x1-h*Math.cos(a+0.4),y1-h*Math.sin(a+0.4)); ctx.closePath(); ctx.fill(); }
+function textAt(ctx,txt,x,y,size,col,al,ital){ ctx.font=`${ital?"italic ":""}400 ${size}px ${LITAL||ital?'"STIX Two Text", Georgia, serif':SERIF}`; ctx.fillStyle=col; ctx.textAlign=al||"center"; ctx.textBaseline="middle"; ctx.fillText(txt,x,y); }
+function wrap(ctx,txt,x,y,maxW,lh){ const al=ctx.textAlign, bl=ctx.textBaseline; ctx.textAlign="left"; ctx.textBaseline="alphabetic"; const words=txt.split(" "); let line=""; for(const w of words){ const t=line?line+" "+w:w; if(ctx.measureText(t).width>maxW&&line){ ctx.fillText(line,x,y); y+=lh; line=w; } else line=t; } if(line){ ctx.fillText(line,x,y); y+=lh; } ctx.textAlign=al; ctx.textBaseline=bl; return y; }
+function plane(W,H,cx,cy,sc,xr,yr){ return {X:x=>cx+x*sc, Y:y=>cy-y*sc, axes(ctx){ ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(cx+xr[0]*sc,cy); ctx.lineTo(cx+xr[1]*sc,cy); ctx.moveTo(cx,cy-yr[1]*sc); ctx.lineTo(cx,cy-yr[0]*sc); ctx.stroke(); } }; }
+
+/* a two-view plate: tap toggles between view 0 and view 1 */
+function twoView(a,b,labels){
+  return { init(s,W,H){ s.view=0; s.age=0; a.init&&a.init(s,W,H); b.init&&b.init(s,W,H); },
+    tap(s,x,y,W,H){ s.view=1-s.view; s.t=0; (s.view?b:a).init&&(s.view?b:a).init(s,W,H); },
+    param(s,k){ (s.view?b:a).param&&(s.view?b:a).param(s,k); },
+    draw(ctx,W,H,s,dt,P){ (s.view?b:a).draw(ctx,W,H,s,dt,P);
+      label(ctx, s.view?labels[1]:labels[0], W*0.96, H*0.97, "right"); } };
+}
+const fmt = v => v>=1e4||(v<1e-2&&v>0) ? v.toExponential(2).replace("e+","×10^").replace("e-","×10^−") : (+v).toPrecision(3);
+const ARTS={};
+
+/* ---------- I. the unstirring ---------- */
+const CN=101, CPER=25;                                   // Arnold's cat map on 101² pixels returns after 25 steps
+const UNSTIR = {
+  init(s){
+    const n=CN, src=new Uint8Array(n*n);
+    // a cat, since it is the cat map: head, two ears, two eyes, whiskers
+    const put=(x,y,v)=>{ if(x>=0&&x<n&&y>=0&&y<n) src[y*n+x]=v; };
+    for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+      const dx=(x-n/2)/(n*0.3), dy=(y-n*0.56)/(n*0.3);
+      if(dx*dx+dy*dy<1) put(x,y,200);
+    }
+    for(const sx of [-1,1]) for(let i=0;i<=28;i++) for(let j=0;j<=28-i;j++){
+      put(Math.round(n/2+sx*(0.16*n+i*0.5)), Math.round(n*0.3+j), 200); }
+    for(const sx of [-1,1]) for(let y=-4;y<=4;y++) for(let x=-3;x<=3;x++) if(x*x/9+y*y/16<1) put(Math.round(n/2+sx*0.11*n+x), Math.round(n*0.5+y), 20);
+    for(const sx of [-1,1]) for(let k=0;k<3;k++) for(let i=0;i<22;i++) put(Math.round(n/2+sx*(0.07*n+i)), Math.round(n*0.66+(k-1)*5+sx*i*0.12), 20);
+    for(let x=-5;x<=5;x++) for(let y=-3;y<=3;y++) if(Math.abs(x)+Math.abs(y)<6) put(Math.round(n/2+x), Math.round(n*0.62+y), 20);
+    s.src=src; s.buf=src.slice(); s.step=0; s.hist=[]; s.off=document.createElement("canvas"); s.off.width=n; s.off.height=n;
+    s.paint=UNSTIR.paint; s.acc=0; UNSTIR.paint(s);
+  },
+  advance(s){ const n=CN, a=s.buf, b=new Uint8Array(n*n);
+    for(let y=0;y<n;y++) for(let x=0;x<n;x++) b[((x+y)%n)*n+((2*x+y)%n)]=a[y*n+x];
+    s.buf=b; s.step=(s.step+1)%CPER; },
+  coarse(s){ // Shannon entropy of 7×7 block means, in bits per block, normalized to its own maximum
+    const n=CN, B=7, m=Math.floor(n/B), h=new Array(8).fill(0); let tot=0;
+    for(let by=0;by<m;by++) for(let bx=0;bx<m;bx++){ let sum=0;
+      for(let y=0;y<B;y++) for(let x=0;x<B;x++) sum+=s.buf[(by*B+y)*n+bx*B+x];
+      h[Math.min(7,Math.floor(sum/(B*B*205)*8))]++; tot++; }
+    let H=0; for(const c of h) if(c){ const p=c/tot; H-=p*Math.log2(p); } return H/3;
+  },
+  paint(s){ const n=CN, g=s.off.getContext("2d"), im=g.createImageData(n,n), ink=hexRGB(PAL.ink), pap=hexRGB(PAL.paper), dye=hexRGB(PAL.s);
+    for(let i=0;i<n*n;i++){ const v=s.buf[i], c = v>120 ? dye : (v>0 ? ink : pap), k=4*i;
+      im.data[k]=c[0]; im.data[k+1]=c[1]; im.data[k+2]=c[2]; im.data[k+3]=255; }
+    g.putImageData(im,0,0); },
+  draw(ctx,W,H,s,dt){
+    s.acc+=dt; if(s.acc>620){ s.acc=0; UNSTIR.advance(s); UNSTIR.paint(s); s.hist.push(UNSTIR.coarse(s)); if(s.hist.length>CPER+1) s.hist.shift(); }
+    const sz=Math.min(W*0.46,H*0.62), px=W*0.05, py=H*0.1;
+    ctx.imageSmoothingEnabled=false; ctx.drawImage(s.off,px,py,sz,sz); ctx.imageSmoothingEnabled=true;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.strokeRect(px,py,sz,sz);
+    label(ctx,`step ${s.step} of ${CPER}`,px,py-12,"left",PAL.ink);
+    label(ctx,s.step===0?"the picture is back, pixel for pixel":"same pixels, rearranged",px,py+sz+16,"left");
+    // the two entropies
+    const L=W*0.57, R=W*0.95, T=H*0.22, B=H*0.56, X=i=>L+(R-L)*i/CPER, Y=v=>B-(B-T)*v;
+    ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath();
+    s.hist.forEach((v,i)=>i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v))); ctx.stroke();
+    if(s.hist.length){ const v=s.hist[s.hist.length-1]; ctx.fillStyle=PAL.s; ctx.beginPath(); ctx.arc(X(s.hist.length-1),Y(v),4,0,TAU); ctx.fill(); }
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(L,Y(0)); ctx.lineTo(R,Y(0)); ctx.stroke();
+    label(ctx,"coarse-grained: what you can resolve",L,T-28,"left",PAL.s);
+    label(ctx,"it rises as the picture mixes, and falls as it returns",L,T-14,"left",PAL.s);
+    label(ctx,"fine-grained: exactly zero, the whole way",L,Y(0)-12,"left",PAL.u);
+    label(ctx,"steps →",R,B+16,"right");
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+    wrap(ctx,"(x, y) → (2x + y, x + y) mod 101. Determinant 1, so the map is a permutation of the pixels: it cannot lose one.",L,H*0.72,W*0.37,17);
+  } };
+const GLYC = {
+  init(s){ const p=[]; for(let i=0;i<1400;i++){ const a=TAU*Math.random(), rr=Math.sqrt(Math.random())*0.1;
+      p.push([0.5+rr*Math.cos(a)*0.6, 0.25+rr*Math.sin(a)*0.16]); } s.pts=p; },
+  draw(ctx,W,H,s){
+    const cx=W*0.5, cy=H*0.46, R=Math.min(W,H)*0.37, r0=R*0.34;
+    const cyc=4800, ph=(s.t%cyc)/cyc, turns=7*(ph<0.5?ph*2:(1-ph)*2);         // wind up, then wind back
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,r0,0,TAU); ctx.stroke();
+    ctx.fillStyle=PAL.wash; ctx.beginPath(); ctx.arc(cx,cy,r0,0,TAU); ctx.fill();
+    for(const [u,v] of s.pts){                                                 // u is radius fraction, v is angle fraction
+      const rr=r0+(R-r0)*u, w=(R-rr)/(R-r0), a=TAU*v+TAU*turns*w;              // shear: the inner wall turns, the outer is fixed
+      ctx.fillStyle=PAL.s; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(cx+rr*Math.cos(a), cy+rr*Math.sin(a), 1.5, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha=1;
+    label(ctx,ph<0.5?"turning the inner cylinder":"turning it back",W*0.04,H*0.05,"left",PAL.ink);
+    label(ctx,`${turns.toFixed(1)} turns`,W*0.04,H*0.11,"left");
+    label(ctx,"dye in glycerin, sheared out of sight and sheared back",W/2,H*0.89,"center",PAL.ink);
+    label(ctx,"G. I. Taylor's demonstration — reversible because diffusion has not yet had its say",W/2,H*0.94,"center");
+  } };
+ARTS.unstir = twoView(UNSTIR, GLYC, ["tap: the dye and the glycerin","tap: the cat map"]);
+
+/* ---------- II. Hawking's pairs ---------- */
+const PAIRS = {
+  init(s){ s.pr=[]; s.em=0; },
+  draw(ctx,W,H,s,dt){
+    const hx=W*0.42, M=s.prm.M, T=1/M;                                        // T ∝ 1/M, in units of the solar-mass value
+    ctx.fillStyle=PAL.wash; ctx.fillRect(0,0,hx,H);
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(hx,0); ctx.lineTo(hx,H); ctx.stroke();
+    label(ctx,"inside",W*0.04,H*0.12,"left",PAL.ink); label(ctx,"horizon",hx-8,H*0.12,"right");
+    label(ctx,"outside",hx+10,H*0.12,"left",PAL.ink);
+    if(Math.random()<dt/420*T) s.pr.push({y:0.12+0.76*Math.random(), a:0});
+    for(const p of s.pr) p.a+=dt*0.00035;
+    s.pr=s.pr.filter(p=>{ if(p.a>1){ s.em++; return false; } return true; });
+    for(const p of s.pr){
+      const y=p.y*H, d=p.a*W*0.5, xi=hx-d, xo=hx+d;
+      ctx.setLineDash([3,4]); ctx.strokeStyle=PAL.o; ctx.lineWidth=1; ctx.globalAlpha=1-p.a*0.7;
+      ctx.beginPath(); ctx.moveTo(xi,y); ctx.lineTo(xo,y); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+      ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(xi,y,4,0,TAU); ctx.fill();
+      ctx.fillStyle=PAL.s; ctx.beginPath(); ctx.arc(xo,y,4,0,TAU); ctx.fill(); }
+    label(ctx,"partner, falling in",W*0.04,H*0.95,"left",PAL.u);
+    label(ctx,"escaping quantum: thermal on its own",hx+10,H*0.95,"left",PAL.s);
+    // the emitted spectrum: a Planck curve whose peak moves with T
+    const L=hx+W*0.08, R=W*0.96, B=H*0.86, Tp=H*0.56, X=x=>L+(R-L)*x/5, Y=v=>B-(B-Tp)*v;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,Tp); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    let pk=0; const f=x=>{ const u=x/(T*1.0); return u*u*u/(Math.exp(u)-1); };
+    for(let i=1;i<=200;i++) pk=Math.max(pk,f(5*i/200));
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=1;i<=200;i++){ const x=5*i/200, v=f(x)/pk; i===1?ctx.moveTo(X(x),Y(v)):ctx.lineTo(X(x),Y(v)); } ctx.stroke();
+    label(ctx,"the escaping spectrum, whatever fell in",L,Tp-14,"left",PAL.ink);
+    label(ctx,"energy →",R,B+14,"right");
+    label(ctx,`M = ${fmt(M)} M☉,  T ≈ ${fmt(60/M)} nK`,hx+10,H*0.2,"left",PAL.ink);
+  } };
+const LEDGER = {
+  init(s){ s.n=0; },
+  draw(ctx,W,H,s,dt){
+    s.n=Math.min(40,s.t/260);
+    const cx=W*0.5, cy=H*0.4, R=Math.min(W,H)*0.17;
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R*(1-0.012*s.n),0,TAU); ctx.stroke();
+    for(let i=0;i<Math.floor(s.n);i++){ const a=TAU*i/40-Math.PI/2, rr=R*1.25+i*2.2;
+      ctx.fillStyle=PAL.s; ctx.beginPath(); ctx.arc(cx+rr*Math.cos(a), cy+rr*Math.sin(a), 3, 0, TAU); ctx.fill();
+      ctx.setLineDash([2,3]); ctx.strokeStyle=PAL.o; ctx.lineWidth=1; ctx.globalAlpha=0.5;
+      ctx.beginPath(); ctx.moveTo(cx+rr*Math.cos(a), cy+rr*Math.sin(a)); ctx.lineTo(cx+R*0.5*Math.cos(a), cy+R*0.5*Math.sin(a)); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha=1; }
+    label(ctx,"every escaping quantum is tied to a partner inside",W/2,H*0.13,"center",PAL.ink);
+    const L=W*0.12, R2=W*0.88, B=H*0.86, T2=H*0.7;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T2); ctx.lineTo(L,B); ctx.lineTo(R2,B); ctx.stroke();
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(L,B);
+    ctx.lineTo(L+(R2-L)*s.n/40, B-(B-T2)*s.n/40); ctx.stroke();
+    label(ctx,"entropy of the radiation, by Hawking's count",L,T2-12,"left",PAL.u);
+    label(ctx,"it only ever climbs — and at the end there is no hole left to be entangled with",W/2,H*0.94,"center");
+  } };
+ARTS.pairs = twoView(PAIRS, LEDGER, ["tap: the bookkeeping","tap: the pairs"]);
+
+/* ---------- III. the area ---------- */
+const AREA = {
+  draw(ctx,W,H,s){
+    const M=s.prm.M, cx=W*0.3, cy=H*0.44, R=Math.min(W*0.26,H*0.33)*(0.45+0.55*Math.min(1,Math.log10(M+1)/2));
+    const rot=s.t*0.00018;
+    // the horizon, tiled
+    ctx.fillStyle=PAL.wash; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.fill();
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+    for(let i=-4;i<=4;i++){ const z=i/5, rr=R*Math.sqrt(Math.max(0,1-z*z));
+      ctx.beginPath(); ctx.ellipse(cx,cy-R*z,rr,rr*0.3,0,0,TAU); ctx.stroke(); }
+    for(let k=0;k<12;k++){ const a=rot+Math.PI*k/12; ctx.beginPath(); ctx.ellipse(cx,cy,R*Math.abs(Math.cos(a)),R,0,0,TAU); ctx.stroke(); }
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    // a patch of Planck squares, enlarged, with one bit per four
+    const px=W*0.52, py=H*0.16, ps=Math.min(W*0.17,H*0.24), m=6;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+    for(let i=0;i<=m;i++){ ctx.beginPath(); ctx.moveTo(px+ps*i/m,py); ctx.lineTo(px+ps*i/m,py+ps); ctx.moveTo(px,py+ps*i/m); ctx.lineTo(px+ps,py+ps*i/m); ctx.stroke(); }
+    for(let j=0;j<m;j+=2) for(let i=0;i<m;i+=2){ ctx.fillStyle=PAL.s; ctx.globalAlpha=0.3; ctx.fillRect(px+ps*i/m,py+ps*j/m,ps*2/m,ps*2/m); ctx.globalAlpha=1;
+      ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(px+ps*(i+1)/m,py+ps*(j+1)/m,3,0,TAU); ctx.fill(); }
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.5; ctx.strokeRect(px,py,ps,ps);
+    label(ctx,"one bit per four Planck areas",px,py-12,"left",PAL.ink);
+    label(ctx,"ℓP ≈ 1.6 × 10⁻³⁵ m",px,py+ps+16,"left");
+    // the numbers
+    const S=1.05e77*M*M, A=2.4e-13*M*M;
+    const rows=[["mass",`${fmt(M)} M☉`],["radius",`${fmt(2.95*M)} km`],["area",`${fmt(A)} m²`],["temperature",`${fmt(60/M)} nK`],["entropy",`${fmt(S)} bits`]];
+    ctx.font=`300 ${Math.max(9,Math.min(12.5,W*0.019))}px ${MONO}`; ctx.textBaseline="middle";
+    rows.forEach(([k,v],i)=>{ const y=H*0.62+i*H*0.055; ctx.textAlign="left"; ctx.fillStyle=PAL.muted; ctx.fillText(k,W*0.5,y);
+      ctx.textAlign="right"; ctx.fillStyle=PAL.ink; ctx.fillText(v,W*0.96,y); });
+    label(ctx,"A = 16πG²M² , so the entropy goes as the square of the mass",W*0.04,H*0.9,"left");
+  } };
+const HOLO = {
+  init(s){ const p=[]; const rnd=mulberry(7); for(let i=0;i<180;i++){ const u=rnd(), a=TAU*rnd(), b=Math.acos(2*rnd()-1), r=Math.cbrt(u);
+      p.push([r*Math.sin(b)*Math.cos(a), r*Math.sin(b)*Math.sin(a), r*Math.cos(b)]); } s.pts=p; },
+  draw(ctx,W,H,s){
+    const cx=W/2, cy=H*0.46, R=Math.min(W,H)*0.3, rot=0.4+s.t*0.00016, P=camera(W,H,cx,cy,R,rot,0.4);
+    const ph=(s.t%7000)/7000, g=ph<0.45?0:Math.min(1,(ph-0.45)/0.35);          // the interior points migrate to the wall
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    for(const [x,y,z] of s.pts){
+      const n=Math.max(1e-6,Math.hypot(x,y,z)), f=1+(1/n-1)*g, p=P(x*f,y*f,z*f);
+      ctx.fillStyle=g>0.5?PAL.s:PAL.u; ctx.globalAlpha=0.35+0.65*p[2]; ctx.beginPath(); ctx.arc(p[0],p[1],2.4,0,TAU); ctx.fill(); }
+    ctx.globalAlpha=1;
+    label(ctx,g<0.5?"degrees of freedom, imagined filling the volume":"the same count, living on the wall",W/2,H*0.05,"center",PAL.ink);
+    label(ctx,"a region's entropy is capped by its boundary area, not its volume",W/2,H*0.86,"center",PAL.ink);
+    label(ctx,"the holographic principle: ’t Hooft, 1993; Susskind, 1994",W/2,H*0.91,"center");
+  } };
+ARTS.area = twoView(AREA, HOLO, ["tap: the holographic statement","tap: the horizon"]);
+
+/* ---------- IV. the Page curve ---------- */
+// M(x) = M0(1−x)^(1/3) from dM/dt ∝ −M⁻², so S_BH = S0(1−x)^(2/3);
+// thermal radiation entropy dS = (4/3)dE/T gives S_th = (4/3)S0(1−(1−x)^(2/3)).
+const sBH = x => Math.pow(Math.max(0,1-x), 2/3);
+const sTH = x => (4/3)*(1-Math.pow(Math.max(0,1-x), 2/3));
+const xPAGE = 1-Math.pow(4/7, 1.5);
+const PAGE = {
+  draw(ctx,W,H,s){
+    const L=W*0.12, R=W*0.95, B=H*0.82, T=H*0.14, X=x=>L+(R-L)*x, Y=v=>B-(B-T)*v/1.4;
+    const x=s.prm.tt;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    ctx.setLineDash([2,4]); ctx.beginPath(); ctx.moveTo(L,Y(1)); ctx.lineTo(R,Y(1)); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx,"S₀",L-6,Y(1),"right"); label(ctx,"0",L-6,Y(0),"right");
+    label(ctx,"entropy of the radiation",L,T-26,"left");
+    label(ctx,"time, as a fraction of the hole's life →",R,B+16,"right");
+    const curve=(f,col,lw,dash)=>{ ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.setLineDash(dash||[]); ctx.beginPath();
+      for(let i=0;i<=200;i++){ const u=i/200; i?ctx.lineTo(X(u),Y(f(u))):ctx.moveTo(X(u),Y(f(u))); } ctx.stroke(); ctx.setLineDash([]); };
+    curve(sTH,PAL.u,2.2,[5,4]);
+    curve(sBH,PAL.o,1.6,[2,4]);
+    curve(u=>Math.min(sTH(u),sBH(u)),PAL.s,3);
+    const pk=X(xPAGE); ctx.strokeStyle=PAL.rule; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(pk,T); ctx.lineTo(pk,B); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx,"Page time",pk,T-12,"center",PAL.ink);
+    label(ctx,"Hawking: climbs and stays",X(0.72),Y(sTH(0.72))-16,"center",PAL.u);
+    label(ctx,"the hole's own capacity, S_BH",X(0.06),Y(sBH(0.06))-16,"left",PAL.o);
+    label(ctx,"what unitarity requires",X(0.78),Y(Math.min(sTH(0.78),sBH(0.78)))+16,"center",PAL.s);
+    for(const [f,c] of [[sTH,PAL.u],[u=>Math.min(sTH(u),sBH(u)),PAL.s]]){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(X(x),Y(f(x)),5,0,TAU); ctx.fill(); }
+    const gap=sTH(x)-Math.min(sTH(x),sBH(x));
+    if(gap>0.01){ ctx.strokeStyle=PAL.ink; ctx.lineWidth=1; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(X(x),Y(sTH(x))); ctx.lineTo(X(x),Y(sBH(x))); ctx.stroke(); ctx.setLineDash([]);
+      label(ctx,`they disagree by ${(gap).toFixed(2)} S₀`,X(x)+8,(Y(sTH(x))+Y(sBH(x)))/2,"left",PAL.ink); }
+    label(ctx,`t = ${x.toFixed(2)}`,W*0.04,H*0.05,"left",PAL.ink);
+    label(ctx,"Page, 1993: the curve is fixed by counting alone, with no gravity in the argument",W/2,H*0.9,"center");
+  } };
+const CEILING = {
+  draw(ctx,W,H,s){
+    const x=s.prm.tt, cx=W*0.26, cy=H*0.4, R=Math.min(W*0.2,H*0.26);
+    const r=R*Math.pow(Math.max(0.001,1-x),1/3);
+    ctx.strokeStyle=PAL.rule; ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=PAL.wash; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,r,0,TAU); ctx.fill(); ctx.stroke();
+    label(ctx,"the hole",cx,cy+R+20,"center",PAL.ink);
+    // two boxes: how much each side can carry
+    const bw=W*0.15, bx=W*0.52, by=H*0.18, bh=H*0.46;
+    const bars=[["the hole can hold",sBH(x),PAL.o],["the radiation claims",sTH(x),PAL.u]];
+    bars.forEach(([t,v,c],i)=>{ const X0=bx+i*(bw+W*0.14);
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.strokeRect(X0,by,bw,bh);
+      ctx.fillStyle=c; ctx.globalAlpha=0.7; ctx.fillRect(X0,by+bh-bh*Math.min(1.4,v)/1.4,bw,bh*Math.min(1.4,v)/1.4); ctx.globalAlpha=1;
+      label(ctx,t,X0+bw/2,by+bh+18,"center"); label(ctx,`${v.toFixed(2)} S₀`,X0+bw/2,by-12,"center",PAL.ink); });
+    const bad=sTH(x)>sBH(x);
+    ctx.fillStyle=bad?PAL.u:PAL.muted; ctx.font=`400 ${Math.max(13,Math.min(17,W*0.026))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(bad?"impossible: a part cannot be more entangled than it has room for":"consistent so far", W/2, H*0.8);
+    ctx.font=`400 13px ${SERIF}`; ctx.fillStyle=PAL.muted;
+    ctx.fillText("the radiation's entanglement entropy can never exceed the capacity of what it is entangled with", W/2, H*0.89);
+    label(ctx,`t = ${x.toFixed(2)}`,W*0.04,H*0.05,"left",PAL.ink);
+  } };
+ARTS.page = twoView(PAGE, CEILING, ["tap: why the fall is forced","tap: the curves"]);
+
+/* ---------- V. two stories ---------- */
+const COMPL = {
+  draw(ctx,W,H,s){
+    const L=W*0.1, R=W*0.95, B=H*0.86, T=H*0.12, X=u=>L+(R-L)*u, Y=v=>B-(B-T)*v;
+    // singularity, horizon, the two worldlines
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=24;i++){ const u=i/24*0.52, y=Y(1)+(i%2?5:-5); i?ctx.lineTo(X(u),y):ctx.moveTo(X(u),y); } ctx.stroke();
+    label(ctx,"singularity",X(0.26),Y(1)+18,"center",PAL.ink);
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(0),Y(0.1)); ctx.lineTo(X(0.52),Y(1)); ctx.stroke();
+    label(ctx,"horizon",X(0.38),Y(0.74),"left",PAL.o);
+    const fall=u=>[0.06+0.48*u, 0.1+0.9*u], out=v=>[0.78+0.04*Math.sin(v*4), v];
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=2.4; ctx.beginPath();
+    for(let i=0;i<=60;i++){ const [a,b]=fall(i/60); i?ctx.lineTo(X(a),Y(b)):ctx.moveTo(X(a),Y(b)); } ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.beginPath();
+    for(let i=0;i<=60;i++){ const [a,b]=out(0.02+0.96*i/60); i?ctx.lineTo(X(a),Y(b)):ctx.moveTo(X(a),Y(b)); } ctx.stroke();
+    const ph=(s.t%9000)/9000, [fa,fb]=fall(Math.min(1,ph*1.2)), [oa,ob]=out(0.02+0.96*ph);
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(X(fa),Y(fb),5,0,TAU); ctx.fill();
+    ctx.fillStyle=PAL.s; ctx.beginPath(); ctx.arc(X(oa),Y(ob),5,0,TAU); ctx.fill();
+    label(ctx,"she falls in",X(0.06),Y(0.08),"left",PAL.u);
+    label(ctx,"he stays outside",X(0.78),Y(0.02),"center",PAL.s);
+    const cross=ph*1.2>0.44;
+    ctx.fillStyle=PAL.ink; ctx.font=`400 ${Math.max(12,Math.min(15,W*0.023))}px ${SERIF}`; ctx.textAlign="left"; ctx.textBaseline="middle";
+    ctx.fillStyle=PAL.u; ctx.fillText(cross?"her account: nothing happened at the horizon":"her account: falling, nothing unusual ahead", W*0.06, H*0.88);
+    ctx.fillStyle=PAL.s; ctx.fillText("his account: she burned on the stretched horizon and came back out", W*0.06, H*0.93);
+    // the stretched horizon, a Planck length above
+    ctx.strokeStyle=PAL.o; ctx.setLineDash([2,3]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(0.012),Y(0.1)); ctx.lineTo(X(0.532),Y(1)); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx,"stretched horizon",X(0.14),Y(0.3),"left",PAL.o);
+  } };
+const SIGNAL = {
+  draw(ctx,W,H,s){
+    const L=W*0.1, R=W*0.95, B=H*0.82, T=H*0.12, X=u=>L+(R-L)*u, Y=v=>B-(B-T)*v;
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=24;i++){ const u=i/24*0.52, y=Y(1)+(i%2?5:-5); i?ctx.lineTo(X(u),y):ctx.moveTo(X(u),y); } ctx.stroke();
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(0),Y(0.1)); ctx.lineTo(X(0.52),Y(1)); ctx.stroke();
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=2.4; ctx.beginPath();
+    for(let i=0;i<=60;i++){ const u=i/60; i?ctx.lineTo(X(0.06+0.48*u),Y(0.1+0.9*u)):ctx.moveTo(X(0.06),Y(0.1)); } ctx.stroke();
+    const steps=[["1. she falls in",0],["2. he waits the scrambling time t* ≈ β log S",1],["3. he reads her bit out of the radiation",2],["4. he dives in and signals her",3]];
+    const k=Math.floor((s.t%12000)/3000);
+    // his worldline, then the dive and the signal
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(X(0.8),Y(0.02)); ctx.lineTo(X(0.8),Y(0.62)); ctx.stroke();
+    if(k>=3){ ctx.beginPath(); ctx.moveTo(X(0.8),Y(0.62)); ctx.lineTo(X(0.46),Y(0.96)); ctx.stroke();
+      ctx.strokeStyle=PAL.u; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(X(0.8),Y(0.62)); ctx.lineTo(X(0.53),Y(0.89)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(X(0.53),Y(0.89),5,0,TAU); ctx.fill();
+      label(ctx,"she is already at the singularity",X(0.53)+8,Y(0.89),"left",PAL.u); }
+    ctx.fillStyle=PAL.ink; ctx.font=`400 ${Math.max(12,Math.min(15,W*0.024))}px ${SERIF}`; ctx.textAlign="left"; ctx.textBaseline="middle";
+    steps.forEach(([t,i])=>{ ctx.globalAlpha=i<=k?1:0.3; ctx.fillStyle=i===k?PAL.u:PAL.muted; ctx.fillText(t, W*0.5, H*0.18+i*H*0.06); });
+    ctx.globalAlpha=1;
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`;
+    wrap(ctx,"To arrive before the singularity the signal must be blue-shifted by the delay, so its energy grows exponentially with t*. By the time he has waited long enough to read the bit, the message he would have to send costs more than the hole weighs. No observer can assemble the contradiction.",W*0.1,H*0.88,W*0.78,17);
+  } };
+ARTS.compl = twoView(COMPL, SIGNAL, ["tap: the attempt to catch it","tap: the two worldlines"]);
+
+/* ---------- VI. the scrambler ---------- */
+const SCRAM = {
+  init(s){ s.n=0; },
+  draw(ctx,W,H,s){
+    const N=256, cyc=9000, ph=(s.t%cyc)/cyc, steps=Math.floor(ph*18);
+    const panes=[["local: neighbours only",W*0.05,k=>Math.min(N,1+2*k*Math.sqrt(N))],["all-to-all: anything can talk to anything",W*0.53,k=>Math.min(N,Math.pow(2,k))]];
+    for(const [t,x0,f] of panes){
+      const g=16, cell=Math.min(W*0.4,H*0.46)/g, ox=x0+W*0.03, oy=H*0.16, lit=f(steps);
+      for(let j=0;j<g;j++) for(let i=0;i<g;i++){
+        const idx=j*g+i, on = f===panes[0][2] ? (Math.abs(i-8)+Math.abs(j-8))*2<=steps*2 : idx<lit;
+        ctx.fillStyle=on?PAL.u:PAL.wash; ctx.globalAlpha=on?0.85:1; ctx.fillRect(ox+i*cell+1,oy+j*cell+1,cell-2,cell-2); ctx.globalAlpha=1; }
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.strokeRect(ox,oy,g*cell,g*cell);
+      label(ctx,t,ox,oy-12,"left",PAL.ink);
+      const frac = f===panes[0][2] ? Math.min(1,(steps*steps*2+steps*2+1)/N) : Math.min(1,lit/N);
+      label(ctx,`${Math.round(frac*100)}% of the horizon knows`,ox,oy+g*cell+16,"left"); }
+    label(ctx,`step ${steps} of 18`,W*0.05,H*0.05,"left",PAL.ink);
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    wrap(ctx,"Left: a disturbance crawls outward, so covering N sites takes a time that grows with N. Right: the affected set doubles each step, so N sites take log N. Sekino and Susskind conjecture that black holes saturate the second, at t* ≈ β log S — about a millisecond for a solar-mass hole.",W*0.07,H*0.8,W*0.86,18);
+  } };
+const SCRAMLOG = {
+  draw(ctx,W,H,s){
+    const L=W*0.14, R=W*0.94, B=H*0.72, T=H*0.16;
+    const X=v=>L+(R-L)*Math.log10(Math.max(1,v))/6, Y=u=>B-(B-T)*u;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    for(let d=0;d<=6;d++){ const x=L+(R-L)*d/6; ctx.beginPath(); ctx.moveTo(x,B); ctx.lineTo(x,B+5); ctx.stroke(); label(ctx,`10${"⁰¹²³⁴⁵⁶"[d]}`,x,B+16,"center"); }
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=120;i++){ const n=Math.pow(10,6*i/120); i?ctx.lineTo(X(n),Y(Math.min(1,n/1e6))):ctx.moveTo(X(n),Y(0)); } ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2.4; ctx.beginPath();
+    for(let i=0;i<=120;i++){ const n=Math.pow(10,6*i/120); i?ctx.lineTo(X(n),Y(Math.log10(n)/6)):ctx.moveTo(X(n),Y(0)); } ctx.stroke();
+    label(ctx,"local: time ∝ N",X(3e5),Y(0.34),"right",PAL.o);
+    label(ctx,"fast scrambler: time ∝ log N",X(1e3),Y(0.6),"left",PAL.s);
+    label(ctx,"scrambling time",L,T-12,"left"); label(ctx,"degrees of freedom N →",R,B+30,"right");
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    wrap(ctx,"Scrambling is not destruction. The state stays pure and the evolution stays invertible; the information has simply moved into correlations spread across nearly everything, where no small measurement reaches it.",W*0.1,H*0.84,W*0.8,18);
+  } };
+ARTS.scramble = twoView(SCRAM, SCRAMLOG, ["tap: the time, on a log axis","tap: the two spreads"]);
+
+/* ---------- VII. the mirror ---------- */
+const MIRROR = {
+  draw(ctx,W,H,s){
+    const k=Math.round(s.prm.k), E=s.prm.held, N=40;                       // N qubits initially; E is the fraction already radiated
+    const r=Math.min(N, (s.t%9000)/9000*N*0.6);                            // new quanta arriving
+    const held=E*N+r, need=N/2+k;                                          // random-state estimate: recoverable once held > N/2 + k
+    const I = 2*k*Math.max(0,Math.min(1,(held-(N/2+k-k))/(2*k)));          // ramps from 0 to 2k across a window of width 2k
+    const cx=W*0.24, cy=H*0.34, R=Math.min(W*0.14,H*0.2);
+    ctx.fillStyle=PAL.wash; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.fill(); ctx.stroke();
+    label(ctx,"the hole",cx,cy,"center",PAL.ink);
+    // the diary going in
+    ctx.fillStyle=PAL.u; for(let i=0;i<k;i++){ const a=-2.2+i*0.12; ctx.beginPath(); ctx.arc(cx+R*1.9*Math.cos(a),cy+R*1.9*Math.sin(a),4,0,TAU); ctx.fill(); }
+    label(ctx,`diary: ${k} qubits`,cx+R*1.5,cy-R*1.9,"left",PAL.u);
+    // early radiation you hold
+    for(let i=0;i<Math.round(E*N);i++){ const a=-1.1+2.1*i/N, rr=R*1.5+(i%5)*9;
+      ctx.fillStyle=PAL.s; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(cx+rr*Math.cos(a),cy+rr*Math.sin(a),3,0,TAU); ctx.fill(); }
+    ctx.globalAlpha=1;
+    label(ctx,`early radiation kept: ${Math.round(E*100)}%`,W*0.04,H*0.05,"left",PAL.s);
+    // new quanta streaming to the right
+    for(let i=0;i<Math.floor(r);i++){ const y=cy-H*0.1+ (i%8)*H*0.028, x=W*0.5+Math.floor(i/8)*12;
+      ctx.fillStyle=PAL.o; ctx.beginPath(); ctx.arc(x,y,3.5,0,TAU); ctx.fill(); }
+    label(ctx,`new quanta caught: ${Math.floor(r)}`,W*0.5,cy-H*0.14,"left",PAL.o);
+    // the readout
+    const L=W*0.1, R2=W*0.92, by=H*0.62, bh=H*0.06;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.strokeRect(L,by,R2-L,bh);
+    ctx.fillStyle=PAL.s; ctx.globalAlpha=0.75; ctx.fillRect(L,by,(R2-L)*I/(2*k),bh); ctx.globalAlpha=1;
+    label(ctx,"diary information you hold",L,by-12,"left");
+    label(ctx,`${I.toFixed(1)} of ${2*k} bits`,R2,by-12,"right",PAL.ink);
+    const ok=I>1.8*k;
+    ctx.fillStyle=ok?PAL.s:PAL.muted; ctx.font=`400 ${Math.max(13,Math.min(16,W*0.025))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(ok?"the diary is recoverable":(E<0.5?"the hole is young: no amount of waiting helps yet":"not yet — keep catching quanta"),W/2,H*0.82);
+    ctx.font=`400 13px ${SERIF}`; ctx.fillStyle=PAL.muted;
+    ctx.fillText(`random-state estimate: recoverable past N/2 + k = ${need.toFixed(0)} of ${N} qubits`,W/2,H*0.9);
+  } };
+const HPCIRC = {
+  draw(ctx,W,H,s){
+    const bx=W*0.36, by=H*0.26, bw=W*0.26, bh=H*0.36;
+    ctx.fillStyle=PAL.wash; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.fillRect(bx,by,bw,bh); ctx.strokeRect(bx,by,bw,bh);
+    textAt(ctx,"U",bx+bw/2,by+bh/2,Math.min(W,H)*0.1,PAL.ink,"center",true);
+    label(ctx,"a random unitary: the hole scrambles",bx+bw/2,by+bh+20,"center",PAL.ink);
+    const ins=[["diary, k qubits",0.32,PAL.u],["what is left of the hole",0.58,PAL.muted]];
+    ins.forEach(([t,f,c])=>{ arrow(ctx,W*0.08,H*f,bx-6,H*f,c,2); label(ctx,t,W*0.08,H*f-14,"left",c); });
+    const outs=[["new radiation",0.32,PAL.o],["the hole, smaller",0.58,PAL.muted]];
+    outs.forEach(([t,f,c])=>{ arrow(ctx,bx+bw+6,H*f,W*0.92,H*f,c,2); label(ctx,t,W*0.92,H*f-14,"right",c); });
+    ctx.setLineDash([3,4]); ctx.strokeStyle=PAL.s; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(W*0.1,H*0.14); ctx.lineTo(W*0.9,H*0.14); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx,"early radiation, already in your hands and already entangled with the hole",W/2,H*0.1,"center",PAL.s);
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    const yy=wrap(ctx,"Because the early radiation is already maximally entangled with the hole, it acts as a reference. Scrambling then spreads the diary so evenly that any slightly-larger-than-k piece of the output, read together with that reference, determines it. Hayden and Preskill, 2007.",W*0.08,H*0.76,W*0.84,18);
+    wrap(ctx,"It assumes unitarity rather than proving it, and the decoding is believed to take an enormous quantum computation.",W*0.08,yy+8,W*0.84,18);
+  } };
+ARTS.mirror = twoView(MIRROR, HPCIRC, ["tap: the circuit behind it","tap: the mirror"]);
+
+/* ---------- VIII. the boundary ---------- */
+const BOUND = {
+  draw(ctx,W,H,s){
+    const cx=W*0.3, top=H*0.12, bot=H*0.82, rx=Math.min(W*0.19,H*0.19), ry=rx*0.26;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(cx,top,rx,ry,0,0,TAU); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-rx,top); ctx.lineTo(cx-rx,bot); ctx.moveTo(cx+rx,top); ctx.lineTo(cx+rx,bot); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,bot,rx,ry,0,0,TAU); ctx.stroke();
+    label(ctx,"time ↑",cx-rx-12,(top+bot)/2,"right");
+    const Y=u=>bot-(bot-top)*u;                                  // u runs 0 (early) to 1 (late)
+    // infalling matter, then the horizon growing and shrinking, then radiation leaving
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=1.6;
+    for(const sg of [-1,1]){ ctx.beginPath(); ctx.moveTo(cx+sg*rx*0.92,Y(0.02)); ctx.lineTo(cx+sg*rx*0.06,Y(0.26)); ctx.stroke(); }
+    label(ctx,"matter falls in",cx,Y(0.03)+16,"center",PAL.s);
+    const rad=u=> u<0.24 ? 0 : (u<0.33 ? rx*0.38*(u-0.24)/0.09 : rx*0.38*Math.pow(Math.max(0,1-(u-0.33)/0.55),1/3));
+    ctx.fillStyle=PAL.ink; ctx.globalAlpha=0.9; ctx.beginPath();
+    for(let i=0;i<=60;i++){ const u=0.26+0.64*i/60; i?ctx.lineTo(cx-rad(u),Y(u)):ctx.moveTo(cx-rad(u),Y(u)); }
+    for(let i=60;i>=0;i--){ const u=0.26+0.64*i/60; ctx.lineTo(cx+rad(u),Y(u)); }
+    ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+    label(ctx,"the hole",cx,Y(0.45),"center",PAL.paper);
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=1; ctx.globalAlpha=0.6;
+    for(let i=0;i<9;i++){ const u=0.3+0.58*i/8, y=Y(u), r=rad(u);
+      ctx.beginPath(); ctx.moveTo(cx+r+2,y); ctx.lineTo(cx+rx,y-(bot-top)*0.035); ctx.moveTo(cx-r-2,y); ctx.lineTo(cx-rx,y-(bot-top)*0.035); ctx.stroke(); }
+    ctx.globalAlpha=1;
+    label(ctx,"radiation",cx+rx*0.3,Y(0.78),"left",PAL.o);
+    label(ctx,"gravity, inside the box",cx,bot+ry+24,"center",PAL.ink);
+    // the wall: an ordinary unitary circuit
+    const wx=W*0.62, ww=W*0.31, rows=6;
+    for(let i=0;i<rows;i++){ const y=top+(bot-top)*(0.08+i*0.168);
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(wx,y); ctx.lineTo(wx+ww,y); ctx.stroke(); }
+    const rnd=mulberry(5);
+    for(let g=0;g<13;g++){ const i=Math.floor(rnd()*(rows-1)), x=wx+ww*(0.08+0.84*rnd()),
+      y0=top+(bot-top)*(0.08+i*0.168), y1=y0+(bot-top)*0.168;
+      ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x,y1); ctx.stroke();
+      ctx.fillStyle=PAL.s; ctx.fillRect(x-5,y0-4,10,8); ctx.fillRect(x-5,y1-4,10,8); }
+    const sweep=wx+ww*((s.t%11000)/11000); ctx.strokeStyle=PAL.u; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(sweep,top); ctx.lineTo(sweep,bot); ctx.stroke();
+    label(ctx,"the wall: no gravity in it",wx,bot+ry+8,"left",PAL.ink);
+    label(ctx,"unitary: it cannot lose anything",wx,bot+ry+22,"left",PAL.s);
+  } };
+const THERMAL = {
+  draw(ctx,W,H,s){
+    const cx=W*0.3, cy=H*0.42, R=Math.min(W*0.17,H*0.22);
+    ctx.fillStyle=PAL.wash; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.fill(); ctx.stroke();
+    label(ctx,"a black hole in the box",cx,cy+R+22,"center",PAL.ink);
+    arrow(ctx,cx+R+14,cy,W*0.56,cy,PAL.o,2); label(ctx,"is",(cx+R+14+W*0.56)/2,cy-14,"center");
+    const bx=W*0.6, bw=W*0.33, by=H*0.24, bh=H*0.34, rnd=mulberry(3);
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,bh);
+    for(let i=0;i<70;i++){ const x=bx+bw*rnd(), y=by+bh*rnd();
+      ctx.fillStyle=rnd()>0.5?PAL.s:PAL.u; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.arc(x,y,3,0,TAU); ctx.fill(); }
+    ctx.globalAlpha=1;
+    label(ctx,"a hot state of the wall theory, at the Hawking temperature",bx,by+bh+22,"left",PAL.ink);
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    wrap(ctx,"This settles the question of principle and leaves the mechanism open: it says Hawking's calculation must be wrong without saying where. And the correspondence is a very well tested conjecture in a box with negative curvature, which is not the universe we live in.",W*0.08,H*0.72,W*0.84,18);
+  } };
+ARTS.boundary = twoView(BOUND, THERMAL, ["tap: the state it corresponds to","tap: the two descriptions"]);
+
+/* ---------- IX. the island ---------- */
+const ISLAND = {
+  draw(ctx,W,H,s){
+    const x=s.prm.tt, L=W*0.12, R=W*0.95, B=H*0.74, T=H*0.14, X=u=>L+(R-L)*u, Y=v=>B-(B-T)*v/1.4;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    const noIsl=sTH, withIsl=sBH;
+    const curve=(f,c,lw,dash)=>{ ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.setLineDash(dash||[]); ctx.beginPath();
+      for(let i=0;i<=200;i++){ const u=i/200; i?ctx.lineTo(X(u),Y(f(u))):ctx.moveTo(X(u),Y(f(u))); } ctx.stroke(); ctx.setLineDash([]); };
+    curve(noIsl,PAL.u,1.8,[5,4]); curve(withIsl,PAL.o,1.8,[5,4]);
+    curve(u=>Math.min(noIsl(u),withIsl(u)),PAL.s,3.2);
+    label(ctx,"no island: S_bulk only",X(0.84),Y(noIsl(0.84))-16,"center",PAL.u);
+    label(ctx,"with an island: Area/4G + S_bulk",X(0.12),Y(withIsl(0.12))-14,"left",PAL.o);
+    label(ctx,"the minimum — the Page curve",X(0.8),Y(Math.min(noIsl(0.8),withIsl(0.8)))+18,"center",PAL.s);
+    label(ctx,"generalized entropy",L,T-12,"left"); label(ctx,"time →",R,B+16,"right");
+    const win = withIsl(x)<noIsl(x);
+    for(const [f,c] of [[noIsl,PAL.u],[withIsl,PAL.o]]){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(X(x),Y(f(x)),4.5,0,TAU); ctx.fill(); }
+    ctx.fillStyle=PAL.ink; ctx.font=`400 ${Math.max(13,Math.min(16,W*0.025))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(win?"the island wins: the radiation's entropy is falling":"no island yet: the entropy is still climbing", W/2, H*0.85);
+    ctx.font=`400 13px ${SERIF}`; ctx.fillStyle=PAL.muted;
+    ctx.fillText("S_gen = Area(∂I)/4G + S_bulk(I ∪ radiation) — extremize, then take the smallest answer", W/2, H*0.91);
+    label(ctx,`t = ${x.toFixed(2)}`,W*0.04,H*0.05,"left",PAL.ink);
+  } };
+const ISLMAP = {
+  draw(ctx,W,H,s){
+    const x=s.prm.tt, L=W*0.06, R=W*0.58, B=H*0.76, T=H*0.12, X=u=>L+(R-L)*u, Y=v=>B-(B-T)*v;
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=20;i++){ const u=i/20*0.5, y=Y(1)+(i%2?5:-5); i?ctx.lineTo(X(u),y):ctx.moveTo(X(u),y); } ctx.stroke();
+    label(ctx,"singularity",X(0.25),Y(1)-18,"center",PAL.ink);
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(0),Y(0.08)); ctx.lineTo(X(0.5),Y(1)); ctx.stroke();
+    label(ctx,"horizon",X(0.33),Y(0.7),"left",PAL.o);
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(1),Y(0)); ctx.lineTo(X(1),Y(1)); ctx.stroke();
+    label(ctx,"the far region:",X(1)+10,Y(0.56),"left",PAL.s);
+    label(ctx,"the radiation you hold",X(1)+10,Y(0.5),"left",PAL.s);
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(X(1),Y(0.1)); ctx.lineTo(X(1),Y(0.1+0.8*x)); ctx.stroke();
+    const show=sBH(x)<sTH(x);
+    if(show){ const iy=Y(0.25+0.45*x), iw=(R-L)*0.17;
+      ctx.fillStyle=PAL.s; ctx.globalAlpha=0.28; ctx.beginPath(); ctx.ellipse(X(0.17),iy,iw,H*0.07,0,0,TAU); ctx.fill(); ctx.globalAlpha=1;
+      ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.ellipse(X(0.17),iy,iw,H*0.07,0,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+      label(ctx,"the island",X(0.17),iy,"center",PAL.ink);
+      label(ctx,"behind the horizon, and counted as part of the radiation",X(0.17),iy+H*0.1,"center"); }
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    ctx.textAlign="left"; wrap(ctx, show ? "Nothing travelled from the island to the radiation. The claim is about which region the radiation's state is a description of, not about a signal. The island term was later traced to replica wormholes in the gravitational path integral."
+                   : "Before the Page time the empty region wins and the entropy climbs, exactly as Hawking found.",
+      W*0.06,H*0.88,W*0.88,17);
+    label(ctx,`t = ${x.toFixed(2)}`,W*0.04,H*0.05,"left",PAL.ink);
+  } };
+ARTS.island = twoView(ISLAND, ISLMAP, ["tap: where the island sits","tap: the two candidates"]);
+
+/* ---------- X. what is not settled ---------- */
+const CLAIMS=[
+ ["Unitarity","Evaporation takes pure states to pure states, so the late radiation is fully entangled with the early radiation."],
+ ["A smooth horizon","Nothing special happens where you cross, so the late quantum is fully entangled with its partner inside."],
+ ["Ordinary physics outside","Far from the hole, familiar field theory on a smooth background describes everything."]];
+const OPEN = {
+  init(s){ s.drop=-1; },
+  tapAt(s,x,y,W,H){ const c=OPEN.pos(W,H); let best=-1,bd=1e9;
+    c.forEach((p,i)=>{ const d=Math.hypot(p[0]-x,p[1]-y); if(d<bd){ bd=d; best=i; } });
+    s.drop = (bd<Math.min(W,H)*0.22 && s.drop!==best) ? best : -1; },
+  pos(W,H){ const cx=W/2, cy=H*0.44, R=Math.min(W*0.3,H*0.3);
+    return [0,1,2].map(i=>{ const a=-Math.PI/2+TAU*i/3; return [cx+R*Math.cos(a), cy+R*Math.sin(a)]; }); },
+  draw(ctx,W,H,s){
+    const p=OPEN.pos(W,H);
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1.5;
+    for(let i=0;i<3;i++){ const j=(i+1)%3; if(s.drop===i||s.drop===j) continue;
+      ctx.beginPath(); ctx.moveTo(p[i][0],p[i][1]); ctx.lineTo(p[j][0],p[j][1]); ctx.stroke(); }
+    p.forEach((q,i)=>{ const off=s.drop===i;
+      ctx.fillStyle=off?PAL.wash:PAL.paper; ctx.strokeStyle=off?PAL.rule:PAL.ink; ctx.lineWidth=off?1:2;
+      ctx.beginPath(); ctx.arc(q[0],q[1],Math.min(W,H)*0.085,0,TAU); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=off?PAL.muted:PAL.ink; ctx.font=`400 ${Math.max(12,Math.min(15,W*0.023))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(CLAIMS[i][0],q[0],q[1]); });
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    if(s.drop<0){ wrap(ctx,"All three at once require one Hawking quantum to be fully entangled with two different things. Entanglement is monogamous, so it cannot be. Tap a claim to drop it.",W*0.1,H*0.82,W*0.8,18); }
+    else { ctx.fillStyle=PAL.ink; wrap(ctx,`Dropped: ${CLAIMS[s.drop][0].toLowerCase()}. ${["Then information really is destroyed, and quantum mechanics is not what we thought.","Then the horizon is a firewall: an infalling observer is burned at the edge, and the equivalence principle fails where gravity is weak.","Then the trouble is in how we describe the radiation itself — the direction the island results point."][s.drop]}`,W*0.08,H*0.8,W*0.84,18);
+      ctx.fillStyle=PAL.muted; wrap(ctx,CLAIMS[s.drop][1],W*0.08,H*0.91,W*0.84,17); }
+    label(ctx,"Almheiri, Marolf, Polchinski and Sully, 2012",W*0.04,H*0.05,"left");
+  } };
+const WAYSOUT = {
+  draw(ctx,W,H,s){
+    const items=[["ER = EPR","The interior is built out of the radiation's entanglement, not separate from it. Maldacena and Susskind, 2013."],
+                 ["Complexity","Assembling the contradiction needs a decoding believed to take exponentially long, so no observer ever performs it. Harlow and Hayden, 2013."],
+                 ["Islands","The radiation's entanglement wedge already contains the interior, so the two partners were never independent."]];
+    const bw=W*0.28, gap=W*0.03, by=H*0.2, bh=H*0.46;
+    items.forEach(([t,d],i)=>{ const bx=W*0.05+i*(bw+gap);
+      ctx.fillStyle=PAL.wash; ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.fillRect(bx,by,bw,bh); ctx.strokeRect(bx,by,bw,bh);
+      ctx.fillStyle=PAL.ink; ctx.font=`400 ${Math.max(14,Math.min(18,W*0.028))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(t,bx+bw/2,by+H*0.06);
+      ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`; ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+      wrap(ctx,d,bx+12,by+H*0.14,bw-24,17); });
+    ctx.fillStyle=PAL.ink; ctx.font=`400 ${Math.max(13,Math.min(16,W*0.025))}px ${SERIF}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("None of these is settled. What is settled is the shape of the curve.",W/2,H*0.76);
+    ctx.fillStyle=PAL.muted; ctx.font=`400 13px ${SERIF}`;
+    ctx.fillText("Hawking conceded the 1997 bet in 2004. Thorne never did.",W/2,H*0.86);
+    ctx.fillText("What an individual bit rides out on is still unknown.",W/2,H*0.92);
+  } };
+ARTS.open = { init(s){ s.view=0; OPEN.init(s); },
+  tap(s,x,y,W,H){ if(s.view===0){ const before=s.drop; OPEN.tapAt(s,x,y,W,H); if(s.drop===before&&s.drop<0){ s.view=1; s.t=0; } } else { s.view=0; s.drop=-1; s.t=0; } },
+  draw(ctx,W,H,s){ (s.view?WAYSOUT:OPEN).draw(ctx,W,H,s);
+    label(ctx, s.view?"tap: back to the three claims":"tap a claim, or tap away for the three ways out", W*0.96, H*0.97, "right"); } };
+
+/* ---------- XI. the horizon we are inside ---------- */
+// standard parameters, H0 = 67.4, Ωm = 0.311, ΩΛ = 0.689, all as present-day proper distances in Gly
+const D_HUB=14.5, D_EV=16.6, D_PART=47.2, D_DS=17.5;
+const COSMIC = {
+  init(s){ const rnd=mulberry(19), g=[];
+    for(let i=0;i<150;i++){ const d=Math.pow(rnd(),0.55)*D_PART*0.99, a=TAU*rnd(); g.push([d,a,0.6+0.7*rnd()]); }
+    s.gal=g; },
+  draw(ctx,W,H,s){
+    const d=s.prm.d, nar=W<560;
+    const cx=nar?W*0.5:W*0.34, cy=nar?H*0.3:H*0.47, R=nar?Math.min(W*0.4,H*0.2):Math.min(W*0.3,H*0.42), rr=v=>R*v/D_PART;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,rr(D_PART),0,TAU); ctx.stroke();
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=1.4; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(cx,cy,rr(D_HUB),0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2.4; ctx.beginPath(); ctx.arc(cx,cy,rr(D_EV),0,TAU); ctx.stroke();
+    // galaxies; a line to the centre means a signal it sends today still reaches us
+    for(const [gd,ga,b] of s.gal){ const x=cx+rr(gd)*Math.cos(ga), y=cy+rr(gd)*Math.sin(ga);
+      if(gd<D_EV){ ctx.strokeStyle=PAL.s; ctx.globalAlpha=0.16; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(cx,cy); ctx.stroke(); }
+      ctx.globalAlpha=b*0.8; ctx.fillStyle=gd<D_EV?PAL.s:PAL.muted;
+      ctx.beginPath(); ctx.arc(x,y,gd<D_EV?2.4:1.8,0,TAU); ctx.fill(); }
+    ctx.globalAlpha=1;
+    const ta=-Math.PI*0.28, tx=cx+rr(d)*Math.cos(ta), ty=cy+rr(d)*Math.sin(ta);
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=1.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(tx,ty); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(tx,ty,6,0,TAU); ctx.fill();
+    ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(cx,cy,4,0,TAU); ctx.fill();
+    label(ctx,"here",cx+8,cy+12,"left",PAL.ink);
+    if(nar){ // too cramped for labels on the rings: a legend instead
+      const lx=W*0.06, ly=H*0.04, keys=[[PAL.o,"Hubble sphere, 14.5",[3,3]],[PAL.s,"event horizon, 16.6",null],[PAL.rule,"particle horizon, 47",null]];
+      keys.forEach(([c,t,dash],i)=>{ const y=ly+i*15; ctx.strokeStyle=c; ctx.lineWidth=i===1?2.4:1.3;
+        ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(lx,y); ctx.lineTo(lx+18,y); ctx.stroke(); ctx.setLineDash([]);
+        label(ctx,t,lx+24,y,"left",i===2?PAL.muted:c); });
+    } else {
+      label(ctx,"Hubble sphere, 14.5",cx,cy+rr(D_HUB)-13,"center",PAL.o);
+      label(ctx,"event horizon, 16.6",cx,cy-rr(D_EV)-10,"center",PAL.s);
+      label(ctx,"particle horizon, 47",cx,cy-rr(D_PART)-10,"center"); }
+    const v=d/D_HUB, seen=d<D_PART, reach=d<D_EV;
+    const rows=[["distance now",`${d.toFixed(1)} Gly`],["recession",`${v.toFixed(2)} c`],
+                ["visible now",seen?"yes":"no"],["can still signal us",reach?"yes":"never"]];
+    const X=nar?W*0.06:W*0.68, RX=nar?W*0.94:W*0.97, y0=nar?H*0.58:H*0.2, dy=nar?H*0.052:H*0.06;
+    ctx.font=`300 ${Math.max(9,Math.min(12.5,(nar?W*0.03:W*0.02)))}px ${MONO}`; ctx.textBaseline="middle";
+    rows.forEach(([k,val],i)=>{ const y=y0+i*dy; ctx.textAlign="left"; ctx.fillStyle=PAL.muted; ctx.fillText(k,X,y);
+      ctx.textAlign="right"; ctx.fillStyle=(i===3&&!reach)||(i===2&&!seen)?PAL.u:PAL.ink; ctx.fillText(val,RX,y); });
+    const verdict = d>D_PART ? "beyond anything we have ever seen"
+      : d>D_EV ? "we see its past, but nothing it does from now on will ever reach us"
+      : d>D_HUB ? "receding faster than light — and still visible, and still able to send to us"
+      : "receding slower than light";
+    ctx.fillStyle=d>D_HUB&&d<D_EV?PAL.s:PAL.ink; ctx.font=`400 ${Math.max(12,Math.min(15,nar?W*0.036:W*0.023))}px ${SERIF}`; ctx.textAlign="left";
+    const yy=wrap(ctx,verdict,X,nar?H*0.82:H*0.5,(nar?0.88:0.29)*W-4,nar?19:17);
+    if(!nar){ ctx.fillStyle=PAL.muted; ctx.font=`400 12.5px ${SERIF}`;
+      wrap(ctx,"Speed is not the boundary. The two surfaces are different, and they meet only when expansion becomes purely exponential — asymptotically, at 17.5 Gly.",X,H*0.74,W*0.29-4,16); }
+  } };
+const COSMIC2 = {
+  draw(ctx,W,H,s){
+    const nar=W<560, R=nar?Math.min(W*0.17,H*0.1):Math.min(W*0.13,H*0.17);
+    const ax=nar?W*0.27:W*0.26, ay=nar?H*0.23:H*0.28, bx=nar?W*0.73:W*0.72, by=nar?H*0.23:H*0.28;
+    ctx.fillStyle=PAL.wash; ctx.beginPath(); ctx.arc(ax,ay,R,0,TAU); ctx.fill();
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=2.4; ctx.beginPath(); ctx.arc(ax,ay,R,0,TAU); ctx.stroke();
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(ax+R*1.6,ay,5,0,TAU); ctx.fill();
+    label(ctx,"a black hole horizon",ax,ay-R-14,"center",PAL.ink);
+    label(ctx,"you are outside;",ax,ay+R+16,"center");
+    label(ctx,"what is inside cannot leave",ax,ay+R+30,"center");
+    label(ctx,"everyone agrees on it",ax,ay+R+44,"center");
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2.4; ctx.beginPath(); ctx.arc(bx,by,R,0,TAU); ctx.stroke();
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(bx,by,5,0,TAU); ctx.fill();
+    ctx.strokeStyle=PAL.o; ctx.lineWidth=1.2; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.arc(bx+R*0.7,by-R*0.25,R,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=PAL.o; ctx.beginPath(); ctx.arc(bx+R*0.7,by-R*0.25,4,0,TAU); ctx.fill();
+    label(ctx,"the cosmic horizon",bx,by-R-14,"center",PAL.ink);
+    label(ctx,"you are inside;",bx,by+R+16,"center");
+    label(ctx,"the outside cannot enter",bx,by+R+30,"center");
+    label(ctx,"everyone has their own",bx,by+R+44,"center",PAL.o);
+    const rows=[["temperature","ħκ / 2πc","6 nK (10 M☉)","2.2 × 10⁻³⁰ K"],
+                ["entropy","A / 4G","~10⁷⁹ bits","~3 × 10¹²²"],
+                ["near-horizon geometry","Rindler","the same","the same"],
+                ["a boundary for a theory","—","yes, in AdS","none known"]];
+    const ty=nar?H*0.6:H*0.66, dy=nar?H*0.08:H*0.055;
+    const cols=nar?[W*0.05,null,W*0.52,W*0.76]:[W*0.06,W*0.4,W*0.58,W*0.78];
+    ctx.font=`300 ${Math.max(8.5,Math.min(11.5,nar?W*0.026:W*0.018))}px ${MONO}`; ctx.textBaseline="middle"; ctx.textAlign="left";
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(W*0.05,ty-dy*0.55); ctx.lineTo(W*0.95,ty-dy*0.55); ctx.stroke();
+    rows.forEach((r,i)=>{ const y=ty+i*dy;
+      r.forEach((cell,j)=>{ if(cols[j]===null) return;
+        ctx.fillStyle=j===0?PAL.muted:(j===3&&i===3?PAL.u:PAL.ink); ctx.fillText(cell,cols[j],y); }); });
+    label(ctx,"black hole",cols[2],ty-dy,"left",PAL.ink); label(ctx,"cosmic",cols[3],ty-dy,"left",PAL.s);
+    label(ctx,"locally the same; globally inside out",W/2,H*0.04,"center",PAL.ink);
+  } };
+ARTS.cosmic = twoView(COSMIC, COSMIC2, ["tap: the comparison","tap: the three surfaces"]);
+/* ---------- the style slider: zen (0), a 3Blue1Brown-style explainer (1), and pen on graph paper in the manner of Welch Labs (2) ---------- */
+const PALS = {
+  // the zen end: ink on paper, nothing but greys
+  wayL:{ paper:"#f4f4f2", ink:"#111111", muted:"#6b6b6b", rule:"#d9d9d6", wash:"#ebebe8", u:"#111111", s:"#7d7d7d", o:"#b5b5b2" },
+  wayD:{ paper:"#101010", ink:"#ececec", muted:"#8f8f8f", rule:"#2e2e2e", wash:"#1b1b1b", u:"#ececec", s:"#8a8a8a", o:"#5a5a5a" },
+  b3:  { paper:"#0e0e10", ink:"#ffffff", muted:"#a8a8a8", rule:"#2c2c30", wash:"#1a1a1e", u:"#fc6255", s:"#58c4dd", o:"#f7d96f" },
+  // the far end: graph paper, a blue-black pen, a red pen, a blue pen, a highlighter
+  wl:  { paper:"#f3eee1", ink:"#1d2740", muted:"#596276", rule:"#a3b3c4", wash:"#e7e0cf", u:"#cf3f2a", s:"#1f66ab", o:"#e3a21a" }
+};
+let MIX = 0, WEL = 0, SLV = 0, LWM = 1, LFONT = MONO, LITAL = false, LHAND = false, WOB = 0, PENAT = null;
+const HAND = '"Caveat", "Segoe Print", "Bradley Hand", cursive';
+const ease = m => m*m*(3-2*m);
+function isDark(){ const r=document.documentElement.getAttribute("data-theme"); if(r==="dark") return true; if(r==="light") return false; return matchMedia("(prefers-color-scheme: dark)").matches; }
+function mixHex(a,b,t){ const A=hexRGB(a), B=hexRGB(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join(""); }
+function applyMix(v){
+  SLV=v; const m=Math.min(1,v), w=Math.max(0,v-1), ew=ease(w);
+  MIX=m; WEL=w; const e=ease(m), base=isDark()?PALS.wayD:PALS.wayL, root=document.documentElement.style;
+  const lum=h=>{ const c=hexRGB(h); return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255; };
+  const paper=mixHex(base.paper, PALS.b3.paper, e), darkGround=lum(paper)<0.42;
+  for(const k of Object.keys(base)){
+    let v=mixHex(base[k], PALS.b3[k], e);
+    // text never fades through grey on grey: on a light ground it stays dark, on a dark ground it is light
+    if((k==="ink"||k==="muted") && !isDark()) v = darkGround ? mixHex(PALS.wayD[k], PALS.b3[k], e) : base[k];
+    if(w>0){ v=mixHex(v, PALS.wl[k], ew);
+      // past the middle the ground turns from night to paper; text flips with it rather than passing through grey
+      if(k==="ink"||k==="muted") v = lum(mixHex(paper, PALS.wl.paper, ew))<0.5 ? PALS.b3[k] : PALS.wl[k]; }
+    root.setProperty("--"+k, v); }
+  root.setProperty("--wel", ew.toFixed(3));
+  root.setProperty("color-scheme", ((m>=0.5&&w<0.5)||(isDark()&&w<0.5))?"dark":"light");
+  LWM = 1 + 0.9*e - 0.35*ew; LHAND = w>=0.5; LFONT = LHAND ? HAND : (m>=0.5 ? '"STIX Two Text", Georgia, serif' : MONO); LITAL = m>=0.5 && !LHAND;
+  WOB = 1.7*ew;
+  readPal();
+}
+// thicker strokes toward the explainer end, without touching every plate
+const LW = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,"lineWidth");
+function scaleStrokes(c){ Object.defineProperty(c,"lineWidth",{ configurable:true, get(){ return LW.get.call(this)/LWM; }, set(v){ LW.set.call(this, v*LWM); } }); }
+// a faint coordinate grid under the plate, and the chapter's equation on top of it
+function underlay(ctx,W,H){
+  if(WEL>0.01){ // graph paper: minor lines every quarter, major lines every inch
+    const ew=ease(WEL), minor=Math.max(W,H)/40, wb=WOB; WOB=0; ctx.save(); LW.set.call(ctx,1); ctx.strokeStyle="#7fa6c8";
+    for(const [a,every] of [[0.22*ew,1],[0.42*ew,5]]){ ctx.globalAlpha=a; ctx.beginPath();
+      for(let i=0,x=0;x<=W;i++,x=i*minor) if(i%every===0){ ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); }
+      for(let i=0,y=0;y<=H;i++,y=i*minor) if(i%every===0){ ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); }
+      ctx.stroke(); }
+    ctx.restore(); WOB=wb; }
+  if(MIX<0.02) return; const a=0.3*ease(MIX)*(1-ease(WEL)), n=16, step=Math.max(W,H)/n; if(a<0.01) return;
+  const wb=WOB; WOB=0; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle="#29abca"; LW.set.call(ctx,1);
+  ctx.beginPath(); for(let x=W/2%step;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.globalAlpha=a*0.4; ctx.beginPath(); for(let x=W/2%step+step/2;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step+step/2;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.restore(); WOB=wb;
+}
+function overlay(ctx,W,H,eq,t){
+  if(!eq || MIX<0.45) return; const a=Math.min(1,(MIX-0.45)/0.35), hand=LHAND, fs=Math.max(14,Math.min(22,W*0.026))*(hand?1.55:1);
+  ctx.save(); ctx.font=hand?`600 ${fs}px ${HAND}`:`italic 400 ${fs}px "STIX Two Text", Georgia, serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  const w=ctx.measureText(eq).width, y=fs*(hand?1.0:1.3);
+  ctx.globalAlpha=a*0.78; ctx.fillStyle=PAL.paper; ctx.fillRect(W/2-w/2-12,y-fs*0.85,w+24,fs*1.7);
+  // on paper the equation is written out left to right, as by hand
+  if(hand){ const f=Math.min(1,(t||0)/1500); ctx.beginPath(); ctx.rect(W/2-w/2-4,0,(w+8)*f,y+fs); ctx.clip(); if(f<1) PENAT=[W/2-w/2+w*f, y+fs*0.25]; }
+  ctx.globalAlpha=a; ctx.fillStyle=PAL.ink; ctx.fillText(eq,W/2,y); ctx.restore();
+}
+/* pen on paper: every path is redrawn with a slight, steady wobble, and a pen rides the moving point */
+function wob(x,y){ return [x+WOB*(0.6*Math.sin(x*0.031+y*0.017)+0.4*Math.sin(x*0.013-y*0.029+1.7)), y+WOB*(0.6*Math.sin(y*0.027-x*0.021+0.4)+0.4*Math.sin(y*0.011+x*0.019+2.3))]; }
+function handPaths(c){
+  const P=CanvasRenderingContext2D.prototype, mv=P.moveTo, ln=P.lineTo, ar=P.arc, bp=P.beginPath, cp=P.closePath; let cur=null, start=null;
+  c.beginPath=function(){ cur=start=null; return bp.call(this); };
+  c.moveTo=function(x,y){ cur=start=[x,y]; if(WOB<0.02) return mv.call(this,x,y); const q=wob(x,y); return mv.call(this,q[0],q[1]); };
+  c.lineTo=function(x,y){ if(WOB<0.02||!cur){ cur=[x,y]; if(!start) start=cur; return ln.call(this,x,y); }
+    const n=Math.min(40,Math.max(1,Math.floor(Math.hypot(x-cur[0],y-cur[1])/14)));
+    for(let i=1;i<=n;i++){ const q=wob(cur[0]+(x-cur[0])*i/n, cur[1]+(y-cur[1])*i/n); ln.call(this,q[0],q[1]); } cur=[x,y]; };
+  c.closePath=function(){ if(start) cur=start; return cp.call(this); };
+  c.arc=function(x,y,r,a0,a1,ccw){
+    if(r<=7.5 && WEL>0.25 && this.fillStyle===PAL.u) PENAT=[x,y];
+    if(WOB<0.02||r<8){ const res=ar.call(this,x,y,r,a0,a1,ccw); cur=[x+r*Math.cos(a1),y+r*Math.sin(a1)]; if(!start) start=cur; return res; }
+    let sw=a1-a0; if(!ccw&&sw<0) sw=sw%TAU+TAU; if(ccw&&sw>0) sw=sw%TAU-TAU; if(Math.abs(a1-a0)>=TAU) sw=ccw?-TAU:TAU;
+    const n=Math.max(8,Math.ceil(Math.abs(sw)*r/6)), p0=[x+r*Math.cos(a0),y+r*Math.sin(a0)];
+    if(cur) this.lineTo(p0[0],p0[1]); else this.moveTo(p0[0],p0[1]);
+    for(let i=1;i<=n;i++){ const a=a0+sw*i/n; this.lineTo(x+r*Math.cos(a),y+r*Math.sin(a)); } };
+}
+function drawPen(ctx,W,H){
+  if(WEL<0.3||!PENAT) return; const [x,y]=PENAT, a=0.92*Math.min(1,(WEL-0.3)/0.4), L=Math.min(W,H)*0.2, wd=Math.max(6,L*0.075);
+  ctx.save(); LW.set.call(ctx,1); ctx.globalAlpha=a; ctx.translate(x,y); ctx.rotate(0.95);
+  // shadow on the page, then the barrel, grip, cone and tip
+  ctx.fillStyle="rgba(40,30,20,0.18)"; ctx.beginPath(); ctx.moveTo(6,8); ctx.lineTo(L+10,8-wd*0.2); ctx.lineTo(L+10,8+wd*1.1); ctx.lineTo(10,12); ctx.fill();
+  const g=ctx.createLinearGradient(0,-wd/2,0,wd/2); g.addColorStop(0,"#3a3f4a"); g.addColorStop(0.35,"#6b7280"); g.addColorStop(1,"#22252c");
+  ctx.fillStyle=g; ctx.fillRect(wd*2.6,-wd/2,L,wd);
+  ctx.fillStyle="#15171c"; ctx.fillRect(wd*1.4,-wd*0.42,wd*1.3,wd*0.84);
+  ctx.fillStyle="#c9ccd2"; ctx.beginPath(); ctx.moveTo(wd*1.45,-wd*0.42); ctx.lineTo(wd*0.35,-wd*0.12); ctx.lineTo(wd*0.35,wd*0.12); ctx.lineTo(wd*1.45,wd*0.42); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.moveTo(wd*0.38,-wd*0.12); ctx.lineTo(0,0); ctx.lineTo(wd*0.38,wd*0.12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.fillRect(wd*2.8,-wd*0.32,L-wd*0.6,wd*0.12);
+  ctx.restore();
+}
+/* ---------- the slider as an object: a fractal branch, and a drop that rides it (0 zen, 1 3Blue1Brown, 2 Welch) ----------
+   At the zen end both are ink. Toward the other end the branch browns and the drop turns blue;
+   at the very end the drop slides off the tip and falls, and a new one gathers. */
+const BR = (()=>{
+  const cv=$("branch"), g=cv.getContext("2d"); let W=0,H=0,CH=0, segs=[], limb=[], fall=null, raf=0;
+  function build(){
+    const r=cv.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1); W=r.width; H=46; CH=r.height; cv.width=Math.round(W*d); cv.height=Math.round(CH*d); g.setTransform(d,0,0,d,0,0);
+    // the main limb droops toward its tip, so a drop would slide that way
+    limb=[]; for(let i=0;i<=60;i++){ const s=i/60; limb.push([6+s*(W-34), H*0.36+H*0.26*s*s]); }
+    segs=[]; const rnd=mulberry(11);
+    const branch=(x,y,a,len,w,depth)=>{ if(depth===0||len<2.2) return; const x2=x+Math.cos(a)*len, y2=y+Math.sin(a)*len; segs.push([x,y,x2,y2,w]);
+      const spread=0.42+0.25*rnd(); branch(x2,y2,a-spread,len*0.66,w*0.62,depth-1); branch(x2,y2,a+spread*0.8,len*0.6,w*0.6,depth-1); };
+    // twigs grow from the limb, mostly upward and a few down, each a small binary tree
+    for(let k=1;k<7;k++){ const s=k/7.2, p=limb[Math.round(s*60)], up=k%2===1;
+      branch(p[0],p[1], up?-Math.PI/2+0.55+0.2*rnd():Math.PI/2+0.35, H*(0.2+0.08*rnd())*(1-0.35*s), 1.6*(1-0.4*s), 4); }
+  }
+  function at(s){ const f=Math.max(0,Math.min(1,s))*60, i=Math.min(59,Math.floor(f)), u=f-i, a=limb[i], b=limb[i+1];
+    return {x:a[0]+(b[0]-a[0])*u, y:a[1]+(b[1]-a[1])*u, ang:Math.atan2(b[1]-a[1],b[0]-a[0])}; }
+  function drop(x,y,ang,r,fill,stroke){ // a teardrop resting on the limb, its point trailing uphill
+    g.save(); g.translate(x,y); g.rotate(ang); g.translate(0,-r);
+    g.beginPath(); g.moveTo(-r*2.1,-r*0.15); g.bezierCurveTo(-r*1.2,-r*0.9, -r*0.2,-r*1.05, r*0.35,-r*0.85);
+    g.arc(0,0,r,-1.2,Math.PI*0.95,false); g.bezierCurveTo(-r*1.1,r*0.6,-r*1.6,r*0.3,-r*2.1,-r*0.15); g.closePath();
+    g.fillStyle=fill; g.fill(); g.lineWidth=1.2; g.strokeStyle=stroke; g.stroke();
+    g.globalAlpha=0.55; g.fillStyle="#ffffff"; g.beginPath(); g.ellipse(r*0.2,-r*0.35,r*0.28,r*0.16,-0.5,0,TAU); g.fill(); g.restore();
+  }
+  function draw(){
+    const m=MIX, e=m*m*(3-2*m), ink=PAL.ink||"#111111";
+    const brown=mixHex(ink.length===7?ink:"#111111","#7a4e2d",e), blue=mixHex(PAL.paper&&PAL.paper.length===7?PAL.paper:"#f4f4f2","#58c4dd",e);
+    g.clearRect(0,0,W,CH); g.lineCap="round"; g.strokeStyle=brown;
+    for(const [x,y,x2,y2,w] of segs){ g.lineWidth=w; g.beginPath(); g.moveTo(x,y); g.lineTo(x2,y2); g.stroke(); }
+    g.lineWidth=2.6; g.beginPath(); limb.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke();
+    { const q=at(0.04+0.93*0.5); g.lineWidth=1; g.globalAlpha=0.7; g.beginPath(); g.moveTo(q.x,q.y+5); g.lineTo(q.x,q.y+10); g.stroke();
+      g.font=`300 9px ${MONO}`; g.fillStyle=PAL.muted||"#777"; g.textAlign="center"; g.textBaseline="top"; g.fillText("3b1b",q.x,q.y+12); g.globalAlpha=1; }
+    const r=Math.max(5,H*0.13);
+    if(fall){ const t=(performance.now()-fall.t0)/1000, tip=at(1);
+      if(t<0.9){ const vx=12, x=tip.x+vx*t, y=tip.y+0.5*200*t*t; g.save(); g.globalAlpha=Math.max(0,1-Math.max(0,t-0.55)/0.35); drop(x,y,Math.atan2(220*t,vx),r,blue,brown); g.restore(); }
+      if(t>0.95){ const grow=Math.min(1,(t-0.95)/0.9); if(grow<1){ const p=at(0.97); g.save(); g.globalAlpha=grow; drop(p.x,p.y,p.ang,r*grow,blue,brown); g.restore(); }
+        else { fall=null; const p=at(0.97); drop(p.x,p.y,p.ang,r,blue,brown); } }
+    } else { const p=at(0.04+0.93*SLV/2); drop(p.x,p.y,p.ang,r,blue,brown); }
+    if(fall) raf=requestAnimationFrame(draw);
+  }
+  let wasEnd=false;
+  function update(){ const end=SLV>=1.995; if(end&&!wasEnd&&!reduced){ fall={t0:performance.now()}; cancelAnimationFrame(raf); raf=requestAnimationFrame(draw); } wasEnd=end; if(!fall) draw(); }
+  addEventListener("resize",()=>{ build(); draw(); });
+  build();
+  return {update, redraw:()=>{ build(); draw(); }};
+})();
+/* ---------- engine ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d"); scaleStrokes(ctx); handPaths(ctx);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=0,H=0, cur=0, art=null, st={}, raf=0, last=0;
+const P={x:0,y:0,on:false};
+
+function size(){
+  const r=cv.getBoundingClientRect(), dpr=Math.min(2,window.devicePixelRatio||1);
+  W=r.width; H=r.height; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); cv._W=W;
+}
+function paint(dt){
+  st.t+=dt; st.age=(st.age||0)+dt; PENAT=null; ctx.fillStyle=PAL.paper; ctx.fillRect(0,0,W,H); underlay(ctx,W,H);
+  ctx.save(); art.draw(ctx,W,H,st,dt,P); ctx.restore();
+  overlay(ctx,W,H,(TALK[CH[cur].id]||{}).eq,st.age); drawPen(ctx,W,H);
+  ctx.globalAlpha=1; ctx.setLineDash([]);
+}
+function frame(now){ const dt=Math.min(50, now-(last||now)); last=now; paint(dt); raf=requestAnimationFrame(frame); }
+function still(){ const t0=performance.now(); for(let i=0;i<400 && performance.now()-t0<2500;i++) paint(16); if(st.job) setTimeout(still,50); }
+function defaults(c){ const p={}; for(const q of (c.ctl||[])) p[q.k]=q.def; return p; }
+function startArt(keep){
+  cancelAnimationFrame(raf); size(); readPal();
+  const c=CH[cur]; art=ARTS[c.art]; const prm=keep&&st.prm?st.prm:defaults(c);
+  st={t:0, prm, _W:W, _H:H}; art.init(st,W,H); last=0;
+  if(reduced) still(); else raf=requestAnimationFrame(frame);
+}
+function renderCtls(c){
+  const box=$("ctls"); box.innerHTML="";
+  for(const q of (c.ctl||[])){
+    const id="c-"+c.id+"-"+q.k, row=document.createElement("div"); row.className="ctl";
+    row.innerHTML=`<label for="${id}">${q.label}</label><input type="range" id="${id}" min="${q.min}" max="${q.max}" step="${q.step}" value="${st.prm[q.k]}"><output for="${id}"></output>`;
+    const inp=row.children[1], out=row.children[2], dec=String(q.step).split(".")[1]?.length||0;
+    out.textContent=(+inp.value).toFixed(dec);
+    let tm=null;
+    inp.addEventListener("input",()=>{ out.textContent=(+inp.value).toFixed(dec); clearTimeout(tm); tm=setTimeout(()=>{ st.prm[q.k]=+inp.value; if(art.param) art.param(st,q.k); else art.init(st,W,H); if(reduced) still(); },180); });
+    box.appendChild(row);
+  }
+}
+
+function pos(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+let down=null;
+cv.addEventListener("pointermove",e=>{ [P.x,P.y]=pos(e); P.on=true; });
+cv.addEventListener("pointerleave",()=>{ P.on=false; });
+cv.addEventListener("pointerdown",e=>{ down=pos(e); [P.x,P.y]=down; P.on=true; });
+cv.addEventListener("pointerup",e=>{ const p=pos(e); if(down && Math.hypot(p[0]-down[0],p[1]-down[1])<10 && art.tap){ art.tap(st,p[0],p[1],W,H); if(reduced) still(); }
+  down=null; if(e.pointerType!=="mouse") P.on=false; });
+
+/* ---------- chapters ---------- */
+const ROMAN=CH.map(c=>c.n);
+function render(i){
+  cur=i; const c=CH[i];
+  $("num").textContent=`Chapter ${c.n}`;
+  $("title").textContent=c.title;
+  $("verse").innerHTML=c.verse.map(s=>`<p>${s.join("<br>")}</p>`).join("");
+  const tk=TALK[c.id]||{}; $("talk").innerHTML=(tk.q?`<p class="q">${tk.q}</p>`:"")+(tk.talk||[]).map(p=>`<p>${p}</p>`).join(""); setText();
+  $("notes").innerHTML=`<span class="lbl"><span>Notes</span><button class="symlink" data-sym>Symbol guide</button></span>${c.notes}`;
+  $("caption").textContent=c.caption;
+  $("count").textContent=`${c.n} / ${ROMAN[ROMAN.length-1]}`;
+  $("prev").disabled=i===0; $("next").disabled=i===CH.length-1;
+  $("prevT").textContent=i>0?CH[i-1].title:""; $("nextT").textContent=i<CH.length-1?CH[i+1].title:"";
+  [...$("dots").children].forEach((d,k)=>d.setAttribute("aria-current", k===i?"true":"false"));
+  startArt(false); renderCtls(c);
+}
+function go(i){ i=Math.max(0,Math.min(CH.length-1,i)); if(location.hash!=="#"+CH[i].id) location.hash=CH[i].id; else render(i); window.scrollTo({top:0}); }
+function fromHash(){ const h=location.hash.slice(1); const i=CH.findIndex(c=>c.id===h); render(i<0?0:i); }
+
+CH.forEach((c,i)=>{
+  const b=document.createElement("button"); b.setAttribute("aria-label",`Chapter ${c.n}: ${c.title}`); b.onclick=()=>go(i); $("dots").appendChild(b);
+  const li=document.createElement("li"); li.innerHTML=`<button><span class="n">${c.n}</span><span class="tt">${c.title}</span></button>`;
+  li.querySelector("button").onclick=()=>{ $("index").hidden=true; go(i); }; $("indexList").appendChild(li);
+});
+$("prev").onclick=()=>go(cur-1); $("next").onclick=()=>go(cur+1);
+$("openIndex").onclick=()=>{ $("index").hidden=false; $("closeIndex").focus(); };
+$("closeIndex").onclick=()=>{ $("index").hidden=true; $("openIndex").focus(); };
+const openSym=()=>{ $("symbols").hidden=false; $("symbols").scrollTop=0; $("closeSymbols").focus(); };
+$("openSymbols").onclick=openSym;
+$("notes").addEventListener("click",e=>{ if(e.target.closest("[data-sym]")) openSym(); });
+$("closeSymbols").onclick=()=>{ $("symbols").hidden=true; $("openSymbols").focus(); };
+addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ $("index").hidden=true; $("symbols").hidden=true; if(document.body.classList.contains("frameonly")) frameOnly(false); }
+  if(!$("index").hidden || !$("symbols").hidden) return;
+  if(e.target.closest&&e.target.closest("input")) return;
+  if(e.key==="ArrowRight") go(cur+1); if(e.key==="ArrowLeft") go(cur-1);
+});
+let sx=null,sy=null;
+$("text").addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+$("text").addEventListener("touchend",e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.5) go(cur+(dx<0?1:-1)); sx=null; });
+addEventListener("hashchange",fromHash);
+let rt, lastW=0; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ const w=cv.getBoundingClientRect().width; if(Math.abs(w-lastW)>2){ lastW=w; startArt(true); } },180); });
+function repaintImages(){ if(st.paint&&st.off) st.paint(st); if(art===ARTS.ftle&&st.sf) ARTS.ftle.paint(st); }
+const repal=()=>{ applyMix(MIX); repaintImages(); BR.redraw(); };
+function setText(){ const talk=MIX>=0.5; $("verse").hidden=talk; $("talk").hidden=!talk; }
+function setLayout(){ const ex=MIX>=0.5, was=document.body.classList.contains("explainer"); document.body.classList.toggle("explainer",ex); document.body.classList.toggle("welch",WEL>=0.5); setText();
+  if(ex!==was){ $("main").style.setProperty("--ar", (ex&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); } }
+let mixQueued=false;
+$("mix").addEventListener("input",e=>{ applyMix(+e.target.value); setLayout(); BR.update(); try{ localStorage.setItem("unlost-mix",e.target.value); }catch(_){}
+  if(!mixQueued){ mixQueued=true; requestAnimationFrame(()=>{ mixQueued=false; repaintImages(); }); } if(reduced) still(); });
+function frameOnly(on){ document.body.classList.toggle("frameonly",on); $("exitFrame").hidden=!on; document.documentElement.style.setProperty("--ar", (MIX>=0.5&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); $("main").style.removeProperty("--ar");
+  requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); if(!on) $("frameOnly").focus(); }
+$("frameOnly").onclick=()=>frameOnly(true); $("exitFrame").onclick=()=>frameOnly(false);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",repal);
+new MutationObserver(repal).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+let m0=0; try{ m0=+(localStorage.getItem("unlost-mix")||0)||0; }catch(_){}
+$("mix").value=m0; applyMix(m0); BR.redraw(); document.body.classList.toggle("explainer",MIX>=0.5); document.body.classList.toggle("welch",WEL>=0.5); fromHash(); lastW=cv.getBoundingClientRect().width;
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parrondo's Staircase | Fluid Tensor Analytics</title>
+<meta name="description" content="Two losing games make a winning one, shown as a crowd climbing a three-sided stair. A remix of a DataGenetics post.">
+<link rel="stylesheet" href="fta-scene.css">
+<link rel="stylesheet" href="remix.css">
+</head>
+<body data-remix="parrondo">
+<a class="skip" href="#story">Skip to the article</a>
+<nav class="top" aria-label="Site"><ul><li><a href="/">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html">Blowup</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/remix.html" aria-current="page">Remix</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
+<script>(a=>{a.closest('ul').scrollLeft=a.offsetLeft-120})(document.querySelector('nav.top [aria-current]'))</script>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="ctl"></div>
+  <div id="hud"><canvas id="chart" aria-hidden="true"></canvas><div id="read" aria-live="polite"></div></div>
+</div>
+<main id="story">
+  <a class="back" href="/remix.html">All remixes</a>
+  <h1>Parrondo's Staircase</h1>
+  <p class="lede">Two casino games, each one a loser if you keep playing it. Take turns between them and you come out ahead. Juan Parrondo found this in 1996.</p>
+  <h2>The games</h2>
+  <p>Every round wins or loses $1. <b>Game A</b> is a coin that wins 49.5% of the time. <b>Game B</b> looks at your balance first. On a multiple of 3 you flip a terrible coin that wins 9.5%. Otherwise you flip a good one that wins 74.5%.</p>
+  <h2>The stair</h2>
+  <p>Wrap the balance around a spiral with three steps to a turn. Height is money. Every third step lands on the same side, drawn in coral, and that side is where Game B flips its terrible coin. Each bead is a player, and the white ring marks the crowd's average balance.</p>
+  <p>Playing B alone, you might expect the coral side to get a third of the visits. Then B would be a winner, at about 52.8%. It gets 38.4%, because the terrible coin knocks you down one step, the good coin lifts you straight back, and you keep bouncing into the coral. That small excess is enough: B loses on average. Pick <b>B only</b> and watch "On the coral side" settle near 38%.</p>
+  <h2>Why A helps</h2>
+  <p>Game A does not care where you are, so it acts as a shake. It bumps you off the rhythm that keeps returning you to the coral side, and B's good coin gets flipped more often. Neither game changes its odds. Only the visits change. Pick <b>A B B</b> and the crowd climbs. <b>Coin toss</b>, which picks a game at random each round, climbs too.</p>
+  <h2>What is exact here</h2>
+  <p>The four lines in the chart are computed exactly from the three-state chain on your balance mod 3, with no sampling. The white dot is the live crowd, which should stay near its line and wander a little, since a few hundred players is a small sample. After 1,000 rounds the page holds for a moment and starts over.</p>
+  <p>The casino should not worry. The game B coin depends on your balance, which a real casino's games do not, and the winning edge is small.</p>
+  <p class="credit">After <a href="https://datagenetics.com/blog/august22012/index.html">Parrondo's Paradox</a> by Nick Berry, DataGenetics, August 2012, which works through the Markov chain and its eigenvectors. The staircase, the exact lines and these words are new.</p>
+</main>
+<script src="remix-3d.js"></script>
+</body>
+</html>

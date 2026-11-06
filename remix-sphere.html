@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random Points in a Sphere | Fluid Tensor Analytics</title>
+<meta name="description" content="Four ways to scatter points in a ball, in 3D. Two of them are wrong. A remix of a DataGenetics post.">
+<link rel="stylesheet" href="fta-scene.css">
+<link rel="stylesheet" href="remix.css">
+</head>
+<body data-remix="sphere">
+<a class="skip" href="#story">Skip to the article</a>
+<nav class="top" aria-label="Site"><ul><li><a href="/">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html">Blowup</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/remix.html" aria-current="page">Remix</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
+<script>(a=>{a.closest('ul').scrollLeft=a.offsetLeft-120})(document.querySelector('nav.top [aria-current]'))</script>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="ctl"></div>
+  <div id="hud"><canvas id="chart" aria-hidden="true"></canvas><div id="read" aria-live="polite"></div></div>
+</div>
+<main id="story">
+  <a class="back" href="/remix.html">All remixes</a>
+  <h1>Random Points in a Sphere</h1>
+  <p class="lede">Every method here puts every point inside the ball. Only two of the four put them there evenly, and a cloud of dots is a bad place to spot the difference.</p>
+  <h2>The wasteful one</h2>
+  <p>Pick a point in the cube around the ball. If it landed outside, throw it away and pick again. The ball fills π/6 of the cube, so about 47.6% of tries get thrown away, shown in coral. It costs 5.7 random numbers per point kept, and it is correct.</p>
+  <h2>Two tempting repairs</h2>
+  <p><b>Stretch a cube</b> keeps every try: take the direction from the centre to a cube point, then pick a distance from 0 to 1. <b>Plain angles</b> picks a longitude, a latitude angle and a distance, each evenly. Both waste nothing, and both are wrong twice.</p>
+  <p>The first fault is the distance. A shell at radius r has area in proportion to r², so a shell near the centre holds far less room than one near the skin. Choosing r evenly gives each the same number of points, and the inner 46% of the radius, which is a tenth of the volume, gets 4.6 times its share. The left-hand bar in the chart shows it.</p>
+  <p>The second fault is direction, and it differs between the two. Directions taken from a cube are bunched toward its corners, because a cube has more volume out that way. Plain angles bunch at the poles, because every line of longitude meets there. Pick Stretch a cube, drag the Slice down and look straight at a cube face: the points lean toward the diagonals, faintly, since the crowded centre swamps it. The readout is plainer, with corner directions getting about 2.5 times as many points as face directions.</p>
+  <h2>The fix</h2>
+  <p>Corrected angles uses <code>r = cbrt(u)</code> and <code>φ = acos(2v − 1)</code>, which are the inverses of how volume and area actually accumulate. All three crowding readouts sit near ×1. It costs three random numbers, one cube root and some trigonometry for each point.</p>
+  <p>Berry's punchline is the part worth keeping: the wasteful method is hard to beat. Its only cost is a loop and some multiplication. The fixes swap the retries for cube roots and trigonometry, which are not free either.</p>
+  <h2>Reading the readouts</h2>
+  <p>Each one counts the points on screen and compares with what an even scatter would give, so ×1 is correct, and it wobbles with each new set. Centre crowding is the innermost tenth of the volume. Pole crowding is the two 30° caps on the vertical axis. Corners over faces compares 20° caps around the cube's eight corner directions with caps around its six face directions.</p>
+  <p class="credit">After <a href="https://datagenetics.com/blog/january32020/index.html">Random points in a sphere</a> by Nick Berry, DataGenetics, January 2020, which has its own app and the code for each method. The rendering, the slice, the readouts and these words are new.</p>
+</main>
+<script src="remix-3d.js"></script>
+</body>
+</html>

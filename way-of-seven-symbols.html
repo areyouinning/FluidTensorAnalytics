@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Way of Seven Symbols</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Martian+Mono:wght@300;400&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&family=Caveat:wght@400;500;600&display=swap">
+<style>
+/* Layout: one chapter at a time, verse beside a square living plate; plate first on phones.
+   Pale water-grey paper, ink, and two dyes that mean the same thing on every plate:
+   vermilion for water leaving a saddle (unstable), blue for water arriving (stable). */
+:root{
+  --paper:#f4f4f2; --ink:#111111; --muted:#6b6b6b; --rule:#d9d9d6; --wash:#ebebe8;
+  --u:#111111; --s:#7d7d7d; --o:#b5b5b2;
+  --verse:"Newsreader", Georgia, "Times New Roman", serif;
+  --mono:"Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#101010; --ink:#ececec; --muted:#8f8f8f; --rule:#2e2e2e; --wash:#1b1b1b; --u:#ececec; --s:#8a8a8a; --o:#5a5a5a; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --paper:#101010; --ink:#ececec; --muted:#8f8f8f; --rule:#2e2e2e; --wash:#1b1b1b; --u:#ececec; --s:#8a8a8a; --o:#5a5a5a; color-scheme:dark }
+
+html,body{ margin:0; background:var(--paper); color:var(--ink) }
+body{
+  font-family:var(--verse);
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-font-smoothing:antialiased;
+}
+[hidden]{ display:none !important }
+.wrap{ max-width:1180px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column }
+header{
+  display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px 16px;
+  padding-block:22px 18px; border-bottom:1px solid var(--rule);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:300;
+}
+header .name{ color:var(--ink) }
+header .count{ color:var(--muted); font-variant-numeric:tabular-nums }
+.hgroup{ display:flex; gap:20px }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0 }
+button:focus-visible, a:focus-visible, input:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px }
+.hbtn{ letter-spacing:.08em; text-transform:uppercase; color:var(--muted); min-height:32px }
+.hbtn:hover{ color:var(--ink) }
+
+main{ flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:56px; padding-block:48px 32px; align-items:start }
+.text{ min-width:0; max-width:34rem }
+.num{ font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; font-weight:300 }
+h1{ font-weight:300; font-size:clamp(1.9rem, 3.6vw, 2.7rem); line-height:1.1; margin:.35em 0 1.1em; text-wrap:balance; letter-spacing:-.01em }
+.verse{ font-size:clamp(1.1rem, 1.6vw, 1.24rem); line-height:1.62; font-weight:300 }
+.verse p{ margin:0 0 1.15em }
+.notes{ margin-top:2.2em; padding-top:1.1em; border-top:1px solid var(--rule); font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.75; color:var(--muted) }
+.notes .lbl{ display:flex; justify-content:space-between; gap:12px; letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; margin-bottom:.7em; color:var(--ink) }
+.notes p{ margin:0 0 .85em }
+.notes b{ font-weight:400; color:var(--ink) }
+.notes code{ font-family:var(--mono); color:var(--ink) }
+.notes .u{ color:var(--u) } .notes .s{ color:var(--s) }
+.symlink{ letter-spacing:.14em; text-transform:uppercase; font-size:10.5px; color:var(--muted); text-decoration:underline; text-underline-offset:3px }
+.symlink:hover{ color:var(--ink) }
+
+.plate{ min-width:0; position:sticky; top:24px; margin:0 }
+.frame{ width:100%; max-width:min(100%, 74vh); aspect-ratio:1/1; margin-left:auto; position:relative; background:var(--paper); border:1px solid var(--rule) }
+canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none }
+.caption{ max-width:min(100%, 74vh); margin:12px 0 0 auto; font-family:var(--mono); font-weight:300; font-size:11px; line-height:1.65; color:var(--muted) }
+.ctls{ max-width:min(100%, 74vh); margin:12px 0 0 auto; display:flex; flex-direction:column; gap:6px; font-family:var(--mono); font-weight:300; font-size:11px; color:var(--muted) }
+.ctl{ display:grid; grid-template-columns:7.5rem minmax(0,1fr) 4.2rem; gap:12px; align-items:center }
+.ctl output{ text-align:right; color:var(--ink); font-variant-numeric:tabular-nums }
+input[type=range]{ width:100%; accent-color:var(--ink); min-height:28px; margin:0 }
+
+nav.pager{ display:flex; justify-content:space-between; align-items:center; gap:16px; border-top:1px solid var(--rule); padding-block:18px 26px; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.06em }
+nav.pager button{ color:var(--muted); display:flex; gap:10px; align-items:baseline; min-height:44px; text-align:left }
+nav.pager button:hover:not([disabled]){ color:var(--ink) }
+nav.pager button[disabled]{ opacity:.3; cursor:default }
+nav.pager .t{ text-transform:none; letter-spacing:0; font-family:var(--verse); font-style:italic; font-size:15px }
+.dots{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center }
+.dots button{ width:22px; height:22px; display:grid; place-items:center }
+.dots button::after{ content:""; width:7px; height:7px; border-radius:50%; background:var(--rule) }
+.dots button[aria-current="true"]::after{ background:var(--ink) }
+
+.index{ position:fixed; inset:0; z-index:20; background:var(--paper); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:calc(env(safe-area-inset-top,0px) + 22px) 32px; overflow-y:auto }
+.index .in{ max-width:720px; margin:0 auto }
+.index .top{ display:flex; justify-content:space-between; font-family:var(--mono); font-weight:300; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; padding-bottom:18px; border-bottom:1px solid var(--rule) }
+.index ol{ list-style:none; margin:0; padding:0 }
+.index li button{ width:100%; display:grid; grid-template-columns:3.2rem 1fr; gap:12px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--rule); text-align:left }
+.index li .n{ font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.1em }
+.index li .tt{ font-size:1.35rem; font-weight:300 }
+.index li button:hover .tt{ font-style:italic }
+.sym .lead{ font-size:1.05rem; font-weight:300; line-height:1.6; margin:1.4em 0 0; max-width:36rem }
+.sym h2{ font-family:var(--mono); font-weight:300; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .4em }
+.sym dl{ margin:0 }
+.sym .row{ display:grid; grid-template-columns:6.2rem minmax(0,1fr); gap:16px; padding:12px 0; border-bottom:1px solid var(--rule); align-items:baseline }
+.sym dt{ font-family:var(--mono); font-size:1rem; color:var(--ink); overflow-wrap:anywhere }
+.sym dd{ margin:0; min-width:0 }
+.sym .nm{ display:block; font-size:1.08rem; font-weight:400 }
+.sym .ds{ display:block; font-family:var(--mono); font-weight:300; font-size:12px; line-height:1.7; color:var(--muted); margin-top:3px }
+.sym .ds code{ color:var(--ink) }
+header{ align-items:center }
+.mix{ display:flex; align-items:center; gap:10px; text-transform:none; letter-spacing:.02em; color:var(--muted); font-size:11px }
+.branch{ position:relative; display:block; width:clamp(150px,20vw,240px); height:46px }
+.branch canvas{ position:absolute; left:0; top:0; width:100%; height:110px; pointer-events:none; z-index:2 }
+.branch input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:grab }
+.branch input:focus-visible + canvas, .branch:focus-within{ outline:1.5px solid var(--ink); outline-offset:3px; border-radius:3px }
+.frame{ transform:rotate(calc(var(--wel,0) * -0.6deg)); box-shadow:0 calc(var(--wel,0) * 10px) calc(var(--wel,0) * 28px) rgba(30,24,16,calc(var(--wel,0) * .28)); transition:box-shadow .2s }
+body.welch .frame{ border-color:#d9d1bd }
+.talk .q{ display:none }
+body.welch .talk .q{ display:block; font-family:"Caveat","Segoe Print",cursive; font-weight:600; font-size:clamp(1.6rem,2.6vw,2.1rem); line-height:1.15; color:var(--u); margin:0 0 .7em }
+body.welch.explainer h1{ font-family:"Caveat","Segoe Print",cursive; font-weight:600; font-size:clamp(2.6rem,5vw,3.6rem) }
+.talk{ font-family:"STIX Two Text", Georgia, serif; font-size:clamp(1.08rem,1.5vw,1.2rem); line-height:1.66; transition:opacity .35s }
+.talk p{ margin:0 0 1em }
+.talk i{ font-style:italic }
+.verse{ transition:opacity .35s }
+.foot{ border-top:1px solid var(--rule); padding-block:16px 30px; font-family:var(--mono); font-weight:300; font-size:10.5px; line-height:1.7; color:var(--muted); max-width:80ch }
+body.explainer h1{ font-family:"STIX Two Text", Georgia, serif; font-weight:400 }
+body.explainer main{ grid-template-columns:minmax(0,1fr); gap:26px; padding-block:28px 28px }
+body.explainer .plate{ position:static; order:-1 }
+body.explainer .frame{ aspect-ratio:16/9; max-width:100%; margin:0 auto; border-color:transparent }
+body.explainer .caption, body.explainer .ctls{ max-width:100%; margin-left:0 }
+body.explainer .text{ max-width:44rem; margin:0 auto; width:100% }
+body.frameonly header, body.frameonly .text, body.frameonly nav.pager, body.frameonly .foot, body.frameonly .caption, body.frameonly .ctls{ display:none }
+body.frameonly main{ padding:0; display:block }
+body.frameonly .plate{ position:static }
+body.frameonly .frame{ width:min(100vw - 32px, (100vh - 32px) * var(--ar,1)); max-width:none; margin:16px auto; border-color:transparent }
+.exitframe{ position:fixed; right:max(12px,env(safe-area-inset-right,0px)); top:calc(env(safe-area-inset-top,0px) + 10px); z-index:30; font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:8px 12px; min-height:36px }
+@media (max-width:860px){
+  body.explainer .frame{ aspect-ratio:1/1 }
+  .mix{ order:3; width:100% }
+  .branch{ flex:1 }
+  main{ grid-template-columns:minmax(0,1fr); gap:28px; padding-block:24px 24px }
+  .plate{ position:static; order:-1 }
+  .frame, .caption, .ctls{ max-width:100%; margin-left:0 }
+  .text{ max-width:none }
+  nav.pager .t{ display:none }
+  .ctl{ grid-template-columns:6.2rem minmax(0,1fr) 3.8rem }
+}
+@media (max-width:480px){ .sym .row{ grid-template-columns:4.6rem minmax(0,1fr); gap:12px } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="name">The Way of Seven Symbols</span>
+    <span class="count" id="count">I / XI</span>
+    <div class="mix"><span>Zen</span><span class="branch"><canvas id="branch" aria-hidden="true"></canvas><input type="range" id="mix" min="0" max="2" step="0.01" value="0" aria-label="Style: black-and-white zen at the left, a 3Blue1Brown-style explainer at the middle mark, pen on graph paper in the manner of Welch Labs at the right"></span><span>Welch</span></div>
+    <span class="hgroup">
+      <a class="hbtn" href="/way-of.html" style="text-decoration:none;display:inline-flex;align-items:center">All books</a>
+      <button class="hbtn" id="frameOnly">Frame only</button>
+      <button class="hbtn" id="openSymbols" aria-haspopup="dialog">Symbols</button>
+      <button class="hbtn" id="openIndex" aria-haspopup="dialog">Contents</button>
+    </span>
+  </header>
+  <main id="main">
+    <section class="text" id="text" aria-live="polite">
+      <div class="num" id="num">Chapter I</div>
+      <h1 id="title"></h1>
+      <div class="verse" id="verse"></div>
+      <div class="talk" id="talk" hidden></div>
+      <div class="notes" id="notes"></div>
+    </section>
+    <figure class="plate">
+      <div class="frame"><canvas id="cv" aria-label="Living plate for this chapter" role="img"></canvas></div>
+      <figcaption class="caption" id="caption"></figcaption>
+      <div class="ctls" id="ctls"></div>
+    </figure>
+  </main>
+  <nav class="pager" aria-label="Chapters">
+    <button id="prev"><span>←</span><span class="t" id="prevT"></span></button>
+    <div class="dots" id="dots"></div>
+    <button id="next"><span class="t" id="nextT"></span><span>→</span></button>
+  </nav>
+  <footer class="foot">The left end of the style slider is plain ink on paper. The right end is a homage to the look of 3Blue1Brown's videos: a dark ground, blue and yellow, a faint coordinate grid, equations on the frame, narration in place of verse; it sits at the slider's middle mark. Past it, the plates move onto graph paper and are redrawn in pen, with a pen riding the moving point, and each chapter opens on one question: a homage to how Welch Labs mixes overhead hand drawing with manim animation and builds each video around a single question and its history. Nothing on this page is from or endorsed by 3Blue1Brown or Welch Labs. Dates marked c. are approximate; where historians disagree, the notes say so.</footer>
+</div>
+<button class="exitframe" id="exitFrame" hidden aria-label="Leave frame-only view">Exit frame</button>
+
+<div class="index" id="index" hidden role="dialog" aria-label="Contents">
+  <div class="in">
+    <div class="top"><span>Contents</span><button class="hbtn" id="closeIndex">Close</button></div>
+    <ol id="indexList"></ol>
+  </div>
+</div>
+
+<div class="index" id="symbols" hidden role="dialog" aria-label="Symbol guide">
+  <div class="in sym">
+    <div class="top"><span>Symbol guide</span><button class="hbtn" id="closeSymbols">Close</button></div>
+    <p class="lead">Seven symbols, from at least seven traditions, written in one line: <span style="font-family:'STIX Two Text',serif;font-style:italic">e<sup>iπ</sup> + 1 = 0</span>. Each entry gives what the symbol means and where its written form came from.</p>
+    <h2>The seven</h2>
+    <dl>
+      <div class="row"><dt>e</dt><dd><span class="nm">Euler's number, 2.71828…</span><span class="ds">The limit of <code>(1 + 1/n)ⁿ</code>: Jacob Bernoulli, Basel, 1683. The letter: Euler, in a manuscript of 1727–28 and a letter of 1731; in print in his <i>Mechanica</i>, 1736.</span></dd></div>
+      <div class="row"><dt>i</dt><dd><span class="nm">The imaginary unit</span><span class="ds"><code>i² = −1</code>. Met by Cardano (1545), used in earnest by Bombelli (1572), named imaginary by Descartes (1637), given the letter i by Euler (1777).</span></dd></div>
+      <div class="row"><dt>π</dt><dd><span class="nm">Circumference over diameter</span><span class="ds">Measured in Babylon, Egypt, Greece, China, India and the Islamic world. The Greek letter: William Jones, 1706; made standard by Euler.</span></dd></div>
+      <div class="row"><dt>+</dt><dd><span class="nm">Plus</span><span class="ds">First printed in Johannes Widmann's arithmetic, Leipzig, 1489. Probably a shortening of Latin <i>et</i>, "and".</span></dd></div>
+      <div class="row"><dt>1</dt><dd><span class="nm">One</span><span class="ds">Written by every counting culture. This shape descends from Indian Brahmi numerals through Arabic forms to Latin Europe.</span></dd></div>
+      <div class="row"><dt>=</dt><dd><span class="nm">Equals</span><span class="ds">Robert Recorde, <i>The Whetstone of Witte</i>, 1557: two parallel lines of one length.</span></dd></div>
+      <div class="row"><dt>0</dt><dd><span class="nm">Zero</span><span class="ds">Invented as a placeholder in Babylon and by the Maya, and as a number in its own right in India (Brahmagupta, 628). The word comes through Arabic <i>ṣifr</i>, "empty".</span></dd></div>
+    </dl>
+    <h2>The invisible eighth</h2>
+    <dl>
+      <div class="row"><dt>xⁿ</dt><dd><span class="nm">Raised exponent</span><span class="ds">A position, not a mark. Descartes, <i>La Géométrie</i>, 1637.</span></dd></div>
+    </dl>
+    <h2>On the plates</h2>
+    <dl>
+      <div class="row"><dt>t, θ</dt><dd><span class="nm">Angle, in radians</span><span class="ds"><code>e^(it)</code> is the point at angle t on the unit circle. A full turn is 2π.</span></dd></div>
+      <div class="row"><dt>cos, sin</dt><dd><span class="nm">Cosine and sine</span><span class="ds"><code>e^(it) = cos t + i sin t</code>. "Sine" comes from Sanskrit <i>jyā</i> (bowstring) through Arabic <i>jība</i> to Latin <i>sinus</i>.</span></dd></div>
+      <div class="row"><dt>helix</dt><dd><span class="nm">The circle, stretched through time</span><span class="ds">Plot <code>e^(it)</code> with t as height and the circle becomes a helix. The history plates use the same trick: angle is longitude, height is the year.</span></dd></div>
+    </dl>
+  </div>
+</div>
+<script>
+/* ---------- utilities ---------- */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI*2;
+const MONO = '"Martian Mono", ui-monospace, Menlo, monospace';
+const SERIF = 'Newsreader, Georgia, serif';
+let PAL = {};
+function readPal(){
+  const cs = getComputedStyle(document.documentElement), g=k=>cs.getPropertyValue("--"+k).trim();
+  PAL = { ink:g("ink"), paper:g("paper"), muted:g("muted"), rule:g("rule"), wash:g("wash"), u:g("u"), s:g("s"), o:g("o") };
+}
+const hexRGB = c => { const m=c.replace("#",""); return [0,2,4].map(i=>parseInt(m.slice(i,i+2),16)); };
+function mulberry(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const wrapX = x => { let w=(x+Math.PI)%TAU; if(w<0) w+=TAU; return w-Math.PI; };
+function label(ctx,txt,x,y,al,col){ const sz=Math.max(10,Math.min(12,ctx.canvas._W*0.024)); ctx.font=LHAND?`500 ${sz*1.42}px ${LFONT}`:(LITAL?`italic 400 ${sz*1.25}px ${LFONT}`:`300 ${sz}px ${MONO}`); ctx.fillStyle=col||PAL.muted; ctx.textAlign=al||"left"; ctx.textBaseline="middle"; ctx.fillText(txt,x,y); }
+// run a generator for at most ms milliseconds this frame
+function work(s, ms){ if(!s.job) return; const t0=performance.now(); while(performance.now()-t0<ms){ const r=s.job.next(); if(r.done){ s.job=null; break; } } }
+const CH = [
+{ n:"I", id:"one-line", title:"One Line", art:"helix",
+  verse:[
+   ["Five numbers and two marks,","written in one breath."],
+   ["e from a question about interest.","i from a quarrel over cubes.","π from every wheel anyone ever measured."],
+   ["Zero as a number from India, one from everywhere,","a plus from a German counting-house,","an equals sign from Wales."]],
+  notes:`<p><code>e^(iπ) + 1 = 0</code> follows from <b>Euler's formula</b>, <code>e^(ix) = cos x + i sin x</code>, published in his <i>Introductio in analysin infinitorum</i> (Lausanne, 1748). Roger Cotes had an equivalent logarithmic form in 1714.</p><p>Euler never wrote the identity itself. In 1749 he showed <code>ln(−1) = πi</code>, one step away. A 2025 study (G. Sinkevich, <i>Filomat</i>) finds the first clear statement in 1813, by Jacques-Frédéric Français in Gergonne's <i>Annales</i>, and Cauchy writing <code>e^(π√−1) = −1</code> in 1831–32.</p><p>Let t be height and <code>e^(it)</code> becomes a helix. Seen from the end it is the unit circle; at t = π it has made half a turn and reached −1.</p>`,
+  caption:"e^(it) with t as height: a helix. It is also the graph of the logarithm, with height Im(log z), the angle counted without ever wrapping round. Its shadow is the unit circle. The marked point is t = π." },
+
+{ n:"II", id:"zero", title:"Zero", art:"zero",
+  verse:[
+   ["Babylon left a gap in a number","and marked it, so the number would not shrink."],
+   ["The Maya carved a shell","to count the days from a beginning."],
+   ["In India, nothing became a number:","something to add, to subtract,","and to owe."]],
+  notes:`<p>Late Babylonian scribes (from about the 3rd century BCE) wrote a sign for an empty sexagesimal place, but never treated it as a number. The Maya Long Count used a zero glyph, invented with no contact with Afro-Eurasia.</p><p><b>Brahmagupta</b>, at Bhillamala in 628, gave rules for zero as a number among fortunes (positives) and debts (negatives): a fortune and an equal debt make zero. The oldest dated zero in stone is a dot in a Khmer inscription from Sambor, Cambodia, dated 683; a circle appears at Gwalior in 876. Radiocarbon dates for parts of the Bakhshali manuscript run earlier, but how to read them is disputed.</p><p>Sanskrit <i>śūnya</i>, "empty", became Arabic <i>ṣifr</i>, then Fibonacci's <i>zephirum</i>, then zero, and also cipher.</p>`,
+  caption:"History wound onto a cylinder: angle is longitude, height is the logarithm of years before 2026, so the crowded recent centuries get room. Lines follow a symbol from place to place; dashed means the link is debated. Tap for zero's arithmetic, with the gap on a log scale." },
+
+{ n:"III", id:"one", title:"One", art:"one",
+  verse:[
+   ["Everyone wrote one.","A wedge pressed into clay, a stroke of ink,","a dot, a rod laid on a table."],
+   ["One is the thing you can count","before you know","that counting is a thing."],
+   ["The 1 in this line came the long way:","from Brahmi strokes, through Baghdad,","to a monastery in Spain and a merchant in Pisa."]],
+  notes:`<p>Single marks for one appear wherever people counted: a vertical wedge in Babylon, a stroke in Egypt, a horizontal stroke in Brahmi, a vertical rod or 一 in China, I in Rome, a dot among the Maya, alpha in Greek alphabetic numerals.</p><p>The glyph written here descends from <b>Brahmi</b> numerals (3rd century BCE) through Gupta and Nagari forms to Arabic, described by <b>al-Khwārizmī</b> in Baghdad around 825. The <i>Codex Vigilanus</i>, copied at Albelda in northern Spain in 976, shows the digits 1 to 9 in a Latin book. <b>Fibonacci</b>'s <i>Liber Abaci</i> (Pisa, 1202) brought the full system, zero included, to European merchants.</p><p>In the identity, 1 is where every turn starts: <code>e^(i·0) = 1</code>.</p>`,
+  caption:"Where the 1 was written, and how this one travelled (height: log of years ago). Tap for ones from different traditions, laid on a logarithmic spiral." },
+
+{ n:"IV", id:"plus", title:"Plus", art:"plus",
+  verse:[
+   ["For most of history, adding needed no sign.","You wrote two things side by side."],
+   ["Egypt drew a pair of legs walking forward.","Italian merchants wrote a p with a bar over it."],
+   ["A German arithmetic printed a small cross in 1489","to mark goods that came in over weight.","It won."]],
+  notes:`<p>The Rhind papyrus (Egypt, copied around 1550 BCE) marks adding and taking away with a pair of legs walking forward or backward. Diophantus (Alexandria, 3rd century CE) added by writing terms side by side. Luca Pacioli's <i>Summa</i> (Venice, 1494) used p̄ and m̄ for <i>più</i> and <i>meno</i>.</p><p><b>Johannes Widmann</b>'s commercial arithmetic (Leipzig, 1489) is the first printed book with + and −, used there for surplus and shortfall in weights. The cross is usually read as a shortened Latin <i>et</i>. Robert Recorde brought + and − into English in 1557.</p><p>In the identity, + places one arrow after another: start at <code>e^(iπ)</code>, step 1 to the right, and land on 0.</p>`,
+  caption:"Where adding got its signs (height: log of years ago). Tap to watch 1 + e^(iθ) as two arrows end to end, with ln|sum| falling off a cliff at θ = π." },
+
+{ n:"V", id:"equals", title:"Equals", art:"equals",
+  verse:[
+   ["Robert Recorde, a physician from Tenby,","tired of writing is equal to,","is equal to, is equal to."],
+   ["He drew two parallel lines of one length,","because no two things","could be more equal."],
+   ["Here one side is half a turn and a step,","the other is nothing.","They meet exactly once in every turn."]],
+  notes:`<p><b>Robert Recorde</b>, <i>The Whetstone of Witte</i> (London, 1557), the first English algebra: "to auoide the tediouse repetition of these woordes: is equalle to: I will sette as I doe often in woorke vse, a paire of paralleles, or Gemowe lines of one lengthe, thus: =, bicause noe .2. thynges, can be moare equalle."</p><p>His lines were long. Descartes, in 1637, used a different sign, and = took more than a century to win on the continent. Thomas Harriot's <i>Artis analyticae praxis</i> (1631) helped it in England. Recorde died in a debtors' prison in 1558.</p><p>The plate graphs <code>|e^(it) + 1| = 2|cos(t/2)|</code>, which is zero only at t = π, plus whole turns.</p>`,
+  caption:"Where = came from (height: log of years ago). Tap for Recorde's twin lines and ln|e^(it) + 1|, which plunges to −∞ at the one place each turn where the sides agree." },
+
+{ n:"VI", id:"pi", title:"Pi", art:"pi",
+  verse:[
+   ["Everyone who built a wheel","asked how far it rolls in one turn."],
+   ["Babylon said three and an eighth.","Archimedes trapped it between polygons of ninety-six sides.","Zu Chongzhi found three hundred fifty-five over one hundred thirteen."],
+   ["In Kerala, Madhava wrote it as a sum that never ends.","A Welshman gave it a Greek letter,","and Euler made the letter stay."]],
+  notes:`<p>A tablet from Susa (Old Babylonian period) implies 3⅛; the Rhind papyrus implies 256/81 ≈ 3.16. <b>Archimedes</b> (Syracuse, 3rd century BCE) proved <code>223/71 < π < 22/7</code> with 96-sided polygons. <b>Liu Hui</b> (263) refined the polygon method to 3.1416; <b>Zu Chongzhi</b> (5th century) found <code>3.1415926 < π < 3.1415927</code> and the fraction 355/113. <b>Āryabhaṭa</b> (499) gave 3.1416.</p><p><b>Madhava of Sangamagrama</b> (Kerala, around 1400) found <code>π/4 = 1 − 1/3 + 1/5 − 1/7 + …</code>, centuries before Gregory and Leibniz. <b>al-Kāshī</b> (Samarkand, 1424) computed 2π to 16 decimal places.</p><p><b>William Jones</b>, born on Anglesey, used π in 1706, probably from Greek περιφέρεια, periphery. Euler adopted it from 1736 and his books made it standard.</p>`,
+  caption:"Where π was measured, mostly independently (height: log of years ago). Tap for Archimedes' polygons, with their error on log–log axes." },
+
+{ n:"VII", id:"e", title:"e", art:"e",
+  verse:[
+   ["A question about money:","what if interest were added","not yearly, not daily, but every instant?"],
+   ["Jacob Bernoulli found the answer","lies between two and three,","and left it without a name."],
+   ["Euler called it e,","the number whose growth","is always its own size."]],
+  notes:`<p><b>John Napier</b>'s logarithms (Edinburgh, 1614) were built around a number close to 1/e, though he never isolated it. <b>Jacob Bernoulli</b> (Basel, 1683) asked what <code>(1 + 1/n)ⁿ</code> approaches as interest is compounded more and more often, and showed the limit lies between 2 and 3.</p><p><b>Euler</b> used the letter e in a manuscript of 1727–28 and a 1731 letter to Goldbach, and in print in his <i>Mechanica</i> (1736). <code>e = 2.718281828…</code>, and <code>eˣ</code> is the function equal to its own rate of change.</p>`,
+  caption:"Where e came from (height: log of years ago). Tap to compound one unit more and more often, on a logarithmic axis of how often." },
+
+{ n:"VIII", id:"i", title:"i", art:"iunit",
+  verse:[
+   ["Cardano met the square root of a negative","while solving cubes,","and called it as subtle as it was useless."],
+   ["Bombelli carried it through anyway.","Four came out the other side:","a real answer through an impossible door."],
+   ["Descartes called such roots imaginary, and not kindly.","Euler gave it a letter.","Drawn in a plane, it is a quarter turn."]],
+  notes:`<p><b>Cardano</b>'s <i>Ars Magna</i> (1545) met square roots of negatives. <b>Bombelli</b>'s <i>L'Algebra</i> (Bologna, 1572) solved <code>x³ = 15x + 4</code>: the cubic formula gives <code>∛(2 + √−121) + ∛(2 − √−121)</code>, and since <code>(2 + i)³ = 2 + 11i</code>, that is <code>(2 + i) + (2 − i) = 4</code>.</p><p><b>Descartes</b> (1637) called such roots <i>imaginaires</i>. <b>Euler</b> introduced the letter i in 1777 (published 1794). <b>Wessel</b> (Copenhagen, 1799), <b>Argand</b> (Paris, 1806) and <b>Gauss</b> (Göttingen, 1831) drew complex numbers as points in a plane, where multiplying by i turns everything a quarter turn.</p>`,
+  caption:"Where i came from (height: log of years ago). Tap to multiply by i four times, and watch the logarithm turn each multiplication into a step." },
+
+{ n:"IX", id:"up-and-to-the-right", title:"Up and to the Right", art:"series",
+  verse:[
+   ["The smallest symbol in the line","is a position:","a number lifted up and to the right."],
+   ["Descartes raised his exponents in 1637.","Euler raised e to an imaginary power","and got a turn of the circle."],
+   ["Add the series one term at a time.","The sum spirals inward","and comes to rest at minus one."]],
+  notes:`<p>Raised exponents are from <b>Descartes</b>' <i>La Géométrie</i> (Leiden, 1637), though he still wrote xx for x². <b>Cotes</b> (1714) wrote <code>ix = ln(cos x + i sin x)</code>; <b>Euler</b> (1748) wrote <code>e^(ix) = cos x + i sin x</code>.</p><p>The plate adds <code>e^(iπ) = Σ (iπ)ⁿ/n!</code> term by term. Each term turns a quarter more than the last, so the partial sums spiral, and they converge to −1.</p><p>The word <b>sine</b> travelled too. Āryabhaṭa's <i>jyā</i>, a bowstring or half-chord, became Arabic <i>jība</i>; written without vowels it was read as <i>jayb</i>, a fold or pocket, and Robert of Chester (Segovia, 1145) translated that as Latin <i>sinus</i>.</p>`,
+  caption:"Partial sums of the series for e^(iπ), spiralling into −1, with the error on a log scale. Tap for where the exponent and the sine came from." },
+
+{ n:"X", id:"circles-that-add-up", title:"Circles That Add Up", art:"fourier",
+  verse:[
+   ["Fourier went to Egypt with Napoleon","and came home thinking about heat."],
+   ["Any shape, he claimed, even a corner,","is a sum of turning circles,","each turning a whole number of times faster than the first."],
+   ["Add enough of them and the square appears,","except at the edge,","where the overshoot never goes away."]],
+  notes:`<p>Each term of a <b>Fourier series</b> is <code>e^(ikt)</code>: a circle turning k times as fast as the first. A square wave is <code>(4/π)(sin t + sin 3t/3 + sin 5t/5 + …)</code>, so its coefficients fall like 1/k, a straight line of slope −1 on log–log axes.</p><p><b>Joseph Fourier</b> had been secretary of the Institut d'Égypte in Cairo (1798) before he wrote his 1807 memoir on heat in Grenoble; the <i>Théorie analytique de la chaleur</i> followed in Paris, 1822. <b>Daniel Bernoulli</b> had proposed in 1753 that a vibrating string is a sum of sines; Euler doubted it.</p><p>Near a jump, partial sums overshoot by about 9% of the jump however many terms you add (peak ≈ 1.179 for a jump from −1 to 1). Henry Wilbraham noticed it in 1848; J. Willard Gibbs described it in 1899.</p>`,
+  caption:"Circles riding on circles, each term of the square wave's Fourier series, drawing the wave to the right. Inset: the coefficients on log–log axes, a line of slope −1. Tap for the history." },
+
+{ n:"XI", id:"laplace", title:"Laplace", art:"laplace",
+  verse:[
+   ["Laplace weighed chances,","summing them against a fading exponential."],
+   ["Feed in a sound that rings and dies.","Out comes a map","with two bright points on it."],
+   ["How far left they sit is how fast it dies.","How high they sit is how fast it rings.","An engineer reads the whole sound from two dots."]],
+  notes:`<p><code>F(s) = ∫₀^∞ f(t) e^(−st) dt</code>, with s a complex number. The key pair is <code>e^(at) ↦ 1/(s − a)</code>. A damped ring <code>e^(−σt) cos ωt</code>, the real part of <code>e^((−σ+iω)t)</code>, becomes <code>(s + σ)/((s + σ)² + ω²)</code>, with poles at <code>s = −σ ± iω</code>. Along the imaginary axis, <code>s = iω</code>, the Laplace transform becomes the Fourier transform.</p><p><b>Euler</b> used integrals of this kind for differential equations in the 1760s, and <b>Laplace</b> used them as generating functions in his <i>Théorie analytique des probabilités</i> (Paris, 1812). <b>Oliver Heaviside</b> solved circuit equations with an operational calculus in the 1890s, in Devon; <b>Bromwich</b> (Cambridge, 1916) justified it with a contour integral, and <b>Gustav Doetsch</b> (Freiburg, 1937) gave the modern theory.</p><p>The plate shades <code>ln|F(s)|</code>, a logarithm because |F| is infinite at the poles and zero at the zero.</p>`,
+  caption:"ln|F(s)| over the complex s-plane for a damped ring: poles (×) at −σ ± iω where the shading peaks, a zero (○) at −σ, and a probe reading |F| up the iω axis, where Laplace becomes Fourier. Inset: the signal in time. Tap for the history.",
+  ctl:[{k:"sig",label:"decay σ",min:0.05,max:1.5,step:0.05,def:0.35},{k:"om",label:"pitch ω",min:0.5,max:3,step:0.1,def:1.8}] },
+
+{ n:"XII", id:"two-of-them", title:"Two of Them", art:"double",
+  verse:[
+   ["Draw the helix,","and a second one half a turn behind it."],
+   ["Wherever the first strand is,","the second is opposite,","and their sum is zero all the way up."],
+   ["The first rung joins one to e to the iπ.","That rung is this whole book.","Every rung above it says it again."]],
+  notes:`<p>Strand one is <code>e^(it)</code>; strand two is <code>e^(i(t+π)) = −e^(it)</code>. Every rung joins a point to its opposite, so every rung's midpoint is 0. At t = 0 the rung joins 1 and <code>e^(iπ)</code>: <code>e^(iπ) + 1 = 0</code>.</p><p>Tap for the other way to make two: <code>e^(it)</code> and <code>e^(−it)</code>, helices of opposite hand. Their average is <code>cos t</code> and their difference over 2i is <code>sin t</code>, so cosine and sine are what you get when the two turnings meet.</p><p>DNA's two strands turn the same way but are not half a turn apart; the uneven offset is what gives it a major and a minor groove.</p>`,
+  caption:"A double helix whose rungs all pass through zero. The highlighted rung is e^(iπ) + 1 = 0. Inset: under the logarithm the two strands are parallel lines π apart. Tap for helices of opposite hand." },
+
+{ n:"XIII", id:"wheel-of-fortune", title:"Wheel of Fortune", art:"wheel",
+  verse:[
+   ["Boethius, in prison, wrote of Fortune's wheel:","it turns, and whoever is on top","comes down."],
+   ["This wheel carries the traditions that wrote the line.","Spin it twice."],
+   ["Some pairs traded books and teachers.","Some never met,","and meet only here, in one equation."]],
+  notes:`<p>The <b>Rota Fortunae</b> comes from Boethius' <i>Consolation of Philosophy</i>, written in prison around 524. The wheel itself is <code>e^(iθ)</code>: turning it multiplies every point by <code>e^(iθ)</code>.</p><p>Friction slows the spin exponentially, <code>ω(t) = ω₀e^(−t/τ)</code>, so the total angle approaches <code>θ₀ + ω₀τ</code>: e appears twice, in the turning and in the slowing.</p><p>Two spins choose two traditions; the double helix carries one on each strand, with what each gave the line. If a documented link between the two exists, the plate gives it; if none is documented, it says so rather than inventing one.</p>`,
+  caption:"Tap to spin. Two spins pick two traditions, braided as the strands of the helix, with what each gave the equation and whether they ever met. Inset: ln ω falls in a straight line as the wheel slows." },
+
+{ n:"XIV", id:"a-strange-loop", title:"A Strange Loop", art:"loop",
+  verse:[
+   ["Gödel built a sentence that talks about itself.","Escher drew a picture that contains itself.","Bach wrote a canon that rises and returns."],
+   ["Hofstadter braided the three","and called the shape a strange loop:","climbing, and arriving where you began."],
+   ["So does this line.","Turn half a circle, add one, reach nothing,","and the helix goes on above you."]],
+  notes:`<p>Douglas Hofstadter's <i>Gödel, Escher, Bach: an Eternal Golden Braid</i> (1979) braids three self-referring things into what he called a <b>strange loop</b>.</p><p><b>Escher</b>'s <i>Print Gallery</i> (1956) shows a picture that contains itself. De Smit and Lenstra (<i>Notices of the AMS</i>, 2003) showed its structure is a conformal map made from the complex logarithm and exponential. In log coordinates, an image that repeats when scaled by S is periodic on a lattice; multiplying by <code>(2πi + ln S)/(2πi)</code> twists the lattice so that one turn around the centre is one level of zoom. The plate applies that map to this book's own equation, not to Escher's picture.</p><p><b>Bach</b>'s <i>Canon per tonos</i>, in the <i>Musical Offering</i> (Potsdam, 1747), climbs a whole tone each time through; after six rounds it is back in C, an octave higher. On a pitch helix, with angle for pitch class and height for the logarithm of frequency, that is one full turn. <b>Gödel</b> (1931) turned formulas into numbers: each symbol gets a code, and a formula of codes c₁, c₂, … becomes 2<sup>c₁</sup>·3<sup>c₂</sup>·5<sup>c₃</sup>…. The plate uses the codes from Nagel and Newman's <i>Gödel's Proof</i> (1958), where 0 is 6, = is 5 and s (successor) is 7, so <code>0 = 0</code> is 2⁶·3⁵·5⁶ = 243,000,000. Taking the logarithm turns that product into a sum of code × log prime. Gödel's sentence has its own book: <a href="/way-of-incompleteness.html">The Way of Incompleteness</a>.</p><p>The four came from Austria-Hungary, the Netherlands, Saxony and the United States: four more strands in the braid.</p>`,
+  caption:"The equation, drawn into itself through the complex logarithm: one turn around the centre is one level of zoom. Tap for Bach's rising canon on a pitch helix (height: log of frequency), and again for Gödel's numbers, whose logarithms are sums." }
+];
+/* Narration and on-frame equations for the explainer end of the slider. */
+const TALK = {
+"one-line":{ q:"How can three of the strangest numbers in mathematics add up to nothing?", eq:"e^(iπ) + 1 = 0", talk:[
+ "This line is often called the most beautiful equation in mathematics. Here's a different way to look at it: as a meeting. Each of its seven symbols was shaped by a different tradition, across about four thousand years.",
+ "First, what it says. Take <i>e</i><sup><i>it</i></sup> and let <i>t</i> grow. The point turns around a circle, and if you let <i>t</i> lift it off the page, the circle stretches into a helix. At <i>t</i> = π it has made exactly half a turn, and it sits at −1. Add 1, and you're at zero."]},
+"zero":{ q:"When did nothing become a number you could owe?", eq:"fortune + equal debt = 0", talk:[
+ "Zero was invented more than once. Babylonian scribes marked an empty place so a number wouldn't shrink. The Maya, with no contact at all, carved a zero to count the days.",
+ "But treating nothing as a number, something you can add and subtract and owe, is written down first in India, by Brahmagupta in 628. A fortune plus an equal debt makes zero. That's exactly the last step of our equation."]},
+"one":{ q:"Why does every turn start at 1?", eq:"e^(i·0) = 1", talk:[
+ "Every counting culture wrote one: a wedge, a stroke, a dot, a rod. One is universal.",
+ "But this particular 1 has a lineage. It comes from Brahmi numerals in India, through Arabic forms described in Baghdad around 825, to a Latin manuscript in Spain in 976, and to Fibonacci in Pisa in 1202. In the equation, it's where every turn begins."]},
+"plus":{ q:"What does adding mean, if numbers are arrows?", eq:"1 + e^(iπ) = 0", talk:[
+ "For most of history, nobody needed a sign for adding. You just wrote things side by side. Egypt drew walking legs; Italian merchants wrote a p with a bar.",
+ "The cross first appears in print in Leipzig, in 1489. Geometrically, plus means put one arrow after another. Start at <i>e</i><sup><i>i</i>θ</sup>, take one step right, and watch where you land. At θ = π, you land on zero."]},
+"equals":{ q:"What exactly is the equals sign claiming here?", eq:"|e^(it) + 1| = 2|cos(t/2)|", talk:[
+ "In 1557 Robert Recorde, a Welsh physician, got tired of writing \"is equal to\" and drew two parallel lines, because, as he put it, no two things could be more equal.",
+ "Here's what the equals sign is really claiming. Measure the gap between <i>e</i><sup><i>it</i></sup> + 1 and zero as <i>t</i> varies. The gap is 2|cos(<i>t</i>/2)|, and it touches zero at exactly one place each turn: <i>t</i> = π."]},
+"pi":{ q:"How do you measure a number that never ends?", eq:"223/71 < π < 22/7", talk:[
+ "Pi is the most international symbol in the line. Babylon, Egypt, Greece, China, India and Samarkand all measured it, mostly without knowing about each other.",
+ "Archimedes squeezed it between polygons with 96 sides. Zu Chongzhi pinned it to seven decimal places. Madhava, in Kerala, wrote it as an infinite sum. The letter itself came from a Welshman in 1706, and Euler made it stick."]},
+"e":{ q:"Why does a number fall out of a bank account?", eq:"(1 + 1/n)ⁿ → e", talk:[
+ "Here's a question about money. Put one dollar in at 100% interest. Compound once a year and you get 2. Compound monthly, daily, every instant: you get more, but not unlimited.",
+ "Jacob Bernoulli, in Basel in 1683, saw the limit lies between 2 and 3. Euler named it <i>e</i>. It's the number whose growth rate is always its own size, and that's exactly why <i>e</i><sup><i>it</i></sup> moves in a circle."]},
+"i":{ q:"Why would anyone believe in the square root of −1?", eq:"(2 + i)³ = 2 + 11i", talk:[
+ "Square roots of negative numbers first showed up as an embarrassment, in the middle of solving cubic equations in 16th-century Italy.",
+ "Bombelli pushed through anyway: the formula for <i>x</i>³ = 15<i>x</i> + 4 runs through √−121, and out comes the honest answer 4. Two centuries later, people noticed what <i>i</i> really is: a quarter turn. Do it twice and you're facing backward. That's <i>i</i>² = −1."]},
+"up-and-to-the-right":{ q:"What does it mean to raise a number to an imaginary power?", eq:"e^(iπ) = Σ (iπ)ⁿ / n!", talk:[
+ "There's an eighth symbol you can't see: the position of the exponent. Descartes raised exponents up and to the right in 1637.",
+ "Now plug <i>i</i>π into the power series for <i>e</i><sup><i>x</i></sup>. Each term turns a quarter more than the last, so as you add them up, the partial sums spiral inward, and they settle on exactly −1."]},
+"two-of-them":{ q:"What if there were two helices?", eq:"e^(it) + e^(i(t+π)) = 0", talk:[
+ "Draw the helix again, and a second one half a turn behind it. Wherever the first strand is, the second is directly opposite.",
+ "So every rung between them passes through zero. The very first rung joins 1 and <i>e</i><sup><i>i</i>π</sup>. That's our equation, and every rung above it says it again."]},
+"wheel-of-fortune":{ q:"Which of these traditions ever actually met?", eq:"ω(t) = ω₀ e^(−t/τ)", talk:[
+ "Let's finish with a wheel, which is itself <i>e</i><sup><i>i</i>θ</sup>. Each slice is one of the traditions that wrote this line. Spin it twice, and the two that come up become the two strands of the helix.",
+ "Some pairs really did meet: Greek astronomy reached India, Indian numerals reached Baghdad, Baghdad's arithmetic reached Pisa. Others never met at all. Here, in one equation, they sit side by side."]},
+"circles-that-add-up":{ q:"Can circles draw a corner?", eq:"square wave = (4/π) Σ sin(kt)/k,  k odd", talk:[
+ "Here's a wild claim from Joseph Fourier, a man who'd just come back from Egypt: any shape at all, even one with sharp corners, is a sum of circles turning at whole-number speeds. Each circle is just <i>e</i><sup><i>ikt</i></sup>.",
+ "Stack the circles tip to tail and follow the last one. For a square wave, the radii shrink like 1/<i>k</i>, which is a straight line on a log–log plot. Add more and more circles and the square sharpens, except right at the jump, where it always overshoots by about 9%."]},
+"laplace":{ q:"What if frequency were allowed to be complex?", eq:"e^(at)  ↦  1/(s − a)", talk:[
+ "Now let the frequency go complex. The Laplace transform takes a signal and weighs it against <i>e</i><sup>−<i>st</i></sup> for every complex <i>s</i>. Feed it <i>e</i><sup><i>at</i></sup> and you get 1/(<i>s</i> − <i>a</i>), which blows up exactly at <i>s</i> = <i>a</i>.",
+ "So a sound that rings and dies, <i>e</i><sup>(−σ+<i>i</i>ω)<i>t</i></sup>, shows up as two bright points. How far left they sit tells you how fast it dies; how high, how fast it rings. Since |<i>F</i>| shoots to infinity there, we shade the logarithm. Try the sliders."]},
+"a-strange-loop":{ q:"Can an equation contain itself?", eq:"w ↦ w · (2πi + ln S) / 2πi", talk:[
+ "For the finale, three loops. Gödel wrote a sentence that talks about itself. Escher drew a gallery that contains itself. Bach wrote a canon that climbs a whole tone each time through and, after six rounds, lands back where it started, an octave up.",
+ "The same tool explains the picture: take the complex logarithm, and zooming in becomes sliding, turning becomes sliding the other way. Twist that grid so one turn equals one zoom, map back with the exponential, and you get an image that contains itself. That's this book's equation, folded into its own centre. Tap for Bach."]}
+};
+/* ---------- 3D: a turntable camera ---------- */
+function camera(W,H,cx,cy,sc,rot,tilt){ const c=Math.cos(rot), sn=Math.sin(rot), ct=Math.cos(tilt), st=Math.sin(tilt);
+  return (x,y,z)=>{ const xr=c*x-sn*y, yr=sn*x+c*y; return [cx+xr*sc, cy-(z*ct+yr*st)*sc, (1-yr)/2]; }; } // third value: 1 = nearest
+function arrow(ctx,x0,y0,x1,y1,col,lw){ ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw||2; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0), h=8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-h*Math.cos(a-0.4),y1-h*Math.sin(a-0.4)); ctx.lineTo(x1-h*Math.cos(a+0.4),y1-h*Math.sin(a+0.4)); ctx.closePath(); ctx.fill(); }
+function textAt(ctx,txt,x,y,size,col,al,ital){ ctx.font=`${ital?"italic ":""}400 ${size}px ${LITAL||ital?'"STIX Two Text", Georgia, serif':SERIF}`; ctx.fillStyle=col; ctx.textAlign=al||"center"; ctx.textBaseline="middle"; ctx.fillText(txt,x,y); }
+function wrap(ctx,txt,x,y,maxW,lh){ const words=txt.split(" "); let line=""; for(const w of words){ const t=line?line+" "+w:w; if(ctx.measureText(t).width>maxW&&line){ ctx.fillText(line,x,y); y+=lh; line=w; } else line=t; } if(line){ ctx.fillText(line,x,y); y+=lh; } return y; }
+function plane(W,H,cx,cy,sc,xr,yr){ return {X:x=>cx+x*sc, Y:y=>cy-y*sc, axes(ctx){ ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(cx+xr[0]*sc,cy); ctx.lineTo(cx+xr[1]*sc,cy); ctx.moveTo(cx,cy-yr[1]*sc); ctx.lineTo(cx,cy-yr[0]*sc); ctx.stroke(); } }; }
+
+/* ---------- history on a cylinder: angle is longitude, height is the year ---------- */
+const NOW=2026, LA=Math.log10(4100), LB=Math.log10(80);
+const yrz = y => -1.05+2.1*(LA-Math.log10(NOW-y))/(LA-LB);   // height = log of years before 2026
+const YR0=-2000;
+const yrs = (y,c) => (c?"c. ":"")+(y<0?`${-y} BCE`:`${y}`);
+function history(ctx,W,H,s,ev){
+  const sc=Math.min(W*0.3,H*0.36), cx=W*0.42, cy=H*0.5, rot=0.5+s.t*0.00011, tilt=0.36, P=camera(W,H,cx,cy,sc,rot,tilt);
+  // rings at a few years, and longitude ticks on the floor
+  for(const yr of [-2000,-500,500,1200,1600,1800,1900]){ const z=yrz(yr); ctx.lineWidth=1;
+    for(let i=0;i<72;i++){ const a=TAU*i/72, b=TAU*(i+1)/72, p=P(Math.cos(a),Math.sin(a),z), q=P(Math.cos(b),Math.sin(b),z);
+      ctx.strokeStyle=PAL.rule; ctx.globalAlpha=0.25+0.75*p[2]; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+    ctx.globalAlpha=1; const L=P(-Math.cos(rot),Math.sin(rot),z); label(ctx,yr<0?`${-yr} BCE`:`${yr}`,cx-sc-10,L[1],"right"); }
+  label(ctx,"height: log of years before 2026",W*0.04,H*0.115,"left");
+  for(const [lon,name] of [[0,"0°"],[90,"90°E"],[180,"180°"],[-90,"90°W"]]){ const a=lon*Math.PI/180, p=P(Math.cos(a)*1.12,Math.sin(a)*1.12,yrz(YR0)-0.06); ctx.globalAlpha=0.35+0.65*p[2]; label(ctx,name,p[0],p[1]+6,"center"); }
+  ctx.globalAlpha=1;
+  // links, revealed in order
+  const reveal=s.t/900;
+  ev.forEach((e,i)=>{ if(!e.link||i===0||i>reveal) return; const a=ev[i-1], f=Math.min(1,reveal-i+1); let pa=a.lon*Math.PI/180, pb=e.lon*Math.PI/180; let d=pb-pa; d=Math.atan2(Math.sin(d),Math.cos(d));
+    ctx.setLineDash(e.link==="dashed"?[4,4]:[]); ctx.strokeStyle=PAL.u; ctx.lineWidth=1.8;
+    for(let k=0;k<40*f;k++){ const u0=k/40, u1=Math.min(f,(k+1)/40), p=P(Math.cos(pa+d*u0),Math.sin(pa+d*u0),yrz(a.yr+(e.yr-a.yr)*u0)), q=P(Math.cos(pa+d*u1),Math.sin(pa+d*u1),yrz(a.yr+(e.yr-a.yr)*u1));
+      ctx.globalAlpha=0.3+0.7*p[2]; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+    ctx.setLineDash([]); });
+  ctx.globalAlpha=1;
+  // events
+  const pts=ev.map((e,i)=>{ const a=e.lon*Math.PI/180, p=P(Math.cos(a),Math.sin(a),yrz(e.yr)); return {e,i,p}; }).sort((x,y)=>x.p[2]-y.p[2]);
+  for(const {e,i,p} of pts){ if(i>reveal+0.5) continue; const f=p[2];
+    ctx.globalAlpha=0.3+0.7*f; ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(p[0],p[1],3.4,0,TAU); ctx.fill();
+    if(f>0.42){ ctx.globalAlpha=Math.min(1,(f-0.42)*3); const x=p[0]+8, side="left";
+      label(ctx,`${e.place}, ${yrs(e.yr,e.c)}`,x,p[1]-6,side,PAL.ink); label(ctx,e.txt,x,p[1]+8,side); } }
+  ctx.globalAlpha=1;
+}
+const EV = {
+ zero:[ {lon:44.4,yr:-300,c:1,place:"Babylon",txt:"a sign for an empty place"},
+        {lon:72.3,yr:628,place:"Bhillamala",txt:"Brahmagupta: zero as a number",link:"dashed"},
+        {lon:105.9,yr:683,place:"Sambor, Cambodia",txt:"oldest dated zero: a dot",link:"solid"},
+        {lon:108.9,yr:718,place:"Chang'an",txt:"Gautama Siddha: a dot for zero",link:"solid"},
+        {lon:44.4,yr:825,c:1,place:"Baghdad",txt:"al-Khwārizmī: ṣifr",link:"solid"},
+        {lon:78.2,yr:876,place:"Gwalior",txt:"zero as a circle, in stone"},
+        {lon:10.4,yr:1202,place:"Pisa",txt:"Fibonacci: zephirum",link:"solid"},
+        {lon:-89.6,yr:350,c:1,place:"Maya lowlands",txt:"zero glyph, invented separately"} ],
+ one: [ {lon:44.4,yr:-1800,c:1,place:"Babylon",txt:"one vertical wedge"},
+        {lon:32.6,yr:-1550,c:1,place:"Thebes",txt:"one stroke"},
+        {lon:12.5,yr:-300,c:1,place:"Rome",txt:"I"},
+        {lon:108.9,yr:-100,c:1,place:"Chang'an",txt:"one counting rod; 一"},
+        {lon:-89.6,yr:-50,c:1,place:"Mesoamerica",txt:"one dot"},
+        {lon:85.1,yr:-250,c:1,place:"Pataliputra",txt:"Brahmi: one horizontal stroke"},
+        {lon:44.4,yr:825,c:1,place:"Baghdad",txt:"al-Khwārizmī: Hindu reckoning",link:"solid"},
+        {lon:-2.5,yr:976,place:"Albelda, Spain",txt:"Codex Vigilanus: 1–9 in Latin",link:"solid"},
+        {lon:10.4,yr:1202,place:"Pisa",txt:"Fibonacci: Liber Abaci",link:"solid"} ],
+ plus:[ {lon:32.6,yr:-1550,c:1,place:"Thebes",txt:"Rhind papyrus: walking legs"},
+        {lon:29.9,yr:250,c:1,place:"Alexandria",txt:"Diophantus: terms side by side"},
+        {lon:12.4,yr:1489,place:"Leipzig",txt:"Widmann: + and − in print"},
+        {lon:-0.1,yr:1557,place:"London",txt:"Recorde: + and − in English",link:"solid"},
+        {lon:12.3,yr:1494,place:"Venice",txt:"Pacioli: p̄ for più"} ],
+ equals:[ {lon:-0.1,yr:1557,place:"London",txt:"Recorde (of Tenby): ="},
+        {lon:-0.1,yr:1631,place:"London",txt:"Harriot's Praxis uses =",link:"solid"},
+        {lon:4.5,yr:1637,place:"Leiden",txt:"Descartes uses another sign"} ],
+ pi:  [ {lon:48.3,yr:-1800,c:1,place:"Susa",txt:"3⅛"},
+        {lon:32.6,yr:-1550,c:1,place:"Thebes",txt:"256/81"},
+        {lon:15.3,yr:-250,c:1,place:"Syracuse",txt:"Archimedes: 223/71 < π < 22/7"},
+        {lon:112.4,yr:263,place:"Luoyang",txt:"Liu Hui: 3.1416"},
+        {lon:118.8,yr:480,c:1,place:"Jiankang",txt:"Zu Chongzhi: 355/113",link:"solid"},
+        {lon:85.1,yr:499,place:"Pataliputra",txt:"Āryabhaṭa: 3.1416"},
+        {lon:76.2,yr:1400,c:1,place:"Sangamagrama",txt:"Madhava: 1 − 1/3 + 1/5 − …"},
+        {lon:67.0,yr:1424,place:"Samarkand",txt:"al-Kāshī: 16 decimals"},
+        {lon:-0.1,yr:1706,place:"London",txt:"Jones (of Anglesey): π"},
+        {lon:30.3,yr:1736,place:"St Petersburg",txt:"Euler adopts π",link:"solid"} ],
+ e:   [ {lon:-3.2,yr:1614,place:"Edinburgh",txt:"Napier: logarithms"},
+        {lon:7.6,yr:1683,place:"Basel",txt:"Bernoulli: (1 + 1/n)ⁿ"},
+        {lon:30.3,yr:1731,place:"St Petersburg",txt:"Euler writes e",link:"solid"},
+        {lon:6.6,yr:1748,place:"Lausanne",txt:"Introductio: e^(ix)",link:"solid"} ],
+ i:   [ {lon:9.2,yr:1545,place:"Milan",txt:"Cardano: Ars Magna"},
+        {lon:11.3,yr:1572,place:"Bologna",txt:"Bombelli: rules for √−1",link:"solid"},
+        {lon:4.5,yr:1637,place:"Leiden",txt:"Descartes: imaginaire",link:"solid"},
+        {lon:30.3,yr:1777,place:"St Petersburg",txt:"Euler: the letter i",link:"solid"},
+        {lon:12.6,yr:1799,place:"Copenhagen",txt:"Wessel: numbers as directions",link:"solid"},
+        {lon:2.35,yr:1806,place:"Paris",txt:"Argand: the plane",link:"solid"},
+        {lon:9.9,yr:1831,place:"Göttingen",txt:"Gauss: complex numbers",link:"solid"} ],
+ fourier:[ {lon:29.9,yr:150,c:1,place:"Alexandria",txt:"Ptolemy: epicycles on epicycles"},
+        {lon:7.6,yr:1753,place:"Basel",txt:"D. Bernoulli: strings as sums of sines"},
+        {lon:31.2,yr:1798,place:"Cairo",txt:"Fourier at the Institut d'Égypte"},
+        {lon:5.7,yr:1807,place:"Grenoble",txt:"Fourier's memoir on heat",link:"solid"},
+        {lon:2.35,yr:1822,place:"Paris",txt:"Théorie analytique de la chaleur",link:"solid"},
+        {lon:0.1,yr:1848,place:"Cambridge",txt:"Wilbraham: the overshoot"},
+        {lon:-72.9,yr:1899,place:"New Haven",txt:"Gibbs: the overshoot again",link:"solid"} ],
+ laplace:[ {lon:13.4,yr:1763,c:1,place:"Berlin",txt:"Euler: integrals against exponentials"},
+        {lon:2.35,yr:1812,place:"Paris",txt:"Laplace: Théorie analytique des probabilités",link:"solid"},
+        {lon:-3.6,yr:1893,c:1,place:"Devon",txt:"Heaviside: operational calculus"},
+        {lon:0.1,yr:1916,place:"Cambridge",txt:"Bromwich: the contour integral",link:"solid"},
+        {lon:7.85,yr:1937,place:"Freiburg",txt:"Doetsch: the modern theory",link:"solid"} ],
+ series:[ {lon:85.1,yr:499,place:"Pataliputra",txt:"Āryabhaṭa: jyā, the half-chord"},
+        {lon:44.4,yr:830,c:1,place:"Baghdad",txt:"jība",link:"solid"},
+        {lon:-4.1,yr:1145,place:"Segovia",txt:"Robert of Chester: sinus",link:"solid"},
+        {lon:4.5,yr:1637,place:"Leiden",txt:"Descartes: raised exponents"},
+        {lon:0.1,yr:1714,place:"Cambridge",txt:"Cotes: ix = ln(cos x + i sin x)",link:"solid"},
+        {lon:6.6,yr:1748,place:"Lausanne",txt:"Euler: e^(ix) = cos x + i sin x",link:"solid"},
+        {lon:4.4,yr:1813,place:"Nîmes",txt:"Français: e^(π√−1) = −1, in Gergonne's Annales",link:"solid"},
+        {lon:7.7,yr:1831,place:"Turin",txt:"Cauchy: e^(π√−1) = −1",link:"solid"} ]
+};
+// a chapter whose plate shows history, and whose tap shows the mathematics (or the reverse)
+function symbolArt(evKey, math, mathFirst){
+  return { init(s,W,H){ s.view=mathFirst?1:0; s.vt=0; math.init&&math.init(s,W,H); },
+    tap(s,x,y,W,H){ s.view=1-s.view; s.t=0; math.init&&math.init(s,W,H); },
+    draw(ctx,W,H,s,dt){ if(s.view===0) history(ctx,W,H,s,EV[evKey]); else math.draw(ctx,W,H,s,dt);
+      label(ctx, s.view===0?"tap: the mathematics":"tap: the history", W*0.96, H*0.97, "right"); } };
+}
+
+const ARTS={};
+
+/* I. the helix */
+const HELIX = {
+  draw(ctx,W,H,s){
+    const sc=Math.min(W*0.3,H*0.3), cx=W/2, cy=H*0.52, rot=0.9+s.t*0.00018, P=camera(W,H,cx,cy,sc,rot,0.42), T=4*Math.PI, zt=t=>-1.1+2.2*t/T;
+    // floor circle, axis
+    ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.strokeStyle=PAL.muted; ctx.beginPath(); for(let i=0;i<=90;i++){ const a=TAU*i/90, p=P(Math.cos(a),Math.sin(a),-1.3); i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]); } ctx.stroke(); ctx.setLineDash([]);
+    let a0=P(0,0,-1.3), a1=P(0,0,1.25); ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.moveTo(a0[0],a0[1]); ctx.lineTo(a1[0],a1[1]); ctx.stroke();
+    const re0=P(-1.25,0,-1.3), re1=P(1.25,0,-1.3); ctx.beginPath(); ctx.moveTo(re0[0],re0[1]); ctx.lineTo(re1[0],re1[1]); ctx.stroke(); label(ctx,"real",re1[0]+4,re1[1],"left");
+    const im0=P(0,-1.25,-1.3), im1=P(0,1.25,-1.3); ctx.beginPath(); ctx.moveTo(im0[0],im0[1]); ctx.lineTo(im1[0],im1[1]); ctx.stroke(); label(ctx,"imaginary",im1[0]+4,im1[1],"left");
+    // the helix, back to front
+    for(let i=0;i<400;i++){ const t0=T*i/400, t1=T*(i+1)/400, p=P(Math.cos(t0),Math.sin(t0),zt(t0)), q=P(Math.cos(t1),Math.sin(t1),zt(t1));
+      ctx.strokeStyle=PAL.s; ctx.globalAlpha=0.3+0.7*p[2]; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+    ctx.globalAlpha=1;
+    const tm=(s.t*0.0009)%T, m=P(Math.cos(tm),Math.sin(tm),zt(tm)), f=P(Math.cos(tm),Math.sin(tm),-1.3);
+    ctx.setLineDash([2,3]); ctx.strokeStyle=PAL.muted; ctx.beginPath(); ctx.moveTo(m[0],m[1]); ctx.lineTo(f[0],f[1]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(m[0],m[1],5,0,TAU); ctx.fill(); ctx.fillStyle=PAL.muted; ctx.beginPath(); ctx.arc(f[0],f[1],3,0,TAU); ctx.fill();
+    for(const [t,txt] of [[0,"1"],[Math.PI,"e^(iπ) = −1"],[2*Math.PI,"e^(2πi) = 1"]]){ const p=P(Math.cos(t),Math.sin(t),zt(t)); ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(p[0],p[1],3.5,0,TAU); ctx.fill(); label(ctx,txt,p[0]+9,p[1],"left",PAL.ink); }
+    label(ctx,`t = ${tm.toFixed(2)}`,W*0.04,H*0.04);
+  } };
+ARTS.helix = { init(){}, draw:HELIX.draw };
+
+/* II. zero: a debt and an equal fortune */
+const ZEROM = { draw(ctx,W,H,s){
+  const sc=W*0.13, cx=W/2, cy=H*0.5, X=x=>cx+x*sc, ph=(s.t/1000)%7;
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(-3.3),cy); ctx.lineTo(X(3.3),cy); ctx.stroke();
+  for(let k=-3;k<=3;k++){ ctx.beginPath(); ctx.moveTo(X(k),cy-5); ctx.lineTo(X(k),cy+5); ctx.stroke(); label(ctx,String(k).replace("-","−"),X(k),cy+18,"center"); }
+  label(ctx,"debts",X(-2.2),cy-34,"center"); label(ctx,"fortunes",X(2.2),cy-34,"center");
+  if(ph>0.5){ const f=Math.min(1,(ph-0.5)/1.2); arrow(ctx,X(0),cy-60,X(-f),cy-60,PAL.s,2.2); label(ctx,"a debt of one: e^(iπ)",X(-0.5),cy-80,"center",PAL.s); }
+  if(ph>2.2){ const f=Math.min(1,(ph-2.2)/1.2); arrow(ctx,X(-1),cy-100,X(-1+f),cy-100,PAL.u,2.2); label(ctx,"a fortune of one: + 1",X(-0.5),cy-120,"center",PAL.u); }
+  if(ph>3.6){ ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X(0),cy,14,0,TAU); ctx.stroke(); textAt(ctx,"0",X(0),cy+56,26,PAL.ink); }
+  // the gap from zero on a logarithmic ruler: ln|gap| runs off to −∞ as the gap closes
+  const gap=ph<2.2?1:Math.max(0,1-(ph-2.2)/1.2), lg=gap>0?Math.log(gap):-Infinity, rl=W*0.12, rr=W*0.88, ry=H*0.7, RX=v=>rl+(rr-rl)*(-v)/8;
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(rl,ry); ctx.lineTo(rr,ry); ctx.stroke();
+  for(let v=0;v>=-8;v-=2){ ctx.beginPath(); ctx.moveTo(RX(v),ry-4); ctx.lineTo(RX(v),ry+4); ctx.stroke(); label(ctx,v===0?"0":String(v).replace("-","−"),RX(v),ry+14,"center"); }
+  ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(isFinite(lg)?RX(Math.max(-8,lg)):rr+10,ry,4.5,0,TAU); ctx.fill();
+  label(ctx,isFinite(lg)&&lg>-8?`ln|gap| = ${lg.toFixed(2)}`:"ln|gap| → −∞",rr,ry-14,"right",PAL.u);
+  ctx.font=`300 ${Math.max(10,Math.min(12,W*0.024))}px ${MONO}`; ctx.fillStyle=PAL.muted; ctx.textAlign="left";
+  wrap(ctx,"Brahmagupta, 628: the sum of a fortune and a debt is their difference; if they are equal, it is zero. On a logarithmic ruler, zero is never reached: it is infinitely far down.",W*0.08,H*0.84,W*0.84,16);
+} };
+ARTS.zero = symbolArt("zero", ZEROM);
+
+/* III. one: a ring of ones */
+const ONES=[["Babylon","wedge"],["Egypt","|"],["Brahmi","bar"],["China","一"],["Rome","I"],["Maya","dot"],["Greek","α"],["Arabic","١"],["Europe","1"]];
+const ONEM = { draw(ctx,W,H,s){
+  const cx=W/2, cy=H*0.48, R=Math.min(W,H)*0.17, b=0.1, rot=s.t*0.00012, sp=th=>R*Math.exp(b*th);   // r = R e^(bθ): a logarithmic spiral
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); for(let i=0;i<=300;i++){ const th=-1+ (TAU*1.15+1)*i/300, r=sp(th); i?ctx.lineTo(cx+r*Math.cos(th+rot-Math.PI/2),cy+r*Math.sin(th+rot-Math.PI/2)):ctx.moveTo(cx+r*Math.cos(th+rot-Math.PI/2),cy+r*Math.sin(th+rot-Math.PI/2)); } ctx.stroke();
+  ONES.forEach(([who,g],k)=>{ const th=TAU*1.08*k/ONES.length, r=sp(th), a=rot+th-Math.PI/2, x=cx+r*Math.cos(a), y=cy+r*Math.sin(a), sz=Math.min(W,H)*0.062;
+    ctx.fillStyle=PAL.paper; ctx.beginPath(); ctx.arc(x,y,sz*0.75,0,TAU); ctx.fill(); ctx.strokeStyle=PAL.rule; ctx.stroke();
+    ctx.fillStyle=PAL.ink; ctx.strokeStyle=PAL.ink;
+    if(g==="wedge"){ ctx.beginPath(); ctx.moveTo(x-sz*0.22,y-sz*0.4); ctx.lineTo(x+sz*0.22,y-sz*0.4); ctx.lineTo(x,y-sz*0.12); ctx.closePath(); ctx.fill(); ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,y-sz*0.15); ctx.lineTo(x,y+sz*0.4); ctx.stroke(); }
+    else if(g==="bar"){ ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(x-sz*0.3,y); ctx.lineTo(x+sz*0.3,y); ctx.stroke(); }
+    else if(g==="dot"){ ctx.beginPath(); ctx.arc(x,y,sz*0.13,0,TAU); ctx.fill(); }
+    else if(g==="|"){ ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(x,y-sz*0.35); ctx.lineTo(x,y+sz*0.35); ctx.stroke(); }
+    else textAt(ctx,g,x,y,sz*0.8,PAL.ink,"center",g==="α");
+    label(ctx,who,x,y+sz*1.05,"center"); });
+  textAt(ctx,"1",cx,cy,Math.min(W,H)*0.11,PAL.ink,"center",true);
+  label(ctx,"log 1 = 0. In log coordinates this spiral is a straight line.",W/2,H*0.95,"center");
+} };
+ARTS.one = symbolArt("one", ONEM);
+
+/* IV. plus: two arrows end to end */
+const PLUSM = { draw(ctx,W,H,s){
+  const sc=Math.min(W,H)*0.2, cx=W*0.36, cy=H*0.5, pl=plane(W,H,cx,cy,sc,[-1.4,2.4],[-1.3,1.3]); pl.axes(ctx);
+  const th=(s.t*0.0006)%TAU, ex=Math.cos(th), ey=Math.sin(th);
+  ctx.strokeStyle=PAL.rule; ctx.setLineDash([3,4]); ctx.beginPath(); ctx.arc(pl.X(1),pl.Y(0),sc,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+  arrow(ctx,pl.X(0),pl.Y(0),pl.X(ex),pl.Y(ey),PAL.s,2.4); label(ctx,"e^(iθ)",pl.X(ex*0.55)+8,pl.Y(ey*0.55),"left",PAL.s);
+  arrow(ctx,pl.X(ex),pl.Y(ey),pl.X(ex+1),pl.Y(ey),PAL.u,2.4); label(ctx,"+ 1",pl.X(ex+0.5),pl.Y(ey)-12,"center",PAL.u);
+  ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(pl.X(ex+1),pl.Y(ey),4,0,TAU); ctx.fill();
+  const near=Math.abs(th-Math.PI)<0.12; if(near){ ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(pl.X(0),pl.Y(0),12,0,TAU); ctx.stroke(); label(ctx,"1 + e^(iπ) = 0",pl.X(0),pl.Y(0)+28,"center",PAL.ink); }
+  label(ctx,`θ = ${th.toFixed(2)}   sum = ${(ex+1).toFixed(2)} ${ey<0?"−":"+"} ${Math.abs(ey).toFixed(2)}i`,W*0.04,H*0.04);
+  const L=W*0.68, R=W*0.95, T=H*0.3, B=H*0.72, Xg=t=>L+(R-L)*t/TAU, Yg=v=>T+(B-T)*(Math.log(2)-v)/(Math.log(2)+5);
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+  ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.6; ctx.beginPath(); let on=false; for(let i=0;i<=240;i++){ const t=TAU*i/240, v=Math.log(Math.max(1e-9,2*Math.abs(Math.cos(t/2)))); if(v<-5){ on=false; continue; } on?ctx.lineTo(Xg(t),Yg(v)):ctx.moveTo(Xg(t),Yg(v)); on=true; } ctx.stroke();
+  const v=Math.log(Math.max(1e-9,2*Math.abs(Math.cos(th/2)))); if(v>-5){ ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(Xg(th),Yg(v),4,0,TAU); ctx.fill(); }
+  label(ctx,"ln|sum|",L,T-12,"left"); label(ctx,"−∞ at π",Xg(Math.PI),B+14,"center");
+} };
+ARTS.plus = symbolArt("plus", PLUSM);
+
+/* V. equals: Recorde's lines, and the gap that closes once a turn */
+const EQM = { draw(ctx,W,H,s){
+  const w=W*0.62, x0=(W-w)/2, y0=H*0.16; ctx.strokeStyle=PAL.ink; ctx.lineCap="round"; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0+w,y0); ctx.moveTo(x0,y0+18); ctx.lineTo(x0+w,y0+18); ctx.stroke(); ctx.lineCap="butt";
+  ctx.font=`italic 400 ${Math.max(12,Math.min(16,W*0.03))}px "STIX Two Text", Georgia, serif`; ctx.fillStyle=PAL.muted; ctx.textAlign="center"; ctx.fillText("“bicause noe .2. thynges, can be moare equalle.”  Recorde, 1557",W/2,y0+48);
+  const L=W*0.14, R=W*0.92, B=H*0.86, T=H*0.42, X=t=>L+(R-L)*t/TAU, lo=-7, Y=v=>T+(B-T)*(Math.log(2)-v)/(Math.log(2)-lo);
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+  ctx.strokeStyle=PAL.s; ctx.lineWidth=2.2; ctx.beginPath(); let on=false; for(let i=0;i<=400;i++){ const t=TAU*i/400, v=Math.log(Math.max(1e-12,2*Math.abs(Math.cos(t/2)))); if(v<lo){ on=false; continue; } on?ctx.lineTo(X(t),Y(v)):ctx.moveTo(X(t),Y(v)); on=true; } ctx.stroke();
+  const t=(s.t*0.0008)%TAU, v=Math.log(Math.max(1e-12,2*Math.abs(Math.cos(t/2)))); if(v>=lo){ ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(X(t),Y(v),5,0,TAU); ctx.fill(); }
+  ctx.strokeStyle=PAL.ink; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(X(Math.PI),T); ctx.lineTo(X(Math.PI),B); ctx.stroke(); ctx.setLineDash([]);
+  label(ctx,"t = π: ln|e^(iπ) + 1| = −∞, the sides are equal",X(Math.PI),B+16,"center",PAL.ink);
+  label(ctx,"ln|e^(it) + 1|",L-6,T-12,"left"); label(ctx,"ln 2",L-6,Y(Math.log(2)),"right"); label(ctx,"−7",L-6,B,"right"); label(ctx,"2π",R,B+16,"right");
+} };
+ARTS.equals = symbolArt("equals", EQM);
+
+/* VI. pi: Archimedes' polygons */
+const PIM = { draw(ctx,W,H,s){
+  const ns=[6,12,24,48,96], k=Math.floor(s.t/2200)%ns.length, n=ns[k], R=Math.min(W,H)*0.3, cx=W/2, cy=H*0.43;
+  ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+  const poly=(r,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=1.4; ctx.beginPath(); for(let i=0;i<=n;i++){ const a=TAU*i/n-Math.PI/2; i?ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)); } ctx.stroke(); };
+  poly(R,PAL.s); poly(R/Math.cos(Math.PI/n),PAL.u);
+  const lo=n*Math.sin(Math.PI/n), hi=n*Math.tan(Math.PI/n);
+  textAt(ctx,`${lo.toFixed(5)}  <  π  <  ${hi.toFixed(5)}`,cx,H*0.8,Math.max(14,Math.min(20,W*0.034)),PAL.ink,"center",true);
+  label(ctx,`${n} sides: inscribed (blue) and circumscribed (red) half-perimeters`,cx,H*0.86,"center");
+  label(ctx,"Archimedes at 96: 223/71 < π < 22/7   ·   Zu Chongzhi: 355/113 = 3.1415929…",cx,H*0.92,"center");
+  // inset, log–log: polygon gap falls like 1/n², Madhava's sum like 1/k
+  { const L=W*0.74, R=W*0.97, T=H*0.05, B=H*0.33, lx=v=>L+(R-L)*(Math.log10(v)-0.5)/2.6, ly=v=>T+(B-T)*(-Math.log10(v))/6;
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+  ctx.fillStyle=PAL.ink; ns.forEach((m,j)=>{ const g=m*Math.tan(Math.PI/m)-m*Math.sin(Math.PI/m); ctx.globalAlpha=j<=k?1:0.25; ctx.beginPath(); ctx.arc(lx(m),ly(g),3,0,TAU); ctx.fill(); }); ctx.globalAlpha=1;
+  ctx.strokeStyle=PAL.muted; ctx.beginPath(); for(let q=4;q<=1000;q*=1.2){ let sm=0; for(let j=0;j<Math.round(q);j++) sm+=(j%2?-1:1)/(2*j+1); const err=Math.abs(4*sm-Math.PI); q===4?ctx.moveTo(lx(q),ly(err)):ctx.lineTo(lx(q),ly(err)); } ctx.stroke();
+  label(ctx,"error, log–log",L,T-2,"left"); label(ctx,"dots: polygons, slope −2",L,B+12,"left"); label(ctx,"line: Madhava, slope −1",L,B+26,"left"); }
+} };
+ARTS.pi = symbolArt("pi", PIM);
+
+/* VII. e: compounding */
+const EM = { draw(ctx,W,H,s){
+  const steps=[[1,"yearly"],[2,"twice"],[4,"quarterly"],[12,"monthly"],[52,"weekly"],[365,"daily"],[8760,"hourly"]], k=Math.min(steps.length,1+Math.floor(s.t/1100));
+  const L=W*0.1, R=W*0.92, B=H*0.74, T=H*0.16, Y=v=>B-(B-T)*(v-1)/1.9, XN=n=>L+(R-L)*(0.03+0.94*Math.log10(n)/4);
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+  for(let d=0;d<=4;d++){ const x=XN(10**d); ctx.beginPath(); ctx.moveTo(x,B); ctx.lineTo(x,B+5); ctx.stroke(); label(ctx,d?`10${"¹²³⁴"[d-1]}`:"1",x,B+14,"center"); }
+  ctx.setLineDash([4,4]); ctx.strokeStyle=PAL.u; ctx.beginPath(); ctx.moveTo(L,Y(Math.E)); ctx.lineTo(R,Y(Math.E)); ctx.stroke(); ctx.setLineDash([]); label(ctx,"e = 2.71828…",R,Y(Math.E)-12,"right",PAL.u);
+  ctx.strokeStyle=PAL.s; ctx.lineWidth=1.4; ctx.beginPath(); for(let i=0;i<=200;i++){ const n=10**(4*i/200), x=XN(n), y=Y(Math.pow(1+1/n,n)); i?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.globalAlpha=0.35; ctx.stroke(); ctx.globalAlpha=1;
+  for(let i=0;i<k;i++){ const [n,name]=steps[i], v=Math.pow(1+1/n,n), x=XN(n);
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,B); ctx.lineTo(x,Y(v)); ctx.stroke(); ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(x,Y(v),4,0,TAU); ctx.fill();
+    ctx.save(); ctx.translate(x+4,Y(v)-10); ctx.rotate(-Math.PI/4); label(ctx,`${name} ${v.toFixed(5)}`,0,0,"left",PAL.ink); ctx.restore(); }
+  label(ctx,"n, times compounded per year (log scale)",W/2,B+32,"center");
+  label(ctx,"one unit at 100% for a year: (1 + 1/n)ⁿ",W/2,H*0.92,"center");
+  if(s.t>12000) s.t=0;
+} };
+ARTS.e = symbolArt("e", EM);
+
+/* VIII. i: a quarter turn, four times */
+const IM = { draw(ctx,W,H,s){
+  const sc=Math.min(W,H)*0.25, cx=W*0.4, cy=H*0.45, pl=plane(W,H,cx,cy,sc,[-1.4,1.4],[-1.4,1.4]); pl.axes(ctx);
+  ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.arc(cx,cy,sc,0,TAU); ctx.stroke();
+  const per=1600, k=Math.floor(s.t/per)%4, f=Math.min(1,(s.t%per)/(per*0.6)), a0=k*Math.PI/2, a=a0+f*Math.PI/2, names=["1","i","−1","−i"];
+  ctx.strokeStyle=PAL.u; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,sc*0.32,-a0,-a,true); ctx.stroke();
+  arrow(ctx,cx,cy,pl.X(Math.cos(a)),pl.Y(Math.sin(a)),PAL.s,2.4);
+  names.forEach((nm,j)=>{ const b=j*Math.PI/2, x=pl.X(Math.cos(b)*1.18), y=pl.Y(Math.sin(b)*1.18); textAt(ctx,nm,x,y,18,j===((f>=1?k+1:k)%4)?PAL.ink:PAL.muted,"center",true); });
+  label(ctx,"× i",cx+sc*0.4,cy-sc*0.4,"left",PAL.u);
+  // the same four multiplications, after the logarithm: log i = iπ/2, so each one is a step up
+  const lx=W*0.86, lb=H*0.72, lt=H*0.1, LY=v=>lb-(lb-lt)*v/(2*Math.PI);
+  ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(lx,lb); ctx.lineTo(lx,lt); ctx.stroke();
+  ["0","iπ/2","iπ","3iπ/2","2iπ"].forEach((t,j)=>{ const y=LY(j*Math.PI/2); ctx.beginPath(); ctx.moveTo(lx-4,y); ctx.lineTo(lx+4,y); ctx.stroke(); label(ctx,t,lx+8,y,"left"); });
+  const lv=(k+f)*Math.PI/2; ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(lx,LY(lv),5,0,TAU); ctx.fill(); label(ctx,"log",lx,lt-12,"center");
+  textAt(ctx,"i² = −1: two quarter turns face backward",cx,H*0.83,Math.max(13,Math.min(17,W*0.03)),PAL.ink,"center",true);
+  label(ctx,"Bombelli, 1572: ∛(2 + √−121) + ∛(2 − √−121) = (2 + i) + (2 − i) = 4",W/2,H*0.9,"center");
+} };
+ARTS.iunit = symbolArt("i", IM);
+
+/* IX. the series for e^(iπ), spiralling into −1 */
+const SERIES = { draw(ctx,W,H,s){
+  const N=Math.min(22,1+Math.floor(s.t/700)); if(s.t>22*700+4000) s.t=0;
+  const sc=Math.min(W/6.2,H/6.6), cx=W*0.58, cy=H*0.42, pl=plane(W,H,cx,cy,sc,[-4.5,1.6],[-2.5,3.6]); pl.axes(ctx);
+  ctx.strokeStyle=PAL.rule; ctx.setLineDash([3,4]); ctx.beginPath(); ctx.arc(cx,cy,sc,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+  let re=0, im=0, tr=1, ti=0; // term (iπ)^n/n!
+  for(let n=0;n<N;n++){ const nr=re+tr, ni=im+ti; arrow(ctx,pl.X(re),pl.Y(im),pl.X(nr),pl.Y(ni),n%2?PAL.s:PAL.u,1.8);
+    re=nr; im=ni; const r2=-ti*Math.PI/(n+1), i2=tr*Math.PI/(n+1); tr=r2; ti=i2; }
+  ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(pl.X(-1),pl.Y(0),4,0,TAU); ctx.fill(); label(ctx,"−1",pl.X(-1),pl.Y(0)+16,"center",PAL.ink);
+  label(ctx,`${N} terms: ${re.toFixed(5)} ${im<0?"−":"+"} ${Math.abs(im).toFixed(5)}i`,W*0.04,H*0.04);
+  { let r2=0,i2=0,a=1,b=0; const L=W*0.06, R=W*0.34, T=H*0.12, B=H*0.34, Y=v=>T+(B-T)*(1-v)/13, bw=(R-L)/22*0.7;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+    for(let n=0;n<N;n++){ r2+=a; i2+=b; const na=-b*Math.PI/(n+1), nb=a*Math.PI/(n+1); a=na; b=nb; const err=Math.max(1e-12,Math.hypot(r2+1,i2)), v=Math.log10(err);
+      ctx.fillStyle=PAL.s; const x=L+(R-L)*(n+0.5)/22; ctx.fillRect(x-bw/2,Math.min(Y(v),B),bw,Math.abs(B-Y(Math.max(v,-12)))); }
+    label(ctx,"log₁₀ |error|",L,T-10,"left"); label(ctx,"−12",L-4,B,"right"); }
+  textAt(ctx,"e^(iπ) = 1 + iπ + (iπ)²/2! + (iπ)³/3! + …",W/2,H*0.9,Math.max(13,Math.min(18,W*0.03)),PAL.ink,"center",true);
+} };
+ARTS.series = symbolArt("series", SERIES, true);
+
+/* X. two of them */
+ARTS.double = {
+  init(s){ s.mode=0; }, tap(s){ s.mode=1-s.mode; },
+  draw(ctx,W,H,s){
+    const sc=Math.min(W*0.28,H*0.27), cx=W/2, cy=H*0.5, P=camera(W,H,cx,cy,sc,0.6+s.t*0.0002,0.35), T=4*Math.PI, zt=t=>-1.2+2.4*t/T;
+    const A=t=>[Math.cos(t),Math.sin(t)], B=s.mode? t=>[Math.cos(t),-Math.sin(t)] : t=>[-Math.cos(t),-Math.sin(t)];
+    const a0=P(0,0,-1.3), a1=P(0,0,1.3); ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(a0[0],a0[1]); ctx.lineTo(a1[0],a1[1]); ctx.stroke();
+    for(let k=0;k<=16;k++){ const t=T*k/16, a=A(t), b=B(t), p=P(a[0],a[1],zt(t)), q=P(b[0],b[1],zt(t)), mid=P((a[0]+b[0])/2,(a[1]+b[1])/2,zt(t));
+      ctx.globalAlpha=0.25+0.5*(p[2]+q[2])/2; ctx.strokeStyle=k===0&&!s.mode?PAL.ink:PAL.muted; ctx.lineWidth=k===0&&!s.mode?2.6:1.2; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke();
+      ctx.globalAlpha=1; ctx.fillStyle=PAL.ink; ctx.beginPath(); ctx.arc(mid[0],mid[1],2.2,0,TAU); ctx.fill(); }
+    for(const [F,col] of [[A,PAL.u],[B,PAL.s]]) for(let i=0;i<300;i++){ const t0=T*i/300, t1=T*(i+1)/300, a=F(t0), b=F(t1), p=P(a[0],a[1],zt(t0)), q=P(b[0],b[1],zt(t1));
+      ctx.strokeStyle=col; ctx.globalAlpha=0.3+0.7*p[2]; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+    ctx.globalAlpha=1;
+    if(!s.mode){ const p=P(1,0,zt(0)), q=P(-1,0,zt(0)); label(ctx,"1",p[0]+8,p[1],"left",PAL.u); label(ctx,"e^(iπ)",q[0]-8,q[1],"right",PAL.s); label(ctx,"e^(iπ) + 1 = 0: every rung's midpoint is 0",W/2,H*0.95,"center",PAL.ink); }
+    else label(ctx,"e^(it) and e^(−it): every rung's midpoint is cos t",W/2,H*0.95,"center",PAL.ink);
+    label(ctx,s.mode?"opposite hands":"half a turn apart",W*0.04,H*0.04);
+    { const L=W*0.82, sp=W*0.06, T=H*0.12, B=H*0.42; ctx.lineWidth=2;
+      ctx.strokeStyle=PAL.u; ctx.beginPath(); ctx.moveTo(L,B); ctx.lineTo(L,T); ctx.stroke();
+      ctx.strokeStyle=PAL.s; ctx.beginPath(); if(s.mode){ ctx.moveTo(L+sp,T); ctx.lineTo(L+sp,B); } else { ctx.moveTo(L+sp,B); ctx.lineTo(L+sp,T); } ctx.stroke();
+      label(ctx,"log",L+sp/2,T-12,"center"); label(ctx,s.mode?"it and −it":"it and it + iπ",L+sp/2,B+14,"center"); }
+  } };
+
+/* XI. wheel of fortune */
+const CULT=[
+ ["babylon","Babylon","a sign for an empty place; π ≈ 3⅛; the base-60 degree"],
+ ["egypt","Egypt","π ≈ 256/81 in the Rhind papyrus; walking legs for adding and taking away"],
+ ["greece","Greece","Archimedes' bounds on π; the letter π itself"],
+ ["china","China","Liu Hui's and Zu Chongzhi's π; red and black counting rods for positive and negative"],
+ ["india","India","zero as a number; the digits; the half-chord that became the sine; Madhava's series for π"],
+ ["maya","Maya","a zero of their own, in the count of days"],
+ ["islam","Islamic world","al-Khwārizmī's Hindu reckoning; ṣifr, the source of the words zero and cipher; al-Kāshī's π"],
+ ["italy","Italy","Fibonacci's digits for merchants; Cardano's and Bombelli's square roots of negatives"],
+ ["german","German lands","the printed + (Widmann, 1489); Gauss's plane of complex numbers"],
+ ["wales","Wales","Recorde's = (1557); Jones's π (1706)"],
+ ["france","France","raised exponents and the word imaginary (Descartes); the first clear statement of e^(iπ) = −1 (Français, 1813)"],
+ ["swiss","Switzerland","Bernoulli's compound interest; Euler's e, his i, and e^(ix) = cos x + i sin x"]];
+const MET={
+ "babylon|greece":"Greek astronomers took over Babylonian base-60 arithmetic; Ptolemy's Almagest marks an empty place with a small circle.",
+ "egypt|greece":"Greek mathematics flourished in Alexandria, in Egypt; Euclid worked there.",
+ "greece|india":"Greek astronomy reached India in the first centuries CE; the Indian sine grew out of the Greek table of chords.",
+ "greece|islam":"Baghdad's translators put Euclid and Ptolemy into Arabic in the 8th and 9th centuries.",
+ "india|islam":"An Indian astronomical text reached the Abbasid court in the 770s and was translated as the Sindhind; al-Khwārizmī wrote on Hindu reckoning around 825.",
+ "china|india":"Gautama Siddha, a Tang astronomer of Indian descent, described Indian numerals with a dot for zero in 718.",
+ "china|islam":"Jamāl al-Dīn brought Persian astronomical instruments to Kublai Khan's court in 1267.",
+ "islam|italy":"Fibonacci learned Hindu–Arabic reckoning as a boy in Béjaïa, North Africa, before writing Liber Abaci in 1202.",
+ "german|italy":"Cardano's Ars Magna was printed in Nuremberg in 1545.",
+ "german|wales":"Recorde took + and − from German arithmetic books and was the first to print them in English.",
+ "swiss|wales":"Euler adopted William Jones's π, and his books made it standard.",
+ "france|swiss":"Euler's work was read and extended in France; Cauchy wrote e^(π√−1) = −1 explicitly in 1831–32.",
+ "france|italy":"Descartes' algebra built on the Italian solution of the cubic; Bombelli's roots of negatives became Descartes' imaginaires.",
+ "france|german":"Gauss in Göttingen and Cauchy in Paris made complex numbers a working part of mathematics in the same decades.",
+ "german|swiss":"Euler spent 25 years at the Berlin Academy, from 1741 to 1766.",
+ "babylon|india":"Some historians think the place-value zero reached India from Babylon by way of Greek astronomy; the evidence is debated.",
+ "babylon|egypt":"Their courts exchanged letters in the 14th century BCE, the Amarna letters, in Akkadian cuneiform; no mathematical exchange is documented.",
+ "babylon|islam":"Islamic astronomers inherited base-60 arithmetic through Greek and Persian astronomy; degrees, minutes and seconds came down through them."};
+function metText(a,b){ if(a==="maya"||b==="maya") return "They never met: the Maya had no contact with Afro-Eurasia before 1492, so their zero is a separate invention.";
+  return MET[[a,b].sort().join("|")] || "No direct line between these two is documented. They meet only in this equation."; }
+ARTS.wheel = {
+  init(s){ s.th=-Math.PI/2-TAU/24; s.spin=null; s.picks=[]; s.msg="tap to spin"; },
+  tap(s){ if(s.spin) return; if(s.picks.length>=2){ s.picks=[]; }
+    s.spin={t0:s.t, th0:s.th, w0:7+Math.random()*7, tau:1.1}; s.msg=""; },
+  draw(ctx,W,H,s){
+    const n=CULT.length, seg=TAU/n;
+    if(s.spin){ const t=(s.t-s.spin.t0)/1000; s.th=s.spin.th0+s.spin.w0*s.spin.tau*(1-Math.exp(-t/s.spin.tau));
+      if(t>5*s.spin.tau){ let a=(-Math.PI/2-s.th)%TAU; if(a<0) a+=TAU; const idx=Math.floor(a/seg)%n; s.spin=null;
+        if(s.picks.length===1 && s.picks[0]===idx){ s.msg="the same tradition twice: tap to spin again"; }
+        else { s.picks.push(idx); s.msg=s.picks.length===1?"tap to spin again":"tap to start over"; } } }
+    const big=s.picks.length<2, R=big?Math.min(W,H)*0.34:Math.min(W,H)*0.2, cx=big?W/2:W*0.26, cy=big?H*0.46:H*0.25;
+    for(let k=0;k<n;k++){ const a0=s.th+k*seg, a1=a0+seg, picked=s.picks.indexOf(k);
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a0,a1); ctx.closePath();
+      ctx.fillStyle=picked===0?PAL.u:picked===1?PAL.s:(k%2?PAL.wash:PAL.paper); ctx.globalAlpha=picked>=0?0.55:1; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.stroke();
+      const am=(a0+a1)/2; ctx.save(); ctx.translate(cx+Math.cos(am)*R*0.6,cy+Math.sin(am)*R*0.6); ctx.rotate(am+(Math.cos(am)<0?Math.PI:0));
+      ctx.font=`300 ${Math.max(9,Math.min(12,R*0.075))}px ${MONO}`; ctx.fillStyle=PAL.ink; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(CULT[k][1],0,0); ctx.restore(); }
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,4,0,TAU); ctx.fillStyle=PAL.ink; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy-R-2); ctx.lineTo(cx-8,cy-R-16); ctx.lineTo(cx+8,cy-R-16); ctx.closePath(); ctx.fill();
+    if(s.picks.length===2){
+      const [ka,kb]=s.picks.map(i=>CULT[i]), sc=Math.min(W*0.13,H*0.2), hx=W*0.7, P=camera(W,H,hx,H*0.26,sc,0.6+s.t*0.0003,0.35), T=4*Math.PI, zt=t=>-1.05+2.1*t/T;
+      for(let k=0;k<=12;k++){ const t=T*k/12, p=P(Math.cos(t),Math.sin(t),zt(t)), q=P(-Math.cos(t),-Math.sin(t),zt(t)); ctx.strokeStyle=PAL.muted; ctx.lineWidth=1; ctx.globalAlpha=0.5; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+      for(const [sg,col] of [[1,PAL.u],[-1,PAL.s]]) for(let i=0;i<200;i++){ const t0=T*i/200, t1=T*(i+1)/200, p=P(sg*Math.cos(t0),sg*Math.sin(t0),zt(t0)), q=P(sg*Math.cos(t1),sg*Math.sin(t1),zt(t1));
+        ctx.strokeStyle=col; ctx.globalAlpha=0.3+0.7*p[2]; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+      ctx.globalAlpha=1; const top1=P(Math.cos(T),Math.sin(T),zt(T)), top2=P(-Math.cos(T),-Math.sin(T),zt(T));
+      label(ctx,ka[1],top1[0],top1[1]-14,"center",PAL.u); label(ctx,kb[1],top2[0],top2[1]-14,"center",PAL.s);
+      const fs=Math.max(10,Math.min(12.5,W*0.024)); ctx.font=`300 ${fs}px ${MONO}`; ctx.textAlign="left"; ctx.textBaseline="alphabetic"; let y=H*0.56;
+      ctx.fillStyle=PAL.u; y=wrap(ctx,`${ka[1]}: ${ka[2]}.`,W*0.06,y,W*0.88,fs*1.55)+fs*0.6;
+      ctx.fillStyle=PAL.s; y=wrap(ctx,`${kb[1]}: ${kb[2]}.`,W*0.06,y,W*0.88,fs*1.55)+fs*0.6;
+      ctx.fillStyle=PAL.ink; wrap(ctx,`Did they meet? ${metText(ka[0],kb[0])}`,W*0.06,y,W*0.88,fs*1.55);
+    }
+    if(s.picks.length===1){ label(ctx,`first: ${CULT[s.picks[0]][1]}`,W/2,H*0.88,"center",PAL.u); }
+    if(s.msg) label(ctx,s.msg,W/2,H*0.95,"center",PAL.ink);
+    // the spin on a log axis: ω = ω₀ e^(−t/τ), so ln ω falls in a straight line
+    if(s.spin) s.last=s.spin;
+    if(s.last && s.picks.length<2){ const sp=s.last, L=W*0.04, R=W*0.2, T=H*0.76, B=H*0.88, tmax=5*sp.tau, X=t=>L+(R-L)*t/tmax, Y=v=>T+(B-T)*(Math.log(14)-v)/(Math.log(14)+3);
+      const now=Math.min(tmax,(s.t-sp.t0)/1000);
+      ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+      ctx.strokeStyle=PAL.u; ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(X(0),Y(Math.log(sp.w0))); ctx.lineTo(X(now),Y(Math.log(sp.w0)-now/sp.tau)); ctx.stroke();
+      label(ctx,"ln ω",L,T-10,"left"); label(ctx,`slope −1/τ, τ = ${sp.tau} s`,L,B+12,"left"); }
+  } };
+
+/* X. circles that add up: a square wave from circles, and its spectrum on log–log axes */
+const FOURIERM = { draw(ctx,W,H,s){
+  const K=1+2*(Math.floor(s.t/1400)%14), sc=Math.min(W*0.12,H*0.15), cx=W*0.2, cy=H*0.4, ph=s.t*0.0011;
+  let x=cx, y=cy; ctx.lineWidth=1;
+  for(let k=1;k<=K;k+=2){ const r=sc*4/(Math.PI*k), nx=x+r*Math.cos(k*ph), ny=y-r*Math.sin(k*ph);
+    ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke();
+    ctx.strokeStyle=k===1?PAL.u:PAL.s; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(nx,ny); ctx.stroke(); ctx.lineWidth=1; x=nx; y=ny; }
+  // the trace: partial sum against time
+  const L=W*0.42, R=W*0.96, X=t=>L+(R-L)*t/(2*TAU), Y=v=>cy-sc*v;
+  ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.moveTo(L,cy); ctx.lineTo(R,cy); ctx.stroke();
+  ctx.setLineDash([3,4]); ctx.strokeStyle=PAL.muted; ctx.beginPath(); for(let i=0;i<=400;i++){ const t=2*TAU*i/400, v=Math.sin(t)>=0?1:-1; i?ctx.lineTo(X(t),Y(v)):ctx.moveTo(X(t),Y(v)); } ctx.stroke(); ctx.setLineDash([]);
+  const sum=t=>{ let v=0; for(let k=1;k<=K;k+=2) v+=4/(Math.PI*k)*Math.sin(k*t); return v; };
+  ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath(); for(let i=0;i<=600;i++){ const t=2*TAU*i/600, v=sum(t-ph); i?ctx.lineTo(X(t),Y(v)):ctx.moveTo(X(t),Y(v)); } ctx.stroke();
+  ctx.setLineDash([2,3]); ctx.strokeStyle=PAL.muted; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(X(0),y); ctx.stroke(); ctx.setLineDash([]);
+  const tip=[x,y];
+  let pk=0; for(let i=1;i<400;i++){ pk=Math.max(pk,sum(Math.PI*i/400)); }
+  label(ctx,`${(K+1)/2} circle${K>1?"s":""}: k = 1, 3, … ${K}   peak ${pk.toFixed(3)} (Gibbs: → 1.179)`,W*0.04,H*0.11);
+  // spectrum, log–log: radius 4/(πk) is a straight line of slope −1
+  const sl=W*0.1, sr=W*0.5, st=H*0.68, sb=H*0.9, LX=k=>sl+(sr-sl)*Math.log10(k)/Math.log10(30), LY=a=>st+(sb-st)*(Math.log10(4/Math.PI)-Math.log10(a))/Math.log10(31);
+  ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.moveTo(sl,st); ctx.lineTo(sl,sb); ctx.lineTo(sr,sb); ctx.stroke();
+  for(let k=1;k<=29;k+=2){ const a=4/(Math.PI*k); ctx.fillStyle=k<=K?PAL.u:PAL.rule; ctx.beginPath(); ctx.arc(LX(k),LY(a),3.2,0,TAU); ctx.fill(); }
+  label(ctx,"log radius",sl,st-12,"left"); label(ctx,"log k →",sr,sb+14,"right"); label(ctx,"slope −1",LX(9)+8,LY(4/(Math.PI*9))-10,"left");
+  ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(tip[0],tip[1],4,0,TAU); ctx.fill();   // the moving tip last, so a pen follows it
+  ctx.fillStyle=PAL.muted; wrap(ctx,"Each circle is e^(ikt). On log–log axes the radii 4/(πk) fall on a line; the overshoot at the jump does not shrink as circles are added.",W*0.56,H*0.74,W*0.4,16);
+} };
+ARTS.fourier = symbolArt("fourier", FOURIERM, true);
+
+/* XI. Laplace: ln|F(s)| over the complex s-plane for a ringing, dying tone */
+const LAPM = {
+  init(s){ s.off=document.createElement("canvas"); s.paint=LAPM.paint; LAPM.paint(s); },
+  paint(s){
+    const sig=s.prm.sig, om=s.prm.om, nx=200, ny=220, o=s.off; o.width=nx; o.height=ny; const g=o.getContext("2d"), im=g.createImageData(nx,ny);
+    const c0=hexRGB(PAL.paper), c1=hexRGB(PAL.s), c2=hexRGB(PAL.u), mix=(a,b,f)=>a.map((v,i)=>v+(b[i]-v)*f);
+    for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const x=-2.5+3.5*i/(nx-1), y=3.5-7*j/(ny-1);
+      // F(s) = (s+σ)/((s+σ)² + ω²)
+      const ar=x+sig, ai=y, dr=ar*ar-ai*ai+om*om, di=2*ar*ai, mag=Math.hypot(ar,ai)/Math.max(1e-9,Math.hypot(dr,di));
+      const v=Math.max(0,Math.min(1,(Math.log(mag)+3)/5)), c=v<0.6?mix(c0,c1,v/0.6):mix(c1,c2,(v-0.6)/0.4), k=4*(j*nx+i);
+      im.data[k]=c[0]; im.data[k+1]=c[1]; im.data[k+2]=c[2]; im.data[k+3]=255; }
+    g.putImageData(im,0,0); },
+  draw(ctx,W,H,s){
+    const sig=s.prm.sig, om=s.prm.om;
+    // the s-plane
+    const pw=Math.min(W*0.46,H*0.82*3.5/7), ph=pw*7/3.5, px=W*0.52, py=(H-ph)/2, SX=x=>px+pw*(x+2.5)/3.5, SY=y=>py+ph*(3.5-y)/7;
+    ctx.imageSmoothingEnabled=true; ctx.drawImage(s.off,px,py,pw,ph);
+    ctx.strokeStyle=PAL.ink; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(SX(0),py); ctx.lineTo(SX(0),py+ph); ctx.moveTo(px,SY(0)); ctx.lineTo(px+pw,SY(0)); ctx.stroke();
+    for(const sg of [1,-1]){ const x=SX(-sig), y=SY(sg*om); ctx.strokeStyle=PAL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x-5,y-5); ctx.lineTo(x+5,y+5); ctx.moveTo(x+5,y-5); ctx.lineTo(x-5,y+5); ctx.stroke(); }
+    ctx.strokeStyle=PAL.ink; ctx.beginPath(); ctx.arc(SX(-sig),SY(0),5,0,TAU); ctx.stroke();
+    label(ctx,`× poles ${(-sig).toFixed(2)} ± ${om.toFixed(2)}i   ○ zero`,px,py+ph+14,"left",PAL.ink); label(ctx,"shade: ln|F(s)|",px+pw+8,py+8,"left");
+    label(ctx,"Re s",px+pw-2,SY(0)+12,"right",PAL.ink); label(ctx,"iω axis = Fourier",SX(0)-6,py+10,"right",PAL.ink);
+    // a probe climbing the imaginary axis reads off the frequency response
+    const wv=3.4*Math.sin(s.t*0.0005), ar=sig, ai=wv, dr=ar*ar-ai*ai+om*om, di=2*ar*ai, mag=Math.hypot(ar,ai)/Math.hypot(dr,di);
+    ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.arc(SX(0),SY(wv),4.5,0,TAU); ctx.fill();
+    // the signal in time, with its envelope on a log axis beneath
+    const L=W*0.05, R=W*0.46, cy=H*0.3, A=H*0.17, X=t=>L+(R-L)*t/12;
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,cy); ctx.lineTo(R,cy); ctx.stroke();
+    ctx.strokeStyle=PAL.s; ctx.lineWidth=2; ctx.beginPath(); for(let i=0;i<=400;i++){ const t=12*i/400, v=Math.exp(-sig*t)*Math.cos(om*t); i?ctx.lineTo(X(t),cy-A*v):ctx.moveTo(X(t),cy-A*v); } ctx.stroke();
+    label(ctx,"f(t) = e^(−σt) cos ωt",L,H*0.07,"left",PAL.ink);
+    const lt=H*0.58, lb=H*0.9, LY=v=>lt+(lb-lt)*(-v)/6;
+    ctx.strokeStyle=PAL.rule; ctx.beginPath(); ctx.moveTo(L,lt); ctx.lineTo(L,lb); ctx.lineTo(R,lb); ctx.stroke();
+    ctx.strokeStyle=PAL.u; ctx.lineWidth=2; ctx.beginPath(); let on=false; for(let i=0;i<=200;i++){ const t=12*i/200, v=-sig*t; if(v<-6) break; on?ctx.lineTo(X(t),LY(v)):ctx.moveTo(X(t),LY(v)); on=true; } ctx.stroke();
+    label(ctx,`ln envelope: a line, slope −σ = ${(-sig).toFixed(2)}`,L,lt-12,"left");
+    label(ctx,`|F(iω)| at ω = ${wv.toFixed(2)}: ln = ${Math.log(mag).toFixed(2)}`,L,lb+16,"left",PAL.u);
+  } };
+ARTS.laplace = symbolArt("laplace", LAPM, true);
+ARTS.laplace.param = (s)=>{ if(s.view===1) LAPM.paint(s); };
+
+/* XIV. a strange loop: Escher's map on this book's equation; Bach's canon on a pitch helix; Gödel's numbers as sums of logs */
+const LOOP_S=4;
+const LOOPM = {
+  init(s){ s.off=document.createElement("canvas"); s.paint=LOOPM.tile; LOOPM.tile(s); s.out=document.createElement("canvas"); },
+  tile(s){ // the source picture on [−1,1]²; only the band between the squares of half-width 1/S and 1 is ever used
+    const N=640, o=s.off; o.width=N; o.height=N; const g=o.getContext("2d"), Z=v=>(v+1)*N/2;
+    g.fillStyle=PAL.paper; g.fillRect(0,0,N,N);
+    g.strokeStyle=PAL.ink; g.lineWidth=N*0.012; g.strokeRect(Z(-0.97),Z(-0.97),Z(0.97)-Z(-0.97),Z(0.97)-Z(-0.97));
+    g.lineWidth=N*0.006; g.strokeRect(Z(-0.27),Z(-0.27),Z(0.27)-Z(-0.27),Z(0.27)-Z(-0.27));
+    g.fillStyle=PAL.ink; g.textAlign="center"; g.textBaseline="middle";
+    g.textAlign="left"; g.font=`italic 400 ${N*0.12}px "STIX Two Text", Georgia, serif`; const x0=Z(-0.62); g.fillText("e",x0,Z(-0.58)); const ew=g.measureText("e").width;
+    g.font=`italic 400 ${N*0.07}px "STIX Two Text", Georgia, serif`; g.fillText("iπ",x0+ew+2,Z(-0.68)); const iw=g.measureText("iπ").width;
+    g.font=`400 ${N*0.12}px "STIX Two Text", Georgia, serif`; g.fillText(" + 1 = 0",x0+ew+iw+4,Z(-0.58)); g.textAlign="center";
+    g.font=`400 ${N*0.045}px ${MONO}`; g.fillStyle=PAL.muted; g.fillText("GÖDEL · ESCHER · BACH",0+N/2,Z(0.66));
+    // a small helix on each side
+    for(const [x0,col] of [[-0.62,PAL.u],[0.62,PAL.s]]){ g.strokeStyle=col; g.lineWidth=N*0.008; g.beginPath(); for(let i=0;i<=120;i++){ const t=4*Math.PI*i/120, x=x0+0.13*Math.cos(t), y=0.42-0.84*i/120; i?g.lineTo(Z(x),Z(y)):g.moveTo(Z(x),Z(y)); } g.stroke(); }
+    g.fillStyle=PAL.o; g.beginPath(); g.arc(Z(0),Z(0.4),N*0.03,0,TAU); g.fill();
+    s.src=g.getImageData(0,0,N,N).data; s.N=N; },
+  droste(ctx,W,H,s){
+    const sz=Math.min(W*0.9,H*0.82), n=Math.round(Math.min(420,Math.max(180,sz))), o=s.out; s.fc=(s.fc||0)+1; if(o.width!==n){ o.width=n; o.height=n; s.fc=0; }
+    if(s.fc%2===0){
+    const g=o.getContext("2d"), im=g.createImageData(n,n), d=im.data, src=s.src, N=s.N, lS=Math.log(LOOP_S), br=1, bi=-lS/TAU;   // (2πi + ln S)/(2πi) = 1 − i·ln S/2π
+    const zoom=((s.t*0.00012)%1)*lS, rs=1;
+    for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+      const x=(2*i/(n-1)-1)*rs, y=(1-2*j/(n-1))*rs, lr=Math.log(Math.hypot(x,y)+1e-12)+zoom*0, th=Math.atan2(y,x);
+      let ur=lr*br-th*bi - zoom, ui=lr*bi+th*br;   // w_in = w_out · (1 − i ln S / 2π), slid by the zoom
+      let er=Math.exp(ur), zx=er*Math.cos(ui), zy=er*Math.sin(ui), m=Math.max(Math.abs(zx),Math.abs(zy)), q=0;
+      while(m<1/LOOP_S&&q<40){ zx*=LOOP_S; zy*=LOOP_S; m*=LOOP_S; q++; } while(m>=1&&q<80){ zx/=LOOP_S; zy/=LOOP_S; m/=LOOP_S; q++; }
+      const pi=Math.min(N-1,Math.max(0,Math.floor((zx+1)*N/2))), pj=Math.min(N-1,Math.max(0,Math.floor((1-zy)*N/2))), a=4*(pj*N+pi), b=4*(j*n+i);
+      d[b]=src[a]; d[b+1]=src[a+1]; d[b+2]=src[a+2]; d[b+3]=255; }
+    g.putImageData(im,0,0); }
+    ctx.imageSmoothingEnabled=true; ctx.drawImage(o,W/2-sz/2,H*0.48-sz/2,sz,sz);
+    label(ctx,"log z  ↦  log z · (2πi + ln 4)/(2πi)  ↦  exp",W/2,H*0.915,"center",PAL.ink);
+    label(ctx,"Escher's map, applied to this book's equation",W*0.04,H*0.05); },
+  bach(ctx,W,H,s){
+    const sc=Math.min(W*0.26,H*0.25), cx=W/2, cy=H*0.5, P=camera(W,H,cx,cy,sc,0.5+s.t*0.00015,0.4), zt=o=>-1.15+2.3*o/1.2; // height = log₂ f
+    const keys=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], at=o=>{ const a=-TAU*o+Math.PI/2; return P(Math.cos(a),Math.sin(a),zt(o)); };
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); for(let i=0;i<=120;i++){ const a=TAU*i/120, p=P(Math.cos(a),Math.sin(a),zt(0)-0.25); i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]); } ctx.stroke();
+    for(let i=0;i<360;i++){ const o0=1.2*i/360, o1=1.2*(i+1)/360, p=at(o0), q=at(o1); ctx.strokeStyle=PAL.s; ctx.globalAlpha=0.3+0.7*p[2]; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+    ctx.globalAlpha=1;
+    for(let k=0;k<12;k++){ const a=-TAU*k/12+Math.PI/2, p=P(1.22*Math.cos(a),1.22*Math.sin(a),zt(0)-0.25); label(ctx,keys[k],p[0],p[1],"center"); }
+    const tours=["C","D","E","F♯","G♯","A♯","C′"], tt=(s.t*0.00035)%7, cur=Math.min(6,Math.floor(tt));
+    for(let r=0;r<=6;r++){ const p=at(r/6); ctx.fillStyle=r<=cur?PAL.u:PAL.rule; ctx.beginPath(); ctx.arc(p[0],p[1],r===cur?6:4,0,TAU); ctx.fill(); if(r<=cur) label(ctx,tours[r],p[0]+9,p[1]-8,"left",PAL.ink); }
+    const pf=at(Math.min(1,tt/6)), sh=P(Math.cos(-TAU*Math.min(1,tt/6)+Math.PI/2),Math.sin(-TAU*Math.min(1,tt/6)+Math.PI/2),zt(0)-0.25);
+    ctx.setLineDash([2,3]); ctx.strokeStyle=PAL.muted; ctx.beginPath(); ctx.moveTo(pf[0],pf[1]); ctx.lineTo(sh[0],sh[1]); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx,"Bach, Canon per tonos (1747)",W*0.04,H*0.05);
+    label(ctx,"height: log₂ frequency  ·  angle: pitch class",W/2,H*0.95,"center",PAL.ink); },
+  godel(ctx,W,H,s){
+    // Nagel & Newman's coding (1958): 0 → 6, = → 5, s → 7. A formula's number is 2^a · 3^b · 5^c …
+    const forms=[["0 = 0",[6,5,6]],["s0 = s0",[7,6,5,7,6]]], f=forms[Math.floor(s.t/6000)%2], pr=[2,3,5,7,11], parts=f[1].map((c,k)=>c*Math.log10(pr[k])), tot=parts.reduce((a,b)=>a+b,0);
+    const L=W*0.1, R=W*0.9, y=H*0.5, hgt=H*0.1, X=v=>L+(R-L)*v/11;
+    textAt(ctx,f[0],W/2,H*0.2,Math.min(W,H)*0.09,PAL.ink,"center",true);
+    const sup=n=>String(n).split("").map(d=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[d]).join(""); label(ctx,f[1].map((c,k)=>`${pr[k]}${sup(c)}`).join(" · "),W/2,H*0.32,"center",PAL.ink);
+    let acc=0, grow=Math.min(1,(s.t%6000)/3000);
+    parts.forEach((p,k)=>{ const w=p*grow; ctx.fillStyle=k%2?PAL.s:PAL.u; ctx.fillRect(X(acc),y-hgt/2,X(acc+w)-X(acc),hgt); if(w>0.4) label(ctx,`${f[1][k]}·log ${pr[k]}`,X(acc+w/2),y+hgt/2+14,"center"); acc+=w; });
+    ctx.strokeStyle=PAL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,y+hgt); ctx.lineTo(R,y+hgt); ctx.stroke();
+    for(let v=0;v<=11;v++){ ctx.beginPath(); ctx.moveTo(X(v),y+hgt-3); ctx.lineTo(X(v),y+hgt+3); ctx.stroke(); }
+    const G=f[1].reduce((a,c,k)=>a*BigInt(pr[k])**BigInt(c),1n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");
+    label(ctx,`log₁₀ of its number = ${(tot*grow).toFixed(3)}${grow>=1?`   →   ${G}`:""}`,W/2,H*0.72,"center",PAL.u);
+    ctx.font=`400 13px ${SERIF}`; ctx.fillStyle=PAL.muted; ctx.textAlign="center"; wrap(ctx,"Every formula becomes one number, a product of prime powers. The logarithm turns the product into a sum you can lay end to end. Gödel used numbers like these to make a sentence speak about itself.",W/2,H*0.82,W*0.8,17);
+    label(ctx,"Gödel numbering, with Nagel & Newman's codes",W*0.04,H*0.05); },
+};
+ARTS.loop = { init(s,W,H){ s.view=0; LOOPM.init(s); }, tap(s){ s.view=(s.view+1)%3; s.t=0; },
+  draw(ctx,W,H,s){ [LOOPM.droste,LOOPM.bach,LOOPM.godel][s.view](ctx,W,H,s);
+    label(ctx,["tap: Bach","tap: Gödel","tap: Escher"][s.view],W*0.96,H*0.97,"right"); } };
+/* ---------- the style slider: zen (0), a 3Blue1Brown-style explainer (1), and pen on graph paper in the manner of Welch Labs (2) ---------- */
+const PALS = {
+  // the zen end: ink on paper, nothing but greys
+  wayL:{ paper:"#f4f4f2", ink:"#111111", muted:"#6b6b6b", rule:"#d9d9d6", wash:"#ebebe8", u:"#111111", s:"#7d7d7d", o:"#b5b5b2" },
+  wayD:{ paper:"#101010", ink:"#ececec", muted:"#8f8f8f", rule:"#2e2e2e", wash:"#1b1b1b", u:"#ececec", s:"#8a8a8a", o:"#5a5a5a" },
+  b3:  { paper:"#0e0e10", ink:"#ffffff", muted:"#a8a8a8", rule:"#2c2c30", wash:"#1a1a1e", u:"#fc6255", s:"#58c4dd", o:"#f7d96f" },
+  // the far end: graph paper, a blue-black pen, a red pen, a blue pen, a highlighter
+  wl:  { paper:"#f3eee1", ink:"#1d2740", muted:"#596276", rule:"#a3b3c4", wash:"#e7e0cf", u:"#cf3f2a", s:"#1f66ab", o:"#e3a21a" }
+};
+let MIX = 0, WEL = 0, SLV = 0, LWM = 1, LFONT = MONO, LITAL = false, LHAND = false, WOB = 0, PENAT = null;
+const HAND = '"Caveat", "Segoe Print", "Bradley Hand", cursive';
+const ease = m => m*m*(3-2*m);
+function isDark(){ const r=document.documentElement.getAttribute("data-theme"); if(r==="dark") return true; if(r==="light") return false; return matchMedia("(prefers-color-scheme: dark)").matches; }
+function mixHex(a,b,t){ const A=hexRGB(a), B=hexRGB(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join(""); }
+function applyMix(v){
+  SLV=v; const m=Math.min(1,v), w=Math.max(0,v-1), ew=ease(w);
+  MIX=m; WEL=w; const e=ease(m), base=isDark()?PALS.wayD:PALS.wayL, root=document.documentElement.style;
+  const lum=h=>{ const c=hexRGB(h); return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255; };
+  const paper=mixHex(base.paper, PALS.b3.paper, e), darkGround=lum(paper)<0.42;
+  for(const k of Object.keys(base)){
+    let v=mixHex(base[k], PALS.b3[k], e);
+    // text never fades through grey on grey: on a light ground it stays dark, on a dark ground it is light
+    if((k==="ink"||k==="muted") && !isDark()) v = darkGround ? mixHex(PALS.wayD[k], PALS.b3[k], e) : base[k];
+    if(w>0){ v=mixHex(v, PALS.wl[k], ew);
+      // past the middle the ground turns from night to paper; text flips with it rather than passing through grey
+      if(k==="ink"||k==="muted") v = lum(mixHex(paper, PALS.wl.paper, ew))<0.5 ? PALS.b3[k] : PALS.wl[k]; }
+    root.setProperty("--"+k, v); }
+  root.setProperty("--wel", ew.toFixed(3));
+  root.setProperty("color-scheme", ((m>=0.5&&w<0.5)||(isDark()&&w<0.5))?"dark":"light");
+  LWM = 1 + 0.9*e - 0.35*ew; LHAND = w>=0.5; LFONT = LHAND ? HAND : (m>=0.5 ? '"STIX Two Text", Georgia, serif' : MONO); LITAL = m>=0.5 && !LHAND;
+  WOB = 1.7*ew;
+  readPal();
+}
+// thicker strokes toward the explainer end, without touching every plate
+const LW = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,"lineWidth");
+function scaleStrokes(c){ Object.defineProperty(c,"lineWidth",{ configurable:true, get(){ return LW.get.call(this)/LWM; }, set(v){ LW.set.call(this, v*LWM); } }); }
+// a faint coordinate grid under the plate, and the chapter's equation on top of it
+function underlay(ctx,W,H){
+  if(WEL>0.01){ // graph paper: minor lines every quarter, major lines every inch
+    const ew=ease(WEL), minor=Math.max(W,H)/40, wb=WOB; WOB=0; ctx.save(); LW.set.call(ctx,1); ctx.strokeStyle="#7fa6c8";
+    for(const [a,every] of [[0.22*ew,1],[0.42*ew,5]]){ ctx.globalAlpha=a; ctx.beginPath();
+      for(let i=0,x=0;x<=W;i++,x=i*minor) if(i%every===0){ ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); }
+      for(let i=0,y=0;y<=H;i++,y=i*minor) if(i%every===0){ ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); }
+      ctx.stroke(); }
+    ctx.restore(); WOB=wb; }
+  if(MIX<0.02) return; const a=0.3*ease(MIX)*(1-ease(WEL)), n=16, step=Math.max(W,H)/n; if(a<0.01) return;
+  const wb=WOB; WOB=0; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle="#29abca"; LW.set.call(ctx,1);
+  ctx.beginPath(); for(let x=W/2%step;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.globalAlpha=a*0.4; ctx.beginPath(); for(let x=W/2%step+step/2;x<=W;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,H); } for(let y=H/2%step+step/2;y<=H;y+=step){ ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  ctx.restore(); WOB=wb;
+}
+function overlay(ctx,W,H,eq,t){
+  if(!eq || MIX<0.45) return; const a=Math.min(1,(MIX-0.45)/0.35), hand=LHAND, fs=Math.max(14,Math.min(22,W*0.026))*(hand?1.55:1);
+  ctx.save(); ctx.font=hand?`600 ${fs}px ${HAND}`:`italic 400 ${fs}px "STIX Two Text", Georgia, serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  const w=ctx.measureText(eq).width, y=fs*(hand?1.0:1.3);
+  ctx.globalAlpha=a*0.78; ctx.fillStyle=PAL.paper; ctx.fillRect(W/2-w/2-12,y-fs*0.85,w+24,fs*1.7);
+  // on paper the equation is written out left to right, as by hand
+  if(hand){ const f=Math.min(1,(t||0)/1500); ctx.beginPath(); ctx.rect(W/2-w/2-4,0,(w+8)*f,y+fs); ctx.clip(); if(f<1) PENAT=[W/2-w/2+w*f, y+fs*0.25]; }
+  ctx.globalAlpha=a; ctx.fillStyle=PAL.ink; ctx.fillText(eq,W/2,y); ctx.restore();
+}
+/* pen on paper: every path is redrawn with a slight, steady wobble, and a pen rides the moving point */
+function wob(x,y){ return [x+WOB*(0.6*Math.sin(x*0.031+y*0.017)+0.4*Math.sin(x*0.013-y*0.029+1.7)), y+WOB*(0.6*Math.sin(y*0.027-x*0.021+0.4)+0.4*Math.sin(y*0.011+x*0.019+2.3))]; }
+function handPaths(c){
+  const P=CanvasRenderingContext2D.prototype, mv=P.moveTo, ln=P.lineTo, ar=P.arc, bp=P.beginPath, cp=P.closePath; let cur=null, start=null;
+  c.beginPath=function(){ cur=start=null; return bp.call(this); };
+  c.moveTo=function(x,y){ cur=start=[x,y]; if(WOB<0.02) return mv.call(this,x,y); const q=wob(x,y); return mv.call(this,q[0],q[1]); };
+  c.lineTo=function(x,y){ if(WOB<0.02||!cur){ cur=[x,y]; if(!start) start=cur; return ln.call(this,x,y); }
+    const n=Math.min(40,Math.max(1,Math.floor(Math.hypot(x-cur[0],y-cur[1])/14)));
+    for(let i=1;i<=n;i++){ const q=wob(cur[0]+(x-cur[0])*i/n, cur[1]+(y-cur[1])*i/n); ln.call(this,q[0],q[1]); } cur=[x,y]; };
+  c.closePath=function(){ if(start) cur=start; return cp.call(this); };
+  c.arc=function(x,y,r,a0,a1,ccw){
+    if(r<=7.5 && WEL>0.25 && this.fillStyle===PAL.u) PENAT=[x,y];
+    if(WOB<0.02||r<8){ const res=ar.call(this,x,y,r,a0,a1,ccw); cur=[x+r*Math.cos(a1),y+r*Math.sin(a1)]; if(!start) start=cur; return res; }
+    let sw=a1-a0; if(!ccw&&sw<0) sw=sw%TAU+TAU; if(ccw&&sw>0) sw=sw%TAU-TAU; if(Math.abs(a1-a0)>=TAU) sw=ccw?-TAU:TAU;
+    const n=Math.max(8,Math.ceil(Math.abs(sw)*r/6)), p0=[x+r*Math.cos(a0),y+r*Math.sin(a0)];
+    if(cur) this.lineTo(p0[0],p0[1]); else this.moveTo(p0[0],p0[1]);
+    for(let i=1;i<=n;i++){ const a=a0+sw*i/n; this.lineTo(x+r*Math.cos(a),y+r*Math.sin(a)); } };
+}
+function drawPen(ctx,W,H){
+  if(WEL<0.3||!PENAT) return; const [x,y]=PENAT, a=0.92*Math.min(1,(WEL-0.3)/0.4), L=Math.min(W,H)*0.2, wd=Math.max(6,L*0.075);
+  ctx.save(); LW.set.call(ctx,1); ctx.globalAlpha=a; ctx.translate(x,y); ctx.rotate(0.95);
+  // shadow on the page, then the barrel, grip, cone and tip
+  ctx.fillStyle="rgba(40,30,20,0.18)"; ctx.beginPath(); ctx.moveTo(6,8); ctx.lineTo(L+10,8-wd*0.2); ctx.lineTo(L+10,8+wd*1.1); ctx.lineTo(10,12); ctx.fill();
+  const g=ctx.createLinearGradient(0,-wd/2,0,wd/2); g.addColorStop(0,"#3a3f4a"); g.addColorStop(0.35,"#6b7280"); g.addColorStop(1,"#22252c");
+  ctx.fillStyle=g; ctx.fillRect(wd*2.6,-wd/2,L,wd);
+  ctx.fillStyle="#15171c"; ctx.fillRect(wd*1.4,-wd*0.42,wd*1.3,wd*0.84);
+  ctx.fillStyle="#c9ccd2"; ctx.beginPath(); ctx.moveTo(wd*1.45,-wd*0.42); ctx.lineTo(wd*0.35,-wd*0.12); ctx.lineTo(wd*0.35,wd*0.12); ctx.lineTo(wd*1.45,wd*0.42); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=PAL.u; ctx.beginPath(); ctx.moveTo(wd*0.38,-wd*0.12); ctx.lineTo(0,0); ctx.lineTo(wd*0.38,wd*0.12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.fillRect(wd*2.8,-wd*0.32,L-wd*0.6,wd*0.12);
+  ctx.restore();
+}
+/* ---------- the slider as an object: a fractal branch, and a drop that rides it (0 zen, 1 3Blue1Brown, 2 Welch) ----------
+   At the zen end both are ink. Toward the other end the branch browns and the drop turns blue;
+   at the very end the drop slides off the tip and falls, and a new one gathers. */
+const BR = (()=>{
+  const cv=$("branch"), g=cv.getContext("2d"); let W=0,H=0,CH=0, segs=[], limb=[], fall=null, raf=0;
+  function build(){
+    const r=cv.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1); W=r.width; H=46; CH=r.height; cv.width=Math.round(W*d); cv.height=Math.round(CH*d); g.setTransform(d,0,0,d,0,0);
+    // the main limb droops toward its tip, so a drop would slide that way
+    limb=[]; for(let i=0;i<=60;i++){ const s=i/60; limb.push([6+s*(W-34), H*0.36+H*0.26*s*s]); }
+    segs=[]; const rnd=mulberry(11);
+    const branch=(x,y,a,len,w,depth)=>{ if(depth===0||len<2.2) return; const x2=x+Math.cos(a)*len, y2=y+Math.sin(a)*len; segs.push([x,y,x2,y2,w]);
+      const spread=0.42+0.25*rnd(); branch(x2,y2,a-spread,len*0.66,w*0.62,depth-1); branch(x2,y2,a+spread*0.8,len*0.6,w*0.6,depth-1); };
+    // twigs grow from the limb, mostly upward and a few down, each a small binary tree
+    for(let k=1;k<7;k++){ const s=k/7.2, p=limb[Math.round(s*60)], up=k%2===1;
+      branch(p[0],p[1], up?-Math.PI/2+0.55+0.2*rnd():Math.PI/2+0.35, H*(0.2+0.08*rnd())*(1-0.35*s), 1.6*(1-0.4*s), 4); }
+  }
+  function at(s){ const f=Math.max(0,Math.min(1,s))*60, i=Math.min(59,Math.floor(f)), u=f-i, a=limb[i], b=limb[i+1];
+    return {x:a[0]+(b[0]-a[0])*u, y:a[1]+(b[1]-a[1])*u, ang:Math.atan2(b[1]-a[1],b[0]-a[0])}; }
+  function drop(x,y,ang,r,fill,stroke){ // a teardrop resting on the limb, its point trailing uphill
+    g.save(); g.translate(x,y); g.rotate(ang); g.translate(0,-r);
+    g.beginPath(); g.moveTo(-r*2.1,-r*0.15); g.bezierCurveTo(-r*1.2,-r*0.9, -r*0.2,-r*1.05, r*0.35,-r*0.85);
+    g.arc(0,0,r,-1.2,Math.PI*0.95,false); g.bezierCurveTo(-r*1.1,r*0.6,-r*1.6,r*0.3,-r*2.1,-r*0.15); g.closePath();
+    g.fillStyle=fill; g.fill(); g.lineWidth=1.2; g.strokeStyle=stroke; g.stroke();
+    g.globalAlpha=0.55; g.fillStyle="#ffffff"; g.beginPath(); g.ellipse(r*0.2,-r*0.35,r*0.28,r*0.16,-0.5,0,TAU); g.fill(); g.restore();
+  }
+  function draw(){
+    const m=MIX, e=m*m*(3-2*m), ink=PAL.ink||"#111111";
+    const brown=mixHex(ink.length===7?ink:"#111111","#7a4e2d",e), blue=mixHex(PAL.paper&&PAL.paper.length===7?PAL.paper:"#f4f4f2","#58c4dd",e);
+    g.clearRect(0,0,W,CH); g.lineCap="round"; g.strokeStyle=brown;
+    for(const [x,y,x2,y2,w] of segs){ g.lineWidth=w; g.beginPath(); g.moveTo(x,y); g.lineTo(x2,y2); g.stroke(); }
+    g.lineWidth=2.6; g.beginPath(); limb.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke();
+    { const q=at(0.04+0.93*0.5); g.lineWidth=1; g.globalAlpha=0.7; g.beginPath(); g.moveTo(q.x,q.y+5); g.lineTo(q.x,q.y+10); g.stroke();
+      g.font=`300 9px ${MONO}`; g.fillStyle=PAL.muted||"#777"; g.textAlign="center"; g.textBaseline="top"; g.fillText("3b1b",q.x,q.y+12); g.globalAlpha=1; }
+    const r=Math.max(5,H*0.13);
+    if(fall){ const t=(performance.now()-fall.t0)/1000, tip=at(1);
+      if(t<0.9){ const vx=12, x=tip.x+vx*t, y=tip.y+0.5*200*t*t; g.save(); g.globalAlpha=Math.max(0,1-Math.max(0,t-0.55)/0.35); drop(x,y,Math.atan2(220*t,vx),r,blue,brown); g.restore(); }
+      if(t>0.95){ const grow=Math.min(1,(t-0.95)/0.9); if(grow<1){ const p=at(0.97); g.save(); g.globalAlpha=grow; drop(p.x,p.y,p.ang,r*grow,blue,brown); g.restore(); }
+        else { fall=null; const p=at(0.97); drop(p.x,p.y,p.ang,r,blue,brown); } }
+    } else { const p=at(0.04+0.93*SLV/2); drop(p.x,p.y,p.ang,r,blue,brown); }
+    if(fall) raf=requestAnimationFrame(draw);
+  }
+  let wasEnd=false;
+  function update(){ const end=SLV>=1.995; if(end&&!wasEnd&&!reduced){ fall={t0:performance.now()}; cancelAnimationFrame(raf); raf=requestAnimationFrame(draw); } wasEnd=end; if(!fall) draw(); }
+  addEventListener("resize",()=>{ build(); draw(); });
+  build();
+  return {update, redraw:()=>{ build(); draw(); }};
+})();
+/* ---------- engine ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d"); scaleStrokes(ctx); handPaths(ctx);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=0,H=0, cur=0, art=null, st={}, raf=0, last=0;
+const P={x:0,y:0,on:false};
+
+function size(){
+  const r=cv.getBoundingClientRect(), dpr=Math.min(2,window.devicePixelRatio||1);
+  W=r.width; H=r.height; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); cv._W=W;
+}
+function paint(dt){
+  st.t+=dt; st.age=(st.age||0)+dt; PENAT=null; ctx.fillStyle=PAL.paper; ctx.fillRect(0,0,W,H); underlay(ctx,W,H);
+  ctx.save(); art.draw(ctx,W,H,st,dt,P); ctx.restore();
+  overlay(ctx,W,H,(TALK[CH[cur].id]||{}).eq,st.age); drawPen(ctx,W,H);
+  ctx.globalAlpha=1; ctx.setLineDash([]);
+}
+function frame(now){ const dt=Math.min(50, now-(last||now)); last=now; paint(dt); raf=requestAnimationFrame(frame); }
+function still(){ const t0=performance.now(); for(let i=0;i<400 && performance.now()-t0<2500;i++) paint(16); if(st.job) setTimeout(still,50); }
+function defaults(c){ const p={}; for(const q of (c.ctl||[])) p[q.k]=q.def; return p; }
+function startArt(keep){
+  cancelAnimationFrame(raf); size(); readPal();
+  const c=CH[cur]; art=ARTS[c.art]; const prm=keep&&st.prm?st.prm:defaults(c);
+  st={t:0, prm, _W:W, _H:H}; art.init(st,W,H); last=0;
+  if(reduced) still(); else raf=requestAnimationFrame(frame);
+}
+function renderCtls(c){
+  const box=$("ctls"); box.innerHTML="";
+  for(const q of (c.ctl||[])){
+    const id="c-"+c.id+"-"+q.k, row=document.createElement("div"); row.className="ctl";
+    row.innerHTML=`<label for="${id}">${q.label}</label><input type="range" id="${id}" min="${q.min}" max="${q.max}" step="${q.step}" value="${st.prm[q.k]}"><output for="${id}"></output>`;
+    const inp=row.children[1], out=row.children[2], dec=String(q.step).split(".")[1]?.length||0;
+    out.textContent=(+inp.value).toFixed(dec);
+    let tm=null;
+    inp.addEventListener("input",()=>{ out.textContent=(+inp.value).toFixed(dec); clearTimeout(tm); tm=setTimeout(()=>{ st.prm[q.k]=+inp.value; if(art.param) art.param(st,q.k); else art.init(st,W,H); if(reduced) still(); },180); });
+    box.appendChild(row);
+  }
+}
+
+function pos(e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+let down=null;
+cv.addEventListener("pointermove",e=>{ [P.x,P.y]=pos(e); P.on=true; });
+cv.addEventListener("pointerleave",()=>{ P.on=false; });
+cv.addEventListener("pointerdown",e=>{ down=pos(e); [P.x,P.y]=down; P.on=true; });
+cv.addEventListener("pointerup",e=>{ const p=pos(e); if(down && Math.hypot(p[0]-down[0],p[1]-down[1])<10 && art.tap){ art.tap(st,p[0],p[1],W,H); if(reduced) still(); }
+  down=null; if(e.pointerType!=="mouse") P.on=false; });
+
+/* ---------- chapters ---------- */
+const ROMAN=CH.map(c=>c.n);
+function render(i){
+  cur=i; const c=CH[i];
+  $("num").textContent=`Chapter ${c.n}`;
+  $("title").textContent=c.title;
+  $("verse").innerHTML=c.verse.map(s=>`<p>${s.join("<br>")}</p>`).join("");
+  const tk=TALK[c.id]||{}; $("talk").innerHTML=(tk.q?`<p class="q">${tk.q}</p>`:"")+(tk.talk||[]).map(p=>`<p>${p}</p>`).join(""); setText();
+  $("notes").innerHTML=`<span class="lbl"><span>Notes</span><button class="symlink" data-sym>Symbol guide</button></span>${c.notes}`;
+  $("caption").textContent=c.caption;
+  $("count").textContent=`${c.n} / ${ROMAN[ROMAN.length-1]}`;
+  $("prev").disabled=i===0; $("next").disabled=i===CH.length-1;
+  $("prevT").textContent=i>0?CH[i-1].title:""; $("nextT").textContent=i<CH.length-1?CH[i+1].title:"";
+  [...$("dots").children].forEach((d,k)=>d.setAttribute("aria-current", k===i?"true":"false"));
+  startArt(false); renderCtls(c);
+}
+function go(i){ i=Math.max(0,Math.min(CH.length-1,i)); if(location.hash!=="#"+CH[i].id) location.hash=CH[i].id; else render(i); window.scrollTo({top:0}); }
+function fromHash(){ const h=location.hash.slice(1); const i=CH.findIndex(c=>c.id===h); render(i<0?0:i); }
+
+CH.forEach((c,i)=>{
+  const b=document.createElement("button"); b.setAttribute("aria-label",`Chapter ${c.n}: ${c.title}`); b.onclick=()=>go(i); $("dots").appendChild(b);
+  const li=document.createElement("li"); li.innerHTML=`<button><span class="n">${c.n}</span><span class="tt">${c.title}</span></button>`;
+  li.querySelector("button").onclick=()=>{ $("index").hidden=true; go(i); }; $("indexList").appendChild(li);
+});
+$("prev").onclick=()=>go(cur-1); $("next").onclick=()=>go(cur+1);
+$("openIndex").onclick=()=>{ $("index").hidden=false; $("closeIndex").focus(); };
+$("closeIndex").onclick=()=>{ $("index").hidden=true; $("openIndex").focus(); };
+const openSym=()=>{ $("symbols").hidden=false; $("symbols").scrollTop=0; $("closeSymbols").focus(); };
+$("openSymbols").onclick=openSym;
+$("notes").addEventListener("click",e=>{ if(e.target.closest("[data-sym]")) openSym(); });
+$("closeSymbols").onclick=()=>{ $("symbols").hidden=true; $("openSymbols").focus(); };
+addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ $("index").hidden=true; $("symbols").hidden=true; if(document.body.classList.contains("frameonly")) frameOnly(false); }
+  if(!$("index").hidden || !$("symbols").hidden) return;
+  if(e.target.closest&&e.target.closest("input")) return;
+  if(e.key==="ArrowRight") go(cur+1); if(e.key==="ArrowLeft") go(cur-1);
+});
+let sx=null,sy=null;
+$("text").addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+$("text").addEventListener("touchend",e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.5) go(cur+(dx<0?1:-1)); sx=null; });
+addEventListener("hashchange",fromHash);
+let rt, lastW=0; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ const w=cv.getBoundingClientRect().width; if(Math.abs(w-lastW)>2){ lastW=w; startArt(true); } },180); });
+function repaintImages(){ if(st.paint&&st.off) st.paint(st); if(art===ARTS.ftle&&st.sf) ARTS.ftle.paint(st); }
+const repal=()=>{ applyMix(MIX); repaintImages(); BR.redraw(); };
+function setText(){ const talk=MIX>=0.5; $("verse").hidden=talk; $("talk").hidden=!talk; }
+function setLayout(){ const ex=MIX>=0.5, was=document.body.classList.contains("explainer"); document.body.classList.toggle("explainer",ex); document.body.classList.toggle("welch",WEL>=0.5); setText();
+  if(ex!==was){ $("main").style.setProperty("--ar", (ex&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); } }
+let mixQueued=false;
+$("mix").addEventListener("input",e=>{ applyMix(+e.target.value); setLayout(); BR.update(); try{ localStorage.setItem("seven-symbols-mix",e.target.value); }catch(_){}
+  if(!mixQueued){ mixQueued=true; requestAnimationFrame(()=>{ mixQueued=false; repaintImages(); }); } if(reduced) still(); });
+function frameOnly(on){ document.body.classList.toggle("frameonly",on); $("exitFrame").hidden=!on; document.documentElement.style.setProperty("--ar", (MIX>=0.5&&matchMedia("(min-width:861px)").matches)?"1.7778":"1"); $("main").style.removeProperty("--ar");
+  requestAnimationFrame(()=>{ lastW=cv.getBoundingClientRect().width; startArt(true); }); if(!on) $("frameOnly").focus(); }
+$("frameOnly").onclick=()=>frameOnly(true); $("exitFrame").onclick=()=>frameOnly(false);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",repal);
+new MutationObserver(repal).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+let m0=0; try{ m0=+(localStorage.getItem("seven-symbols-mix")||0)||0; }catch(_){}
+$("mix").value=m0; applyMix(m0); BR.redraw(); document.body.classList.toggle("explainer",MIX>=0.5); document.body.classList.toggle("welch",WEL>=0.5); fromHash(); lastW=cv.getBoundingClientRect().width;
+</script>
+</body>
+</html>

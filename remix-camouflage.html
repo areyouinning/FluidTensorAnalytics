@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion Camouflage | Fluid Tensor Analytics</title>
+<meta name="description" content="Stalk something by staying exactly in front of a tree, in 3D and through the prey's eye. A remix of a DataGenetics post.">
+<link rel="stylesheet" href="fta-scene.css">
+<link rel="stylesheet" href="remix.css">
+</head>
+<body data-remix="camouflage">
+<a class="skip" href="#story">Skip to the article</a>
+<nav class="top" aria-label="Site"><ul><li><a href="/">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html">Blowup</a></li><li><a href="/way-of.html">Way Of</a></li><li><a href="/remix.html" aria-current="page">Remix</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
+<script>(a=>{a.closest('ul').scrollLeft=a.offsetLeft-120})(document.querySelector('nav.top [aria-current]'))</script>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="ctl"></div>
+  <div id="hud"><canvas id="chart" aria-hidden="true"></canvas><div id="read" aria-live="polite"></div></div>
+</div>
+<main id="story">
+  <a class="back" href="/remix.html">All remixes</a>
+  <h1>Motion Camouflage</h1>
+  <p class="lede">Prey watch for sideways motion. So the hunter never moves sideways: at every moment it stands exactly between the prey and one fixed tree.</p>
+  <h2>The picture</h2>
+  <p>The blue dot is the prey, wandering. The white dot is the hunter. The coral dot is a runner, as fast as the hunter, that heads straight at the prey the whole time. The green mark is the tree, and the green line runs from the tree to the prey. The hunter stays on that line.</p>
+  <p>The chart is what the prey sees, looking at the tree. The white hunter sits on the tree and grows. It looms, and looming is much harder to notice than drifting. The coral runner slides across the view, and it would be spotted.</p>
+  <h2>The step</h2>
+  <p>In one time step the prey moves, which swings the line. The hunter can reach anywhere on a sphere around itself. That sphere cuts the new line at two points, and the nearer-to-prey point is the next step of the chase. The other point is how to back away unseen. In the post this is a circle on a flat map, solved with the cosine rule. In 3D the same step is a quadratic along the line:</p>
+  <p><code>r = H·d + √((H·d)² − H·H + s²)</code></p>
+  <p>where <code>H</code> is the hunter's position measured from the tree, <code>d</code> the unit direction from the tree to the prey, and <code>s</code> the distance the hunter can cover.</p>
+  <h2>Breaking cover</h2>
+  <p>If the square root has nothing to work with, the line has swung out of reach and no move keeps the hunter hidden. The line swings fastest at the prey's end, at up to the prey's own speed. So a hunter faster than the prey can always stay on it, however the prey turns. A slower hunter can stay hidden only while it is far enough from the prey. Set the speed below 1×, let it close in, and press <b>Jink</b>, a sudden turn across the line of sight: "Hunter off the tree" leaves zero and "Time out of cover" starts counting.</p>
+  <h2>In real animals</h2>
+  <p>Srinivasan and Davey described this strategy in 1995, and Mizutani, Chahl and Srinivasan reported dragonflies using it in territorial flights in <i>Nature</i> in 2003. This page is geometry only: the prey wanders at random and its perception is not modelled.</p>
+  <p class="credit">After <a href="https://datagenetics.com/blog/april22020/index.html">Motion Camouflage</a> by Nick Berry, DataGenetics, April 2020, which derives the flat version and has its own app. The 3D chase, the prey's-eye view, the runner and these words are new.</p>
+</main>
+<script src="remix-3d.js"></script>
+</body>
+</html>
