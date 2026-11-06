@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blowup | Fluid Tensor Analytics</title>
+<meta name="description" content="Can a smooth fluid reach infinite speed in finite time? Three exact vortices in 3D, and where the Navier-Stokes blowup question stands.">
+<link rel="stylesheet" href="fta-scene.css">
+<style>
+  .skip:focus { top: 56px; }
+  #stage { display: none; }
+  #story { max-width: 620px; margin: 0 auto; padding: 72px var(--gutter) 64px; }
+  #story h1 { margin-bottom: 8px; }
+  .lede { font-size: clamp(17px, 2vw, 20px); color: var(--c-white); margin: 0 0 6px; }
+  .asof { font-size: 14px; color: var(--c-ice); margin: 0; }
+  #story section { margin-top: 44px; scroll-margin-top: 64px; }
+  #story h2 { font-family: var(--font-head); font-weight: 600; font-size: 24px; line-height: 1.2; color: var(--c-white); margin: 0 0 8px; }
+  #story p { margin: 0 0 12px; }
+  #story ul { margin: 0 0 12px; padding-left: 20px; }
+  #story li { margin-bottom: 8px; }
+  .eq { font-family: 'Cambria Math', Cambria, 'Times New Roman', serif; font-size: 18px; color: var(--c-white); background: var(--c-dusk); border: 1px solid var(--c-edge); border-radius: 6px; padding: 8px 12px; margin: 0 0 12px; overflow-x: auto; white-space: nowrap; }
+  .note { border-left: 3px solid var(--c-coral); padding-left: 12px; }
+  table { border-collapse: collapse; margin: 0 0 12px; font-size: 15px; }
+  caption { text-align: left; color: var(--c-ice); padding-bottom: 6px; }
+  th, td { border-bottom: 1px solid var(--c-edge); padding: 6px 16px 6px 0; text-align: right; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-weight: 600; color: var(--c-white); }
+  dl { margin: 0 0 12px; }
+  dt { font-weight: 600; color: var(--c-white); }
+  dd { margin: 0 0 10px; }
+  .sources { font-size: 14px; }
+  .sources li { margin-bottom: 4px; }
+
+  /* with WebGL2 the picture stays on screen while the story scrolls past it */
+  .live #stage { display: block; position: fixed; left: 520px; right: 0; top: 53px; bottom: 0; background: var(--c-night); }
+  .live #story { margin: 0; width: 520px; max-width: 520px; padding-left: 28px; padding-right: 28px; border-right: 1px solid var(--c-edge); }
+  #vortex { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+  #vortex.drag { cursor: grabbing; }
+  #hud { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; pointer-events: none; }
+  #hud > * { pointer-events: auto; background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--c-edge); border-radius: var(--radius); padding: 10px 12px; }
+  #cases { position: absolute; left: 14px; right: 14px; top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  #cases button, #run, #restart { min-height: 44px; padding: 0 14px; font: inherit; font-size: 15px; font-weight: 600; border-radius: 6px; background: var(--c-glass); color: var(--c-ice); border: 1px solid var(--c-edge); cursor: pointer; }
+  #cases button:hover, #run:hover, #restart:hover { border-color: var(--c-cyan); color: var(--c-white); }
+  #cases button[aria-pressed="true"] { background: var(--c-cyan); border-color: var(--c-cyan); color: var(--c-night); }
+  #readout { flex: 1 1 270px; min-width: 0; max-width: 420px; font-size: 14px; }
+  #readout b { display: block; font-family: var(--font-head); font-weight: 600; font-size: 16px; color: var(--c-white); }
+  #status { margin: 2px 0 6px; color: var(--c-pale); min-height: 42px; }
+  #chart { display: block; width: 100%; height: 64px; }
+  #nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 10px; margin-top: 6px; font-variant-numeric: tabular-nums; color: var(--c-ice); }
+  #nums output { display: block; color: var(--c-white); font-weight: 600; font-size: 15px; }
+  #knobs { flex: 0 1 260px; font-size: 14px; }
+  #knobs summary { display: none; cursor: pointer; color: var(--c-white); font-weight: 600; min-height: 44px; line-height: 44px; }
+  .knob { display: block; margin-bottom: 10px; color: var(--c-ice); }
+  .knob output { float: right; color: var(--c-white); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .knob input { display: block; width: 100%; height: 28px; margin: 2px 0 0; accent-color: var(--c-cyan); }
+  .knob[hidden] { display: none; }
+  .btns { display: flex; gap: 8px; }
+  .btns button { flex: 1; }
+
+  @media (max-width: 1000px) {
+    .live #stage { position: sticky; left: auto; right: auto; top: 53px; bottom: auto; height: calc(34vh + 104px); height: calc(34dvh + 104px); z-index: 5; border-bottom: 1px solid var(--c-edge); }
+    .live #story { width: auto; max-width: 620px; margin: 0 auto; padding: 24px var(--gutter) 64px; border-right: 0; }
+    .live main { display: flex; flex-direction: column; padding-top: 53px; }
+    #vortex { height: 34vh; height: 34dvh; bottom: auto; }
+    #cases { top: 4px; left: 6px; right: 6px; flex-wrap: nowrap; gap: 4px; }
+    #cases button { flex: 1 1 0; min-width: 0; padding: 0 2px; font-size: 12px; line-height: 1.15; background: rgba(10, 22, 40, .9); }
+    #hud { left: 6px; right: 6px; bottom: 4px; gap: 4px; flex-wrap: nowrap; align-items: stretch; height: 96px; }
+    #hud > * { padding: 4px 8px; }
+    #readout { flex: 1 1 auto; max-width: none; font-size: 12px; line-height: 1.25; overflow: hidden; }
+    #readout b, #chart { display: none; }
+    #status { min-height: 0; margin: 0 0 2px; height: 45px; overflow: hidden; }
+    #nums { font-size: 11px; margin-top: 0; }
+    #nums > div { display: flex; gap: 4px; align-items: baseline; }
+    #nums output { font-size: 13px; }
+    #hud > #knobs { flex: 0 0 auto; position: static; backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--c-night); }
+    #knobs summary { display: block; line-height: 86px; min-height: 86px; font-size: 14px; list-style: none; }
+    #knobs summary::-webkit-details-marker { display: none; }
+    #knobs[open] > .sheet { position: absolute; right: 0; bottom: 100%; margin-bottom: 4px; width: min(290px, 100%); padding: 10px 12px; background: var(--c-night); border: 1px solid var(--c-edge); border-radius: var(--radius); }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#story">Skip to the explanation</a>
+<nav class="top" aria-label="Site"><ul><li><a href="/">Home</a></li><li><a href="/fluid.html">Fluid</a></li><li><a href="/tensor.html">Tensor</a></li><li><a href="/analytics.html">Analytics</a></li><li><a href="/blowup.html" aria-current="page">Blowup</a></li><li><a href="mailto:taylor@fluidtensoranalytics.com">Contact</a></li></ul></nav>
+<main>
+<div id="stage">
+  <canvas id="vortex" tabindex="0" role="img" aria-label="A vortex tube in 3D"></canvas>
+  <div id="cases" role="group" aria-label="Which vortex">
+    <button data-case="flat" aria-pressed="true">1. No stretching</button>
+    <button data-case="strain" aria-pressed="false">2. Steady stretching</button>
+    <button data-case="feed" aria-pressed="false">3. Stretching on cue</button>
+  </div>
+  <div id="hud">
+    <div id="readout">
+      <b id="rtitle"></b>
+      <p id="status" aria-live="polite"></p>
+      <svg id="chart" viewBox="0 0 300 64" preserveAspectRatio="none" role="img" aria-label="Peak vorticity against time, on a log scale"></svg>
+      <div id="nums"><div>t<output id="nt"></output></div><div>core δ<output id="nd"></output></div><div>peak ω<output id="nw"></output></div></div>
+    </div>
+    <details id="knobs" open>
+      <summary>Settings</summary>
+      <div class="sheet">
+        <label class="knob">Viscosity ν <output id="onu"></output><input id="nu" type="range" min="0" max="0.004" step="0.0001" value="0.0008"></label>
+        <label class="knob" id="kstrain" hidden>Strain α <output id="ostrain"></output><input id="strain" type="range" min="0.02" max="0.3" step="0.01" value="0.1"></label>
+        <label class="knob" id="kfeed" hidden>Feed G <output id="ofeed"></output><input id="feed" type="range" min="0" max="0.03" step="0.0005" value="0.015"></label>
+        <div class="btns"><button id="run">Pause</button><button id="restart">Restart</button></div>
+      </div>
+    </details>
+  </div>
+</div>
+<article id="story">
+  <header>
+    <h1>Blowup</h1>
+    <p class="lede">Can a smooth flow of water reach infinite speed in a finite time? A proof with an outside force was announced in September 2026 and is still being argued over. Without the force, nobody knows.</p>
+    <p class="asof">Status checked 6 November 2026. Sources are at the end.</p>
+  </header>
+
+  <section data-case="flat">
+    <h2>The question</h2>
+    <p>The Navier-Stokes equations are Newton's second law for a fluid, written for velocity <i>u</i> and pressure <i>p</i>, with viscosity <i>ν</i> and an outside force <i>f</i>:</p>
+    <p class="eq">∂<sub>t</sub>u + (u·∇)u = −∇p + ν∇²u + f, &nbsp; ∇·u = 0</p>
+    <p>Start with a smooth flow holding finite energy. Blowup means the solution stops being smooth after a finite time, with speeds growing without bound. A real fluid can't do that, so blowup would mean the equations had stopped describing it.</p>
+    <p>In 2000 the Clay Mathematics Institute made this one of its seven Millennium Prize Problems. Charles Fefferman's official statement offers four ways to win:</p>
+    <ul>
+      <li><b>A and B:</b> with no outside force, smooth solutions always last forever, in open space (A) or in a periodic box (B).</li>
+      <li><b>C and D:</b> some smooth start and smooth force break down, in open space (C) or in a periodic box (D).</li>
+    </ul>
+    <p>That small letter <i>f</i> is where this year's argument lives.</p>
+  </section>
+
+  <section data-case="flat">
+    <h2>Why flat flow can't blow up</h2>
+    <p>Vorticity <i>ω</i> measures local spin. In two dimensions a fluid parcel carries its spin along and viscosity smears it out. Nothing else acts on it:</p>
+    <p class="eq">Dω/Dt = ν∇²ω</p>
+    <p>So with no force, the peak can only fall. The picture shows this exactly: the Lamb-Oseen vortex, a tube whose flow has no vertical part, which is the same as a flat flow. The core widens as δ² = δ₀² + 4νt and the peak falls with it. The rings painted on the fluid stay where they are.</p>
+    <p><a href="/navier-stokes-demo.html">This site's 2D Simulation</a> behaves the same way. Across five flows, each left alone for 800 steps, peak vorticity rose on 2 of 3,995 steps, by at most 0.34%, and only with viscosity set to zero. Grid errors can do that much.</p>
+  </section>
+
+  <section data-case="strain">
+    <h2>Stretching: what 3D adds</h2>
+    <p>Three dimensions add one term, and it's the whole problem:</p>
+    <p class="eq">Dω/Dt = <b>(ω·∇)u</b> + ν∇²ω</p>
+    <p>Fluid can't be compressed, so a vortex tube pulled longer has to get thinner, and a thinner tube spins faster, like a skater pulling in their arms. In the picture, tracers spiral inward and shoot out along the axis, and the painted rings spread apart. This is Burgers' vortex from 1948, again an exact solution, with the core following</p>
+    <p class="eq">dδ²/dt = 4ν − αδ²</p>
+    <p>Stretching (α) thins the core and viscosity (ν) fattens it. They settle at δ² = 4ν/α, and the peak stops climbing. Viscosity wins by holding a draw.</p>
+    <p>Now drag viscosity to zero. The peak climbs forever but never reaches infinity at any finite time. Steady stretching isn't enough, even with no friction at all.</p>
+  </section>
+
+  <section data-case="feed">
+    <h2>Blowup, if the stretching keeps up</h2>
+    <p>Real blowup needs stretching that speeds up as the vortex tightens. Suppose the strain rises with the peak spin, α = G/δ². The same equation becomes a straight line:</p>
+    <p class="eq">δ² = δ₀² + (4ν − G)t</p>
+    <p>If G is above 4ν, the core reaches zero width at a finite time T = δ₀²/(G − 4ν), and the peak goes to infinity. Below that, the vortex spreads forever. Move the sliders across the line: it's sharp.</p>
+    <p class="note"><b>This one is cheating, on purpose.</b> Every frame is an exact Navier-Stokes solution, but the strain is supplied from outside, on cue, and it reaches out to infinity with infinite energy. The Clay rules forbid all of that. Blowing up a fluid by hand is easy. The hard part is getting the fluid to do it to itself, with energy finite and every outside force smooth.</p>
+    <p>There's a precise test for the real thing. Beale, Kato and Majda proved in 1984 that a smooth flow breaks down at time T only if the peak vorticity, added up over time, diverges. Peak vorticity has to be the thing that goes wrong.</p>
+  </section>
+
+  <section data-case="strain">
+    <h2>Why viscosity might not save us</h2>
+    <p>Here's a scaling argument, not a proof. A blob of size ℓ moving at speed <i>u</i> holds energy of about <i>u</i>²ℓ³ in 3D. Total energy <i>E</i> is fixed, which caps the speed. Compare stirring to friction with the Reynolds number <i>uℓ/ν</i>, and the cap becomes:</p>
+    <table>
+      <caption>Largest Reynolds number energy allows, relative to size 1</caption>
+      <thead><tr><th>Blob size ℓ</th><th>2D, √E/ν</th><th>3D, √(E/ℓ)/ν</th></tr></thead>
+      <tbody><tr><td>1</td><td>1</td><td>1</td></tr><tr><td>1/100</td><td>1</td><td>10</td></tr><tr><td>1/10,000</td><td>1</td><td>100</td></tr></tbody>
+    </table>
+    <p>In 2D, smaller blobs get no more room. In 3D, the smaller the blob, the less energy limits it compared with friction. Energy conservation doesn't rule out blowup in 3D. That doesn't show blowup happens, only that the obvious way of ruling it out fails.</p>
+  </section>
+
+  <section data-case="feed">
+    <h2>What happened in 2026</h2>
+    <p>Any flow at all solves the equations if you define <i>f</i> as whatever is left over. So a force looks like a free pass. It isn't, quite: when a flow blows up, the leftover usually blows up too. The real task is to find a blowup where the huge terms cancel so exactly that the force stays smooth the whole way through.</p>
+    <dl>
+      <dt>The method</dt>
+      <dd>Diego Córdoba and Luis Martínez-Zoroa built forced blowups by stacking flows at ever smaller scales, including for the frictionless Euler equations.</dd>
+      <dt>7 September: smooth force, no viscosity</dt>
+      <dd>Levent Alpöge and Tristan Buckmaster, with Matei Coiculescu on the companion paper, reported blowup for Euler with a smooth force, verified in the Lean proof checker.</dd>
+      <dt>8 September: smooth force, with viscosity</dt>
+      <dd>OpenAI announced that an internal AI system proved statements C and D: a fluid starting at rest, under a smooth force, with finite energy, develops a singularity. It describes a vortex that spirals inward and stretches long and thin, the same local flow as the picture here, though not the same solution. It also published a Lean proof, claims a no-force Euler blowup, and says it won't claim the prize. Credit for the timing <a href="https://www.scientificamerican.com/article/openai-claims-blockbuster-math-breakthrough-amid-swirl-of-controversy/">is disputed</a>.</dd>
+      <dt>17 September: the limit of that route</dt>
+      <dd>Peter Constantin, Mihaela Ignatova and Vlad Vicol showed that for constructions of this type, a force staying bounded can't vanish near the singular point, and can't be real-analytic in space. No force at all would be both.</dd>
+      <dt>6 October: a challenge to the checking</dt>
+      <dd>Bastounis, Circelli and Hansen argued that the Lean proof doesn't correspond to the written one. They don't say the result is false, but a Lean check of a mistranslated proof wouldn't vouch for the written one.</dd>
+    </dl>
+    <p>Mathematicians quoted by Scientific American say the proof appears to satisfy the Clay statement as written, and argue over whether that's the question that matters. In Luis Silvestre's words: “The most important problem is unsolved.” Clay's page still lists the problem as active, and press reports quote Clay as saying it has apparently been settled, pending a deliberately unhurried check. No prize has been awarded, and no report of completed peer review turned up in this check.</p>
+  </section>
+
+  <section data-case="strain">
+    <h2>What's still open</h2>
+    <p>Statements A and B. Leave a viscous fluid alone, with nothing pushing it: does it stay smooth? That's the question most people working in the field meant all along, and it remains open. Some of the ground already covered:</p>
+    <ul>
+      <li><b>1934:</b> Jean Leray proved that weak solutions exist for all time. Whether they stay smooth is the open part.</li>
+      <li><b>1982:</b> Caffarelli, Kohn and Nirenberg proved that any singularities must be rare, confined to a very small set in space and time.</li>
+      <li><b>2016:</b> Terence Tao proved blowup for an averaged version of the equations, so any proof of smoothness must use something this averaging destroys.</li>
+      <li><b>2025:</b> Jiajie Chen and Thomas Hou published a computer-assisted proof of blowup for 3D Euler with smooth data, in a domain with a boundary.</li>
+      <li><b>Hou's simulations:</b> with viscosity added, a flow reaches a 10-million-fold rise in peak vorticity, then viscosity takes over and blowup is narrowly avoided. That's numerical evidence.</li>
+    </ul>
+  </section>
+
+  <section data-case="flat">
+    <h2>Why a simulation can't settle it</h2>
+    <p>A grid has a smallest scale and a singularity has none, so a simulation can only suggest. Its numbers can also explode for reasons that have nothing to do with fluids. While the 2D Simulation here was being repaired, too few pressure sweeps made its energy grow to 243% of where it started. That was the solver failing, not water misbehaving. The vortices in the picture avoid the problem by being formulas, with no grid to fail.</p>
+  </section>
+
+  <section class="sources">
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://www.claymath.org/wp-content/uploads/2022/06/navierstokes.pdf">Fefferman, official problem description</a> and <a href="https://www.claymath.org/millennium/navier-stokes-equation/">Clay Mathematics Institute</a></li>
+      <li><a href="https://openai.com/index/navier-stokes-solution/">OpenAI, On the Navier-Stokes Millennium Prize Problem</a> (8 September 2026)</li>
+      <li><a href="https://arxiv.org/abs/2609.20803">Constantin, Ignatova and Vicol, arXiv:2609.20803</a></li>
+      <li><a href="https://arxiv.org/abs/2610.08144">Bastounis, Circelli and Hansen, arXiv:2610.08144</a></li>
+      <li><a href="https://www.scientificamerican.com/article/did-openai-solve-the-wrong-navier-stokes-problem/">Scientific American, Did OpenAI solve the wrong Navier-Stokes problem?</a></li>
+      <li><a href="https://www.ias.edu/node/320416">Buckmaster, IAS Members' Colloquium</a> and <a href="https://cims.nyu.edu/~tristanb/ipm.pdf">Alpöge, Buckmaster and Coiculescu, companion preprint</a></li>
+      <li><a href="https://authors.library.caltech.edu/records/40zbk-gep55">Chen and Hou (2025)</a> and <a href="https://berkeleyams.lbl.gov/spring25/hou.html">Hou, on potential Navier-Stokes singularity</a></li>
+      <li>Leray, Acta Math. 63 (1934). Burgers, Adv. Appl. Mech. 1 (1948). Caffarelli, Kohn and Nirenberg, CPAM 35 (1982). Beale, Kato and Majda, Comm. Math. Phys. 94 (1984). Tao, J. Amer. Math. Soc. 29 (2016).</li>
+    </ul>
+    <p>The vortices in the picture are textbook exact solutions. None of them is the construction in any 2026 paper.</p>
+  </section>
+</article>
+</main>
+<script src="blowup-3d.js"></script>
+</body>
+</html>
