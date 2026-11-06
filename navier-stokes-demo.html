@@ -400,6 +400,7 @@
 <body>
     <div class="container">
         <header>
+            <a href="/fluid.html" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; display: inline-block; min-height: 24px;">&larr; Fluid</a>
             <h1>Fluid Tensor Dynamics</h1>
             <div class="subtitle">Real-time Navier-Stokes Solution • Velocity Gradient Tensor Decomposition</div>
         </header>
@@ -1883,11 +1884,14 @@
                 fluid.step();
                 updateStats();
             }
-            renderer.render();
+            // Draw the flat field, unless the 3D surface is showing instead (ns-3d.js)
+            if (window.NS3D && window.NS3D.on) window.NS3D.draw();
+            else renderer.render();
             requestAnimationFrame(animate);
         }
         
         animate();
     </script>
+    <script src="ns-3d.js"></script>
 </body>
 </html>
