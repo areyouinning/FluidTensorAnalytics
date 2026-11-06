@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you fix both copies at once? | FluidTA</title>
+<meta name="description" content="A puzzle about coincidence: an editor too big to ship whole, two gene copies to fix, and a dose that costs you cells. Exact scoring in your browser.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+  .plan { display: grid; gap: 10px; margin: 18px 0 14px; }
+  .visit { display: grid; gap: 2px; padding: 10px 14px 12px; background: var(--panel); border-radius: var(--radius-sm); box-shadow: var(--shadow); }
+  .visit h3 { margin: 0 0 2px; font-size: 17px; }
+  .visit label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 16px; }
+  .visit input[type=range] { flex: 1; min-width: 70px; height: 44px; accent-color: var(--blue); }
+  .visit output { min-width: 4.5ch; text-align: right; font: 600 16px var(--mono); }
+  .visit .lam { margin: 2px 0 0; font-size: 14px; line-height: 1.35; color: var(--ink-soft); }
+  .fate { display: flex; height: 26px; margin: 16px 0 8px; background: var(--sunk); border-radius: 6px; overflow: hidden; }
+  .fate span { display: block; min-width: 0; }
+  .fkey { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--ink-soft); }
+  .fkey i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .pmsg { margin-top: 14px; padding: 12px 14px; background: var(--tint); border-radius: var(--radius-sm); font-size: 17px; }
+  .pmsg.win { background: color-mix(in srgb, var(--green) 22%, var(--paper)); }
+  @media (min-width: 640px) { .plan { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body data-tab="play">
+<main id="main" class="article">
+  <a class="crumb" href="/play.html">Play</a>
+  <h1>Can you fix both copies at once?</h1>
+  <p class="lede" style="margin-top:14px">You have a machine that rewrites one letter of a gene. It does not fit in the truck. So you send it as two halves, in two trucks, and hope both reach the same cell. Then it has to do the job twice, because the cell has two copies.</p>
+
+  <p>That is a puzzle about coincidence, and coincidences stack badly. This page is the puzzle, with the arithmetic done exactly as you move the sliders.</p>
+
+  <div class="note"><p>Where the question comes from: a gene can come in versions that differ at a single letter, and a person can carry two copies of the version they would rather not have. Correcting one letter precisely takes a bigger machine than cutting the gene does, and a common workaround is to split that machine across two delivery vehicles that both have to arrive. Two halves, two copies. Everything below is a made-up model of that shape, not biology and not advice — the <a href="#left-out">last section</a> lists what it leaves out, which is most of the real problem.</p></div>
+
+  <h2>Both halves, same cell</h2>
+  <p>A vehicle either reaches a given cell or it does not, and the arrivals are independent. Send a lot and almost every cell gets something; send few and most get nothing. A cell with <span class="t-blue">half A</span> alone has no machine. Neither does a cell with <span class="t-orange">half B</span> alone. Only the <span class="t-green">overlap</span> counts.</p>
+  <p>The two halves are not interchangeable. Half B is the bigger piece, so it packs into a vehicle worse — here each B vehicle delivers at 35% the weight of an A vehicle. So the even split is the wrong guess.</p>
+  <figure class="fig" data-diagram="coincide"><figcaption>Sixty cells, one fixed dose of eight vehicles, and your choice of how to divide them. The curve underneath is the chance of getting both halves, over every split.</figcaption></figure>
+  <p>The best share sends <b>more</b> vehicles carrying the weaker half, which is the obvious half of the answer. The unobvious half: you should not simply compensate in proportion to how badly B packs. Both terms saturate, so pushing either one close to certainty wastes vehicles that the other term would have used better. The peak sits between the even split and the proportional one.</p>
+
+  <h2>Then do it twice</h2>
+  <p>A cell with a complete machine gets worked on. For each copy of the gene, one of three things happens in an editing window: it gets <span class="t-green">corrected</span>, it gets <span class="t-orange">scarred</span> in a way nothing can fix later, or nothing happens and it can be tried again. I have set those at 25% and 8%, so a copy that keeps getting attempts ends up correct about 76% of the time.</p>
+  <p>76% per copy sounds like a solved problem. It is not, because you need both, and 0.76 squared is 57%. Where does the missing 43% go? Almost all of it into cells with one copy fixed and the other ruined: 37% end that way, against only 6% that lose both. Those are cells you spent and cannot get back. That squaring is the whole difficulty, and it is a ceiling no amount of delivery can lift.</p>
+  <figure class="fig" data-diagram="alleles"><figcaption>Each cell is drawn as its two copies. Drag the number of editing windows up and watch the orange accumulate alongside the green — those are the cells you have spent and lost.</figcaption></figure>
+
+  <h2>Why not just send more</h2>
+  <p>Because vehicles are not free to the cell. More dose means more cells with both halves, and also fewer cells alive to care. The product of those two has a maximum somewhere in the middle, and finding it is the first half of the puzzle.</p>
+  <p>The second half: you can come back. Treatment runs over six steps whether you use them or not, and a half that a cell is holding survives to the next step only 45% of the time. So a later dose restocks the cells whose machine has fallen apart, and buys another editing window for copies still raw. Dosing late is worth less, though: each step's vehicles arrive at 75% the effectiveness of the step before.</p>
+  <figure class="fig" data-diagram="doseplan"><figcaption>The same model, swept over total dose. Each curve holds the split at 38% and divides the dose evenly across however many doses it uses. Every curve peaks and then falls.</figcaption></figure>
+  <p>Three doses beat one by half again as much. A fourth adds nothing at all — by then decay and clearance have made a late vehicle worthless, and the dose only costs cells. So the answer has a shape: three front-loaded doses, each lopsided toward the weaker half, with the lopsidedness easing as it goes. That last part is worth a second look. It happens because the early doses have already stocked most cells with half B, so by the third dose the scarcer thing is half A.</p>
+
+  <h2 id="puzzle">The puzzle</h2>
+  <p>Six steps. At each one, choose a dose and how to divide it between the halves; zero is a reasonable answer for most of them. Your score is the fraction of the cells you started with that end up alive with both copies corrected. Higher is better.</p>
+  <p>Nothing is sampled and nothing is uploaded. The score is the exact answer from a 24-state chain over what a cell holds and how its two copies stand, run in your browser as you drag. A step you leave empty still passes: a machine already in the cell works again, and held halves decay again.</p>
+
+  <div class="plan" id="plan"></div>
+  <div class="ctl" id="plan-btns"></div>
+  <div class="read">
+    <div class="stat"><small>Score: cells fixed</small><b id="v-score">–</b></div>
+    <div class="stat"><small>Of survivors, both copies</small><b id="v-done">–</b></div>
+    <div class="stat"><small>Cells surviving the dose</small><b id="v-surv">–</b></div>
+    <div class="stat"><small>Total dose</small><b id="v-dose">–</b></div>
+  </div>
+  <div class="fate" id="fate" aria-hidden="true"></div>
+  <div class="fkey" id="fate-key"></div>
+  <p class="pmsg" id="plan-msg" aria-live="polite">Loading.</p>
+  <p class="nojs" style="margin-top:12px">The best schedule I found scores <b>7.32%</b>: three doses of 6.6, 5.2 and 4.4 at the first three steps, giving half A 35%, 38% and 45% of each. That came from coordinate ascent out of many starting points, and two separate implementations agree on it, so it is the best I found rather than a proved optimum. <b>Improve mine</b> runs the same search from wherever your sliders sit, so it can stall somewhere worse than the schedule above — that is how the method behaves, not a bug in it.</p>
+
+  <h2 id="left-out">What this leaves out</h2>
+  <p>Every number above is invented. I picked round values that make the tradeoffs visible, not measurements of anything. The model is worth playing with for its shape; it is worth nothing as a prediction.</p>
+  <p>The real version is harder in ways the model does not even gesture at. Getting vehicles to the cells you care about, in an organ that resists them. Which cell types you reach, and whether those are the ones that matter. An immune system that remembers the first visit. Measuring whether it worked, in tissue you cannot sample. And the question underneath all of it, which is whether changing a letter in an adult helps at all when the thing you are worried about has had decades to accumulate. None of that is arithmetic.</p>
+  <p>What does carry over is the squaring. Any time you need two independent rare things to happen in the same place, and failure at either one is permanent, your ceiling is the square of the single-event rate and your best plan front-loads and stays lopsided. That shape shows up in two-factor delivery, in paired-key schemes, and in any assembly where a half-built unit is scrap.</p>
+
+  <p class="credit">The chain, the parameters, the diagrams and the words here are mine, and the parameters are fiction. The one real fact borrowed from biology is the shape of the problem: a precise single-letter editor is large enough that splitting it across two delivery vehicles is a standard workaround, and someone homozygous has two copies to fix.</p>
+  <a data-next></a>
+</main>
+<script type="module" src="/two-halves.js"></script>
+</body>
+</html>
