@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hydrograph Synth | FluidTA</title>
+<meta name="description" content="Play a river: a synth whose note envelope is fitted to a water year. The rising limb is the attack, the recession the decay, baseflow the sustain. Load your own USGS gage file.">
+<style>body{margin:0}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: an engineering plot sheet. Hydrograph and its fitted envelope on top, A/D/S/R readouts as a station table, controls and scope beside, a keyboard along the bottom. */
+:root{
+  --paper:#f3f6f7; --sheet:#fbfcfc; --ink:#14202a; --muted:#5b6a75; --rule:#d2dade; --grid:#e3e9ec;
+  --water:#1c5e8e; --base:#5f8f86; --accent:#b4531c; --wash:#e7edf0;
+  --ui:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --serif:"Source Serif 4", Georgia, serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#0d1317; --sheet:#121a1f; --ink:#dde6eb; --muted:#8a99a3; --rule:#27333b; --grid:#1b252c; --water:#71b4e4; --base:#8bbab1; --accent:#e78c55; --wash:#18222a; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --paper:#0d1317; --sheet:#121a1f; --ink:#dde6eb; --muted:#8a99a3; --rule:#27333b; --grid:#1b252c; --water:#71b4e4; --base:#8bbab1; --accent:#e78c55; --wash:#18222a; color-scheme:dark }
+
+html,body{ background:var(--paper); color:var(--ink) }
+body{ font-family:var(--ui); font-size:15px; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:0 }
+.wrap{ max-width:1240px; margin:0 auto; padding-block:22px 40px; display:flex; flex-direction:column; gap:18px }
+button, select, input{ font:inherit; color:inherit }
+button{ cursor:pointer }
+:focus-visible{ outline:2px solid var(--water); outline-offset:2px }
+.num{ font-variant-numeric:tabular-nums }
+.eyebrow{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500 }
+
+header{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:8px 24px; border-bottom:2px solid var(--ink); padding-bottom:12px }
+h1{ font-weight:600; font-size:clamp(1.7rem,3.2vw,2.3rem); margin:2px 0 0; letter-spacing:-.005em; line-height:1.05 }
+.lede{ font-family:var(--serif); font-size:15.5px; line-height:1.5; color:var(--muted); max-width:60ch; margin:0 }
+
+.bar{ display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
+.seg{ display:flex; flex-wrap:wrap; border:1px solid var(--rule); border-radius:3px; overflow:hidden; background:var(--sheet) }
+.seg button{ border:0; background:none; padding:7px 12px; border-right:1px solid var(--rule); color:var(--muted); font-weight:500 }
+.seg button:last-child{ border-right:0 }
+.seg button[aria-pressed="true"]{ background:var(--ink); color:var(--paper) }
+.btn{ border:1px solid var(--rule); background:var(--sheet); padding:7px 12px; border-radius:3px; font-weight:500 }
+.btn:hover{ border-color:var(--muted) }
+.src{ font-size:13px; color:var(--muted) }
+.src b{ color:var(--ink); font-weight:600 }
+
+.main{ display:grid; grid-template-columns:minmax(0,2.15fr) minmax(0,1fr); gap:18px; align-items:start }
+.panel{ background:var(--sheet); border:1px solid var(--rule); border-radius:3px }
+.chartbox{ min-width:0; padding:14px 14px 10px }
+.chartbox .top{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:baseline; margin-bottom:6px }
+.chartbox .title{ font-weight:600; font-size:17px }
+.chartwrap{ position:relative; width:100%; aspect-ratio:2.05/1; max-width:100% }
+.chartwrap canvas, .scopewrap canvas{ position:absolute; inset:0; width:100%; height:100% }
+.legend{ display:flex; flex-wrap:wrap; gap:4px 16px; font-size:13px; color:var(--muted); margin-top:6px }
+.legend i{ display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:6px }
+
+.cards{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--rule); margin-top:10px }
+.card{ padding:12px 12px 4px; border-right:1px solid var(--rule); min-width:0; transition:background .15s }
+.card:last-child{ border-right:0 }
+.card.on{ background:var(--wash) }
+.card .k{ display:flex; align-items:baseline; gap:8px }
+.card .letter{ font-size:26px; font-weight:600; color:var(--accent); line-height:1 }
+.card .name{ font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:500 }
+.card .v{ font-size:22px; font-weight:600; margin-top:6px }
+.card .v small{ font-size:14px; font-weight:400; color:var(--muted) }
+.card .def{ font-family:var(--serif); font-size:13px; line-height:1.4; color:var(--muted); margin-top:4px }
+.foot{ font-size:13px; color:var(--muted); padding:10px 2px 2px }
+
+.side{ display:flex; flex-direction:column; gap:18px; min-width:0 }
+.controls{ padding:14px; display:flex; flex-direction:column; gap:14px }
+.ctl{ display:flex; flex-direction:column; gap:6px }
+.ctl label, .ctl .lab{ display:flex; justify-content:space-between; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:500 }
+.ctl label output{ letter-spacing:0; text-transform:none; color:var(--ink); font-size:14px }
+.ctl .hint{ font-family:var(--serif); font-size:12.5px; color:var(--muted); line-height:1.4 }
+input[type=range]{ width:100%; accent-color:var(--water) }
+select{ background:var(--sheet); border:1px solid var(--rule); border-radius:3px; padding:6px 8px }
+.check{ display:flex; gap:8px; align-items:center; font-size:14px }
+.check input{ accent-color:var(--water) }
+.scope{ padding:12px 14px }
+.scopewrap{ position:relative; width:100%; aspect-ratio:2.6/1; margin-top:6px }
+
+.kbdpanel{ padding:14px 14px 16px }
+.kbdhead{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 16px; margin-bottom:10px; align-items:baseline }
+.kbdhead .hint{ font-size:13px; color:var(--muted) }
+.kbdscroll{ overflow-x:auto }
+.kbd{ position:relative; height:150px; min-width:560px; user-select:none; -webkit-user-select:none; touch-action:none }
+.key{ position:absolute; top:0; border:1px solid var(--rule); border-radius:0 0 4px 4px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; font-size:12px; color:var(--muted) }
+.key.w{ background:var(--sheet); height:100%; z-index:1 }
+.key.b{ background:var(--ink); height:60%; z-index:2; color:var(--paper); font-size:11px; border-color:var(--ink) }
+.key.down.w{ background:color-mix(in srgb, var(--water) 22%, var(--sheet)) }
+.key.down.b{ background:var(--water) }
+.key span{ pointer-events:none; display:flex; flex-direction:column; align-items:center; gap:2px }
+.key em{ font-style:normal; opacity:.7 }
+
+details.getdata{ border-top:1px solid var(--rule); padding-top:12px }
+details.getdata summary{ cursor:pointer; font-weight:600; font-size:16px }
+.getdata .body{ font-family:var(--serif); font-size:14.5px; line-height:1.55; color:var(--muted); max-width:72ch }
+.getdata .body p{ margin:.7em 0 }
+.cmd{ display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:.4em 0 }
+.cmd code{ font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; background:var(--wash); color:var(--ink); padding:7px 10px; border-radius:3px; overflow-x:auto; min-width:0; flex:1 1 260px; white-space:nowrap }
+.drop{ outline:2px dashed var(--water); outline-offset:6px }
+.toast{ font-size:13px; color:var(--accent); min-height:1em }
+
+@media (max-width:900px){
+  .main{ grid-template-columns:minmax(0,1fr) }
+  .cards{ grid-template-columns:repeat(2,minmax(0,1fr)) }
+  .card:nth-child(2){ border-right:0 }
+  .card:nth-child(-n+2){ border-bottom:1px solid var(--rule) }
+  .chartwrap{ aspect-ratio:1.45/1 }
+}
+@media (prefers-reduced-motion: reduce){ .card{ transition:none } }
+</style>
+</head>
+<body>
+<p style="max-width:1240px;margin:0 auto;padding:14px 0 0;font:500 14px/1.4 system-ui,sans-serif"><a href="/hydrograph-synth.html" style="color:inherit;text-underline-offset:2px">&larr; FluidTA &middot; How does rain become a flood?</a></p>
+<div class="wrap" id="app">
+  <header>
+    <div>
+      <div class="eyebrow">Water year, Oct 1 – Sep 30</div>
+      <h1>Hydrograph Synth</h1>
+    </div>
+    <p class="lede">Each note's envelope is fitted to an annual hydrograph. The rising limb sets the attack, the peak recession sets the decay, baseflow sets the sustain level, and the baseflow recession constant sets the release.</p>
+  </header>
+
+  <div class="bar">
+    <div class="seg" id="regimes" role="group" aria-label="Flow regime"></div>
+    <button class="btn" id="reroll">New weather</button>
+    <button class="btn" id="loadBtn">Load gage file…</button>
+    <input type="file" id="file" accept=".csv,.txt,.rdb,.tsv,text/plain,text/csv" hidden>
+    <select id="wy" hidden aria-label="Water year"></select>
+    <span class="src" id="src"></span>
+  </div>
+
+  <div class="main">
+    <section class="panel chartbox" id="chartbox">
+      <div class="top">
+        <span class="title" id="chartTitle">Hydrograph</span>
+        <div class="seg" role="group" aria-label="Y axis">
+          <button id="ylin" aria-pressed="false">Linear</button><button id="ylog" aria-pressed="true">Log</button>
+        </div>
+      </div>
+      <div class="chartwrap"><canvas id="chart" role="img" aria-label="Annual hydrograph with fitted envelope segments"></canvas></div>
+      <div class="legend">
+        <span><i style="border-color:var(--water)"></i>Daily discharge (3-day mean)</span>
+        <span><i style="border-color:var(--base); border-top-style:dashed"></i>Baseflow, Lyne–Hollick</span>
+        <span><i style="border-color:var(--accent)"></i>Fitted envelope segments</span>
+      </div>
+      <div class="cards" id="cards">
+        <div class="card" data-ph="A"><div class="k"><span class="letter">A</span><span class="name">Attack</span></div><div class="v num" id="vA"></div><div class="def">Rising limb: from onset (10% of the rise) to the annual peak.</div></div>
+        <div class="card" data-ph="D"><div class="k"><span class="letter">D</span><span class="name">Decay</span></div><div class="v num" id="vD"></div><div class="def">Peak recession: days for the flow above baseflow to fall to 1/e.</div></div>
+        <div class="card" data-ph="S"><div class="k"><span class="letter">S</span><span class="name">Sustain</span></div><div class="v num" id="vS"></div><div class="def">Median baseflow as a fraction of peak discharge.</div></div>
+        <div class="card" data-ph="R"><div class="k"><span class="letter">R</span><span class="name">Release</span></div><div class="v num" id="vR"></div><div class="def">Recession constant k, from low-flow recession days: Q = Q₀e<sup>−t/k</sup>.</div></div>
+      </div>
+      <div class="foot num" id="foot"></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel controls" aria-label="Synth controls">
+        <div class="ctl">
+          <span class="lab">Envelope</span>
+          <div class="seg" role="group" aria-label="Envelope mode"><button id="mAdsr" aria-pressed="true">Fitted ADSR</button><button id="mYear" aria-pressed="false">Whole year</button></div>
+          <span class="hint" id="modeHint"></span>
+        </div>
+        <div class="ctl">
+          <label for="dps">Time scale <output id="dpsOut" class="num"></output></label>
+          <input type="range" id="dps" min="5" max="180" step="1" value="45">
+        </div>
+        <div class="ctl">
+          <label for="map">Loudness from flow</label>
+          <select id="map"><option value="1">Amplitude ∝ Q</option><option value="0.5">Power ∝ Q (amplitude ∝ √Q)</option></select>
+        </div>
+        <div class="ctl">
+          <label for="wave">Waveform</label>
+          <select id="wave"><option>sawtooth</option><option>triangle</option><option>square</option><option>sine</option></select>
+        </div>
+        <label class="check"><input type="checkbox" id="bright" checked> Brightness follows flow</label>
+        <div class="ctl">
+          <label for="vol">Volume <output id="volOut" class="num"></output></label>
+          <input type="range" id="vol" min="0" max="100" value="70">
+        </div>
+      </section>
+      <section class="panel scope">
+        <div class="eyebrow">Envelope scope · last 6 s</div>
+        <div class="scopewrap"><canvas id="scope" role="img" aria-label="Envelope level over the last six seconds"></canvas></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="panel kbdpanel">
+    <div class="kbdhead">
+      <span class="eyebrow">Keyboard · C3 to C5</span>
+      <span class="hint">Click or touch the keys, or type Z S X D C… and Q 2 W 3 E…</span>
+    </div>
+    <div class="kbdscroll"><div class="kbd" id="kbd"></div></div>
+  </section>
+
+  <details class="getdata">
+    <summary>Use real gage data</summary>
+    <div class="body">
+      <p>The five regimes above are synthetic. Each one runs a two-reservoir model (quickflow plus a slow groundwater store) driven by seeded random storms and a snowmelt pulse, tuned to look like that kind of stream. They are not records from any gage.</p>
+      <p>To play a real stream, load one water year of daily discharge. The page reads USGS RDB tab-delimited files, or any CSV with a date column (YYYY-MM-DD) followed by a discharge value. If the file spans several water years, choose one from the menu that appears. Gaps are filled by linear interpolation.</p>
+      <p>The script <b>fetch_usgs.py</b> downloads one water year from USGS and writes that CSV. It uses only the Python standard library. Run it on a computer that can reach USGS:</p>
+      <div class="cmd"><code id="cmdText">python fetch_usgs.py 09241000 2023</code><button class="btn" id="copyCmd">Copy</button></div>
+      <p>The arguments are a USGS site number and a water year. The script tries the USGS Water Data OGC API first and falls back to the legacy NWIS daily-values service. You can also drop a file anywhere on this page.</p>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+  </details>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TAU=Math.PI*2;
+let PAL={};
+function readPal(){ const cs=getComputedStyle(document.documentElement); for(const k of ["paper","sheet","ink","muted","rule","grid","water","base","accent","wash"]) PAL[k]=cs.getPropertyValue("--"+k).trim(); }
+
+/* ---------- synthetic regimes: two linear reservoirs ---------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const expo=(r,m)=>-Math.log(1-r())*m;
+const REG={
+  snow:{ label:"Snowmelt", place:"Rocky Mountain headwater", seed:11, f:0.4, kq:5, ks:70, mean:300,
+    input:(d,r)=> 9*Math.exp(-(((d-238)/(d<238?26:15))**2)) + (d>270&&d<350&&r()<0.12?expo(r,1.4):0) + (d<60&&r()<0.05?expo(r,1):0) + 0.15 },
+  med:{ label:"Winter rain", place:"Pacific coast, dry summer", seed:7, f:0.55, kq:2.5, ks:30, mean:2000,
+    input:(d,r)=>{ const wet=d>=31&&d<182, sh=(d<31||(d>=182&&d<243)); const p=wet?0.14:sh?0.05:0.01, m=wet?10:sh?5:2; return r()<p?expo(r,m):0; } },
+  pied:{ label:"Flashy rain", place:"Piedmont, rain all year", seed:3, f:0.65, kq:1.4, ks:25, mean:150,
+    input:(d,r)=>{ const eff=0.3+0.7*(0.5+0.5*Math.cos(TAU*(d-150)/365)); return r()<0.08?expo(r,8)*eff:0; } },
+  spring:{ label:"Spring-fed", place:"Volcanic aquifer", seed:5, f:0.04, kq:4, ks:500, mean:1500,
+    input:(d,r)=> 2*Math.exp(-(((d-230)/50)**2)) + (d>30&&d<180&&r()<0.12?expo(r,2):0) + 0.3 },
+  desert:{ label:"Desert monsoon", place:"Southwest, two wet seasons", seed:9, f:0.85, kq:1.2, ks:45, mean:300,
+    input:(d,r)=>{ if(d>=60&&d<180) return r()<0.05?expo(r,10):0; if(d>=273) return r()<0.12?expo(r,6):0; return r()<0.01?expo(r,3):0; } }
+};
+function simulate(key,seed){
+  const R=REG[key], r=mulberry32(seed), N=365, years=3; let Sq=0, Ss=0; const out=[];
+  const cq=1-Math.exp(-1/R.kq), cs=1-Math.exp(-1/R.ks);
+  for(let y=0;y<years;y++) for(let d=0;d<N;d++){ const I=Math.max(0,R.input(d,r)); Sq+=R.f*I; Ss+=(1-R.f)*I; const q1=Sq*cq, q2=Ss*cs; Sq-=q1; Ss-=q2; if(y===years-1) out.push(q1+q2); }
+  const m=out.reduce((a,b)=>a+b,0)/N; return out.map(v=>v/m*R.mean);
+}
+
+/* ---------- hydrograph analysis ---------- */
+function movavg(q,w){ const n=q.length, h=Math.floor(w/2), o=new Array(n); for(let i=0;i<n;i++){ let s=0,c=0; for(let j=i-h;j<=i+h;j++) if(j>=0&&j<n){ s+=q[j]; c++; } o[i]=s/c; } return o; }
+function lhPass(Q,a,rev){ const n=Q.length, qf=new Array(n).fill(0), b=new Array(n); const idx=rev?[...Array(n).keys()].reverse():[...Array(n).keys()];
+  let prev=null; for(const i of idx){ if(prev===null){ qf[i]=0; } else { let v=a*qf[prev]+(1+a)/2*(Q[i]-Q[prev]); if(v<0)v=0; if(v>Q[i])v=Q[i]; qf[i]=v; } b[i]=Q[i]-qf[i]; prev=i; } return b; }
+function lyneHollick(Q,a=0.925){ return lhPass(lhPass(lhPass(Q,a,false),a,true),a,false); }
+const median=a=>{ const s=[...a].sort((x,y)=>x-y), n=s.length; return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):NaN; };
+function fit(raw){
+  const q=movavg(raw.map(v=>Math.max(v,1e-6)),3), n=q.length;
+  let p=0; for(let i=1;i<n;i++) if(q[i]>q[p]) p=i;
+  const Qp=q[p], bf=lyneHollick(q), Qb=Math.max(median(bf),1e-6), S=Math.min(1,Math.max(1e-4,Qb/Qp));
+  const thr=Qb+0.1*(Qp-Qb); let on=p; while(on>0 && q[on-1]>thr) on--; if(on>0) on--;
+  const A=Math.max(1,p-on);
+  const lev=Qb+Math.exp(-1)*(Qp-Qb); let de=p; while(de<n-1 && q[de]>lev) de++;
+  const tauD=Math.max(0.5,de-p);
+  // recession constant: days in falling runs of >=5 days, flows at or below median
+  const med=median(q), rates=[]; let best=null, run=0;
+  for(let i=1;i<n;i++){ if(q[i]<q[i-1]){ run++; if(run>=5){ for(let j=i-run+1;j<=i;j++){} } } else run=0;
+    if(run>=5 && q[i]<=med){ const rr=Math.log(q[i-1]/q[i]); if(rr>0) rates.push(rr); } }
+  // longest qualifying run for drawing
+  run=0; let rs=0; for(let i=1;i<n;i++){ if(q[i]<q[i-1] && q[i]<=med*1.5){ if(!run) rs=i-1; run++; if(!best||run>best.len) best={s:rs,len:run}; } else run=0; }
+  const k=rates.length>=5? 1/median(rates) : 30;
+  return { q, bf, n, p, Qp, Qb, S, on, A, tauD, de, k:Math.min(k,2000), run:best };
+}
+
+/* ---------- state ---------- */
+const st={ regime:"snow", seed:REG.snow.seed, data:null, name:"", sub:"", synthetic:true, startDate:null, F:null, ylog:true, mode:"adsr" };
+let loaded=null; // {name, site, years:{wy:{dates,vals}}}
+
+function useSeries(vals,name,sub,synthetic,start){ st.data=vals; st.name=name; st.sub=sub; st.synthetic=synthetic; st.startDate=start; st.F=fit(vals); updateReadouts(); drawChart(); }
+function loadRegime(key,seed){ st.regime=key; st.seed=seed??REG[key].seed; const R=REG[key];
+  useSeries(simulate(key,st.seed),R.label,R.place,true,null);
+  [...$("regimes").children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===key?"true":"false"));
+  $("wy").hidden=true; $("reroll").disabled=false; }
+
+/* ---------- readouts ---------- */
+const dps=()=>+$("dps").value;
+const fmtQ=v=>v>=100?Math.round(v).toLocaleString():v>=10?v.toFixed(1):v.toPrecision(2);
+const MONTHS=["Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"];
+const MSTART=[0,31,61,92,123,151,182,212,243,273,304,335];
+function dayLabel(d){ if(st.startDate){ const t=new Date(st.startDate.getTime()+d*864e5); return t.toLocaleDateString(undefined,{month:"short",day:"numeric",timeZone:"UTC"}); }
+  let m=11; while(m>0&&MSTART[m]>d) m--; return `${MONTHS[m]} ${Math.floor(d-MSTART[m])+1}`; }
+function secs(days){ const s=days/dps(); return s<0.9995?`${Math.round(s*1000)} ms`:`${s.toFixed(2)} s`; }
+function updateReadouts(){
+  const F=st.F; if(!F) return;
+  $("vA").innerHTML=`${F.A} d <small>→ ${secs(F.A)}</small>`;
+  $("vD").innerHTML=`${F.tauD} d <small>→ τ ${secs(F.tauD)}</small>`;
+  $("vS").innerHTML=`${(F.S*100).toFixed(F.S<0.1?1:0)}% <small>${fmtQ(F.Qb)} / ${fmtQ(F.Qp)} cfs</small>`;
+  $("vR").innerHTML=`${F.k.toFixed(0)} d <small>→ τ ${secs(F.k)}</small>`;
+  $("foot").textContent=`Peak ${fmtQ(F.Qp)} cfs on ${dayLabel(F.p)} · onset ${dayLabel(F.on)} · median baseflow ${fmtQ(F.Qb)} cfs · ${st.data.length} days`;
+  $("chartTitle").textContent=st.name+(st.sub?` — ${st.sub}`:"");
+  $("src").innerHTML=st.synthetic?`<b>Synthetic</b> · two-reservoir model, seed ${st.seed}`:`<b>Gage data</b> · ${st.sub}`;
+  $("dpsOut").textContent=`1 s = ${dps()} days · year = ${(st.data.length/dps()).toFixed(1)} s`;
+  $("modeHint").textContent=st.mode==="adsr"
+    ? "Attack rises from the sustain level, as a rising limb starts at baseflow. Decay and release are exponential, like linear reservoirs."
+    : "The note plays the whole water year as its envelope, looping while held. Release still uses k.";
+}
+
+/* ---------- chart ---------- */
+const chart=$("chart"), cctx=chart.getContext("2d");
+let CW=0,CH=0, playDay=null;
+function sizeCanvas(c,g){ const r=c.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1); c.width=Math.round(r.width*dpr); c.height=Math.round(r.height*dpr); g.setTransform(dpr,0,0,dpr,0,0); return [r.width,r.height]; }
+function niceTicks(lo,hi,n){ const span=hi-lo, step0=span/n, mag=10**Math.floor(Math.log10(step0)); const step=[1,2,5,10].map(m=>m*mag).find(s=>span/s<=n)||10*mag; const t=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+1e-9; v+=step) t.push(v); return t; }
+function drawChart(){
+  if(!st.F) return; [CW,CH]=sizeCanvas(chart,cctx); const g=cctx, F=st.F, n=F.n, q=F.q;
+  const fs=Math.max(11,Math.min(13,CW*0.016));
+  const L=Math.max(44,fs*4.2), R=CW-10, T=10, B=CH-fs*2.2;
+  const qmin=Math.max(Math.min(...q, ...F.bf.filter(v=>v>0))*0.8, F.Qp*1e-4), qmax=F.Qp*1.12;
+  const X=d=>L+d/(n-1)*(R-L);
+  const Y=st.ylog? v=>B-(Math.log10(Math.max(v,qmin))-Math.log10(qmin))/(Math.log10(qmax)-Math.log10(qmin))*(B-T) : v=>B-(v/qmax)*(B-T);
+  g.clearRect(0,0,CW,CH); g.font=`${fs}px ${getComputedStyle(document.body).fontFamily}`; g.textBaseline="middle";
+  // grid
+  g.strokeStyle=PAL.grid; g.lineWidth=1; g.fillStyle=PAL.muted;
+  const yt=[]; if(st.ylog){ for(let e=Math.floor(Math.log10(qmin));e<=Math.ceil(Math.log10(qmax));e++) for(const m of [1,2,5]){ const v=m*10**e; if(v>=qmin&&v<=qmax) yt.push([v,m===1]); } }
+  else niceTicks(0,qmax,5).forEach(v=>yt.push([v,true]));
+  if(st.ylog && yt.length<3){ yt.length=0; niceTicks(qmin,qmax,4).forEach(v=>yt.push([v,true])); }
+  for(const [v,major] of yt){ const y=Y(v); g.globalAlpha=major?1:0.5; g.beginPath(); g.moveTo(L,y); g.lineTo(R,y); g.stroke(); g.globalAlpha=1; if(major||yt.length<8){ g.textAlign="right"; g.fillText(v>=1000?(v/1000)+"k":String(+v.toPrecision(3)),L-6,y); } }
+  g.textAlign="center";
+  MSTART.forEach((d,i)=>{ if(d>=n) return; const x=X(d); g.beginPath(); g.moveTo(x,T); g.lineTo(x,B); g.stroke(); g.fillText(MONTHS[i],X(Math.min(n-1,d+15)),B+fs*1.1); });
+  g.save(); g.translate(fs*0.8,(T+B)/2); g.rotate(-Math.PI/2); g.fillText("Discharge, cfs",0,0); g.restore();
+  // segments
+  const acc=PAL.accent;
+  g.fillStyle=acc; g.globalAlpha=0.12; g.fillRect(X(F.on),T,X(F.p)-X(F.on),B-T); g.globalAlpha=0.07; g.fillRect(X(F.p),T,X(Math.min(n-1,F.p+F.tauD))-X(F.p),B-T); g.globalAlpha=1;
+  // baseflow
+  g.strokeStyle=PAL.base; g.setLineDash([5,4]); g.lineWidth=1.4; g.beginPath(); F.bf.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke();
+  // sustain level
+  g.strokeStyle=acc; g.setLineDash([2,4]); g.lineWidth=1.2; g.beginPath(); g.moveTo(L,Y(F.Qb)); g.lineTo(R,Y(F.Qb)); g.stroke(); g.setLineDash([]);
+  // hydrograph
+  g.strokeStyle=PAL.water; g.lineWidth=1.8; g.beginPath(); q.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke();
+  // fitted attack + decay overlay
+  g.strokeStyle=acc; g.lineWidth=2.2; g.beginPath(); g.moveTo(X(F.on),Y(F.Qb)); g.lineTo(X(F.p),Y(F.Qp));
+  for(let t=0;t<=Math.min(n-1-F.p,F.tauD*4);t+=0.5) g.lineTo(X(F.p+t),Y(F.Qb+(F.Qp-F.Qb)*Math.exp(-t/F.tauD))); g.stroke();
+  // release fit on longest low-flow recession
+  if(F.run && F.run.len>=5){ const s=F.run.s, Q0=q[s]; g.beginPath(); for(let t=0;t<=F.run.len;t++){ const x=X(s+t), y=Y(Q0*Math.exp(-t/F.k)); t?g.lineTo(x,y):g.moveTo(x,y); } g.stroke();
+    tag(g,"R",X(s+F.run.len/2),Y(Q0*Math.exp(-F.run.len/2/F.k))-fs*1.3,fs,acc); }
+  g.fillStyle=acc; g.beginPath(); g.arc(X(F.p),Y(F.Qp),3.5,0,TAU); g.fill(); g.beginPath(); g.arc(X(F.on),Y(F.Qb),3,0,TAU); g.fill();
+  tag(g,"A",(X(F.on)+X(F.p))/2,T+fs,fs,acc); tag(g,"D",X(F.p)+Math.max(fs,(X(Math.min(n-1,F.p+F.tauD))-X(F.p))/2),T+fs,fs,acc);
+  const sx=F.p>n*0.5?L+fs*1.4:R-fs*1.4; tag(g,"S",sx,Y(F.Qb)-fs*0.9,fs,acc);
+  if(playDay!==null){ g.strokeStyle=PAL.ink; g.lineWidth=1.2; const x=X(playDay); g.beginPath(); g.moveTo(x,T); g.lineTo(x,B); g.stroke(); }
+}
+function tag(g,t,x,y,fs,col){ g.font=`600 ${fs*1.15}px ${getComputedStyle(document.body).fontFamily}`; g.fillStyle=col; g.textAlign="center"; g.fillText(t,x,y); g.font=`${fs}px ${getComputedStyle(document.body).fontFamily}`; }
+
+/* ---------- audio ---------- */
+let AC=null, master=null, comp=null;
+const voices=new Map(); let tick=null, lastVoice=null;
+function ensureAudio(){ if(AC) return; AC=new (window.AudioContext||window.webkitAudioContext)(); comp=AC.createDynamicsCompressor(); comp.threshold.value=-16; comp.ratio.value=4;
+  master=AC.createGain(); master.gain.value=(+$("vol").value/100)**2*0.9; master.connect(comp); comp.connect(AC.destination); }
+const mtof=m=>440*2**((m-69)/12);
+function ratioAt(v,t){
+  const F=st.F, D=dps();
+  let r;
+  if(v.mode==="year"){ const pos=((t-v.t0)*D)%F.n, i=Math.floor(pos), f=pos-i, a=F.q[i], b=F.q[(i+1)%F.n]; r=(a+(b-a)*f)/F.Qp; v.day=pos; }
+  else { const tt=t-v.t0, a=Math.max(0.005,F.A/D), td=Math.max(0.005,F.tauD/D);
+    if(tt<a){ r=F.S+(1-F.S)*(tt/a); v.ph="A"; } else { r=F.S+(1-F.S)*Math.exp(-(tt-a)/td); v.ph=(tt-a)<3*td?"D":"S"; } }
+  if(v.t1!==null && t>=v.t1){ const tr=Math.min(30,Math.max(0.01,F.k/D)); r=v.r1*Math.exp(-(t-v.t1)/tr); v.ph="R"; }
+  return Math.max(0,Math.min(1.2,r));
+}
+const ampOf=r=>Math.pow(r,+$("map").value);
+function noteOn(m){
+  ensureAudio(); if(AC.state==="suspended") AC.resume(); if(voices.has(m)) noteOff(m,true);
+  const t=AC.currentTime, o1=AC.createOscillator(), o2=AC.createOscillator(), fl=AC.createBiquadFilter(), g=AC.createGain();
+  const w=$("wave").value; o1.type=w; o2.type=w; o1.frequency.value=mtof(m); o2.frequency.value=mtof(m); o2.detune.value=w==="sine"?0:7;
+  const mix=AC.createGain(); mix.gain.value=w==="sine"?0.7:0.5; o1.connect(mix); o2.connect(mix); mix.connect(fl); fl.type="lowpass"; fl.Q.value=0.8; fl.frequency.value=800;
+  g.gain.value=0; fl.connect(g); g.connect(master); o1.start(t); o2.start(t);
+  const v={m,t0:t,t1:null,r1:0,mode:st.mode,o1,o2,fl,g,ph:"A",day:0,last:0}; voices.set(m,v); lastVoice=v;
+  setKey(m,true); if(!tick) tick=setInterval(step,12); step();
+}
+function noteOff(m,hard){ const v=voices.get(m); if(!v) return; setKey(m,false);
+  if(hard){ try{ v.g.gain.setTargetAtTime(0,AC.currentTime,0.01); v.o1.stop(AC.currentTime+0.08); v.o2.stop(AC.currentTime+0.08);}catch(e){} voices.delete(m); return; }
+  if(v.t1===null){ const t=AC.currentTime; v.r1=ratioAt({...v,t1:null},t); v.t1=t; } }
+function step(){
+  if(!AC) return; const t=AC.currentTime, bright=$("bright").checked;
+  for(const [m,v] of voices){ const r=ratioAt(v,t), a=ampOf(r); v.last=a;
+    v.g.gain.setTargetAtTime(a*0.3,t,0.006);
+    v.fl.frequency.setTargetAtTime(bright?160*Math.pow(60,Math.sqrt(Math.min(1,r))):14000,t,0.01);
+    if(v.t1!==null && (r<0.0006 || t-v.t1>40)){ try{ v.o1.stop(t+0.05); v.o2.stop(t+0.05);}catch(e){} voices.delete(m); } }
+  if(!voices.size){ clearInterval(tick); tick=null; }
+}
+
+/* ---------- scope + live overlays ---------- */
+const scope=$("scope"), sctx=scope.getContext("2d"); let SW=0,SH=0; const trace=[];
+function frame(){
+  const now=performance.now(); let lvl=0, ph=null, day=null;
+  if(lastVoice && (voices.has(lastVoice.m) && voices.get(lastVoice.m)===lastVoice)){ ph=lastVoice.ph; if(lastVoice.mode==="year") day=lastVoice.day; }
+  for(const v of voices.values()) lvl=Math.max(lvl,v.last||0);
+  trace.push([now,lvl]); while(trace.length && now-trace[0][0]>6000) trace.shift();
+  [...$("cards").children].forEach(c=>c.classList.toggle("on", st.mode==="adsr" && c.dataset.ph===ph));
+  if(day!==playDay){ playDay=day; drawChart(); }
+  const g=sctx; g.clearRect(0,0,SW,SH); g.strokeStyle=PAL.grid; g.lineWidth=1;
+  for(const f of [0.25,0.5,0.75]){ g.beginPath(); g.moveTo(0,SH*f); g.lineTo(SW,SH*f); g.stroke(); }
+  if(st.F && st.mode==="adsr"){ const y=SH-6-ampOf(st.F.S)*(SH-12); g.strokeStyle=PAL.accent; g.setLineDash([2,4]); g.beginPath(); g.moveTo(0,y); g.lineTo(SW,y); g.stroke(); g.setLineDash([]); }
+  g.strokeStyle=PAL.water; g.lineWidth=2; g.beginPath();
+  trace.forEach(([t,v],i)=>{ const x=SW-(now-t)/6000*SW, y=SH-6-v*(SH-12); i?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- keyboard ---------- */
+const LOW=48, HIGH=72, KEYMAP={z:48,s:49,x:50,d:51,c:52,v:53,g:54,b:55,h:56,n:57,j:58,m:59,",":60,q:60,"2":61,w:62,"3":63,e:64,r:65,"5":66,t:67,"6":68,y:69,"7":70,u:71,i:72};
+const NAMES=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const keyEls={};
+function buildKeys(){
+  const kb=$("kbd"), whites=[]; for(let m=LOW;m<=HIGH;m++) if(![1,3,6,8,10].includes(m%12)) whites.push(m);
+  const ww=100/whites.length, inv={}; for(const [k,m] of Object.entries(KEYMAP)) if(!(m===60&&k===",")) inv[m]=k.toUpperCase();
+  for(let m=LOW;m<=HIGH;m++){ const black=[1,3,6,8,10].includes(m%12), el=document.createElement("div");
+    el.className="key "+(black?"b":"w"); el.setAttribute("role","button"); el.setAttribute("aria-label",NAMES[m%12]+(Math.floor(m/12)-1));
+    if(black){ const wi=whites.filter(x=>x<m).length; el.style.left=`calc(${wi*ww}% - ${ww*0.3}%)`; el.style.width=`${ww*0.6}%`; }
+    else { const wi=whites.indexOf(m); el.style.left=`${wi*ww}%`; el.style.width=`${ww}%`; }
+    el.innerHTML=`<span>${inv[m]?`<em>${inv[m]}</em>`:""}${!black&&m%12===0?`<b style="font-weight:500">C${Math.floor(m/12)-1}</b>`:""}</span>`;
+    const ptr=new Set();
+    el.addEventListener("pointerdown",e=>{ e.preventDefault(); el.setPointerCapture(e.pointerId); ptr.add(e.pointerId); noteOn(m); });
+    const up=e=>{ if(ptr.delete(e.pointerId) && !ptr.size) noteOff(m); };
+    el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up);
+    kb.appendChild(el); keyEls[m]=el; }
+}
+function setKey(m,on){ keyEls[m]?.classList.toggle("down",on); }
+const held=new Set();
+addEventListener("keydown",e=>{ if(e.metaKey||e.ctrlKey||e.altKey||e.repeat) return; if(/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName) && document.activeElement.type!=="range" && document.activeElement.type!=="checkbox") return;
+  const k=e.key.toLowerCase(); if(k in KEYMAP && !held.has(k)){ held.add(k); noteOn(KEYMAP[k]); e.preventDefault(); } });
+addEventListener("keyup",e=>{ const k=e.key.toLowerCase(); if(held.delete(k)) noteOff(KEYMAP[k]); });
+addEventListener("blur",()=>{ for(const k of held) noteOff(KEYMAP[k]); held.clear(); });
+
+/* ---------- file loading ---------- */
+function parseText(text,fname){
+  const rows=new Map(); let site="";
+  for(const line of text.split(/\r?\n/)){ if(!line||line[0]==="#") continue; const tok=line.split(/[\t,;]/).map(s=>s.trim().replace(/^"|"$/g,""));
+    if(!site && tok[0]==="USGS" && /^\d{8,15}$/.test(tok[1]||"")) site=tok[1];
+    let di=-1, date=null;
+    for(let i=0;i<tok.length;i++){ let m=tok[i].match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m){ date=[+m[1],+m[2],+m[3]]; di=i; break; }
+      m=tok[i].match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m){ date=[+m[3],+m[1],+m[2]]; di=i; break; } }
+    if(di<0) continue;
+    for(let i=di+1;i<tok.length;i++){ const v=parseFloat(tok[i]); if(isFinite(v) && /^-?[\d.]+(e[-+]?\d+)?$/i.test(tok[i])){ if(v>=0) rows.set(Date.UTC(date[0],date[1]-1,date[2]),v); break; } } }
+  if(rows.size<30) throw new Error("Couldn't find a date column followed by discharge values.");
+  const years={}; for(const [t,v] of rows){ const d=new Date(t), wy=d.getUTCMonth()>=9?d.getUTCFullYear()+1:d.getUTCFullYear(); (years[wy]??=new Map()).set(t,v); }
+  const good=Object.entries(years).filter(([,m])=>m.size>=300).map(([y])=>+y).sort();
+  if(!good.length) throw new Error("No water year has at least 300 days of data.");
+  loaded={ name:fname.replace(/\.[^.]+$/,""), site, years, good };
+  const sel=$("wy"); sel.innerHTML=good.map(y=>`<option value="${y}">WY ${y}</option>`).join(""); sel.value=good[good.length-1]; sel.hidden=good.length<2;
+  useWY(+sel.value);
+}
+function useWY(wy){
+  const m=loaded.years[wy], start=Date.UTC(wy-1,9,1), end=Date.UTC(wy,8,30), n=Math.round((end-start)/864e5)+1, vals=new Array(n).fill(null);
+  for(const [t,v] of m){ const i=Math.round((t-start)/864e5); if(i>=0&&i<n) vals[i]=v; }
+  let last=-1; for(let i=0;i<n;i++){ if(vals[i]!==null){ if(last<0){ for(let j=0;j<i;j++) vals[j]=vals[i]; } else for(let j=last+1;j<i;j++) vals[j]=vals[last]+(vals[i]-vals[last])*(j-last)/(i-last); last=i; } }
+  for(let j=last+1;j<n;j++) vals[j]=vals[last];
+  const filled=n-m.size;
+  useSeries(vals, loaded.site?`USGS ${loaded.site}`:loaded.name, `WY ${wy}`+(filled>0?`, ${filled} days interpolated`:""), false, new Date(start));
+  [...$("regimes").children].forEach(b=>b.setAttribute("aria-pressed","false")); $("reroll").disabled=true;
+}
+function readFile(f){ const r=new FileReader(); r.onload=()=>{ try{ parseText(String(r.result),f.name); $("toast").textContent=""; }catch(err){ say(err.message); } }; r.readAsText(f); }
+function say(msg){ $("toast").textContent=msg; document.querySelector("details.getdata").open=true; }
+$("loadBtn").onclick=()=>$("file").click();
+$("file").onchange=e=>{ if(e.target.files[0]) readFile(e.target.files[0]); e.target.value=""; };
+$("wy").onchange=e=>useWY(+e.target.value);
+addEventListener("dragover",e=>{ e.preventDefault(); $("app").classList.add("drop"); });
+addEventListener("dragleave",e=>{ if(e.target===document.documentElement||!e.relatedTarget) $("app").classList.remove("drop"); });
+addEventListener("drop",e=>{ e.preventDefault(); $("app").classList.remove("drop"); const f=e.dataTransfer.files[0]; if(f) readFile(f); });
+$("copyCmd").onclick=()=>{ const t=$("cmdText").textContent; const sel=()=>{ const r=document.createRange(); r.selectNodeContents($("cmdText")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); };
+  try{ navigator.clipboard.writeText(t).then(()=>{ $("copyCmd").textContent="Copied"; setTimeout(()=>$("copyCmd").textContent="Copy",1500); },sel); }catch(e){ sel(); } };
+
+/* ---------- controls ---------- */
+for(const [k,R] of Object.entries(REG)){ const b=document.createElement("button"); b.textContent=R.label; b.dataset.k=k; b.onclick=()=>loadRegime(k); $("regimes").appendChild(b); }
+$("reroll").onclick=()=>loadRegime(st.regime,(Math.random()*1e6)|0);
+$("ylin").onclick=()=>{ st.ylog=false; $("ylin").setAttribute("aria-pressed","true"); $("ylog").setAttribute("aria-pressed","false"); drawChart(); };
+$("ylog").onclick=()=>{ st.ylog=true; $("ylog").setAttribute("aria-pressed","true"); $("ylin").setAttribute("aria-pressed","false"); drawChart(); };
+const setMode=m=>{ st.mode=m; $("mAdsr").setAttribute("aria-pressed",m==="adsr"); $("mYear").setAttribute("aria-pressed",m==="year"); updateReadouts(); };
+$("mAdsr").onclick=()=>setMode("adsr"); $("mYear").onclick=()=>setMode("year");
+$("dps").oninput=updateReadouts;
+const volOut=()=>{ $("volOut").textContent=$("vol").value+"%"; if(master) master.gain.setTargetAtTime((+$("vol").value/100)**2*0.9,AC.currentTime,0.02); };
+$("vol").oninput=volOut;
+
+let rt; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ drawChart(); [SW,SH]=sizeCanvas(scope,sctx); },120); });
+const repal=()=>{ readPal(); drawChart(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",repal);
+new MutationObserver(repal).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+readPal(); buildKeys(); volOut(); loadRegime("snow"); [SW,SH]=sizeCanvas(scope,sctx); requestAnimationFrame(frame);
+if(document.fonts?.ready) document.fonts.ready.then(drawChart);
+</script>
+</body>
+</html>
