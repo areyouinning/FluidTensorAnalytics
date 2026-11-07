@@ -94,6 +94,16 @@
       [[70, 66, 70, 82], [138, 66, 138, 82], [70, 108, 70, 124], [138, 108, 138, 124], [170, 95, 220, 95], [270, 66, 270, 84], [270, 106, 270, 124]].forEach(function (p, k) { o += line('M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3], k === 4 ? O : I, 7); });
       return o + text(160, 160, '5 · 3 · 3 · 3', 18, S);
     },
+    exciton: function () { // seven pigments, an excitation spread over a few of them, and the exit
+      var P = [[70, 60], [150, 40], [230, 100], [170, 140], [100, 160], [40, 120], [140, 90]], o = '';
+      [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [3, 6], [5, 6], [0, 6]].forEach(function (e) { o += line('M' + P[e[0]][0] + ' ' + P[e[0]][1] + 'L' + P[e[1]][0] + ' ' + P[e[1]][1], L, 3); });
+      o += line('M230 100H284', G, 4) + rect(284, 80, 26, 40, G, 6, .8);
+      [18, 12, 8, 4, 3, 6, 10].forEach(function (r, k) { o += dot(P[k][0], P[k][1], 11, 'var(--sunk)') + dot(P[k][0], P[k][1], r * .9, O, .85); });
+      return o;
+    },
+    units: function () { // Re = ρUL/μ, and the four base dimensions cancelling
+      return text(160, 74, 'Re = ρUL/μ', 34, I) + text(160, 120, 'M·L⁻³ · L·T⁻¹ · L', 17, S) + text(160, 146, 'M·L⁻¹·T⁻¹', 17, S) + line('M84 128H236', S, 2) + text(270, 138, '= 1', 22, B);
+    },
     shedding: function () { // a post and its Kármán street: whirlpools alternating above and below the centre line
       var o = dot(58, 90, 16, I), k;
       for (k = 0; k < 6; k++) { var x = 100 + k * 38, up = k % 2 === 0, y = up ? 72 : 108, r = 12 - k;
