@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How often does a bird shed a vortex? | FluidTA</title>
+<meta name="description" content="Vortex shedding computed live from the Navier-Stokes equations: the Strouhal number behind a cylinder, a flapping wing whose wake turns into a jet, and a bird-by-bird calculator.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>How often does a bird shed a vortex?</h1>
+  <p class="lede" style="margin-top:14px">Anything moving through air or water leaves little whirlpools behind it, peeled off first one side and then the other. A flagpole does it in the wind, and so does a pier in a river. A bird does it on purpose, once on every downstroke and once on every upstroke. How often comes down to a single number, and birds turn out to keep that number within a narrow band.</p>
+
+  <h2>A cylinder in a stream</h2>
+  <p>Start with the simplest body there is: a round post across a steady stream. The picture below is not an animation. It is the flow itself, computed from the equations of fluid motion as you watch, and coloured by spin: <span class="t-blue">blue</span> turning one way, <span class="t-orange">orange</span> the other.</p>
+  <figure class="fig" data-diagram="lbm" data-body="cylinder"><figcaption>The Reynolds number compares the stream's push with the fluid's stickiness, here U·D/ν for stream speed U, post width D and viscosity ν. The Strouhal number is read from a probe three widths behind the post, by timing its swings.</figcaption></figure>
+  <p>At low Reynolds numbers the wake stays put: two still eddies sit behind the post. In experiments, shedding starts at a Reynolds number of about 47. Above that, the eddies take turns breaking off, and the wake becomes a <b>Kármán vortex street</b>, two rows of whirlpools that alternate.</p>
+  <p>How often they break off is measured by the <b>Strouhal number</b>, St = <span class="m">f</span>·<span class="m">D</span>/<span class="m">U</span>: the shedding frequency, times the body's width, over the speed. It hardly moves. Behind a post it sits near 0.2 across a huge range of speeds and sizes. A wire humming in the wind and a bridge pier in a flood obey the same number.</p>
+  <p>Read off the value here and you'll see roughly 0.2, a little high. Careful experiments find about 0.16 at a Reynolds number of 100. This tank is narrow, the post fills a fifth of its height, and squeezing the flow speeds up the shedding. The trend is the real thing: no shedding at low Reynolds numbers, then a Strouhal number that settles near 0.2.</p>
+
+  <h2>A wing that flaps</h2>
+  <p>A bird's wing, sliced through from front to back, is a thin plate that moves up and down as the air streams past. Now the body is shaking the flow on purpose, and the Strouhal number becomes the flapper's choice: St = <span class="m">f</span>·<span class="m">A</span>/<span class="m">U</span>, with <span class="m">A</span> the distance the wingtip travels from top to bottom.</p>
+  <figure class="fig" data-diagram="lbm" data-body="foil"><figcaption>A thin wing section heaving up and down in the same kind of computed flow. The wake speed is the average speed of the air two to four chord lengths behind the wing, over its last two beats, compared with the stream.</figcaption></figure>
+  <p>Flap slowly and the wing behaves like the post: the wake trails slower than the stream, with the whirlpools in the drag arrangement. Speed up past a Strouhal number of about 0.2 and the street turns inside out. The whirlpools swap rows, the <b>reverse Kármán street</b>, and between them the air moves faster than the stream: a jet. The wing is throwing air backward, which is how it pushes itself forward. In this tank the switch comes at about 0.2: the wake runs at 0.8 of the stream speed at St 0.05 and 1.4 times it at St 0.4.</p>
+  <p>Too slow and you mostly drag. Too fast and you spend energy stirring the air. Somewhere in between, the jet is made most cheaply.</p>
+
+  <h2>Bird by bird</h2>
+  <p>When Graham Taylor, Robert Nudds and Adrian Thomas gathered measurements of flying animals cruising at speed, they found them flapping within a narrow band, a Strouhal number of about 0.2 to 0.4. That is where flapping wings make thrust most efficiently, and swimming animals do the same.</p>
+  <p>Try a bird. Each bird beats its wings <span class="m">f</span> times a second and sheds about two vortices a beat, so a pigeon cruising at six beats a second sheds about a dozen whirlpools every second, and a hummingbird about a hundred.</p>
+  <figure class="fig" data-diagram="birdst"><figcaption>The bars show the range of each bird's Strouhal number from ballpark inputs: its wingbeat frequency and speed over a typical span, and tip travel between 0.4 and 0.7 of its wingspan. The dot is your settings. These presets are rounded figures for illustration, not measurements.</figcaption></figure>
+  <p>The bars are wide because the inputs are rough, and the tip travel is the roughest. It changes with speed, it is hard to measure, and it isn't the same as the wingspan. If a bird's middle value lands below the band, suspect those inputs before the bird. Taylor and colleagues measured theirs and found the band. <b>Flap at this number in the wing tank</b> sends your bird's value up to the wing above.</p>
+
+  <h2>What is computed here</h2>
+  <p>Both tanks run a lattice Boltzmann method. Little packets of fluid stream between the cells of a grid and collide at each cell. At low speeds, the averages of those packets obey the incompressible Navier–Stokes equations, the same equations that describe the flow around a real cylinder or wing. The tanks are 260 by 100 cells, two-dimensional, and run at Reynolds numbers near 100. A real bird's wake is three-dimensional, chains of vortex rings rather than rows of whirlpools, and its Reynolds number is ten to a thousand times higher. So this is a slice of the idea, not a model of a pigeon. The shedding numbers, the steady wake at low Reynolds numbers and the turn from drag wake to jet are all measured from the computed flow. None of it is drawn.</p>
+
+  <p class="credit">Theodore von Kármán explained the vortex street in 1911 and 1912. The band for flying and swimming animals is from G. K. Taylor, R. L. Nudds and A. L. R. Thomas, "Flying and swimming animals cruise at a Strouhal number tuned for high power efficiency", <i>Nature</i> 425 (2003). The cylinder values from experiments are the commonly quoted ones. The solver, the tanks, the calculator and these words are new; the bird presets are ballpark figures, not data.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

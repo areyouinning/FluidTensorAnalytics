@@ -94,6 +94,12 @@
       [[70, 66, 70, 82], [138, 66, 138, 82], [70, 108, 70, 124], [138, 108, 138, 124], [170, 95, 220, 95], [270, 66, 270, 84], [270, 106, 270, 124]].forEach(function (p, k) { o += line('M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3], k === 4 ? O : I, 7); });
       return o + text(160, 160, '5 · 3 · 3 · 3', 18, S);
     },
+    shedding: function () { // a post and its Kármán street: whirlpools alternating above and below the centre line
+      var o = dot(58, 90, 16, I), k;
+      for (k = 0; k < 6; k++) { var x = 100 + k * 38, up = k % 2 === 0, y = up ? 72 : 108, r = 12 - k;
+        o += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="none" stroke="' + (up ? B : O) + '" stroke-width="5" opacity="' + (1 - k * .12).toFixed(2) + '"/>' + dot(x, y, 3, up ? B : O); }
+      return o + line('M20 30H300M20 150H300', L, 2);
+    },
     chladni: function () { // sand on a plate in mode (0, 4, minus): the two diagonals and a diamond, drawn as grains
       var R = rng(7), o = rect(90, 20, 140, 140, 'var(--panel)', 8), L = [[0, 0, 1, 1], [1, 0, 0, 1], [.5, 0, 1, .5], [1, .5, .5, 1], [.5, 1, 0, .5], [0, .5, .5, 0]];
       L.forEach(function (l) { for (var k = 0; k < 46; k++) { var t = R(), x = 90 + 140 * (l[0] + (l[2] - l[0]) * t) + (R() - .5) * 4, y = 20 + 140 * (l[1] + (l[3] - l[1]) * t) + (R() - .5) * 4; o += dot(x.toFixed(1), y.toFixed(1), 1.6, I); } });
