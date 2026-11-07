@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Fly a rain cloud over real Clear Creek country and visit game lands to earn raindrops: a 3D toy-box games world for a five-year-old.">
+<meta name="description" content="Paul is a rain cloud over the real Clear Creek map: fly to real places, play a game at each one, and bring the raindrops home to rain.">
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
-<title>Paul's Game Garage | FluidTA</title>
+<title>Paul's Cloud | FluidTA</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap">
 <style>
   /* FluidTA's page: its colors and type, light and dark, the same values as /fta-tokens.css, so this file also stands alone. */
@@ -239,11 +239,11 @@
 
 </head>
 <body data-tab="play">
-<main id="main" class="wrap garage">
+<main id="main" class="wrap cloudpage">
   <div class="page-head">
     <a class="crumb" href="/play.html">Play</a>
-    <h1>Paul's Game Garage</h1>
-    <p>Fly a rain cloud over the real Clear Creek map. Every game sits at a real place on it, and every game pays in raindrops.</p>
+    <h1>Paul's Cloud</h1>
+    <p>Paul is a rain cloud over the real Clear Creek map. Fly to a place, play the game there, and bring the raindrops home to rain on the mountains.</p>
   </div>
   <div class="gbar">
     <p>Made for Paul, who is five. Sound on is best.</p>
@@ -1709,8 +1709,39 @@
     function pointCloud(n,fill,size){ var g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(n*3),3)); g.setDrawRange(0,0);
       var p=new THREE.Points(g,new THREE.PointsMaterial({size:size,map:dotTex(fill),transparent:true,alphaTest:0.5,depthWrite:true})); p.frustumCulled=false; return p; }
     var waterPts=pointCloud(MAXP,"#4AA8FF",0.34), dropPts=pointCloud(800,"#8FD3FF",0.22), snowPts=pointCloud(800,"#FFFFFF",0.26);
-    var cloud=new THREE.Group(); [[0,0,0,1.1],[1.1,0.3,0.2,1.3],[2.3,0,0,1.0],[1.1,-0.2,-0.6,0.9],[-0.9,-0.2,0.3,0.8]].forEach(function(q){ var b=sphere(q[3],C.white,1); b.position.set(q[0]-0.8,q[1],q[2]); cloud.add(b); });
-    var cshadow=blob(0.22); cshadow.scale.setScalar(2.2);
+    // ---- Paul's cloud: a cumulus of lumpy puffs in one mesh. Light wraps through it (clouds scatter, they don't shade hard):
+    // warm white where the sun hits, cool blue-grey underneath, a silver lining at the edges toward the sun.
+    // Every puff breathes on its own; while it rains the underside darkens to storm grey and clears again after.
+    var cloudU={uTime:{value:0},uRain:{value:0},uLight:{value:SUN},uFog:FOG.color,uNear:FOG.near,uFar:FOG.far};
+    var cloud=(function(){
+      var PUFFS=[], r=(function(seed){ return function(){ seed=seed+0x6D2B79F5|0; var t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; })(11);
+      // a flat-bottomed heap: big puffs in the middle, smaller ones round the sides, towers on top
+      [[0,0.15,0,1.25],[1.2,0.05,0.15,1.05],[-1.15,0,-0.1,1.0],[0.45,0.85,0.05,0.95],[-0.5,0.7,0.25,0.85],[1.0,0.75,-0.35,0.7],[0.1,1.45,-0.1,0.7],[2.15,-0.15,0,0.75],[-2.05,-0.2,0.15,0.7],
+       [0.6,-0.1,0.95,0.8],[-0.6,-0.12,0.9,0.75],[0.5,-0.05,-0.95,0.8],[-0.55,-0.1,-0.85,0.78],[1.6,0.35,0.7,0.6],[-1.6,0.3,-0.65,0.6],[1.7,0.3,-0.6,0.55],[-1.5,0.35,0.7,0.55],[0.95,1.25,0.35,0.5],[-0.35,1.25,-0.45,0.5],[2.7,-0.3,0.35,0.45],[-2.6,-0.3,-0.3,0.45]
+      ].forEach(function(q){ PUFFS.push(q); });
+      PUFFS.slice().forEach(function(q){ var n=q[3]>0.7?4:2; for(var k=0;k<n;k++){ var a=r()*6.283, e=0.25+r()*0.95, rr=q[3]*(0.32+r()*0.16), d=q[3]*0.82;
+        var y=q[1]+Math.sin(e)*d; if(y<-0.1) continue; PUFFS.push([q[0]+Math.cos(a)*Math.cos(e)*d*1.15, y, q[2]+Math.sin(a)*Math.cos(e)*d, rr]); } });
+      var pos=[], nor=[], puff=[], tmp=new THREE.Vector3();
+      PUFFS.forEach(function(q,k){ var g=new THREE.IcosahedronGeometry(1,q[3]>0.6?3:2), p=g.attributes.position, ph=r()*6.28, sx=1.15+r()*0.2;
+        for(var i=0;i<p.count;i++){ tmp.set(p.getX(i),p.getY(i),p.getZ(i)).normalize();
+          var lump=1+0.07*Math.sin(tmp.x*5.3+k)*Math.sin(tmp.y*4.7+k*1.7)*Math.sin(tmp.z*5.9+k*0.6)+0.04*Math.sin(tmp.x*11+tmp.y*9+k);   // a lumpy surface
+          var x=q[0]+tmp.x*q[3]*lump*sx, y=q[1]+tmp.y*q[3]*lump*0.86, z=q[2]+tmp.z*q[3]*lump; if(y<-0.42) y=-0.42+(y+0.42)*0.25;   // flattened base, like a real cumulus
+          pos.push(x,y,z); nor.push(tmp.x,tmp.y,tmp.z); puff.push(q[0],q[1],q[2],ph); }
+        g.dispose(); });
+      var geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3)); geo.setAttribute("puff",new THREE.Float32BufferAttribute(puff,4));
+      var mat=new THREE.ShaderMaterial({uniforms:cloudU,
+        vertexShader:"attribute vec4 puff; uniform float uTime; uniform float uGrow; varying vec3 vN; varying vec3 vV; varying float vY; varying float vD; varying float vAO;\nvoid main(){ float b=1.0+0.035*sin(uTime*0.8+puff.w)+0.02*sin(uTime*1.9+puff.w*2.0); vec3 p=puff.xyz+(position-puff.xyz)*b+normal*uGrow; vY=p.y; vAO=smoothstep(0.55,2.3,length(p*vec3(0.62,1.25,0.95))); vec4 wp=modelMatrix*vec4(p,1.0); vN=normalize(mat3(modelMatrix)*normal); vV=cameraPosition-wp.xyz; vec4 mv=viewMatrix*wp; vD=-mv.z; gl_Position=projectionMatrix*mv; }",
+        fragmentShader:"uniform vec3 uLight; uniform float uRain; uniform vec3 uFog; uniform float uNear; uniform float uFar; uniform float uHalo; varying vec3 vN; varying vec3 vV; varying float vY; varying float vD; varying float vAO;\nvoid main(){ vec3 n=normalize(vN), v=normalize(vV); float w=clamp((dot(n,uLight)+0.55)/1.55,0.0,1.0); w=w*w*(3.0-2.0*w);"+
+          " vec3 lit=vec3(1.0,0.985,0.955), shade=mix(vec3(0.70,0.78,0.89),vec3(0.42,0.47,0.55),uRain); vec3 c=mix(shade,lit,w);"+
+          " c*=mix(mix(0.80,0.58,uRain),1.0,smoothstep(-0.45,1.2,vY)); c*=mix(0.8,1.0,vAO);"+                                  // darker toward the flat base
+          " float rim=pow(1.0-max(dot(n,v),0.0),2.2); float toSun=0.35+0.65*max(dot(-v,uLight),0.0); c+=vec3(1.0,0.97,0.9)*rim*toSun*0.45;"+  // silver lining
+          " c+=vec3(0.55,0.7,0.95)*max(-n.y,0.0)*0.06;"+                                                // sky bounce on the underside
+          " float f=smoothstep(uNear,uFar,vD); float a=uHalo>0.5?0.42*pow(max(dot(n,v),0.0),2.0):1.0; gl_FragColor=vec4(mix(c,uFog,f*0.6),a); }"});
+      mat.uniforms=Object.assign({},cloudU,{uGrow:{value:0},uHalo:{value:0}});
+      var halo=mat.clone(); halo.uniforms=Object.assign({},cloudU,{uGrow:{value:0.09},uHalo:{value:1}}); halo.transparent=true; halo.depthWrite=false;   // a soft outer skin: the edges feather into the sky
+      var m=new THREE.Mesh(geo,mat), h=new THREE.Mesh(geo,halo); m.frustumCulled=h.frustumCulled=false; h.renderOrder=2;
+      var g=new THREE.Group(); g.add(m); g.add(h); g.scale.setScalar(1.3); return g; })();
+    var cshadow=blob(0.16); cshadow.scale.set(4.4,3.3,1);
     function spawnWater(c){ if(parts.length>=MAXP) return; parts.push({c:c,t:Math.random(),mode:0,s:0}); }
     function step(){
       if(!ground) return;
@@ -1750,7 +1781,9 @@
       placeCard();
       needle.setAttribute("transform","rotate("+(view.yaw*180/Math.PI).toFixed(1)+" 16 16)");
       if(texFade){ texMix.value=Math.min(1,texMix.value+dt/0.8); if(texMix.value>=1) texFade=false; }
-      cloudPos.lerp(cloudWant,1-Math.exp(-dt/0.12)); cloud.position.copy(cloudPos); cloud.position.y+=Math.sin(clock*1.6)*0.12;
+      var cvx=cloudPos.x; cloudPos.lerp(cloudWant,1-Math.exp(-dt/0.12)); cloud.position.copy(cloudPos); cloud.position.y+=Math.sin(clock*0.9)*0.12;
+      cloudU.uTime.value=clock; cloudU.uRain.value+=((raining?1:0)-cloudU.uRain.value)*(1-Math.exp(-dt/0.6));
+      cloud.rotation.z+=(clamp(-(cloudPos.x-cvx)/Math.max(dt,1e-3)*0.02,-0.18,0.18)-cloud.rotation.z)*(1-Math.exp(-dt/0.3));   // leans into its flight
       var cc=cellAt(cloudPos.x,cloudPos.z); cshadow.position.set(cloudPos.x,(cc>=0?Y[cc]:0)+0.05,cloudPos.z);
       colT+=dt; if(snowDirty&&colT>0.3){ colT=0; paintSnow(); }
       var wp=waterPts.geometry.attributes.position.array, n=0;
