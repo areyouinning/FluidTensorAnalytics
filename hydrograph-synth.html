@@ -33,6 +33,14 @@
   <figure class="fig" data-diagram="hydrosynth" data-view="modular"><figcaption>Each dashed line is the flow after one module: green straight off the land, purple after the hillslope, orange after the channel. The black line is what reaches the outlet. Press Bypassed or Patched to pull a module out of the chain or put it back.</figcaption></figure>
   <p>Bypass everything except the rain and the flow is the storm itself, spiky and instant. Patch the modules back in one at a time and watch the flood get later, lower and longer. Neither the buckets nor the channel lose water: the area under the curve stays the same and only its shape changes. That is the whole trick of a flood plain and a reservoir. They do not stop the water, they spread it out in time.</p>
 
+  <h2>Play a river</h2>
+  <p>A hydrograph has the same shape as a note on a synthesizer: it rises (the attack), falls back fast (the decay), settles on a steady flow (the sustain) and drains away when the water stops (the release). Two more instruments take that literally.</p>
+  <ul>
+    <li><a href="/hydrograph-year.html"><b>Hydrograph Synth</b></a> fits each note's envelope to a whole water year. The rising limb sets the attack, the peak recession the decay, baseflow the sustain, and the slow recession constant the release. Pick a snowmelt river, a flashy creek or a spring-fed stream, or load a year of real data from a USGS gage, and play it on a keyboard.</li>
+    <li><a href="/hydrograph-rack.html"><b>Hydrograph Modular</b></a> is a patchable rack where streamflow is a voltage, with storms, a sequencer and drums that rain plays. Its bottom row is the modular synth on this page, rebuilt as audio filters you can patch cables through: losses, a Nash cascade and Muskingum routing. A linear reservoir is exactly a one-pole low-pass filter, so a hillslope is literally a filter on the rain. The <em>Flood routing</em> patch sends storms through all of it and lets the river bend the pitch.</li>
+  </ul>
+  <p>Both are best with headphones or good speakers, on a computer. The rack is wide, so on a phone it shrinks to fit.</p>
+
   <p class="credit">The methods are the textbook ones: L. K. Sherman (1932) for the unit hydrograph; the SCS curve number and dimensionless unit hydrograph from the USDA National Engineering Handbook, Part 630, here in its common gamma form with m = 3.7; J. E. Nash (1957) for the cascade; G. T. McCarthy (1938) for Muskingum routing. The numbers are for a made-up catchment, worked out in your browser at 15-minute steps. Real flood studies calibrate every knob against measured floods.</p>
   <a data-next></a>
 </main>

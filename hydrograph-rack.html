@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hydrograph Modular | FluidTA</title>
+<meta name="description" content="A patchable modular synth where streamflow is a voltage: a water-year hydrograph, storms, drums, and a runoff row with losses, a Nash cascade and Muskingum routing.">
+<style>body{margin:0}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: page frame (themed) around a physical rack (fixed colors, like a photo of hardware). Three 3U rows of mixed-finish panels; cables drawn over everything. */
+:root{
+  --bg:#eef0ee; --fg:#161a19; --muted:#5d6562; --rule:#cfd5d2; --accent:#b4531c; --chip:#ffffff;
+  --ui:"Archivo Narrow", "Arial Narrow", system-ui, sans-serif;
+  --serif:"Source Serif 4", Georgia, serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0f1211; --fg:#e4e8e6; --muted:#8f9894; --rule:#262c2a; --accent:#e78c55; --chip:#171b1a; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --bg:#0f1211; --fg:#e4e8e6; --muted:#8f9894; --rule:#262c2a; --accent:#e78c55; --chip:#171b1a; color-scheme:dark }
+html,body{ background:var(--bg); color:var(--fg) }
+body{ font-family:var(--ui); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:0 }
+.page{ max-width:1200px; margin:0 auto; padding-block:22px 48px; display:flex; flex-direction:column; gap:16px }
+button{ font:inherit; color:inherit; cursor:pointer }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+.top{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:8px 28px; border-bottom:2px solid var(--fg); padding-bottom:12px }
+.eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600 }
+h1{ font-size:clamp(1.8rem,3.4vw,2.5rem); font-weight:700; margin:2px 0 0; letter-spacing:-.005em; line-height:1.02 }
+.lede{ font-family:var(--serif); font-size:15.5px; line-height:1.5; color:var(--muted); max-width:62ch; margin:0 }
+.bar{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center }
+.power{ display:flex; align-items:center; gap:9px; border:1px solid var(--fg); background:var(--fg); color:var(--bg); padding:8px 14px; border-radius:3px; font-weight:600; letter-spacing:.04em }
+.power .pl{ width:9px; height:9px; border-radius:50%; background:#6b2a22 }
+.power[aria-pressed="true"]{ background:var(--chip); color:var(--fg) }
+.power[aria-pressed="true"] .pl{ background:#ff5a40; box-shadow:0 0 8px #ff5a40 }
+.seg{ display:flex; flex-wrap:wrap; border:1px solid var(--rule); border-radius:3px; overflow:hidden; background:var(--chip) }
+.seg button{ border:0; background:none; padding:8px 12px; border-right:1px solid var(--rule); color:var(--muted); font-weight:600 }
+.seg button:last-child{ border-right:0 }
+.seg button:hover{ color:var(--fg) }
+.status{ font-size:14px; color:var(--muted) }
+.status.warn{ color:var(--accent) }
+
+.rackscroll{ overflow-x:auto; overflow-y:hidden; border-radius:6px; max-width:100% }
+.rackscale{ position:relative }
+.rack{ position:relative; width:1324px; transform-origin:0 0; background:#141516; border-radius:6px; padding:0 14px; box-shadow:inset 0 0 0 1px #000, inset 0 0 40px rgba(0,0,0,.6) }
+.rail{ height:14px; margin:0 -6px; background:
+  radial-gradient(circle at 50% 50%, #2a2c2e 0 2.2px, transparent 2.6px) 0 0/18px 14px,
+  linear-gradient(#b9bcbe,#8d9093 45%,#6c6f72); box-shadow:0 1px 0 #000 }
+.row{ display:flex; height:360px }
+#cables{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:5; overflow:visible }
+
+.mod{ position:relative; height:100%; background:var(--pbg); color:var(--pfg); box-shadow:inset 1px 0 0 rgba(255,255,255,.14), inset -1px 0 0 rgba(0,0,0,.45); display:flex; flex-direction:column; user-select:none; -webkit-user-select:none }
+.mod::before,.mod::after{ content:""; position:absolute; width:7px; height:7px; border-radius:50%; background:radial-gradient(circle at 40% 35%, #e9eaea, #7d8083 70%); box-shadow:inset 0 0 0 1px rgba(0,0,0,.35) }
+.mod::before{ top:5px; left:6px } .mod::after{ bottom:5px; right:6px }
+.mhead{ padding:14px 6px 4px; text-align:center; line-height:1.05 }
+.mhead b{ display:block; font-size:13.5px; font-weight:700; letter-spacing:.1em }
+.mhead span{ display:block; font-size:9px; letter-spacing:.06em; color:var(--pdim); margin-top:2px; text-transform:uppercase }
+.mbody{ flex:1; display:flex; flex-direction:column; justify-content:space-evenly; padding:2px 4px 14px }
+.mrow{ display:flex; justify-content:space-around; align-items:flex-end; gap:2px; flex-wrap:nowrap }
+.mrule{ height:1px; background:var(--pdim); opacity:.4; margin:0 8px }
+
+.ki{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0 }
+.kl{ font-size:9.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap }
+.knob{ --ks:34px; width:var(--ks); height:var(--ks); position:relative; border-radius:50%; cursor:ns-resize; touch-action:none; margin-top:5px }
+.knob.l{ --ks:48px } .knob.s{ --ks:25px }
+.knob::before{ content:""; position:absolute; inset:-5px; border-radius:50%; background:conic-gradient(from 225deg, var(--pdim) 0 270deg, transparent 270deg 360deg); -webkit-mask:radial-gradient(circle, transparent calc(50% - 1.6px), #000 calc(50% - 1px)); mask:radial-gradient(circle, transparent calc(50% - 1.6px), #000 calc(50% - 1px)); opacity:.75 }
+.cap{ position:absolute; inset:0; border-radius:50% }
+.cap i{ position:absolute; left:calc(50% - 1px); top:9%; width:2px; height:36%; border-radius:1px }
+.kd .cap{ background:radial-gradient(circle at 38% 30%, #5a5d61, #18191b 68%); box-shadow:0 2px 3px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12) }
+.kd .cap i{ background:#f2efe7 }
+.ka .cap{ background:radial-gradient(circle at 38% 30%, #fbfbf9, #b3b6b2 62%, #8a8d8a); box-shadow:0 2px 3px rgba(0,0,0,.55), inset 0 -1px 0 rgba(0,0,0,.2) }
+.ka .cap i{ background:#1b1c1d }
+
+.ji{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:3px 3px 4px; border-radius:3px; min-width:36px }
+.ji .jl{ font-size:9.5px; font-weight:700; letter-spacing:.05em; white-space:nowrap }
+.ji.out{ background:var(--pfg); color:var(--pbg) }
+.jack{ width:22px; height:22px; border-radius:50%; cursor:pointer; touch-action:none; background:radial-gradient(circle, #050506 0 34%, #3b3e41 36% 40%, #d7d9da 42% 62%, #9a9da0 64% 76%, #5f6265 78% 100%); box-shadow:0 1px 1px rgba(0,0,0,.4) }
+.jack.gate{ box-shadow:0 0 0 2px #e3a23b, 0 1px 1px rgba(0,0,0,.4) }
+.jack.ok{ box-shadow:0 0 0 3px #4fd1a5 } .jack.pending{ box-shadow:0 0 0 3px #ff5a40 }
+.jack.gate.ok{ box-shadow:0 0 0 3px #4fd1a5 }
+
+.led{ width:8px; height:8px; border-radius:50%; background:#3d1612; box-shadow:inset 0 1px 1px rgba(0,0,0,.6) }
+.led.on{ background:#ff5a40; box-shadow:0 0 7px #ff5a40 }
+.pbtn{ border:0; background:#2b2d30; color:#d9d7d0; font-size:9.5px; font-weight:700; letter-spacing:.06em; padding:5px 6px; border-radius:2px; box-shadow:0 2px 0 #000, inset 0 1px 0 rgba(255,255,255,.12); display:flex; align-items:center; gap:5px; line-height:1 }
+.pbtn:active{ transform:translateY(1px); box-shadow:0 1px 0 #000 }
+.pbtn .led{ width:6px; height:6px }
+.pbtn[aria-pressed="true"] .led{ background:#ff5a40; box-shadow:0 0 6px #ff5a40 }
+.pbtn.step{ padding:5px 7px }
+.pbtn.step.cur{ outline:1.5px solid #4fd1a5; outline-offset:1px }
+.screen{ display:block; border-radius:3px; background:#0b1620; box-shadow:inset 0 0 0 1px rgba(0,0,0,.6), 0 0 0 2px rgba(0,0,0,.25) }
+.mkeys{ position:relative; height:54px; width:150px }
+.mkeys div{ position:absolute; top:0; border:1px solid #6d6556; border-radius:0 0 2px 2px; cursor:pointer; touch-action:none }
+.mkeys .w{ background:#f6f2e8; height:100%; width:18.75px }
+.mkeys .b{ background:#22201c; height:58%; width:11px; z-index:1; border-color:#22201c }
+.mkeys .down.w{ background:#a7d7c5 } .mkeys .down.b{ background:#3e8f73 }
+.hint{ font-size:9px; color:var(--pdim); letter-spacing:.04em; text-transform:uppercase }
+
+#tip{ position:fixed; z-index:30; pointer-events:none; background:#111; color:#f2f0ea; font:600 12px var(--ui); padding:4px 7px; border-radius:3px; letter-spacing:.03em; white-space:nowrap }
+
+.notes{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px 30px; border-top:1px solid var(--rule); padding-top:16px }
+.notes h2{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px; font-weight:700 }
+.notes p, .notes li{ font-family:var(--serif); font-size:14.5px; line-height:1.55; margin:0 0 .6em; min-width:0 }
+.notes ul{ padding-left:1.1em; margin:0 }
+.notes b{ font-family:var(--ui); font-weight:700; letter-spacing:.03em }
+.swatch{ display:inline-block; width:11px; height:11px; border-radius:50%; vertical-align:-1px; box-shadow:0 0 0 2px #e3a23b; background:#999; margin:0 3px }
+@media (max-width:860px){ .notes{ grid-template-columns:minmax(0,1fr) } }
+</style>
+</head>
+<body>
+<p style="max-width:1200px;margin:0 auto;padding:14px 0 0;font:500 14px/1.4 system-ui,sans-serif"><a href="/hydrograph-synth.html" style="color:inherit;text-underline-offset:2px">&larr; FluidTA &middot; How does rain become a flood?</a></p>
+<div class="page">
+  <header class="top">
+    <div><div class="eyebrow">Patchable · Web Audio</div><h1>Hydrograph Modular</h1></div>
+    <p class="lede">A modular rack where streamflow is a voltage source. The hydrograph module turns a water year into an envelope, a slow flow signal and a baseflow signal. The storm module drops random storms into a linear reservoir. The drum module turns rain into a beat: each storm is a hit, sized by how much it raised the river. The bottom row is a rainfall-runoff model you can patch: losses, a Nash cascade and Muskingum channel routing, built as filters.</p>
+  </header>
+  <div class="bar">
+    <button class="power" id="power" aria-pressed="false"><span class="pl"></span><span id="powerT">Power on</span></button>
+    <div class="seg" id="presets" role="group" aria-label="Patches"></div>
+    <span class="status" id="status" role="status">New: the runoff row and the Flood routing patch. Pick a patch, then power on.</span>
+  </div>
+  <div class="rackscroll" id="rackscroll"><div class="rackscale" id="rackscale"><div class="rack" id="rack"><svg id="cables"></svg></div></div></div>
+  <section class="notes">
+    <div>
+      <h2>Patching</h2>
+      <p>Drag from any jack to another. Each input takes one cable, and an output can feed several inputs. To move a cable, drag its plug off an input; drop it on bare panel to remove it. You can also tap one jack and then another, or focus a jack and press Enter on each end.</p>
+      <p>To turn a knob, drag up or down. Hold Shift for fine control, double-click to reset, or focus it and use the arrow keys. KEYS plays from Z S X D C V G B H N J M.</p>
+    </div>
+    <div>
+      <h2>Signals</h2>
+      <p>One cable type carries both audio and control voltage. Pitch inputs follow <b>1 V/oct</b>: a signal of 1 raises pitch one octave. Envelopes and flows run from 0 to 1.</p>
+      <p>Jacks ringed in amber <span class="swatch"></span> carry gates. A gate is both a timed event and a 0/1 signal. Gate inputs accept only gate outputs, but a gate output can patch into any input. Labels on solid tabs are outputs.</p>
+      <p>Gates from <b>RAIN</b> and <b>STORM</b> TRIG also carry the size of the event, from 0 to 1. <b>DRUMS</b> reads that as how hard to hit.</p>
+    </div>
+    <div>
+      <h2>Hydrology in the rack</h2>
+      <ul>
+        <li><b>ENV</b> is the hydrograph's fitted ADSR. Attack is the rising limb, decay τ is the peak recession, sustain is median baseflow divided by peak, and release τ is the recession constant k. ENV RATE converts days to seconds.</li>
+        <li><b>FLOW</b> and <b>BASE</b> loop the whole water year over YEAR seconds. They are scaled by the annual peak (LIN) or on a log scale between the year's minimum and peak (LOG). Baseflow is separated with a Lyne–Hollick filter.</li>
+        <li><b>PEAK</b> fires a gate each time the loop passes the annual peak.</li>
+        <li><b>STORM</b> rains Poisson storms with exponentially distributed depths. <b>RUNOFF</b> is a linear reservoir: storage jumps by each depth, then drains as e<sup>−t/K</sup>.</li>
+        <li><b>SVF</b> is Chamberlin's state-variable filter, run 2× oversampled.</li>
+        <li><b>RAIN</b> fires a gate at the start of each storm in the water year: a day when quickflow (flow minus baseflow) starts rising by more than 1% of the year's range per day. The gate carries that storm's total rise as a fraction of the year's largest. Snowmelt years give a few big hits; flashy rain gives many small ones.</li>
+        <li><b>LOSS</b> is the φ index: everything below φ soaks in, the rest runs off.</li>
+        <li><b>NASH</b> is J. E. Nash's cascade of N equal linear reservoirs. A linear reservoir with time constant k is exactly a one-pole low-pass filter, so the module is N of them in series. Its response to a pulse of rain is a gamma curve, peaking at (N − 1)·k, drawn on the screen.</li>
+        <li><b>MUSKINGUM</b> is G. T. McCarthy's 1938 channel routing, O = c₀I + c₁I₋₁ + c₂O₋₁, run at the audio sample rate as a first-order filter. X = 0 is a pure reservoir; X = 0.5 passes the wave on unchanged.</li>
+        <li>NASH and MUSKINGUM run in an AudioWorklet in double precision, so their gain at zero frequency is exactly 1: they reshape a flood in time without losing water. (The browser's built-in IIR filter node loses a large share of the volume at audio rates, so it is only a fallback.) <b>BASEFLOW</b> scales the result and adds steady groundwater flow, and <b>FLOOD SCOPE</b> plots rain against flow over the last few seconds. The <b>Flood routing</b> patch wires storms through all of it and lets the flow bend the pitch.</li>
+        <li><b>DRUMS</b> plays the kick for storms at or above SPLIT and the snare for smaller ones, and a bigger storm rings longer. QUANT snaps each storm to the nearest CLOCK step. HAT plays a closed hat whose level follows HAT CV; patch BASE there and the hats swell with baseflow. The snare's two tones are the (0,1) and (1,1) modes of a 14-inch head; the hat is the TR-808's six square-wave oscillators.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+<div id="tip" hidden></div>
+<input type="file" id="file" accept=".csv,.txt,.rdb,.tsv,text/plain,text/csv" hidden>
+
+<script>
+const SVF_SRC = "// Chamberlin state-variable filter (Musical Applications of Microprocessors, 1980/1985).\n// Two integrators in a loop; LP, BP and HP outputs at once. Run 2x oversampled for\n// stability at high cutoff, with a soft clip in the band integrator.\nclass ChamberlinSVF extends AudioWorkletProcessor {\n  static get parameterDescriptors() {\n    return [\n      { name: \"cutoff\", defaultValue: 800, minValue: 10, maxValue: 20000, automationRate: \"k-rate\" },\n      { name: \"res\", defaultValue: 0.3, minValue: 0, maxValue: 1, automationRate: \"k-rate\" },\n      { name: \"cv\", defaultValue: 0, minValue: -12, maxValue: 12, automationRate: \"a-rate\" }\n    ];\n  }\n  constructor() { super(); this.low = 0; this.band = 0; }\n  process(inputs, outputs, p) {\n    const inp = inputs[0] && inputs[0][0];\n    const oL = outputs[0][0], oB = outputs[1][0], oH = outputs[2][0];\n    const fs2 = 2 * sampleRate;\n    const q = 2 - 1.97 * p.res[0];          // damping = 1/Q, from 2 (Q = 0.5) to 0.03\n    const base = p.cutoff[0], cv = p.cv;\n    let low = this.low, band = this.band, high = 0, f = 0, last = NaN;\n    for (let i = 0; i < oL.length; i++) {\n      const c = cv.length > 1 ? cv[i] : cv[0];\n      if (c !== last) {\n        let fc = base * Math.pow(2, c);\n        if (fc > fs2 * 0.16) fc = fs2 * 0.16;\n        if (fc < 5) fc = 5;\n        f = 2 * Math.sin(Math.PI * fc / fs2);\n        last = c;\n      }\n      const x = inp ? inp[i] : 0;\n      for (let k = 0; k < 2; k++) {\n        low += f * band;\n        high = x - low - q * band;\n        band += f * high;\n        band = 4 * Math.tanh(band * 0.25);\n      }\n      oL[i] = low; oB[i] = band; oH[i] = high;\n    }\n    if (!isFinite(low) || !isFinite(band)) { low = 0; band = 0; }\n    this.low = low; this.band = band;\n    return true;\n  }\n}\nregisterProcessor(\"chamberlin-svf\", ChamberlinSVF);\n";
+const RUNOFF_SRC = "\n// Rainfall-runoff filters in double precision (the built-in IIR node loses volume at audio rates).\n// Nash cascade: N equal linear reservoirs; each is y += (1 - a)(x - y), a = e^(-1/(k fs)), so the gain at zero frequency is exactly 1.\nclass NashCascade extends AudioWorkletProcessor {\n  static get parameterDescriptors() { return [ { name: \"n\", defaultValue: 3, minValue: 1, maxValue: 6, automationRate: \"k-rate\" }, { name: \"k\", defaultValue: 0.35, minValue: 0.001, maxValue: 60, automationRate: \"k-rate\" } ]; }\n  constructor() { super(); this.s = new Float64Array(6); }\n  process(inputs, outputs, p) {\n    const inp = inputs[0] && inputs[0][0], out = outputs[0][0], n = Math.round(p.n[0]), b = 1 - Math.exp(-1 / (p.k[0] * sampleRate)), s = this.s;\n    for (let j = n; j < 6; j++) s[j] = 0;\n    for (let i = 0; i < out.length; i++) { let x = inp ? inp[i] : 0; for (let j = 0; j < n; j++) { s[j] += b * (x - s[j]); x = s[j]; } out[i] = x; }\n    return true;\n  }\n}\nregisterProcessor(\"nash-cascade\", NashCascade);\n// Muskingum routing (McCarthy 1938): O = c0 I + c1 I_prev + c2 O_prev, with dt one sample.\nclass Muskingum extends AudioWorkletProcessor {\n  static get parameterDescriptors() { return [ { name: \"K\", defaultValue: 0.6, minValue: 0.001, maxValue: 60, automationRate: \"k-rate\" }, { name: \"X\", defaultValue: 0.2, minValue: 0, maxValue: 0.5, automationRate: \"k-rate\" } ]; }\n  constructor() { super(); this.i1 = 0; this.o1 = 0; }\n  process(inputs, outputs, p) {\n    const inp = inputs[0] && inputs[0][0], out = outputs[0][0], dt = 1 / sampleRate, K = p.K[0], X = p.X[0];\n    const den = K - K * X + 0.5 * dt, c0 = (-K * X + 0.5 * dt) / den, c1 = (K * X + 0.5 * dt) / den, c2 = (K - K * X - 0.5 * dt) / den;\n    let i1 = this.i1, o1 = this.o1;\n    for (let i = 0; i < out.length; i++) { const x = inp ? inp[i] : 0, o = c0 * x + c1 * i1 + c2 * o1; out[i] = o; i1 = x; o1 = o; }\n    this.i1 = i1; this.o1 = isFinite(o1) ? o1 : 0; return true;\n  }\n}\nregisterProcessor(\"muskingum\", Muskingum);\n";
+let RUNOFF_OK=false;
+const $=id=>document.getElementById(id);
+const TAU=Math.PI*2, HP=18, ROWH=360, LOOK=0.15;
+
+/* ---------------- hydrology ---------------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const expo=(r,m)=>-Math.log(1-r())*m;
+const REG={
+  snow:{ label:"SNOWMELT", seed:11, f:0.4, kq:5, ks:70, mean:300, input:(d,r)=> 9*Math.exp(-(((d-238)/(d<238?26:15))**2)) + (d>270&&d<350&&r()<0.12?expo(r,1.4):0) + (d<60&&r()<0.05?expo(r,1):0) + 0.15 },
+  med:{ label:"WINTER RAIN", seed:7, f:0.55, kq:2.5, ks:30, mean:2000, input:(d,r)=>{ const wet=d>=31&&d<182, sh=(d<31||(d>=182&&d<243)); const p=wet?0.14:sh?0.05:0.01, m=wet?10:sh?5:2; return r()<p?expo(r,m):0; } },
+  pied:{ label:"FLASHY RAIN", seed:3, f:0.65, kq:1.4, ks:25, mean:150, input:(d,r)=>{ const eff=0.3+0.7*(0.5+0.5*Math.cos(TAU*(d-150)/365)); return r()<0.08?expo(r,8)*eff:0; } },
+  spring:{ label:"SPRING-FED", seed:5, f:0.04, kq:4, ks:500, mean:1500, input:(d,r)=> 2*Math.exp(-(((d-230)/50)**2)) + (d>30&&d<180&&r()<0.12?expo(r,2):0) + 0.3 },
+  desert:{ label:"DESERT MONSOON", seed:9, f:0.85, kq:1.2, ks:45, mean:300, input:(d,r)=>{ if(d>=60&&d<180) return r()<0.05?expo(r,10):0; if(d>=273) return r()<0.12?expo(r,6):0; return r()<0.01?expo(r,3):0; } }
+};
+const REGKEYS=["snow","med","pied","spring","desert"];
+function simulate(key){ const R=REG[key], r=mulberry32(R.seed), N=365; let Sq=0,Ss=0; const out=[]; const cq=1-Math.exp(-1/R.kq), cs=1-Math.exp(-1/R.ks);
+  for(let y=0;y<3;y++) for(let d=0;d<N;d++){ const I=Math.max(0,R.input(d,r)); Sq+=R.f*I; Ss+=(1-R.f)*I; const q1=Sq*cq,q2=Ss*cs; Sq-=q1; Ss-=q2; if(y===2) out.push(q1+q2); }
+  const m=out.reduce((a,b)=>a+b,0)/N; return out.map(v=>v/m*R.mean); }
+function movavg(q,w){ const n=q.length,h=w>>1,o=new Array(n); for(let i=0;i<n;i++){ let s=0,c=0; for(let j=i-h;j<=i+h;j++) if(j>=0&&j<n){ s+=q[j]; c++; } o[i]=s/c; } return o; }
+function lhPass(Q,a,rev){ const n=Q.length, qf=new Array(n).fill(0), b=new Array(n); const idx=[...Array(n).keys()]; if(rev) idx.reverse(); let prev=null;
+  for(const i of idx){ if(prev!==null){ let v=a*qf[prev]+(1+a)/2*(Q[i]-Q[prev]); qf[i]=Math.min(Q[i],Math.max(0,v)); } b[i]=Q[i]-qf[i]; prev=i; } return b; }
+const lyneHollick=(Q,a=0.925)=>lhPass(lhPass(lhPass(Q,a,false),a,true),a,false);
+const median=a=>{ const s=[...a].sort((x,y)=>x-y), n=s.length; return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2; };
+function fit(raw){
+  const q=movavg(raw.map(v=>Math.max(v,1e-6)),3), n=q.length; let p=0; for(let i=1;i<n;i++) if(q[i]>q[p]) p=i;
+  const Qp=q[p], bf=lyneHollick(q), Qb=Math.max(median(bf),1e-6), S=Math.min(1,Math.max(1e-4,Qb/Qp));
+  const thr=Qb+0.1*(Qp-Qb); let on=p; while(on>0&&q[on-1]>thr) on--; if(on>0) on--;
+  const lev=Qb+Math.exp(-1)*(Qp-Qb); let de=p; while(de<n-1&&q[de]>lev) de++;
+  const med=median(q), rates=[]; let run=0;
+  for(let i=1;i<n;i++){ if(q[i]<q[i-1]) run++; else run=0; if(run>=5&&q[i]<=med){ const rr=Math.log(q[i-1]/q[i]); if(rr>0) rates.push(rr); } }
+  const k=rates.length>=5?Math.min(2000,1/median(rates)):30;
+  // storms: onsets of runs where quickflow (Q - baseflow) rises more than 1% of the annual range per day; size = the run's total rise / the year's largest
+  const qf=q.map((v,i)=>Math.max(0,v-bf[i])), rthr=0.01*(Qp-Qb), rain=new Array(n).fill(0); let big=0;
+  for(let i=1;i<n;i++){ if(qf[i]-qf[i-1]>rthr && !(i>1&&qf[i-1]-qf[i-2]>rthr)){ let j=i; while(j+1<n&&qf[j+1]-qf[j]>rthr) j++; const mag=qf[j]-qf[i-1]; rain[i]=mag; if(mag>big) big=mag; } }
+  if(big>0) for(let i=0;i<n;i++) rain[i]/=big;
+  return { q, bf, n, p, Qp, Qb, S, A:Math.max(1,p-on), tauD:Math.max(0.5,de-p), k, qmin:Math.max(Math.min(...q),Qp*1e-4), rain };
+}
+function parseGage(text){
+  const rows=new Map(); let site="";
+  for(const line of text.split(/\r?\n/)){ if(!line||line[0]==="#") continue; const tok=line.split(/[\t,;]/).map(s=>s.trim().replace(/^"|"$/g,""));
+    if(!site&&tok[0]==="USGS"&&/^\d{8,15}$/.test(tok[1]||"")) site=tok[1];
+    let di=-1,date=null; for(let i=0;i<tok.length;i++){ let m=tok[i].match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m){ date=[+m[1],+m[2],+m[3]]; di=i; break; } m=tok[i].match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m){ date=[+m[3],+m[1],+m[2]]; di=i; break; } }
+    if(di<0) continue;
+    for(let i=di+1;i<tok.length;i++){ if(/^-?[\d.]+(e[-+]?\d+)?$/i.test(tok[i])){ const v=parseFloat(tok[i]); if(v>=0) rows.set(Date.UTC(date[0],date[1]-1,date[2]),v); break; } } }
+  const years={}; for(const [t,v] of rows){ const d=new Date(t), wy=d.getUTCMonth()>=9?d.getUTCFullYear()+1:d.getUTCFullYear(); (years[wy]??=new Map()).set(t,v); }
+  const good=Object.keys(years).map(Number).filter(y=>years[y].size>=300).sort((a,b)=>a-b);
+  if(!good.length) throw new Error("No water year in that file has 300 or more days of discharge.");
+  const wy=good[good.length-1], m=years[wy], start=Date.UTC(wy-1,9,1), n=Math.round((Date.UTC(wy,8,30)-start)/864e5)+1, vals=new Array(n).fill(null);
+  for(const [t,v] of m){ const i=Math.round((t-start)/864e5); if(i>=0&&i<n) vals[i]=v; }
+  let last=-1; for(let i=0;i<n;i++){ if(vals[i]!==null){ if(last<0) for(let j=0;j<i;j++) vals[j]=vals[i]; else for(let j=last+1;j<i;j++) vals[j]=vals[last]+(vals[i]-vals[last])*(j-last)/(i-last); last=i; } }
+  for(let j=last+1;j<n;j++) vals[j]=vals[last];
+  return { vals, label:site?`USGS ${site}`:"GAGE FILE", sub:`WY ${wy}` };
+}
+
+/* ---------------- formatting ---------------- */
+const hz=v=>v>=1000?(v/1000).toFixed(2)+" kHz":Math.round(v)+" Hz";
+const sec=v=>v<1?Math.round(v*1000)+" ms":v.toFixed(2)+" s";
+const pct=v=>Math.round(v*100)+"%";
+const NOTE=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const SCALES=[{n:"CHROMATIC",d:[0,1,2,3,4,5,6,7,8,9,10,11]},{n:"MAJOR",d:[0,2,4,5,7,9,11]},{n:"MINOR PENT",d:[0,3,5,7,10]},{n:"DORIAN",d:[0,2,3,5,7,9,10]}];
+function seqSemis(m,n){ const sc=SCALES[m.vals.scale].d, L=sc.length, deg=Math.round(n*2*L); return 12*Math.floor(deg/L)+sc[deg%L]; }
+const semiName=s=>NOTE[((s%12)+12)%12]+(Math.floor(s/12)+3);
+
+/* ---------------- module types ---------------- */
+const K=(id,label,min,max,def,o={})=>({t:"knob",id,label,min,max,def,...o});
+const IN=(id,label,ty="sig")=>({t:"in",id,label,ty}), OUT=(id,label,ty="sig")=>({t:"out",id,label,ty});
+const PANELS={ alu:["#c9ccc7","#1b1d1c","#5c605b","kd"], black:["#1d1f22","#ebe8e0","#8f918d","ka"], blue:["#1e3a54","#e8f0f5","#93acc0","ka"], cream:["#e5dcc6","#2b251c","#7a7060","kd"], oxide:["#6b2e22","#f3e7dd","#cfa694","ka"], slate:["#3a4148","#eef0f1","#a3acb3","ka"], olive:["#3b4636","#eef0e4","#a9b59f","ka"] };
+
+let AC=null, WORKLET=false;
+const cs=(v=0)=>{ const c=AC.createConstantSource(); c.offset.value=v; c.start(); return c; };
+const G=(v=1)=>{ const g=AC.createGain(); g.gain.value=v; return g; };
+
+const TYPES={
+clock:{ name:"CLOCK", sub:"tempo", hp:6, panel:"black",
+  rows:[[K("bpm","BPM",40,240,110,{size:"l",fmt:v=>Math.round(v)+" BPM"})],[{t:"btn",id:"run",label:"RUN",toggle:true,def:1},{t:"led",id:"led"}],[OUT("clk","CLK","gate")],[OUT("d2","÷2","gate")],[OUT("d4","÷4","gate")]],
+  build(m){ for(const p of ["clk","d2","d4"]) m.outs[p]={node:cs(0)}; m.next=AC.currentTime+0.06; m.count=0; },
+  tick(m,now){ if(!m.vals.run){ m.next=now+0.05; return; } const iv=60/m.vals.bpm/4; if(m.next<now) m.next=now+0.01;
+    while(m.next<now+LOOK){ const t=m.next; pulse(m,"clk",t,iv*0.5); if(m.count%2===0) pulse(m,"d2",t,iv); if(m.count%4===0){ pulse(m,"d4",t,iv*2); flash(m.leds.led,t); } m.count++; m.next+=iv; } } },
+
+seq:{ name:"SEQUENCER", sub:"8 steps · quantized", hp:16, panel:"alu",
+  rows:[ [0,1,2,3,4,5,6,7].map(i=>K("s"+i,String(i+1),0,1,[.2,.45,.3,.6,.2,.75,.5,.35][i],{size:"s",fmt:(v,m)=>semiName(seqSemis(m,v))})),
+    [0,1,2,3,4,5,6,7].map(i=>({t:"btn",id:"e"+i,label:"",toggle:true,def:1,cls:"step"})),
+    [K("scale","SCALE",0,3,2,{step:true,fmt:v=>SCALES[v].n}),K("len","LENGTH",1,8,8,{step:true,fmt:v=>v+" steps"}),K("gate","GATE",0.05,0.95,0.5,{fmt:pct}),K("glide","GLIDE",0,0.25,0,{fmt:sec})],
+    [IN("clock","CLOCK","gate"),IN("reset","RESET","gate"),OUT("pitch","PITCH"),OUT("gate","GATE","gate")] ],
+  build(m){ m.outs.pitch={node:cs(0)}; m.outs.gate={node:cs(0)}; m.ins.clock={gate:true}; m.ins.reset={gate:true}; m.step=-1; m.lastClk=null; m.iv=0.125; },
+  onGate(m,port,t,on){ if(!on) return; if(port==="reset"){ m.step=-1; return; }
+    if(m.lastClk!==null){ const d=t-m.lastClk; if(d>0.015&&d<3) m.iv=d; } m.lastClk=t;
+    m.step=(m.step+1)%m.vals.len; const s=m.step; markStep(m,s,t);
+    if(m.vals["e"+s]){ const v=seqSemis(m,m.vals["s"+s])/12, p=m.outs.pitch.node.offset; if(m.vals.glide>0) p.setTargetAtTime(v,t,m.vals.glide/3); else p.setValueAtTime(v,t);
+      emitGate(m,"gate",t,true); emitGate(m,"gate",t+m.iv*m.vals.gate,false); } } },
+
+keys:{ name:"KEYS", sub:"monophonic", hp:10, panel:"cream",
+  rows:[[{t:"keys"}],[K("oct","OCTAVE",-2,2,0,{step:true,fmt:v=>(v>0?"+":"")+v+" oct"}),{t:"led",id:"led"}],[{t:"hint",text:"type Z–M"}],[OUT("pitch","PITCH"),OUT("gate","GATE","gate")]],
+  build(m){ m.outs.pitch={node:cs(0)}; m.outs.gate={node:cs(0)}; m.stack=[]; } },
+
+hydro:{ name:"HYDROGRAPH", sub:"water year → voltage", hp:20, panel:"blue", extra:{regime:0},
+  rows:[[{t:"screen",id:"hs",w:336,h:116}],
+    [...["SNOW","RAIN","FLASH","SPRING","MONSOON"].map((l,i)=>({t:"btn",id:"r"+i,label:l,radio:true})),{t:"btn",id:"load",label:"LOAD"}],
+    [K("envRate","ENV RATE",5,2000,300,{log:true,fmt:v=>Math.round(v)+" days/s"}),K("year","YEAR",2,120,24,{log:true,fmt:v=>v.toFixed(1)+" s loop"}),{t:"btn",id:"log",label:"LOG",toggle:true,def:1}],
+    [IN("gate","GATE","gate"),IN("reset","RESET","gate"),OUT("env","ENV"),OUT("flow","FLOW"),OUT("base","BASE"),OUT("peak","PEAK","gate"),OUT("rain","RAIN","gate")]],
+  init(m){ setRegime(m,m.vals.regime>4?0:m.vals.regime); },
+  build(m){ for(const p of ["env","flow","base","peak","rain"]) m.outs[p]={node:cs(0)}; m.ins.gate={gate:true}; m.ins.reset={gate:true}; m.md={t:0,v:0,segs:[]}; m.pos=0; m.schedT=AC.currentTime; },
+  onGate(m,port,t,on){ const F=m.F, rate=m.vals.envRate;
+    if(port==="reset"){ if(!on) return; m.pos=0; m.schedT=Math.max(t,AC.currentTime); for(const p of ["flow","base"]){ const pr=m.outs[p].node.offset; pr.cancelScheduledValues(m.schedT); } return; }
+    if(on){ const A=Math.max(0.002,F.A/rate), td=Math.max(0.002,F.tauD/rate), v0=envVal(m.md,t), T=1.3, segs=[];
+      if(v0<0.999){ segs.push({t,target:T,tau:A/Math.log((T-v0)/(T-1))}); segs.push({t:t+A,target:F.S,tau:td}); } else segs.push({t,target:F.S,tau:td});
+      envSched(m,t,segs); flash(m.leds.led,t); }
+    else envSched(m,t,[{t,target:0,tau:Math.min(30,Math.max(0.003,F.k/rate))}]); },
+  tick(m,now){ const F=m.F, n=F.n; if(m.schedT<now){ m.schedT=now; for(const p of ["flow","base"]) m.outs[p].node.offset.setValueAtTime(hydroOut(m,p,m.pos),now); }
+    while(m.schedT<now+LOOK){ const dt=0.02, dd=n/m.vals.year*dt, raw=m.pos+dd;
+      if((m.pos<F.p&&raw>=F.p)||(raw>=n&&raw-n>=F.p)){ const tp=m.schedT+((F.p-m.pos+(m.pos>F.p?n:0))/dd)*dt; pulse(m,"peak",tp,0.05); }
+      for(let d=Math.floor(m.pos)+1; d<=Math.floor(raw); d++){ const v=F.rain[d%n]; if(v>0) pulse(m,"rain",m.schedT+(d-m.pos)/dd*dt,0.03,v); }
+      m.pos=raw%n; m.schedT+=dt; for(const p of ["flow","base"]) m.outs[p].node.offset.linearRampToValueAtTime(hydroOut(m,p,m.pos),m.schedT); } },
+  action(m,id){ if(id==="load") $("file").click(); else if(id[0]==="r") setRegime(m,+id.slice(1)); } },
+
+storm:{ name:"STORM", sub:"rain → reservoir", hp:8, panel:"oxide",
+  rows:[[K("rate","RATE",0.1,10,1,{log:true,size:"l",fmt:v=>v.toFixed(2)+" storms/s"})],[K("depth","DEPTH",0.05,1,0.4,{fmt:v=>"mean "+v.toFixed(2)}),K("k","K",0.02,5,0.6,{log:true,fmt:v=>"τ "+sec(v)})],[{t:"led",id:"led"}],[OUT("trig","TRIG","gate"),OUT("depth","DEPTH")],[OUT("runoff","RUNOFF")]],
+  build(m){ for(const p of ["trig","depth","runoff"]) m.outs[p]={node:cs(0)}; m.next=AC.currentTime+0.2; m.S=0; m.St=AC.currentTime; m.r=Math.random; },
+  tick(m,now){ if(m.next<now) m.next=now+0.01;
+    while(m.next<now+LOOK){ const t=m.next, d=Math.min(1.5,-Math.log(1-Math.random())*m.vals.depth), kk=m.vals.k;
+      m.outs.depth.node.offset.setValueAtTime(Math.min(1,d),t); pulse(m,"trig",t,0.02,d); flash(m.leds.led,t);
+      const S=m.S*Math.exp(-(t-m.St)/(m.kPrev||kk))+d, rp=m.outs.runoff.node.offset; rp.cancelScheduledValues(t); rp.setValueAtTime(S,t); rp.setTargetAtTime(0,t,kk);
+      m.S=S; m.St=t; m.kPrev=kk; m.next=t+(-Math.log(1-Math.random()))/m.vals.rate; } } },
+
+vco:{ name:"VCO", sub:"1 V/oct · linear FM", hp:10, panel:"black",
+  rows:[[K("tune","TUNE",-24,24,0,{step:true,fmt:v=>semiName(v)}),K("fine","FINE",-100,100,0,{fmt:v=>(v>0?"+":"")+Math.round(v)+" ct"})],
+    [K("mod","MOD",-2,2,0,{fmt:v=>(v>0?"+":"")+v.toFixed(2)+" oct/V"}),K("fm","FM",0,1,0,{fmt:v=>"index "+v.toFixed(2)})],
+    [IN("voct","V/OCT"),IN("mod","MOD"),IN("fm","FM")],[OUT("sin","SIN"),OUT("tri","TRI"),OUT("saw","SAW"),OUT("sqr","SQR")]],
+  base:m=>130.8128*Math.pow(2,m.vals.tune/12),
+  build(m){ const b=TYPES.vco.base(m); m.oscs=["sine","triangle","sawtooth","square"].map(type=>{ const o=AC.createOscillator(); o.type=type; o.frequency.value=b; o.detune.value=m.vals.fine; o.start(); return o; });
+    const voct=G(1200), mod=G(m.vals.mod*1200), fm=G(m.vals.fm*b*2); m.modG=mod; m.fmG=fm;
+    m.oscs.forEach(o=>{ voct.connect(o.detune); mod.connect(o.detune); fm.connect(o.frequency); });
+    m.ins.voct={node:voct}; m.ins.mod={node:mod}; m.ins.fm={node:fm};
+    ["sin","tri","saw","sqr"].forEach((p,i)=>{ const g=G([0.5,0.5,0.32,0.26][i]); m.oscs[i].connect(g); m.outs[p]={node:g}; }); },
+  apply(m,id){ const b=TYPES.vco.base(m), t=AC.currentTime;
+    if(id==="tune"){ m.oscs.forEach(o=>o.frequency.setTargetAtTime(b,t,0.01)); m.fmG.gain.setTargetAtTime(m.vals.fm*b*2,t,0.01); }
+    if(id==="fine") m.oscs.forEach(o=>o.detune.setTargetAtTime(m.vals.fine,t,0.01));
+    if(id==="mod") m.modG.gain.setTargetAtTime(m.vals.mod*1200,t,0.01);
+    if(id==="fm") m.fmG.gain.setTargetAtTime(m.vals.fm*b*2,t,0.01); } },
+
+svf:{ name:"SVF", sub:"Chamberlin 2-pole", hp:8, panel:"alu",
+  rows:[[K("cutoff","CUTOFF",20,12000,800,{log:true,size:"l",fmt:hz})],[K("res","RES",0,1,0.35,{fmt:pct}),K("amt","CV AMT",-6,6,3,{fmt:v=>(v>0?"+":"")+v.toFixed(1)+" oct/V"})],[IN("in","IN"),IN("cv","CV")],[OUT("lp","LP"),OUT("bp","BP"),OUT("hp","HP")]],
+  build(m){ const inp=G(1); m.ins.in={node:inp};
+    if(WORKLET){ const n=new AudioWorkletNode(AC,"chamberlin-svf",{numberOfInputs:1,numberOfOutputs:3,outputChannelCount:[1,1,1]}); inp.connect(n);
+      const cv=G(m.vals.amt); cv.connect(n.parameters.get("cv")); m.ins.cv={node:cv}; m.cvG=cv; m.svf=n;
+      m.outs.lp={node:n,idx:0}; m.outs.bp={node:n,idx:1}; m.outs.hp={node:n,idx:2}; }
+    else { const cv=G(m.vals.amt*1200); m.ins.cv={node:cv}; m.cvG=cv; m.bq=["lowpass","bandpass","highpass"].map((ty,i)=>{ const b=AC.createBiquadFilter(); b.type=ty; inp.connect(b); cv.connect(b.detune); m.outs[["lp","bp","hp"][i]]={node:b}; return b; }); }
+    ["cutoff","res"].forEach(id=>this.apply(m,id)); },
+  apply(m,id){ const t=AC.currentTime;
+    if(m.svf){ if(id==="cutoff") m.svf.parameters.get("cutoff").setTargetAtTime(m.vals.cutoff,t,0.01); if(id==="res") m.svf.parameters.get("res").setTargetAtTime(m.vals.res,t,0.01); if(id==="amt") m.cvG.gain.setTargetAtTime(m.vals.amt,t,0.01); }
+    else { if(id==="cutoff") m.bq.forEach(b=>b.frequency.setTargetAtTime(m.vals.cutoff,t,0.01)); if(id==="res") m.bq.forEach(b=>b.Q.value=0.5+m.vals.res*18); if(id==="amt") m.cvG.gain.setTargetAtTime(m.vals.amt*1200,t,0.01); } } },
+
+vca:{ name:"DUAL VCA", sub:"linear", hp:8, panel:"cream",
+  rows:[[K("l1","LEVEL",0,1,0,{size:"s",fmt:pct}),K("a1","CV",-1,1,1,{size:"s",fmt:v=>v.toFixed(2)+"×"})],[IN("in1","IN"),IN("cv1","CV"),OUT("out1","OUT")],[{t:"rule"}],
+    [K("l2","LEVEL",0,1,0,{size:"s",fmt:pct}),K("a2","CV",-1,1,1,{size:"s",fmt:v=>v.toFixed(2)+"×"})],[IN("in2","IN"),IN("cv2","CV"),OUT("out2","OUT")]],
+  build(m){ for(const c of [1,2]){ const inp=G(1), amp=G(m.vals["l"+c]), cv=G(m.vals["a"+c]); inp.connect(amp); cv.connect(amp.gain); m["amp"+c]=amp; m["cv"+c]=cv; m.ins["in"+c]={node:inp}; m.ins["cv"+c]={node:cv}; m.outs["out"+c]={node:amp}; } },
+  apply(m,id){ const c=id[1], t=AC.currentTime; if(id[0]==="l") m["amp"+c].gain.setTargetAtTime(m.vals[id],t,0.01); else m["cv"+c].gain.setTargetAtTime(m.vals[id],t,0.01); } },
+
+mix:{ name:"MIXER", sub:"4 → 1", hp:8, panel:"black",
+  rows:[[K("l1","1",0,1,0.8,{fmt:pct}),K("l2","2",0,1,0.8,{fmt:pct})],[K("l3","3",0,1,0.8,{fmt:pct}),K("l4","4",0,1,0.8,{fmt:pct})],[IN("in1","1"),IN("in2","2")],[IN("in3","3"),IN("in4","4")],[OUT("out","MIX")]],
+  build(m){ const sum=G(1); for(const c of [1,2,3,4]){ const g=G(m.vals["l"+c]); g.connect(sum); m["g"+c]=g; m.ins["in"+c]={node:g}; } m.outs.out={node:sum}; },
+  apply(m,id){ m["g"+id[1]].gain.setTargetAtTime(m.vals[id],AC.currentTime,0.01); } },
+
+delay:{ name:"DELAY", sub:"tape-ish feedback", hp:8, panel:"slate",
+  rows:[[K("time","TIME",0.02,1.5,0.33,{log:true,fmt:sec}),K("fb","FDBK",0,0.95,0.45,{fmt:pct})],[K("tone","TONE",500,12000,3500,{log:true,fmt:hz}),K("mix","MIX",0,1,0.35,{fmt:pct})],[IN("in","IN"),IN("tcv","TIME")],[OUT("out","OUT")]],
+  build(m){ const inp=G(1), d=AC.createDelay(3), dry=G(1-m.vals.mix), wet=G(m.vals.mix), tone=AC.createBiquadFilter(), fb=G(m.vals.fb), out=G(1), tcv=G(0.1);
+    tone.type="lowpass"; tone.frequency.value=m.vals.tone; d.delayTime.value=m.vals.time;
+    inp.connect(dry); dry.connect(out); inp.connect(d); d.connect(wet); wet.connect(out); d.connect(tone); tone.connect(fb); fb.connect(d); tcv.connect(d.delayTime);
+    Object.assign(m,{d,dry,wet,tone,fb}); m.ins.in={node:inp}; m.ins.tcv={node:tcv}; m.outs.out={node:out}; },
+  apply(m,id){ const t=AC.currentTime;
+    if(id==="time") m.d.delayTime.setTargetAtTime(m.vals.time,t,0.05); if(id==="fb") m.fb.gain.setTargetAtTime(m.vals.fb,t,0.01);
+    if(id==="tone") m.tone.frequency.setTargetAtTime(m.vals.tone,t,0.01); if(id==="mix"){ m.dry.gain.setTargetAtTime(1-m.vals.mix,t,0.01); m.wet.gain.setTargetAtTime(m.vals.mix,t,0.01); } } },
+
+out:{ name:"OUTPUT", sub:"limited", hp:10, panel:"black",
+  rows:[[{t:"screen",id:"sc",w:160,h:84}],[K("vol","VOLUME",0,1,0.6,{size:"l",fmt:pct})],[IN("in1","1"),IN("in2","2")]],
+  build(m){ const sum=G(1), vol=G(m.vals.vol*m.vals.vol), lim=AC.createDynamicsCompressor(); lim.threshold.value=-4; lim.knee.value=2; lim.ratio.value=20; lim.attack.value=0.003; lim.release.value=0.12;
+    const an=AC.createAnalyser(); an.fftSize=2048; for(const c of [1,2]){ const g=G(1); g.connect(sum); m.ins["in"+c]={node:g}; }
+    sum.connect(vol); vol.connect(lim); lim.connect(AC.destination); vol.connect(an); m.vol=vol; m.an=an; m.buf=new Float32Array(an.fftSize); },
+  apply(m,id){ if(id==="vol") m.vol.gain.setTargetAtTime(m.vals.vol*m.vals.vol,AC.currentTime,0.02); } },
+
+drums:{ name:"DRUMS", sub:"storms → hits", hp:12, panel:"olive",
+  rows:[[K("tune","TUNE",35,90,50,{fmt:hz}),K("split","SPLIT",0.05,1,0.35,{fmt:v=>"kick ≥ "+v.toFixed(2)})],
+    [K("snap","SNAP",0,1,0.6,{fmt:pct}),K("lvl","LEVEL",0,1,0.8,{fmt:pct})],
+    [{t:"btn",id:"quant",label:"QUANT",toggle:true,def:1},{t:"hint",text:"KICK"},{t:"led",id:"k"},{t:"hint",text:"SNR"},{t:"led",id:"s"},{t:"hint",text:"HAT"},{t:"led",id:"h"}],
+    [IN("rain","RAIN","gate"),IN("clock","CLOCK","gate"),IN("hat","HAT","gate")],
+    [IN("hatcv","HAT CV"),OUT("kick","KICK","gate"),OUT("snare","SNR","gate"),OUT("out","OUT")]],
+  build(m){ const bus=G(1), lvl=G(m.vals.lvl), hatBus=G(0), cvIn=G(1), norm=cs(1); bus.connect(lvl); hatBus.connect(bus); norm.connect(cvIn); cvIn.connect(hatBus.gain);
+    m.bus=bus; m.lvl=lvl; m.hatBus=hatBus; m.norm=norm; m.ins.hatcv={node:cvIn}; m.outs.out={node:lvl};
+    m.outs.kick={node:cs(0)}; m.outs.snare={node:cs(0)}; m.ins.rain={gate:true}; m.ins.clock={gate:true}; m.ins.hat={gate:true};
+    m.lastClk=null; m.iv=0.125; m.lastKey="";
+    const ws=AC.createWaveShaper(), crv=new Float32Array(1025); for(let i=0;i<1025;i++){ const x=i/512-1; crv[i]=Math.tanh(4*x)/Math.tanh(4); } ws.curve=crv; ws.oversample="2x"; const kpost=G(KICK_POST); ws.connect(kpost); kpost.connect(bus); m.kdrive=ws;
+    const sr=AC.sampleRate, b=AC.createBuffer(1,sr,sr), d=b.getChannelData(0); for(let i=0;i<sr;i++) d[i]=Math.random()*2-1; m.noise=b; },
+  onPatch(m,port,on){ if(port==="hatcv"&&m.norm) m.norm.offset.setValueAtTime(on?0:1,AC.currentTime); },
+  onGate(m,port,t,on,v){ if(!on) return;
+    if(port==="clock"){ if(m.lastClk!==null){ const d=t-m.lastClk; if(d>0.015&&d<3) m.iv=d; } m.lastClk=t; return; }
+    if(port==="hat"){ drumHat(m,t); flash(m.leds.h,t); return; }
+    const size=v===undefined?0.5:v; let tq=t;
+    if(m.vals.quant&&m.lastClk!==null&&Math.abs(t-m.lastClk)<4){ tq=m.lastClk+Math.round((t-m.lastClk)/m.iv)*m.iv; if(tq<AC.currentTime+0.004) tq+=m.iv; }
+    const kick=size>=m.vals.split, key=(kick?"k":"s")+Math.round(tq*1000); if(key===m.lastKey) return; m.lastKey=key;
+    if(kick){ drumKick(m,tq,size); flash(m.leds.k,tq); pulse(m,"kick",tq,0.03,size); }
+    else { drumSnare(m,tq,size); flash(m.leds.s,tq); pulse(m,"snare",tq,0.03,size); } },
+  apply(m,id){ if(id==="lvl") m.lvl.gain.setTargetAtTime(m.vals.lvl,AC.currentTime,0.01); } },
+
+/* ---- the runoff row: the classic rainfall-runoff pieces as filters on a signal ---- */
+loss:{ name:"LOSS", sub:"φ index", hp:10, panel:"olive",
+  rows:[[K("phi","φ",0,1,0.2,{size:"l",fmt:v=>"soaks "+v.toFixed(2)})],[{t:"hint",text:"out = max(0, in − φ)"}],[IN("in","RAIN")],[OUT("out","EXCESS")]],
+  build(m){ const inp=G(0.5), off=cs(-m.vals.phi*0.5), ws=AC.createWaveShaper(), crv=new Float32Array(2049); for(let i=0;i<2049;i++){ const x=i/1024-1; crv[i]=Math.max(0,x)*2; } ws.curve=crv;
+    inp.connect(ws); off.connect(ws); m.off=off; m.ins.in={node:inp}; m.outs.out={node:ws}; },
+  apply(m,id){ if(id==="phi") m.off.offset.setTargetAtTime(-m.vals.phi*0.5,AC.currentTime,0.01); } },
+nash:{ name:"NASH", sub:"linear reservoirs", hp:12, panel:"blue",
+  rows:[[K("n","N",1,6,3,{step:true,size:"l",fmt:v=>v+(v>1?" reservoirs":" reservoir")})],[K("k","K",0.02,4,0.35,{log:true,fmt:v=>"each τ "+sec(v)})],[{t:"screen",id:"ir",w:180,h:56}],[IN("in","IN")],[OUT("out","OUT")]],
+  build(m){ m.ins.in={node:G(1)}; m.outs.out={node:G(1)}; m.chain=[]; m.w=null;
+    if(RUNOFF_OK){ const w=new AudioWorkletNode(AC,"nash-cascade",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],parameterData:{n:m.vals.n,k:m.vals.k}}); m.w=w; m.ins.in.node.connect(w); w.connect(m.outs.out.node); }
+    else this.wire(m); },
+  wire(m){ if(m.w){ const t=AC.currentTime; m.w.parameters.get("n").setValueAtTime(m.vals.n,t); m.w.parameters.get("k").setValueAtTime(m.vals.k,t); return; }
+    const a=Math.exp(-1/(m.vals.k*AC.sampleRate)); try{ m.ins.in.node.disconnect(); }catch(e){} m.chain.forEach(f=>{ try{ f.disconnect(); }catch(e){} });
+    m.chain=[]; let prev=m.ins.in.node; for(let i=0;i<m.vals.n;i++){ const f=AC.createIIRFilter([1-a],[1,-a]); prev.connect(f); prev=f; m.chain.push(f); } prev.connect(m.outs.out.node); },
+  apply(m,id){ if(id==="n"||id==="k") this.wire(m); drawNash(m); } },
+musk:{ name:"MUSKINGUM", sub:"channel routing", hp:12, panel:"slate",
+  rows:[[K("K","K",0.05,4,0.6,{log:true,size:"l",fmt:v=>"travel "+sec(v)})],[K("X","X",0,0.5,0.2,{fmt:v=>"X "+v.toFixed(2)})],[{t:"hint",text:"X 0: reservoir · 0.5: pure delay"}],[IN("in","INFLOW")],[OUT("out","OUTFLOW")]],
+  build(m){ m.ins.in={node:G(1)}; m.outs.out={node:G(1)}; m.f=null; m.w=null;
+    if(RUNOFF_OK){ const w=new AudioWorkletNode(AC,"muskingum",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],parameterData:{K:m.vals.K,X:m.vals.X}}); m.w=w; m.ins.in.node.connect(w); w.connect(m.outs.out.node); }
+    else this.wire(m); },
+  wire(m){ if(m.w){ const t=AC.currentTime; m.w.parameters.get("K").setValueAtTime(m.vals.K,t); m.w.parameters.get("X").setValueAtTime(m.vals.X,t); return; }
+    const dt=1/AC.sampleRate, Kk=m.vals.K, X=m.vals.X, den=Kk-Kk*X+0.5*dt, c0=(-Kk*X+0.5*dt)/den, c1=(Kk*X+0.5*dt)/den, c2=(Kk-Kk*X-0.5*dt)/den;
+    try{ m.ins.in.node.disconnect(); }catch(e){} if(m.f){ try{ m.f.disconnect(); }catch(e){} }
+    m.f=AC.createIIRFilter([c0,c1],[1,-c2]); m.ins.in.node.connect(m.f); m.f.connect(m.outs.out.node); },
+  apply(m,id){ if(id==="K"||id==="X") this.wire(m); } },
+basef:{ name:"BASEFLOW", sub:"scale + offset", hp:10, panel:"cream",
+  rows:[[K("gain","GAIN",0.1,40,8,{log:true,size:"l",fmt:v=>"× "+v.toFixed(1)})],[K("base","BASE",0,1,0.05,{fmt:v=>"+ "+v.toFixed(2)})],[IN("in","IN")],[OUT("out","FLOW")]],
+  build(m){ const g=G(m.vals.gain), b=cs(m.vals.base), o=G(1); g.connect(o); b.connect(o); m.g=g; m.b=b; m.ins.in={node:g}; m.outs.out={node:o}; },
+  apply(m,id){ const t=AC.currentTime; if(id==="gain") m.g.gain.setTargetAtTime(m.vals.gain,t,0.01); if(id==="base") m.b.offset.setTargetAtTime(m.vals.base,t,0.01); } },
+scope2:{ name:"FLOOD SCOPE", sub:"two slow traces", hp:28, panel:"black",
+  rows:[[{t:"screen",id:"fs",w:470,h:200}],[K("span","SPAN",2,30,8,{log:true,fmt:v=>v.toFixed(1)+" s"}),{t:"hint",text:"A rain"},IN("a","A"),{t:"hint",text:"B flow"},IN("b","B")]],
+  build(m){ for(const p of ["a","b"]){ const an=AC.createAnalyser(); an.fftSize=512; m.ins[p]={node:an}; m["an"+p]=an; } m.buf=new Float32Array(512); m.hist=[]; m.lastT=0; m.ana_ok=true; } },
+blank10:{ name:"", sub:"", hp:10, panel:"alu", rows:[] },
+blank:{ name:"", sub:"", hp:2, panel:"alu", rows:[] }
+};
+
+const LAYOUT=[ ["clock","clock"],["seq","seq"],["keys","keys"],["hydro","hydro"],["storm","storm"],["drums","drums"], null,
+  ["vco1","vco","VCO 1"],["vco2","vco","VCO 2"],["svf","svf"],["vca","vca"],["mix","mix"],["dly","delay"],["out","out"],["blank1","blank10"], null,
+  ["loss","loss"],["nash","nash"],["musk","musk"],["basef","basef"],["scope2","scope2"] ];
+const M={};
+
+/* ---------------- envelope & hydro helpers ---------------- */
+function envVal(md,t){ let v=md.v, ct=md.t, cur=null; for(const s of md.segs){ if(s.t>t) break; if(cur) v=cur.target+(v-cur.target)*Math.exp(-(s.t-ct)/cur.tau); ct=s.t; cur=s; }
+  if(cur) v=cur.target+(v-cur.target)*Math.exp(-(t-ct)/cur.tau); return v; }
+function envSched(m,t,segs){ const v=envVal(m.md,t), p=m.outs.env.node.offset; p.cancelScheduledValues(t); for(const s of segs) p.setTargetAtTime(s.target,s.t,s.tau); m.md={t,v,segs}; }
+function qAt(arr,pos){ const n=arr.length, i=Math.floor(pos)%n, f=pos-Math.floor(pos); return arr[i]+(arr[(i+1)%n]-arr[i])*f; }
+function normQ(m,v){ const F=m.F; if(m.vals.log){ const a=Math.log(F.qmin), b=Math.log(F.Qp); return Math.min(1,Math.max(0,(Math.log(Math.max(v,F.qmin))-a)/(b-a))); } return Math.max(0,v/F.Qp); }
+function hydroOut(m,p,pos){ return normQ(m,qAt(p==="flow"?m.F.q:m.F.bf,pos)); }
+function setSeries(m,vals,label,sub){ m.F=fit(vals); m.hlabel=label; m.hsub=sub; m.pos=m.pos%m.F.n||0; }
+function setRegime(m,i){ m.vals.regime=i; const k=REGKEYS[i]; setSeries(m,simulate(k),REG[k].label,"SYNTHETIC"); syncRadio(m); save(); }
+function syncRadio(m){ for(let i=0;i<5;i++) m.btns["r"+i]?.setAttribute("aria-pressed",m.vals.regime===i?"true":"false"); }
+
+/* ---------------- drum voices ---------------- */
+function dEnv(g,t,peak,tau,att){ att=att||0.001; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+att); g.gain.setTargetAtTime(0,t+att,tau); }
+function noiseHit(m,t,peak,tau,filters){ const s=AC.createBufferSource(); s.buffer=m.noise; s.loop=true; const g=G(0); dEnv(g,t,peak,tau); let n=s;
+  for(const [ty,f,q] of filters){ const b=AC.createBiquadFilter(); b.type=ty; b.frequency.value=f; if(q) b.Q.value=q; n.connect(b); n=b; }
+  n.connect(g); g.connect(m.bus); s.start(t,Math.random()*0.5); s.stop(t+tau*7+0.02); }
+// Kick: a sine falling from 3.2x TUNE to TUNE in 35 ms, plus a 4 ms click. A bigger storm hits louder and rings longer.
+// The body is soft-clipped (tanh) so a 50 Hz fundamental grows odd harmonics a phone speaker can play.
+function drumKick(m,t,v){ const s=Math.min(1,v), f=m.vals.tune, o=AC.createOscillator(), g=G(0), tau=0.08+0.3*s, a=KICK_A*(0.5+0.5*s);
+  o.frequency.setValueAtTime(f*3.2,t); o.frequency.exponentialRampToValueAtTime(f,t+0.035); dEnv(g,t,a,tau,0.002); o.connect(g); g.connect(m.kdrive); o.start(t); o.stop(t+tau*7+0.02);
+  noiseHit(m,t,0.12*a,0.004,[["highpass",1500]]); }
+// Snare: the (0,1) and (1,1) modes of a 14-inch head at 3000 N/m (199 Hz and 1.593x that), plus band-passed noise for the wires.
+function drumSnare(m,t,v){ const a=SNARE_A*(0.4+0.6*Math.min(1,v/Math.max(0.05,m.vals.split)));
+  for(const [f,amp,tau] of [[199,0.6,0.11],[317,0.35,0.07]]){ const o=AC.createOscillator(), g=G(0); o.frequency.value=f; dEnv(g,t,amp*a,tau); o.connect(g); g.connect(m.bus); o.start(t); o.stop(t+tau*7+0.02); }
+  noiseHit(m,t,0.7*a*m.vals.snap,0.055,[["bandpass",3200,0.6]]); noiseHit(m,t,0.3*a*m.vals.snap,0.02,[["highpass",6000]]); }
+// Hat: six square waves at the TR-808's metal-oscillator frequencies, band-passed and high-passed, 30 ms decay.
+const HAT_F=[205.3,304.4,369.6,522.7,540,800];
+function drumHat(m,t){ const sum=G(1/6), bp=AC.createBiquadFilter(), hp=AC.createBiquadFilter(), g=G(0); bp.type="bandpass"; bp.frequency.value=10000; bp.Q.value=1; hp.type="highpass"; hp.frequency.value=7000;
+  sum.connect(bp); bp.connect(hp); hp.connect(g); g.connect(m.hatBus); dEnv(g,t,HAT_A,0.03);
+  for(const f of HAT_F){ const o=AC.createOscillator(); o.type="square"; o.frequency.value=f; o.connect(sum); o.start(t); o.stop(t+0.25); } }
+const KICK_A=0.66, KICK_POST=0.62, SNARE_A=0.50, HAT_A=1.57;
+
+/* ---------------- gates ---------------- */
+let cables=[];
+function emitGate(m,port,t,on,v){ const o=m.outs[port]; if(o) o.node.offset.setValueAtTime(on?1:0,t);
+  for(const c of cables) if(c.from[0]===m.id&&c.from[1]===port){ const d=M[c.to[0]], inp=d.ins[c.to[1]]; if(inp&&inp.gate&&d.T.onGate) d.T.onGate(d,c.to[1],t,on,v); } }
+function pulse(m,port,t,len,v){ emitGate(m,port,t,true,v); emitGate(m,port,t+len,false,v); }
+function later(t,fn){ const ms=AC?Math.max(0,(t-AC.currentTime)*1000):0; setTimeout(fn,ms); }
+function flash(el,t){ if(!el) return; later(t,()=>{ el.classList.add("on"); setTimeout(()=>el.classList.remove("on"),70); }); }
+function markStep(m,s,t){ later(t,()=>{ for(let i=0;i<8;i++) m.btns["e"+i].classList.toggle("cur",i===s); }); }
+
+/* ---------------- rendering ---------------- */
+const rack=$("rack"), svg=$("cables"), tip=$("tip");
+function toN(it,v){ return it.log?Math.log(v/it.min)/Math.log(it.max/it.min):(v-it.min)/(it.max-it.min); }
+function fromN(it,n){ n=Math.min(1,Math.max(0,n)); let v=it.log?it.min*Math.pow(it.max/it.min,n):it.min+n*(it.max-it.min); if(it.step) v=Math.round(v); return v; }
+function render(){
+  let row=document.createElement("div"); rack.insertBefore(rail(),svg); row.className="row"; rack.insertBefore(row,svg);
+  for(const L of LAYOUT){
+    if(!L){ rack.insertBefore(rail(),svg); rack.insertBefore(rail(),svg); row=document.createElement("div"); row.className="row"; rack.insertBefore(row,svg); continue; }
+    const [id,type,name]=L, T=TYPES[type], P=PANELS[T.panel];
+    const m={id,type,T,vals:{},outs:{},ins:{},knobs:{},btns:{},leds:{},jacks:{},ports:{},scr:{}}; M[id]=m;
+    Object.assign(m.vals,T.extra||{});
+    const el=document.createElement("div"); el.className="mod "+P[3]; el.style.width=T.hp*HP+"px"; el.style.cssText+=`;--pbg:${P[0]};--pfg:${P[1]};--pdim:${P[2]}`; m.el=el;
+    if(T.name){ el.innerHTML=`<div class="mhead"><b>${name||T.name}</b><span>${T.sub}</span></div>`; }
+    const body=document.createElement("div"); body.className="mbody"; el.appendChild(body);
+    for(const r of T.rows){ const re=document.createElement("div"); re.className="mrow";
+      for(const it of r){
+        if(it.t==="knob"){ m.vals[it.id]=it.def; const w=document.createElement("div"); w.className="ki";
+          w.innerHTML=`<div class="knob ${it.size||""}" tabindex="0" role="slider" aria-label="${name||T.name} ${it.label}"><div class="cap"><i></i></div></div><span class="kl">${it.label}</span>`;
+          const k=w.firstChild; k._m=m; k._it=it; m.knobs[it.id]=k; re.appendChild(w); }
+        else if(it.t==="in"||it.t==="out"){ const w=document.createElement("div"); w.className="ji "+it.t;
+          w.innerHTML=`<span class="jl">${it.label}</span><div class="jack ${it.ty==="gate"?"gate":""}" tabindex="0" role="button" aria-label="${name||T.name} ${it.label} ${it.t==="in"?"input":"output"}${it.ty==="gate"?" (gate)":""}"></div>`;
+          const j=w.lastChild; j.dataset.m=id; j.dataset.p=it.id; j.dataset.d=it.t; m.jacks[it.id]=j; m.ports[it.id]={dir:it.t,ty:it.ty}; re.appendChild(w); }
+        else if(it.t==="btn"){ const b=document.createElement("button"); b.className="pbtn "+(it.cls||""); b.type="button";
+          if(it.toggle||it.radio){ b.innerHTML=`<span class="led"></span>${it.label}`; } else b.textContent=it.label;
+          b.setAttribute("aria-label",(name||T.name)+" "+(it.label||("step "+(+it.id.slice(1)+1))));
+          if(it.toggle){ m.vals[it.id]=it.def; b.onclick=()=>{ setVal(m,it.id,m.vals[it.id]?0:1); }; }
+          else b.onclick=()=>T.action&&T.action(m,it.id);
+          m.btns[it.id]=b; re.appendChild(b); }
+        else if(it.t==="led"){ const l=document.createElement("div"); l.className="led"; m.leds[it.id]=l; re.appendChild(l); }
+        else if(it.t==="screen"){ const c=document.createElement("canvas"); c.className="screen"; c.style.width=it.w+"px"; c.style.height=it.h+"px"; const d=Math.min(2,devicePixelRatio||1); c.width=it.w*d; c.height=it.h*d; c.getContext("2d").setTransform(d,0,0,d,0,0); m.scr[it.id]=c; re.appendChild(c); }
+        else if(it.t==="rule"){ re.className="mrule"; }
+        else if(it.t==="hint"){ const s=document.createElement("span"); s.className="hint"; s.textContent=it.text; re.appendChild(s); }
+        else if(it.t==="keys"){ re.appendChild(buildMiniKeys(m)); }
+      }
+      body.appendChild(re); }
+    row.appendChild(el);
+  }
+  rack.insertBefore(rail(),svg);
+}
+function rail(){ const r=document.createElement("div"); r.className="rail"; return r; }
+function buildMiniKeys(m){ const k=document.createElement("div"); k.className="mkeys"; m.keyEls={}; let wi=0;
+  for(let s=0;s<=12;s++){ const black=[1,3,6,8,10].includes(s%12), e=document.createElement("div"); e.className=black?"b":"w";
+    if(black) e.style.left=(wi*18.75-5.5)+"px"; else { e.style.left=(wi*18.75)+"px"; wi++; }
+    e.addEventListener("pointerdown",ev=>{ ev.preventDefault(); e.setPointerCapture(ev.pointerId); keyOn(s); });
+    const up=()=>keyOff(s); e.addEventListener("pointerup",up); e.addEventListener("pointercancel",up);
+    m.keyEls[s]=e; k.appendChild(e); }
+  k.style.width=(wi*18.75)+"px"; return k; }
+function paintKnob(m,id){ const k=m.knobs[id]; if(!k) return; const it=k._it, n=toN(it,m.vals[id]); k.firstChild.style.transform=`rotate(${-135+270*n}deg)`;
+  k.setAttribute("aria-valuetext",it.fmt?it.fmt(m.vals[id],m):String(m.vals[id])); }
+function paintBtn(m,id){ const b=m.btns[id]; if(b&&b.querySelector(".led")&&!/^r\d$/.test(id)) b.setAttribute("aria-pressed",m.vals[id]?"true":"false"); }
+function setVal(m,id,v){ m.vals[id]=v; paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&m.outs&&Object.keys(m.outs).length) m.T.apply(m,id);
+  if(m.type==="seq"&&id==="scale") for(let i=0;i<8;i++) paintKnob(m,"s"+i); if(m.type==="nash") drawNash(m); save(); }
+
+/* knobs */
+let kdrag=null;
+function showTip(k){ const it=k._it, m=k._m, r=k.getBoundingClientRect(); tip.textContent=`${it.label}  ${it.fmt?it.fmt(m.vals[it.id],m):m.vals[it.id]}`; tip.hidden=false;
+  tip.style.left=Math.min(innerWidth-tip.offsetWidth-6,Math.max(6,r.left+r.width/2-tip.offsetWidth/2))+"px"; tip.style.top=Math.max(6,r.top-30)+"px"; }
+rack.addEventListener("pointerdown",e=>{ const k=e.target.closest(".knob"); if(!k) return; e.preventDefault(); k.focus({preventScroll:true}); k.setPointerCapture(e.pointerId);
+  kdrag={k,y:e.clientY,n:toN(k._it,k._m.vals[k._it.id]),acc:0}; showTip(k); });
+rack.addEventListener("pointermove",e=>{ if(!kdrag) return; const it=kdrag.k._it, m=kdrag.k._m; const dy=kdrag.y-e.clientY; kdrag.y=e.clientY;
+  kdrag.n=Math.min(1,Math.max(0,kdrag.n+dy/(e.shiftKey?900:170))); const v=fromN(it,kdrag.n); if(v!==m.vals[it.id]) setVal(m,it.id,v); showTip(kdrag.k); });
+const kend=()=>{ if(kdrag){ kdrag=null; tip.hidden=true; } };
+rack.addEventListener("pointerup",kend); rack.addEventListener("pointercancel",kend);
+rack.addEventListener("dblclick",e=>{ const k=e.target.closest(".knob"); if(!k) return; setVal(k._m,k._it.id,k._it.def); showTip(k); setTimeout(()=>tip.hidden=true,700); });
+rack.addEventListener("wheel",e=>{ const k=e.target.closest(".knob"); if(!k) return; e.preventDefault(); const it=k._it, m=k._m;
+  if(it.step){ setVal(m,it.id,Math.min(it.max,Math.max(it.min,m.vals[it.id]+(e.deltaY<0?1:-1)))); } else setVal(m,it.id,fromN(it,toN(it,m.vals[it.id])-e.deltaY*0.0007)); showTip(k); clearTimeout(k._t); k._t=setTimeout(()=>tip.hidden=true,700); },{passive:false});
+rack.addEventListener("keydown",e=>{ const k=e.target.closest(".knob"); if(!k) return; const it=k._it, m=k._m; let d=0;
+  if(e.key==="ArrowUp"||e.key==="ArrowRight") d=1; else if(e.key==="ArrowDown"||e.key==="ArrowLeft") d=-1; else if(e.key==="Home"){ setVal(m,it.id,it.min); return; } else if(e.key==="End"){ setVal(m,it.id,it.max); return; } else return;
+  e.preventDefault(); e.stopPropagation(); if(it.step) setVal(m,it.id,Math.min(it.max,Math.max(it.min,m.vals[it.id]+d))); else setVal(m,it.id,fromN(it,toN(it,m.vals[it.id])+d*(e.shiftKey?0.1:0.01))); showTip(k); clearTimeout(k._t); k._t=setTimeout(()=>tip.hidden=true,900); });
+rack.addEventListener("focusout",e=>{ if(e.target.closest?.(".knob")) tip.hidden=true; });
+
+/* ---------------- cables ---------------- */
+const CABLE_COLORS=["#d8433b","#e9b33a","#3a86c8","#4caf6a","#e57b2e","#ecebe6","#8e5fbf","#38b3ad"];
+let colorIx=0, drag=null, pending=null;
+function relPos(el){ let x=el.offsetWidth/2, y=el.offsetHeight/2; while(el&&el!==rack){ x+=el.offsetLeft; y+=el.offsetTop; el=el.offsetParent; } return [x,y]; }
+function jackEl(ref){ return M[ref[0]].jacks[ref[1]]; }
+function cablePath(a,b){ const dx=b[0]-a[0], dy=b[1]-a[1], d=Math.hypot(dx,dy), room=(rack.offsetHeight-12-Math.max(a[1],b[1]))/0.75, sag=Math.max(6,Math.min(150,24+d*0.33,room)); return `M${a[0]},${a[1]} C${a[0]+dx*0.22},${a[1]+sag} ${b[0]-dx*0.22},${b[1]+sag} ${b[0]},${b[1]}`; }
+function cableSVG(a,b,col,ghost){ const p=cablePath(a,b), plug=([x,y])=>`<circle cx="${x}" cy="${y}" r="8.5" fill="${col}" stroke="rgba(0,0,0,.55)" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="3" fill="rgba(0,0,0,.35)"/>`;
+  return `<g opacity="${ghost?0.7:0.93}"><path d="${p}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="7.5" stroke-linecap="round"/><path d="${p}" fill="none" stroke="${col}" stroke-width="4.5" stroke-linecap="round"/>${plug(a)}${ghost?"":plug(b)}</g>`; }
+function drawCables(){ let s=""; for(const c of cables) s+=cableSVG(relPos(jackEl(c.from)),relPos(jackEl(c.to)),c.color);
+  if(drag&&drag.moved) s+=cableSVG(relPos(drag.anchorEl),drag.pos,drag.color,true); svg.innerHTML=s; }
+function ref(j){ return [j.dataset.m,j.dataset.p]; }
+function linkAudio(c){ if(!AC) return; const o=M[c.from[0]].outs[c.from[1]], i=M[c.to[0]].ins[c.to[1]]; if(!o||!i||i.gate) return; o.node.connect(i.node,o.idx||0,0); const d=M[c.to[0]]; d.T.onPatch&&d.T.onPatch(d,c.to[1],true); }
+function unlinkAudio(c){ if(!AC) return; const o=M[c.from[0]].outs[c.from[1]], i=M[c.to[0]].ins[c.to[1]]; if(!o||!i||i.gate) return; try{ o.node.disconnect(i.node,o.idx||0,0); }catch(e){} const d=M[c.to[0]]; d.T.onPatch&&d.T.onPatch(d,c.to[1],false); }
+function cableAt(inRef){ return cables.find(c=>c.to[0]===inRef[0]&&c.to[1]===inRef[1]); }
+function removeCable(c){ unlinkAudio(c); cables=cables.filter(x=>x!==c); }
+function connectJacks(aEl,bEl,color){
+  const A=ref(aEl), B=ref(bEl), pa=M[A[0]].ports[A[1]], pb=M[B[0]].ports[B[1]];
+  if(pa.dir===pb.dir){ say("Connect an output to an input.",true); return false; }
+  const [o,i,po,pi]=pa.dir==="out"?[A,B,pa,pb]:[B,A,pb,pa];
+  if(pi.ty==="gate"&&po.ty!=="gate"){ say("Gate inputs only take gate outputs (amber rings).",true); return false; }
+  const old=cableAt(i); if(old) removeCable(old);
+  const c={from:o,to:i,color:color||CABLE_COLORS[colorIx++%CABLE_COLORS.length]}; cables.push(c); linkAudio(c); save(); say(""); return true; }
+function markCompatible(anchorEl,on){ const A=ref(anchorEl), pa=M[A[0]].ports[A[1]];
+  rack.querySelectorAll(".jack").forEach(j=>{ if(!on){ j.classList.remove("ok"); return; } const p=M[j.dataset.m].ports[j.dataset.p];
+    const ok=p.dir!==pa.dir&&(pa.dir==="out"?!(p.ty==="gate"&&pa.ty!=="gate"):!(pa.ty==="gate"&&p.ty!=="gate")); j.classList.toggle("ok",ok); }); }
+function rackXY(e){ const r=rack.getBoundingClientRect(); return [(e.clientX-r.left)/SCALE,(e.clientY-r.top)/SCALE]; }
+rack.addEventListener("pointerdown",e=>{ const j=e.target.closest(".jack");
+  if(!j){ if(pending&&!e.target.closest(".knob,button")) clearPending(); return; }
+  e.preventDefault();
+  if(pending){ const p=pending; clearPending(); if(p.el!==j) connectJacks(p.el,j,p.color); drawCables(); return; }
+  let anchorEl=j, color=null;
+  if(j.dataset.d==="in"){ const c=cableAt(ref(j)); if(c){ removeCable(c); anchorEl=jackEl(c.from); color=c.color; } }
+  rack.setPointerCapture(e.pointerId);
+  drag={anchorEl,startEl:j,color:color||CABLE_COLORS[colorIx%CABLE_COLORS.length],pos:rackXY(e),moved:false,x:e.clientX,y:e.clientY,picked:!!color};
+  markCompatible(anchorEl,true); drawCables(); });
+rack.addEventListener("pointermove",e=>{ if(!drag) return; drag.pos=rackXY(e); if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6) drag.moved=true; drawCables(); });
+rack.addEventListener("pointerup",e=>{ if(!drag) return; const d=drag; drag=null; markCompatible(d.anchorEl,false);
+  const tgt=document.elementFromPoint(e.clientX,e.clientY)?.closest(".jack");
+  if(d.moved){ if(tgt&&tgt!==d.anchorEl){ if(!d.picked) colorIx++; connectJacks(d.anchorEl,tgt,d.color); } else if(d.picked){ save(); say("Cable removed."); } }
+  else { if(d.picked){ save(); setPending(d.anchorEl,d.color); say("Cable lifted. Tap a jack to replug it, or tap the panel to drop it."); } else setPending(d.anchorEl,null); }
+  drawCables(); });
+function setPending(el,color){ pending={el,color}; el.classList.add("pending"); markCompatible(el,true); }
+function clearPending(){ if(!pending) return; pending.el.classList.remove("pending"); markCompatible(pending.el,false); pending=null; }
+rack.addEventListener("keydown",e=>{ const j=e.target.closest(".jack"); if(!j) return;
+  if(e.key==="Enter"||e.key===" "){ e.preventDefault(); if(pending){ const p=pending; clearPending(); if(p.el!==j) connectJacks(p.el,j,p.color); } else setPending(j,null); drawCables(); }
+  else if((e.key==="Delete"||e.key==="Backspace")&&j.dataset.d==="in"){ const c=cableAt(ref(j)); if(c){ removeCable(c); save(); drawCables(); say("Cable removed."); } }
+  else if(e.key==="Escape") clearPending(); });
+
+/* ---------------- keys ---------------- */
+const KEYMAP={z:0,s:1,x:2,d:3,c:4,v:5,g:6,b:7,h:8,n:9,j:10,m:11,",":12};
+function keyOn(s){ const m=M.keys; m.keyEls[s]?.classList.add("down"); if(!AC){ say("Power on to hear the rack.",true); return; }
+  m.stack=m.stack.filter(x=>x!==s); m.stack.push(s); const t=AC.currentTime+0.005;
+  m.outs.pitch.node.offset.setValueAtTime((s+12*m.vals.oct)/12,t); if(m.stack.length===1){ emitGate(m,"gate",t,true); } else { emitGate(m,"gate",t,false); emitGate(m,"gate",t+0.004,true); } flash(m.leds.led,t); }
+function keyOff(s){ const m=M.keys; m.keyEls[s]?.classList.remove("down"); if(!AC) return; m.stack=m.stack.filter(x=>x!==s); const t=AC.currentTime+0.005;
+  if(!m.stack.length) emitGate(m,"gate",t,false); else m.outs.pitch.node.offset.setValueAtTime((m.stack[m.stack.length-1]+12*m.vals.oct)/12,t); }
+const heldKeys=new Set();
+addEventListener("keydown",e=>{ if(e.metaKey||e.ctrlKey||e.altKey||e.repeat) return; const k=e.key.toLowerCase(); if(!(k in KEYMAP)||heldKeys.has(k)) return; if(e.target.closest?.(".jack")) return; heldKeys.add(k); keyOn(KEYMAP[k]); });
+addEventListener("keyup",e=>{ const k=e.key.toLowerCase(); if(heldKeys.delete(k)) keyOff(KEYMAP[k]); });
+addEventListener("blur",()=>{ for(const k of heldKeys) keyOff(KEYMAP[k]); heldKeys.clear(); });
+
+/* ---------------- power ---------------- */
+let tickTimer=null;
+async function loadWorklet(){
+  try{ const url=URL.createObjectURL(new Blob([SVF_SRC+RUNOFF_SRC],{type:"application/javascript"})); await AC.audioWorklet.addModule(url); RUNOFF_OK=true; return true; }catch(e){}
+  try{ await AC.audioWorklet.addModule("svf-worklet.js"); return true; }catch(e){}
+  return false; }
+async function powerOn(){
+  AC=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
+  WORKLET=AC.audioWorklet?await loadWorklet():false;
+  for(const m of Object.values(M)){ m.outs={}; m.ins={}; m.T.build&&m.T.build(m); }
+  for(const c of cables) linkAudio(c);
+  tickTimer=setInterval(()=>{ if(!AC) return; const now=AC.currentTime; for(const m of Object.values(M)) m.T.tick&&m.T.tick(m,now); },25);
+  $("power").setAttribute("aria-pressed","true"); $("powerT").textContent="Power off";
+  say(`Running at ${(AC.sampleRate/1000).toFixed(1)} kHz. Filter: ${WORKLET?"Chamberlin SVF in an AudioWorklet":"biquad fallback (AudioWorklet unavailable here)"}.`, !WORKLET); }
+async function powerOff(){ clearInterval(tickTimer); tickTimer=null; const ac=AC; AC=null; for(const m of Object.values(M)){ m.outs={}; m.ins={}; } try{ await ac.close(); }catch(e){}
+  $("power").setAttribute("aria-pressed","false"); $("powerT").textContent="Power on"; say("Powered off."); }
+$("power").onclick=()=>AC?powerOff():powerOn();
+
+/* ---------------- presets & persistence ---------------- */
+const PRESETS={
+ runoff:{ label:"Runoff", vals:{ clock:{bpm:104,run:1}, seq:{scale:2,len:8,gate:0.45,glide:0,s0:.2,s1:.45,s2:.3,s3:.6,s4:.2,s5:.75,s6:.5,s7:.35,e3:0,e6:0}, hydro:{regime:0,envRate:300,year:24,log:1},
+   storm:{rate:0.8,depth:0.4,k:0.6}, vco2:{tune:-24}, svf:{cutoff:420,res:0.45,amt:3.5}, vca:{l1:0,a1:1,l2:0,a2:0.8}, mix:{l1:0.85,l2:0.55}, dly:{time:0.36,fb:0.45,mix:0.35} },
+  cables:[["clock.clk","seq.clock"],["seq.pitch","vco1.voct"],["seq.gate","hydro.gate"],["hydro.env","vca.cv1"],["hydro.env","svf.cv"],["vco1.saw","svf.in"],["svf.lp","vca.in1"],["vca.out1","dly.in"],["dly.out","mix.in1"],["hydro.flow","vca.cv2"],["vco2.tri","vca.in2"],["vca.out2","mix.in2"],["mix.out","out.in1"],["storm.runoff","dly.tcv"]] },
+ storm:{ label:"Storm cell", vals:{ hydro:{regime:4,envRate:60,log:1}, seq:{scale:1,len:5}, vco1:{fm:0.6}, vco2:{tune:7,mod:0.5}, svf:{cutoff:1200,res:0.6,amt:2.5}, vca:{l1:0,a1:1}, storm:{rate:3,depth:0.5,k:0.4}, dly:{time:0.21,fb:0.55,mix:0.4} },
+  cables:[["storm.trig","seq.clock"],["seq.pitch","vco1.voct"],["seq.gate","hydro.gate"],["hydro.env","vca.cv1"],["hydro.env","svf.cv"],["vco2.sin","vco1.fm"],["storm.runoff","vco2.mod"],["vco1.sqr","svf.in"],["svf.bp","vca.in1"],["vca.out1","dly.in"],["dly.out","out.in1"]] },
+ drone:{ label:"Snowpack drone", vals:{ hydro:{regime:0,year:40,log:1}, vco1:{tune:-12}, vco2:{tune:-12,fine:7}, svf:{cutoff:240,res:0.3,amt:3}, vca:{l1:0,a1:1}, mix:{l1:0.7,l2:0.7}, dly:{time:0.6,fb:0.6,mix:0.45} },
+  cables:[["keys.pitch","vco1.voct"],["keys.pitch","vco2.voct"],["vco1.saw","mix.in1"],["vco2.saw","mix.in2"],["mix.out","svf.in"],["svf.lp","vca.in1"],["hydro.flow","vca.cv1"],["hydro.base","svf.cv"],["vca.out1","dly.in"],["dly.out","out.in1"]] },
+ drummer:{ label:"Storm drummer", vals:{ clock:{bpm:96,run:1}, seq:{scale:2,len:8,gate:0.7,glide:0.02,s0:0,s1:0,s2:.3,s3:0,s4:.45,s5:.3,s6:0,s7:.6}, hydro:{regime:2,envRate:120,year:10,log:1},
+   drums:{tune:50,split:0.3,snap:0.6,lvl:0.85,quant:1}, vco1:{tune:0}, svf:{cutoff:260,res:0.35,amt:2.5}, vca:{l1:0,a1:1}, mix:{l1:0.6,l2:0.9}, dly:{time:0.47,fb:0.3,mix:0.2}, out:{vol:0.85} },
+  cables:[["clock.clk","drums.clock"],["clock.d2","drums.hat"],["hydro.base","drums.hatcv"],["hydro.rain","drums.rain"],["drums.out","mix.in2"],["clock.d4","seq.clock"],["seq.pitch","vco1.voct"],["seq.gate","hydro.gate"],["hydro.env","vca.cv1"],["hydro.env","svf.cv"],["vco1.saw","svf.in"],["svf.lp","vca.in1"],["vca.out1","dly.in"],["dly.out","mix.in1"],["mix.out","out.in1"]] },
+ flood:{ label:"Flood routing", vals:{ storm:{rate:0.7,depth:0.6,k:0.3}, loss:{phi:0.25}, nash:{n:3,k:0.35}, musk:{K:0.6,X:0.2}, basef:{gain:30,base:0.05}, scope2:{span:10},
+   vco1:{tune:-12,mod:1}, svf:{cutoff:700,res:0.3,amt:2}, vca:{l1:0,a1:1}, dly:{time:0.3,fb:0.35,mix:0.25}, out:{vol:0.7} },
+  cables:[["storm.trig","loss.in"],["loss.out","nash.in"],["nash.out","musk.in"],["musk.out","basef.in"],["storm.trig","scope2.a"],["basef.out","scope2.b"],
+   ["basef.out","vco1.mod"],["basef.out","vca.cv1"],["vco1.saw","svf.in"],["basef.out","svf.cv"],["svf.lp","vca.in1"],["vca.out1","dly.in"],["dly.out","out.in1"]] },
+ empty:{ label:"Empty", vals:{}, cables:[] }
+};
+function defaults(m){ const v={...(m.T.extra||{})}; for(const r of m.T.rows) for(const it of r) if(it.def!==undefined) v[it.id]=it.def; return v; }
+function applyAll(m){ for(const id of Object.keys(m.vals)){ paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&Object.keys(m.outs).length) m.T.apply(m,id); } }
+function loadPatch(vals,cabs){
+  for(const c of cables) unlinkAudio(c); cables=[]; colorIx=0;
+  for(const m of Object.values(M)){ m.vals=Object.assign(defaults(m),vals[m.id]||{}); applyAll(m); }
+  setRegime(M.hydro,M.hydro.vals.regime>4?0:M.hydro.vals.regime);
+  for(const [a,b] of cabs){ const A=a.split("."), B=b.split("."); if(!M[A[0]]?.ports[A[1]]||!M[B[0]]?.ports[B[1]]) continue; const c={from:A,to:B,color:CABLE_COLORS[colorIx++%CABLE_COLORS.length]}; cables.push(c); linkAudio(c); }
+  drawCables(); save(); }
+let saveT=null, loading=true;
+function save(){ if(loading) return; clearTimeout(saveT); saveT=setTimeout(()=>{ try{ const vals={}; for(const m of Object.values(M)) vals[m.id]=m.vals;
+  localStorage.setItem("hydro-modular-v1",JSON.stringify({vals,cables:cables.map(c=>[c.from.join("."),c.to.join(".")])})); }catch(e){} },300); }
+for(const [k,p] of Object.entries(PRESETS)){ const b=document.createElement("button"); b.textContent=p.label; b.onclick=()=>{ loadPatch(p.vals,p.cables); say(`Loaded “${p.label}”.${AC?"":" Power on to hear it."}`); }; $("presets").appendChild(b); }
+
+/* ---------------- file ---------------- */
+$("file").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(!f) return; const r=new FileReader();
+  r.onload=()=>{ try{ const g=parseGage(String(r.result)); const m=M.hydro; m.vals.regime=5; setSeries(m,g.vals,g.label,g.sub); syncRadio(m); say(`Loaded ${g.label}, ${g.sub}.`); }catch(err){ say(err.message,true); } }; r.readAsText(f); };
+
+/* ---------------- screens ---------------- */
+function drawHydro(m){ const c=m.scr.hs, g=c.getContext("2d"), W=336, H=116, F=m.F; if(!F) return;
+  g.fillStyle="#0b1620"; g.fillRect(0,0,W,H);
+  const L=6,R=W-22,T=16,B=H-18, lmin=Math.log(F.qmin), lmax=Math.log(F.Qp*1.1), X=i=>L+i/(F.n-1)*(R-L), Y=v=>B-(Math.log(Math.max(v,F.qmin))-lmin)/(lmax-lmin)*(B-T);
+  g.strokeStyle="rgba(140,180,210,.14)"; g.lineWidth=1; for(let i=1;i<12;i++){ const x=L+i/12*(R-L); g.beginPath(); g.moveTo(x,T); g.lineTo(x,B); g.stroke(); }
+  g.setLineDash([3,3]); g.strokeStyle="#7fbfae"; g.beginPath(); F.bf.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke(); g.setLineDash([]);
+  g.strokeStyle="#7cc2ef"; g.lineWidth=1.4; g.beginPath(); F.q.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke();
+  g.fillStyle="rgba(240,163,94,.18)"; g.fillRect(X(F.p-F.A),T,X(F.p)-X(F.p-F.A),B-T);
+  g.fillStyle="#ff7a5c"; for(let i=0;i<F.n;i++){ const v=F.rain[i]; if(v>0){ const h=2+v*14; g.fillRect(X(i)-0.75,B-h,1.5,h); } }
+  let pos=null, ev=0; if(AC&&m.outs.env){ const now=AC.currentTime; pos=((m.pos-(m.schedT-now)*F.n/m.vals.year)%F.n+F.n)%F.n; ev=Math.max(0,Math.min(1.2,envVal(m.md,now))); }
+  if(pos!==null){ g.strokeStyle="#ffffff"; g.beginPath(); g.moveTo(X(pos),T); g.lineTo(X(pos),B); g.stroke(); g.fillStyle="#fff"; g.beginPath(); g.arc(X(pos),Y(qAt(F.q,pos)),2.6,0,TAU); g.fill(); }
+  g.fillStyle="rgba(240,163,94,.25)"; g.fillRect(W-14,T,8,B-T); g.fillStyle="#f0a35e"; const eh=Math.min(1,ev)*(B-T); g.fillRect(W-14,B-eh,8,eh);
+  g.font="600 9.5px 'Archivo Narrow', sans-serif"; g.textBaseline="middle"; g.fillStyle="#cfe3f1"; g.textAlign="left"; g.fillText(m.hlabel,L,8); g.textAlign="right"; g.fillStyle="#8fb0c6"; g.fillText(m.hsub+(m.vals.log?" · LOG":" · LIN"),W-6,8);
+  const r=m.vals.envRate, s=d=>sec(d/r); g.textAlign="left"; g.fillStyle="#f0b98a";
+  g.fillText(`A ${s(F.A)}   D τ ${s(F.tauD)}   S ${(F.S*100).toFixed(F.S<0.1?1:0)}%   R τ ${s(F.k)}`,L,H-8); }
+function drawScope(m){ const c=m.scr.sc, g=c.getContext("2d"), W=160, H=84; g.fillStyle="#0b1620"; g.fillRect(0,0,W,H);
+  g.strokeStyle="rgba(140,180,210,.18)"; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke();
+  if(!AC||!m.an) return; m.an.getFloatTimeDomainData(m.buf); const b=m.buf; let s=0; for(let i=1;i<b.length/2;i++) if(b[i-1]<0&&b[i]>=0){ s=i; break; }
+  g.strokeStyle="#8fe0c0"; g.lineWidth=1.3; g.beginPath(); const N=600; for(let i=0;i<N;i++){ const v=b[s+i]||0, x=i/N*W, y=H/2-Math.max(-1,Math.min(1,v))*H*0.45; i?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); }
+/* the Nash cascade's unit response: a gamma curve, t^(n−1)·e^(−t/k), drawn over 6 k·n */
+function drawNash(m){ const c=m.scr.ir; if(!c) return; const g=c.getContext("2d"), W=180, H=56, n=m.vals.n, k=m.vals.k, T=k*(n+3)*1.6; g.fillStyle="#0b1620"; g.fillRect(0,0,W,H);
+  let f=1; for(let i=2;i<n;i++) f*=i; const h=t=>Math.pow(t/k,n-1)*Math.exp(-t/k)/(k*f), pk=h(k*(n-1)||k*0.02)||h(1e-4);
+  g.strokeStyle="#7cc2ef"; g.lineWidth=1.5; g.beginPath(); for(let i=0;i<=90;i++){ const t=i/90*T, y=H-6-Math.min(1,h(t)/pk)*(H-14); i?g.lineTo(6+i/90*(W-12),y):g.moveTo(6,y); } g.stroke();
+  g.font="600 9px 'Archivo Narrow', sans-serif"; g.fillStyle="#8fb0c6"; g.textAlign="right"; g.fillText("peak at "+sec(k*(n-1))+" · lag "+sec(n*k),W-6,10); }
+function drawFlood(m){ m.hist=m.hist||[]; const c=m.scr.fs, g=c.getContext("2d"), W=470, H=200; g.fillStyle="#0b1620"; g.fillRect(0,0,W,H);
+  g.strokeStyle="rgba(140,180,210,.14)"; g.lineWidth=1; for(let i=1;i<10;i++){ const x=i/10*W; g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
+  const N=470; if(m.live){ const now=AC.currentTime, step=m.vals.span/N; if(now-m.lastT>=step){ const v=[]; for(const p of ["a","b"]){ m["an"+p].getFloatTimeDomainData(m.buf); let s=0, mx=0; for(const x of m.buf){ s+=x; if(x>mx) mx=x; } v.push(p==="a"?mx:s/m.buf.length); }
+      const k=Math.max(1,Math.min(20,Math.round((now-m.lastT)/step))); for(let i=0;i<k;i++) m.hist.push(v); m.lastT=now; while(m.hist.length>N) m.hist.shift(); } }
+  const hb=m.hist.map(v=>v[1]), top=Math.max(0.05,...hb)*1.1;
+  g.fillStyle="#ff7a5c"; m.hist.forEach((v,i)=>{ if(v[0]>0.01){ const h=Math.min(1,v[0])*40; g.fillRect(W-m.hist.length+i,0,1,h); } });
+  g.strokeStyle="#8fe0c0"; g.lineWidth=1.8; g.beginPath(); hb.forEach((v,i)=>{ const x=W-hb.length+i, y=H-6-Math.max(0,v)/top*(H-56); i?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke();
+  g.font="600 9.5px 'Archivo Narrow', sans-serif"; g.textAlign="left"; g.fillStyle="#ff9c82"; g.fillText("A · RAIN",6,52); g.fillStyle="#8fe0c0"; g.fillText("B · FLOW  max "+top.toFixed(2),6,H-8);
+  if(!AC) { g.fillStyle="#8fb0c6"; g.textAlign="center"; g.fillText("POWER ON",W/2,H/2); } }
+function frame(){ drawHydro(M.hydro); drawScope(M.out); if(M.scope2){ M.scope2.live=!!(AC&&M.scope2.ana_ok&&M.scope2.ana); drawFlood(M.scope2); } requestAnimationFrame(frame); }
+
+/* ---------------- layout ---------------- */
+let SCALE=1;
+function fitRack(){ const RW=rack.offsetWidth, RH=rack.offsetHeight, avail=$("rackscroll").clientWidth; SCALE=Math.min(1,Math.max(0.58,avail/RW));
+  rack.style.transform=`scale(${SCALE})`; $("rackscale").style.width=RW*SCALE+"px"; $("rackscale").style.height=RH*SCALE+"px"; }
+function say(msg,warn){ const s=$("status"); s.textContent=msg; s.classList.toggle("warn",!!warn); }
+
+render();
+let saved=null; try{ saved=JSON.parse(localStorage.getItem("hydro-modular-v1")||"null"); }catch(e){}
+if(saved&&saved.vals&&saved.cables) loadPatch(saved.vals,saved.cables); else loadPatch(PRESETS.runoff.vals,PRESETS.runoff.cables);
+loading=false; drawNash(M.nash);
+fitRack(); drawCables(); requestAnimationFrame(frame);
+addEventListener("resize",()=>{ fitRack(); drawCables(); });
+if(document.fonts?.ready) document.fonts.ready.then(()=>{ fitRack(); drawCables(); });
+</script>
+</body>
+</html>
