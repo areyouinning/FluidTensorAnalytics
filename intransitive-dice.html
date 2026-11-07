@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is there a best die? | FluidTA</title>
+<meta name="description" content="Four dice where every one is beaten by another, two times in three. Play against the page, see all 36 face pairs, and watch Grime's dice turn their arrows around when you roll two.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Is there a best die?</h1>
+  <p class="lede" style="margin-top:14px">Here are four dice with odd numbers on their faces. Pick any one you like. I will pick one of the others, and in a long run of rolls mine will come up higher two times out of three. It doesn't matter which you pick.</p>
+
+  <h2>Play me</h2>
+  <p>Choose a die. Then we roll, and the higher number takes the roll. Eleven rolls make a match. Under each die are its six faces, so nothing is hidden.</p>
+  <figure class="fig" data-diagram="dicegame"><figcaption>The chances under the dice are exact, counted from all 36 ways two dice can land. Switch to <b>I pick first</b> and you get to answer my choice instead.</figcaption></figure>
+  <p>If you pick first, the best you can do is win one roll in three, and a match of eleven about 12% of the time. If I pick first, you can always find the die that beats mine, and the 2/3 is yours.</p>
+
+  <h2>Every die has a beater</h2>
+  <p>The faces are <span class="t-blue">A: 4 4 4 4 0 0</span>, <span class="t-orange">B: 3 3 3 3 3 3</span>, <span class="t-purple">C: 6 6 2 2 2 2</span> and <span class="t-green">D: 5 5 5 1 1 1</span>. Each pair is a short sum.</p>
+  <ul>
+    <li><b>A beats B</b>: B always shows 3, so A wins whenever it shows a 4. That is 4 faces in 6, or 2/3.</li>
+    <li><b>B beats C</b>: C only gets past 3 when it shows a 6. That is 2 faces in 6, so B wins 2/3.</li>
+    <li><b>C beats D</b>: a 6 wins outright, a third of the time. A 2 wins only against D's 1, which is half of D. So C wins 1/3 + 2/3 × 1/2 = 2/3.</li>
+    <li><b>D beats A</b>: a 5 wins outright, half the time. A 1 wins only against A's 0, a third of A. So D wins 1/2 + 1/2 × 1/3 = 2/3.</li>
+  </ul>
+  <p>So the arrows go round in a loop, A to B to C to D and back to A. "Beats" works like rock, paper, scissors here, not like "taller than". There is no top of the order, and the average doesn't settle it either: C has the highest average, 10/3, and it still loses to B.</p>
+  <figure class="fig" data-diagram="dicegrid"><figcaption>Rows are the first die's faces and columns the second's. Each cell is one of the 36 equally likely pairs, coloured by the die that wins it. The two pairs across the loop are not 2/3: C beats A 20 times in 36, and B and D come out exactly even.</figcaption></figure>
+
+  <h2>Roll two and the arrows turn around</h2>
+  <p>James Grime made a set of five dice with two loops in it. With one die each, Red beats Blue beats Olive beats Yellow beats Magenta beats Red, round the outside of the pentagon below. A second loop runs through the star in the middle.</p>
+  <p>Now roll two of the same die each and add them up. The whole outer loop turns around. Red beat Blue 7 times in 12 with one die. With two each, Blue beats Red 85 times in 144. The star mostly keeps its direction, except Olive against Red, which tips over to Red by a hair, 671 to 625 out of 1,296.</p>
+  <figure class="fig" data-diagram="dicegrime"><figcaption>An arrow points from a die to the one it beats, labelled with how often. Switch between one die and two dice each, and the orange arrows are the ones that turned around.</figcaption></figure>
+  <p>That gives you a nastier trick than going second. Let your friend choose a die and whether you both roll one or two. Then you choose. Every die has something that beats it either way.</p>
+
+  <p class="credit">The four dice are Bradley Efron's, made famous by Martin Gardner in 1970, and the five-die set is James Grime's. The game, the diagrams and these words are new. Every probability on the page is counted exactly by listing all the ways the dice can land, with no sampling. The match chances add up the ways to take six or more of eleven rolls.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

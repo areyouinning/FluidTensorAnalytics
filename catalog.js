@@ -2,6 +2,7 @@
    shelf: explore | play | way | tools. thumb: a drawing in thumbs.js. Blurbs say what you get to do. */
 window.FTA_CATALOG = [
   { href: '/queens-tiling.html', shelf: 'play', topics: ['math'], thumb: 'tiling', title: 'Can queens make a tiling harder?', blurb: 'A math olympiad problem with one extra rule. Beat 3039 on the 2025 board.', fresh: true },
+  { href: '/konigsberg.html', shelf: 'play', topics: ['math'], thumb: 'bridges', title: 'Can you cross every bridge once?', blurb: 'Walk the seven bridges of Königsberg, find out why Euler said no, then build your own.', fresh: true },
   { href: '/two-halves.html', shelf: 'play', topics: ['chance', 'math'], thumb: 'halves', title: 'Can you fix both copies at once?', blurb: 'An editor too big to ship whole, two copies to mend, and a dose that costs you cells. Beat 7.32%.', fresh: true },
   { href: '/eight-queens.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'queens', title: 'Can eight queens keep the peace?', blurb: 'Place them so that no two attack. There are 92 ways.' },
   { href: '/impossible-escape.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'coins', title: 'Can one coin flip say where the key is?', blurb: 'A prison puzzle that parity makes possible.' },
@@ -19,7 +20,7 @@ window.FTA_CATALOG = [
   { href: '/optimal-channel-networks.html', shelf: 'explore', topics: ['fluids', 'water'], thumb: 'river', title: 'Why do rivers branch the way they do?', blurb: 'Grow a drainage network by minimizing one number.' },
   { href: '/votes-as-rain.html', shelf: 'explore', topics: ['fluids'], thumb: 'rain', title: 'What if votes fell like rain?', blurb: 'U.S. House votes land on their counties and mix as a fluid.' },
   { href: '/remix-sphere.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'sphere', title: 'How do you pick a random point in a ball?', blurb: 'Four methods. Two are wrong, and you can see it from the right angle.' },
-  { href: '/remix-parrondo.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'stairs', title: 'Can two losing games make a winner?', blurb: 'Watch a crowd of players climb a three-sided stair.' },
+  { href: '/intransitive-dice.html', shelf: 'explore', topics: ['chance', 'math'], thumb: 'dice', title: 'Is there a best die?', blurb: 'Pick any of four dice and another one beats it, two times in three. Play the page and see why.', fresh: true },
   { href: '/remix-camouflage.html', shelf: 'explore', topics: ['remix'], thumb: 'stalk', title: 'How do you sneak up on something watching you?', blurb: 'Stay exactly in front of one tree. Dragonflies do something like it.' },
 
   { href: '/way-of-water.html', shelf: 'way', topics: ['fluids'], thumb: 'wayWater', title: 'The Way of Water', blurb: 'Why stirring mixes, from one stagnation point to the tangle. Eleven chapters.' },

@@ -89,7 +89,19 @@
       return o;
     },
     sphere: function () { var R = rng(31), o = '<circle cx="160" cy="90" r="78" fill="none" stroke="' + L + '" stroke-width="2"/>'; for (var k = 0; k < 260; k++) { var r = R() * 76, a = R() * 6.283; o += dot((160 + r * Math.cos(a)).toFixed(1), (90 + r * Math.sin(a)).toFixed(1), 2, r < 30 ? O : B, .85); } return o; },
-    stairs: function () { var o = ''; for (var k = 0; k < 9; k++) o += rect(32 + k * 29, 150 - k * 15, 27, 15 + k * 15 + 12, k % 3 === 0 ? O : B, 2, k % 3 === 0 ? .95 : .4); return o + dot(218, 44, 8, I) + dot(160, 76, 6, I, .6) + dot(102, 106, 5, I, .35); },
+    bridges: function () { // Königsberg: a river in two branches round an island, and seven bridges
+      var o = rect(0, 70, 320, 50, B, 0, .35) + '<path d="M222 82H320V108H222Q212 95 222 82Z" fill="var(--sunk)"/><ellipse cx="104" cy="95" rx="66" ry="15" fill="var(--sunk)"/>';
+      [[70, 66, 70, 82], [138, 66, 138, 82], [70, 108, 70, 124], [138, 108, 138, 124], [170, 95, 220, 95], [270, 66, 270, 84], [270, 106, 270, 124]].forEach(function (p, k) { o += line('M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3], k === 4 ? O : I, 7); });
+      return o + text(160, 160, '5 · 3 · 3 · 3', 18, S);
+    },
+    dice: function () { // four dice round a loop, each arrow a 2/3 win
+      var P = [[160, 34], [240, 90], [160, 146], [80, 90]], F = ['var(--blue)', 'var(--orange)', 'var(--purple)', 'var(--green)'], N = ['4', '3', '6', '5'], o = '';
+      P.forEach(function (p, k) { var q = P[(k + 1) % 4], dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+        o += line('M' + (p[0] + ux * 34).toFixed(1) + ' ' + (p[1] + uy * 34).toFixed(1) + 'L' + (q[0] - ux * 38).toFixed(1) + ' ' + (q[1] - uy * 38).toFixed(1), I, 3, .7);
+        o += '<path d="M' + (q[0] - ux * 30).toFixed(1) + ' ' + (q[1] - uy * 30).toFixed(1) + 'l' + (-ux * 11 - uy * 6).toFixed(1) + ' ' + (-uy * 11 + ux * 6).toFixed(1) + 'l' + (uy * 12).toFixed(1) + ' ' + (-ux * 12).toFixed(1) + 'Z" fill="' + I + '" opacity=".7"/>'; });
+      P.forEach(function (p, k) { o += rect(p[0] - 24, p[1] - 24, 48, 48, F[k], 10) + text(p[0], p[1] + 9, N[k], 26, 'var(--on-accent)'); });
+      return o;
+    },
     stalk: function () {
       var o = '<path d="M268 150v-40" stroke="' + G + '" stroke-width="7" stroke-linecap="round"/><circle cx="268" cy="96" r="20" fill="' + G + '"/>';
       [[30, 40, 60, 150], [66, 62, 102, 134], [102, 78, 140, 122], [140, 86, 182, 114]].forEach(function (p, k) { var o2 = .3 + k * .2; o += line('M' + p[0] + ' ' + p[1] + 'L268 96', G, 1.4, o2) + dot(p[0], p[1], 6, B, o2 + .1); var t = .35 + k * .12, x = 268 + (p[0] - 268) * (1 - t * .55), y = 96 + (p[1] - 96) * (1 - t * .55); o += dot(x.toFixed(1), y.toFixed(1), 5, I, o2 + .1); });
