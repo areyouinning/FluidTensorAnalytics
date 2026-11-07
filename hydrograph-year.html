@@ -200,7 +200,7 @@ details.getdata summary{ cursor:pointer; font-weight:600; font-size:16px }
     <div class="body">
       <p>The five regimes above are synthetic. Each one runs a two-reservoir model (quickflow plus a slow groundwater store) driven by seeded random storms and a snowmelt pulse, tuned to look like that kind of stream. They are not records from any gage.</p>
       <p>To play a real stream, load one water year of daily discharge. The page reads USGS RDB tab-delimited files, or any CSV with a date column (YYYY-MM-DD) followed by a discharge value. If the file spans several water years, choose one from the menu that appears. Gaps are filled by linear interpolation.</p>
-      <p>The script <b>fetch_usgs.py</b> downloads one water year from USGS and writes that CSV. It uses only the Python standard library. Run it on a computer that can reach USGS:</p>
+      <p>The script <a href="/fetch_usgs.py" download><b>fetch_usgs.py</b></a> downloads one water year from USGS and writes that CSV. It uses only the Python standard library. Run it on a computer that can reach USGS:</p>
       <div class="cmd"><code id="cmdText">python fetch_usgs.py 09241000 2023</code><button class="btn" id="copyCmd">Copy</button></div>
       <p>The arguments are a USGS site number and a water year. The script tries the USGS Water Data OGC API first and falls back to the legacy NWIS daily-values service. You can also drop a file anywhere on this page.</p>
       <div class="toast" id="toast" role="status"></div>
