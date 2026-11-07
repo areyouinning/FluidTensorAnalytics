@@ -8,7 +8,7 @@ window.FTA_CATALOG = [
   { href: '/connections.html', shelf: 'play', topics: ['math'], thumb: 'numbers', title: 'C0nn3ct10ns', blurb: 'Find four numbers that share a property.' },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
-  { href: '/pauls-game-garage.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Paul's Game Garage", blurb: 'Fly a rain cloud over Clear Creek and play for raindrops.', kids: true },
+  { href: '/pauls-game-garage.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Paul's Cloud", blurb: 'Be a rain cloud over Clear Creek. Fly to real places, play, and rain.', kids: true },
 
   { href: '/tensor-analysis.html', shelf: 'explore', topics: ['tensors'], thumb: 'tensor', title: 'What is a tensor, really?', blurb: 'Build one from three lists, then squeeze 960 numbers into 90.' },
   { href: '/climate-tensor-ops.html', shelf: 'explore', topics: ['tensors', 'water'], thumb: 'cube', title: 'Why is climate data a cube?', blurb: 'Real March 1987 weather, and the shape rules that make the sums easy.' },
