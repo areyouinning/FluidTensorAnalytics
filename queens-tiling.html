@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/fta.css">
 <link rel="stylesheet" href="/queens-tiling.css">
 <script src="/fta.js" defer></script>
+<script src="/fta-best.js" defer></script>
 </head>
 <body>
 <main id="main" class="article">
@@ -44,6 +45,7 @@
       <div class="stat"><small>Squares left</small><b id="s-left">64</b></div>
       <div class="stat"><small>Par for these queens</small><b id="s-par">–</b></div>
     </div>
+    <div id="best-small"></div>
     <div class="ctl">
       <button class="btn" id="undo">Undo tile</button>
       <button class="btn" id="clear-tiles">Clear tiles</button>
@@ -54,6 +56,7 @@
       <li><b>Place queens:</b> tap a square to add or remove one. Attacking pairs turn red.</li>
       <li><b>Lay tiles:</b> drag across squares for a rectangle, or tap for a 1 × 1. Tap a tile to lift it. Switch back to Place queens to scroll past the board.</li>
       <li>Par is the exact minimum for these queens. The record is the lowest par over every placement.</li>
+      <li><b>Copy board link</b> puts your queens in a link. Whoever opens it gets the placement, not a claim, and this page works out its par for them. Your best is kept in this browser on this device — there is no server here, so nobody else sees it.</li>
     </ul>
   </div>
 
@@ -75,6 +78,7 @@
         <div class="stat"><small>Minimum tiles</small><b id="b-tiles">–</b></div>
         <div class="stat"><small>Above 2112</small><b id="b-gap">–</b></div>
       </div>
+      <div id="best-big"></div>
       <p id="big-msg" class="msg">Load the textbook construction to see how scoring works, then try to beat it.</p>
       <canvas id="preview" width="600" height="600" aria-label="Map of the queens on the 2025 by 2025 board"></canvas>
       <p class="howto" style="padding:0">Each dot is a queen. Row 1 is at the top, column 1 at the left.</p>

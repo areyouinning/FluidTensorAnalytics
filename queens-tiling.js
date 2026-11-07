@@ -4,6 +4,7 @@ const SUBMIT_TO = "";          // e.g. an email address; empty means submissions
 const BEST_KNOWN = 3039;
 const ROOK_2025 = 2112;
 const RECORD = { 8: 12, 9: 14 };
+let bestSmall = null, bestBig = null;
 const KNOWN = [
   [4, 5, 5, 1], [5, 7, 7, 1], [6, 8, 8, 1], [7, 10, 10, 4], [8, 11, 12, 1],
   [9, 12, 14, 7], [10, 14, 14, 1], [11, 15, 16, 7], [12, 16, 16, 1]
@@ -276,6 +277,19 @@ function status(list, pairs) {
   }
   document.getElementById("undo").disabled = s.tiles.length === 0;
   document.getElementById("clear-tiles").disabled = s.tiles.length === 0;
+  if (left === 0 && pairs.length === 0 && list.length === N) keepBest(N, s.tiles.length);
+  showBest();
+}
+
+/* --- personal bests, kept on this device only (see fta-best.js) --- */
+function keepBest(n, tiles) {
+  if (window.FTABest) window.FTABest.record("queens-" + n, tiles, true);
+}
+function showBest() {
+  if (!bestSmall) return;
+  const v = window.FTABest.get("queens-" + N);
+  bestSmall[0].textContent = v == null ? "not yet" : v + " tiles";
+  bestSmall[1].textContent = RECORD[N] + " tiles";
 }
 
 function cellOf(e) {
@@ -452,9 +466,19 @@ function score() {
     document.getElementById("code").textContent = code;
     document.getElementById("submit-note").textContent = SUBMIT_TO
       ? `To submit, send your placement file and this code to ${SUBMIT_TO}.`
-      : "Submissions are not open yet. Keep your placement file: this code identifies it and its score.";
+      : "Keep your placement file. This code only identifies it — the placement itself is the proof, because anyone can paste it in here and watch the number come out the same.";
     document.getElementById("code-field").hidden = false;
+    if (window.FTABest) {
+      window.FTABest.record("queens-2025", t, true);
+      showBigBest();
+    }
   }, 20);
+}
+function showBigBest() {
+  if (!bestBig) return;
+  const v = window.FTABest.get("queens-2025");
+  bestBig[0].textContent = v == null ? "not yet" : v.toLocaleString() + " tiles";
+  bestBig[1].textContent = BEST_KNOWN.toLocaleString() + " tiles";
 }
 document.getElementById("check").addEventListener("click", score);
 document.getElementById("load-textbook").addEventListener("click", () => {
@@ -476,3 +500,39 @@ document.getElementById("copy").addEventListener("click", async () => {
 });
 drawPreview(null);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (ta.value.trim()) score(); else drawPreview(null); });
+
+/* --- bests and board links (fta-best.js) ---
+   A warm-up placement is eight or nine numbers, so it fits in a link and the page recomputes
+   its par on arrival. The 2025 board cannot: 2025 numbers is far past what a URL will carry,
+   so its proof stays the placement itself, pasted or loaded as a file. */
+function initBests() {
+  const B = window.FTABest;
+  if (!B) return;
+  bestSmall = B.strip(document.getElementById("best-small"), ["Your best on this device", "Board record"]);
+  bestBig = B.strip(document.getElementById("best-big"), ["Your best on this device", "Best so far"]);
+  showBest();
+  showBigBest();
+
+  B.copier(document.getElementById("random").parentNode, () => {
+    const p = placementOf(state[N]);
+    return p ? B.share({ q: p.join(",") }) : location.origin + location.pathname;
+  }, "Copy board link");
+
+  const raw = (B.parse().q || "").split(",").filter(s => s !== "").map(Number);
+  if (raw.length !== 8 && raw.length !== 9) return;
+  const n = raw.length;
+  if (!raw.every(c => Number.isInteger(c) && c >= 0 && c < n)) return;
+  state[n] = { queens: new Set(raw.map((c, r) => key(r, c))), tiles: [] };
+  const tab = document.querySelector('.tab[data-n="' + n + '"]');
+  if (tab) tab.click(); else { N = n; render(); }
+  const par = placementOf(state[n]) ? minTiles(raw) : null;
+  if (par !== null) {
+    const msg = document.getElementById("msg");
+    msg.className = "msg";
+    msg.textContent = `Loaded from a link. These queens need ${par} tiles, recomputed here from the placement the link carried. Cover them.`;
+  }
+}
+/* this file is a plain script at the end of the body, so it runs BEFORE the deferred
+   fta-best.js. Waiting for DOMContentLoaded puts the init after it. */
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initBests);
+else initBests();
