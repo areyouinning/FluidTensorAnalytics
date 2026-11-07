@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where does the sand go? | FluidTA</title>
+<meta name="description" content="Chladni patterns: sand on a ringing square plate gathers on the lines that stay still. Step through the notes, watch the plate move, and mix two shapes that share a note.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Where does the sand go?</h1>
+  <p class="lede" style="margin-top:14px">Sprinkle sand on a metal plate, draw a violin bow down its edge, and the sand jumps into lines. Ernst Chladni showed this to audiences in the 1780s. Each note the plate can sing has its own drawing.</p>
+
+  <h2>Play the plate</h2>
+  <p>This plate is a square, free at its edges. Step up through its notes and watch the sand run into a new pattern each time. Higher notes draw finer patterns.</p>
+  <figure class="fig" data-diagram="chladni"><figcaption>Each grain gets a random kick on every step, harder where the plate moves more. <b>Motion</b> shows the plate itself: orange moving up while blue moves down, then the other way round, with plain lines between them that never move.</figcaption></figure>
+
+  <h2>Why the sand finds the still lines</h2>
+  <p>A ringing plate doesn't move as one piece. It bends into hills and valleys that swap places hundreds of times a second, and between them run lines that hardly move at all. Those are the <span class="t-blue">nodal lines</span>.</p>
+  <p>A grain sitting on a hill gets thrown into the air and lands somewhere nearby. A grain on a nodal line just sits there. Nothing pulls the sand toward the lines. It wanders at random, and it stops wandering when it happens to land where the plate is still. Give it a few seconds and that is where nearly all of it ends up. Switch to <b>Motion</b> and compare: the sand's lines are the plain lines between the colours.</p>
+
+  <h2>Two shapes, one note</h2>
+  <p>A square is the same turned on its side, so a bend with <span class="m">n</span> waves one way and <span class="m">m</span> the other has a twin with the two swapped. The twins ring at the same pitch, and the plate can do any mix of them. The pattern you see is the mix, not either twin alone.</p>
+  <p>Chladni's sharpest figures are the even mixes, plus and minus, and those are the notes the buttons step through. The <b>Mix</b> slider goes through every blend in between. At 0 you see one twin alone: a plain grid of straight lines. Slide it and the stripes bend, join and break into new shapes, all at the same note.</p>
+
+  <h2>What is exact here</h2>
+  <p>The shapes use the classic approximation for a free square plate, cos(<span class="m">n</span>π<span class="m">x</span>) cos(<span class="m">m</span>π<span class="m">y</span>) plus or minus the same with <span class="m">n</span> and <span class="m">m</span> swapped. Real plates draw patterns very close to these, but not identical, especially near the edges. The pitch is shown against the lowest note and taken as growing with <span class="m">n</span>² + <span class="m">m</span>², which is how a thin plate's pitch grows, roughly. The optional tone uses that ratio; a real plate's notes depend on its size, thickness and metal.</p>
+
+  <p class="credit">After Ernst Chladni's <i>Entdeckungen über die Theorie des Klanges</i> (1787). Sophie Germain won the Paris Academy's prize for the theory of vibrating plates in 1816. The sand, the diagrams and these words are new. The sand is a random walk whose step grows with the plate's motion; nothing on the page is a recording.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
