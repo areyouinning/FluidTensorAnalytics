@@ -4,48 +4,62 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Fly a rain cloud over real Clear Creek country and visit game lands to earn raindrops: a 3D toy-box games world for a five-year-old.">
-<title>Paul's Game Garage</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<title>Paul's Game Garage | FluidTA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap">
 <style>
-  /* Layout: one toy-box stage (3D), a game picker underneath. Single deliberate look: Truck Lab's palette. */
-  :root{
+  /* FluidTA's page: its colors and type, light and dark, the same values as /fta-tokens.css, so this file also stands alone. */
+  :root{ color-scheme:light dark; --paper:#FCFBF9; --panel:#FFFFFF; --sunk:#F1EFEA; --ink:#1B1D21; --ink-soft:#4A4F57; --line:#DCDFE4; --blue:#1F6FEB; --link:#1459C7; --gold:#FFC21A; --on-gold:#1B1D21; --tint:rgba(31,111,235,.1);
+    --shadow:0 1px 2px rgba(27,29,33,.07),0 8px 24px rgba(27,29,33,.08); --font:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,-apple-system,sans-serif; --radius:18px; --radius-sm:10px; --gutter:16px; --measure:66ch; }
+  @media (prefers-color-scheme: dark){ :root{ --paper:#10161D; --panel:#19222C; --sunk:#0B1016; --ink:#EEF1F4; --ink-soft:#B6BFC9; --line:#303C49; --blue:#4D94EA; --link:#8CC2FF; --tint:rgba(108,176,255,.14); --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28); } }
+  /* The game: one stage (3D) and a list of games under it. Its own palette is scoped to the stage, so the page can follow the site. */
+  .stage{
     --sky:#8FD3FF; --sky2:#DDF3FF; --dirt:#D9822B; --dirt2:#A85F1C; --grass:#6CC04A;
     --ink:#22203F; --card:#FFF8E7; --paper:#FFFDF7; --muted:#5E5B7A;
     --red:#FF4D4D; --yellow:#FFD23F; --purple:#7B5CFF; --teal:#2BD4C2; --orange:#FF8C42;
     --shadow:0 6px 0 rgba(34,32,63,.18);
-    --font:"Fredoka","Arial Rounded MT Bold","Nunito",system-ui,sans-serif;
-    color-scheme:light;
+    color-scheme:light; color:var(--ink);
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
-  html,body{height:100%}
-  body{
-    background:var(--sky2); color:var(--ink); font-family:var(--font);
-    -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
-    padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
-  }
-  .app{max-width:980px;margin:0 auto;padding-block:10px 20px;display:flex;flex-direction:column;gap:12px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  h1{font-size:clamp(26px,6.4vw,52px);font-weight:700;margin:0;line-height:1.08;letter-spacing:-.01em;text-shadow:4px 4px 0 var(--yellow);text-wrap:balance}
-  h1 span{color:var(--red);text-shadow:4px 4px 0 var(--ink)}
+  body{margin:0;background:var(--paper);color:var(--ink);font:400 18px/1.6 var(--font);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+  a{color:var(--link);text-underline-offset:2px}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 max(var(--gutter),env(safe-area-inset-left,0px))}
+  .page-head{padding:20px 0 8px;max-width:var(--measure)}
+  .page-head h1{margin:0;font-size:clamp(32px,7vw,52px);font-weight:600;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+  .page-head p{margin:10px 0 0;font-size:20px;color:var(--ink-soft)}
+  .crumb{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;font-weight:600}
+  .gbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 12px}
+  .gbar p{margin:0;font-size:16px;color:var(--ink-soft)}
+  .hbtns{display:flex;gap:8px}
+  .shelf-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:36px 0 14px}
+  .shelf-head h2{margin:0;font-size:clamp(24px,4.5vw,32px);font-weight:600;line-height:1.15}
+  .credit{max-width:var(--measure);margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:16px;line-height:1.55;color:var(--ink-soft)}
+  .credit h2{margin:0 0 8px;font-size:20px;font-weight:600;color:var(--ink)}
+  .credit b{color:var(--ink);font-weight:600}
   .round{
-    appearance:none;border:3px solid var(--ink);background:var(--card);border-radius:999px;
-    width:64px;height:64px;flex:0 0 auto;cursor:pointer;box-shadow:var(--shadow);display:grid;place-items:center;padding:0;
+    appearance:none;border:0;background:var(--panel);color:var(--ink);border-radius:999px;
+    width:52px;height:52px;flex:0 0 auto;cursor:pointer;box-shadow:var(--shadow);display:grid;place-items:center;padding:0;
   }
-  .round svg{width:32px;height:32px}
-  .hbtns{display:flex;gap:8px;flex:0 0 auto}
+  .round svg [stroke="#22203F"]{stroke:currentColor} .round svg [fill="#22203F"]{fill:currentColor}
+  .stage .round{background:#fff;color:#0E1B2B}
+  .round svg{width:28px;height:28px}
   .round.nope{animation:nope .4s}
   @keyframes nope{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  body.full{overflow:hidden}
+  body.full{overflow:hidden} body.full .bar,body.full .tabs,body.full .skip,body.full #fta-bar{display:none}
   body.full .stage{position:fixed;inset:0;z-index:40;height:auto;border:0;border-radius:0;box-shadow:none}
   .exitfull{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:6}
   .round:active,.tile:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(34,32,63,.18)}
 
   .stage{
-    position:relative;border:4px solid var(--ink);border-radius:22px;overflow:hidden;background:var(--sky);
+    position:relative;border:0;border-radius:var(--radius,18px);overflow:hidden;background:var(--sky);
     box-shadow:var(--shadow);height:clamp(260px, min(64vh, 76vw), 640px);
     touch-action:none;user-select:none;-webkit-user-select:none;
   }
+  #stage.stage{color:#0E1B2B;background:#8FD3FF}   /* over the site kit's old #stage rule: this stage is daylight */
+  @media (max-width:699px){ .stage{height:min(66vh,132vw)} }
   .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   #gl{touch-action:none;cursor:grab}
   #gl.grabbing{cursor:grabbing}
@@ -90,7 +104,6 @@
   .start svg{width:70px;height:70px;margin-left:12px}
 
   .picker{background:var(--card);border:4px solid var(--ink);border-radius:22px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
-  .row-label{font-weight:600;font-size:15px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
   .tiles{display:flex;gap:10px;flex-wrap:wrap}
   .tile{
     appearance:none;border:4px solid var(--ink);background:var(--paper);border-radius:20px;min-width:120px;min-height:88px;
@@ -105,10 +118,10 @@
     background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:4px 10px;font-weight:700;font-size:clamp(20px,4.4vw,38px);line-height:1.15;box-shadow:0 4px 0 rgba(34,32,63,.18)}
   .wordbar .c{min-width:.45em;text-align:center;border-radius:6px}
   .wordbar .todo{color:#B8B5CC}
-  .wordbar .next{color:var(--ink);background:var(--yellow)}
+  .wordbar .nx{color:var(--ink);background:var(--yellow)}
   .wordbar .sp{min-width:.7em}
   .wordbar .sp.todo{box-shadow:inset 0 -3px 0 #B8B5CC}
-  .wordbar .sp.next{box-shadow:inset 0 -4px 0 var(--ink)}
+  .wordbar .sp.nx{box-shadow:inset 0 -4px 0 var(--ink)}
   .wordbar .miss{color:var(--red)}
   .ttbar{position:absolute;left:12px;right:12px;top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;pointer-events:none}
   .ttt,.tteq{display:flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:4px 14px;font-weight:700;
@@ -166,31 +179,26 @@
   .tile[aria-pressed="true"]{background:var(--yellow)}
   .go:focus-visible,.round:focus-visible,.tile:focus-visible,.start button:focus-visible{outline:4px solid var(--purple);outline-offset:3px}
 
-  footer{font-size:14px;color:var(--muted);line-height:1.5;max-width:68ch}
-  footer a{color:var(--purple);font-weight:700}
   .navc{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:10px;z-index:3}
   .navc button{appearance:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 4px 0 rgba(34,32,63,.25);touch-action:manipulation}
   .navc button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(34,32,63,.25)} .navc button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   .navc svg{width:30px;height:30px;display:block} .navc .needle{transition:none}
-  .credit{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:11px;line-height:1.3;color:var(--ink);background:rgba(255,253,247,.82);padding:1px 8px;border-radius:8px;pointer-events:none;white-space:nowrap;z-index:2}
+  .pcredit{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:11px;line-height:1.3;color:var(--ink);background:rgba(255,253,247,.82);padding:1px 8px;border-radius:8px;pointer-events:none;white-space:nowrap;z-index:2}
   /* ===== Bright Field: one real world, turned up bright. White chips, soft shadows, no outlines; gold = the one action, sky blue = water. ===== */
-  :root{ --ink:#0E1B2B; --card:#FFFFFF; --paper:#FFFFFF; --muted:#3D5268; --red:#FF3B30; --yellow:#FFC21A; --sky2:#EEF5FB; --shadow:0 12px 34px rgba(14,27,43,.12); --chip:0 8px 24px rgba(14,27,43,.22); }
-  body{background:#EEF5FB}
-  h1{text-shadow:none;font-weight:700} h1 span{color:#1E88FF;text-shadow:none}
-  .round{border:0;background:#fff;box-shadow:var(--chip)}
-  .round:active,.tile:active{transform:translateY(2px);box-shadow:0 4px 12px rgba(14,27,43,.2)}
-  .stage{border:0;box-shadow:0 18px 50px rgba(14,27,43,.22)}
+  .stage{ --ink:#0E1B2B; --card:#FFFFFF; --paper:#FFFFFF; --muted:#3D5268; --red:#FF3B30; --yellow:#FFC21A; --sky2:#EEF5FB; --chip:0 8px 24px rgba(14,27,43,.22); }
+  .round:active,.tile:active{transform:translateY(2px)}
+  .stage{box-shadow:var(--shadow)}
   #gl{filter:saturate(1.22) contrast(1.05)}
-  .picker{border:0;background:#fff;box-shadow:var(--shadow)}
-  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
-  .tile{border:0;background:#F3F7FB;box-shadow:none;flex-direction:row;align-items:center;gap:12px;min-height:76px;padding:8px 12px 8px 8px;border-radius:20px;text-align:left;font-size:17px}
-  .tile[aria-pressed="true"]{background:#FFF3CC;box-shadow:inset 0 0 0 3px #FFC21A}
+  .picker{border:0;background:none;box-shadow:none;padding:0}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:12px}
+  .tile{border:0;background:var(--panel);color:var(--ink);box-shadow:var(--shadow);flex-direction:row;align-items:center;gap:12px;min-height:80px;padding:10px 14px 10px 10px;border-radius:var(--radius);text-align:left;font:600 17px var(--font)}
+  .tile[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--gold),var(--shadow)}
   .tile .thumb{position:relative;flex:none;width:60px;height:60px;border-radius:16px;background-color:#8a8a70;background-image:url(clear-creek-sat.jpg);background-repeat:no-repeat}
   .tile .thumb canvas{position:absolute;right:-6px;bottom:-6px;width:36px;height:27px;background:#fff;border-radius:9px;padding:2px;box-shadow:0 3px 8px rgba(14,27,43,.25)}
-  .tile .tx{display:flex;flex-direction:column;min-width:0} .tile .tx b{font-weight:600;font-size:18px;line-height:1.15} .tile .tx i{font-style:normal;font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted)}
+  .tile .tx{display:flex;flex-direction:column;min-width:0} .tile .tx b{font-weight:600;font-size:19px;line-height:1.2} .tile .tx i{font-style:normal;font-weight:400;font-size:15px;color:var(--ink-soft)}
   .gems{border:0;background:rgba(255,255,255,.94);box-shadow:var(--chip);border-radius:20px}
   .gems svg [stroke="#22203F"],.go svg [stroke="#22203F"]{stroke:rgba(255,255,255,.75)}
-  .gems.cloudw{top:12px} .gems.lakec{top:70px;font-size:15px;font-family:Inter,system-ui,sans-serif;font-weight:600;color:var(--muted);padding:10px 14px}
+  .gems.cloudw{top:12px} .gems.lakec{top:70px;font-size:15px;font-weight:600;color:var(--muted);padding:10px 14px}
   .lbar{width:92px;height:12px;border-radius:6px;background:#D7E6F2;overflow:hidden} .lbar i{display:block;height:100%;width:0;background:#1E88FF;transition:width .4s}
   .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .go{border:0;background:#FFC21A;box-shadow:0 8px 0 #D99A00,0 16px 28px rgba(14,27,43,.3)} .go svg path{fill:#0E1B2B;stroke:none}
@@ -202,27 +210,26 @@
   #ttPlus{background:#7FD8CC}
   .wordbar,.ttt,.tteq,.angv,.wxt,.tag,.explain li{border:0;box-shadow:var(--chip)} .explain,.gridpick{border:0;box-shadow:0 24px 60px rgba(14,27,43,.35)}
   .place{border:0;box-shadow:var(--chip)} .wtdots i{border:2px solid #fff;box-shadow:0 2px 6px rgba(14,27,43,.3)}
-  footer{font-family:Inter,system-ui,sans-serif}
   /* in a game: the real place it happens, and the way back to the cloud */
   .navc button{border:0;box-shadow:var(--chip)} body.full .navc{top:84px}
   .gnav{position:absolute;right:12px;top:12px;display:flex;gap:10px;align-items:center;z-index:4}
   body.full .gnav{right:84px}
   .gplace{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.94);border-radius:22px;padding:6px 14px 6px 6px;box-shadow:var(--chip);pointer-events:none}
   .gplace .thumb,.pcard .thumb{flex:none;width:40px;height:40px;border-radius:13px;background-color:#8a8a70;background-image:url(clear-creek-sat.jpg);background-repeat:no-repeat}
-  .gplace .t{display:flex;flex-direction:column;line-height:1.15} .gplace b{font-weight:600;font-size:16px} .gplace i{font-style:normal;font-family:Inter,system-ui,sans-serif;font-size:12px;color:var(--muted)}
+  .gplace .t{display:flex;flex-direction:column;line-height:1.15} .gplace b{font-weight:600;font-size:16px} .gplace i{font-style:normal;font-size:12px;color:var(--muted)}
   .gnav .round{width:56px;height:56px}
   @media (max-width:520px){ .gplace .t{display:none} .gplace{padding:6px} .tiles{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))} .tile .tx b{font-size:16px} }
   /* home map: the place under the cloud, and raindrops coming home */
   .pcard{position:absolute;left:12px;right:132px;bottom:118px;max-width:420px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.96);border-radius:24px;padding:8px;box-shadow:0 12px 32px rgba(14,27,43,.3);z-index:3}
   .pcard .thumb{width:56px;height:56px;border-radius:16px}
-  .pcard .t{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;line-height:1.15} .pcard b{font-weight:600;font-size:20px} .pcard i{font-style:normal;font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted)}
+  .pcard .t{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;line-height:1.15} .pcard b{font-weight:600;font-size:20px} .pcard i{font-style:normal;font-size:13px;color:var(--muted)}
   .pcard button{appearance:none;border:0;background:#FFC21A;border-radius:18px;min-height:48px;padding:0 18px;font-family:inherit;font-weight:600;font-size:18px;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #D99A00}
   .reward{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,27,43,.32);z-index:8;padding:16px}
-  .reward .card{width:min(380px,100%);background:#fff;border-radius:32px;padding:26px 22px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 24px 60px rgba(14,27,43,.4)}
+  .reward .rcard{width:min(380px,100%);background:#fff;border-radius:32px;padding:26px 22px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 24px 60px rgba(14,27,43,.4)}
   .reward .big{display:flex;align-items:center;gap:10px;font-weight:700;font-size:72px;line-height:1} .reward .big svg{width:56px;height:56px}
   .reward p{margin:0;font-weight:600;font-size:24px;text-align:center}
   .reward ul{list-style:none;margin:0;padding:12px 16px;width:100%;box-sizing:border-box;background:#F2F7FC;border-radius:20px;display:flex;flex-direction:column;gap:8px}
-  .reward li{display:flex;justify-content:space-between;align-items:center;font-family:Inter,system-ui,sans-serif;font-size:16px;font-weight:500} .reward li b{font-family:var(--font);font-weight:600;font-size:22px}
+  .reward li{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:400} .reward li b{font-family:var(--font);font-weight:600;font-size:22px}
   .reward button{appearance:none;border:0;width:100%;background:#FFC21A;border-radius:22px;min-height:60px;font-family:inherit;font-weight:600;font-size:22px;color:var(--ink);cursor:pointer;box-shadow:0 7px 0 #D99A00}
   .err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-weight:600;font-size:18px;background:var(--sky)}
   @media (max-width:699px){ .explain{left:8px;right:8px;top:auto;bottom:8px;transform:none;width:auto;max-height:52%;padding:10px 12px} .explain h3{font-size:22px} .xeq{font-size:18px} }
@@ -230,21 +237,23 @@
   @media (prefers-reduced-motion: reduce){ .go.pulse,.start button{animation:none} .place{transition:none} }
 </style>
 
-<style>body{margin:0}</style>
-<script src="/fta.js" data-guest="kids" defer></script>
-<style>@media (max-width: 699px) { .stage { height: min(66vh, 132vw); } }</style>
 </head>
-<body>
-<div class="app">
-  <header>
-    <h1>PAUL'S <span>GAME</span> GARAGE</h1>
+<body data-tab="play">
+<main id="main" class="wrap garage">
+  <div class="page-head">
+    <a class="crumb" href="/play.html">Play</a>
+    <h1>Paul's Game Garage</h1>
+    <p>Fly a rain cloud over the real Clear Creek map. Every game sits at a real place on it, and every game pays in raindrops.</p>
+  </div>
+  <div class="gbar">
+    <p>Made for Paul, who is five. Sound on is best.</p>
     <div class="hbtns">
       <button class="round" id="home" aria-label="Back to the cloud" hidden><svg viewBox="0 0 32 24" aria-hidden="true"><path d="M8 21 h17 a5.5 5.5 0 0 0 0-11 a7.5 7.5 0 0 0-14.5 1.5 a5 5 0 0 0-2.5 9.5 z" fill="#FFFDF7" stroke="#22203F" stroke-width="2.2" stroke-linejoin="round"/><path d="M16 9 c0 0-3 3.6-3 5.6 a3 3 0 0 0 6 0 c0-2-3-5.6-3-5.6z" fill="#4AA8FF" stroke="#22203F" stroke-width="1.6"/></svg></button>
       <button class="round" id="ctl" aria-label="Steer by touch or by tipping the phone" aria-pressed="false"></button>
       <button class="round" id="full" aria-label="Full screen"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12V5h7M20 5h7v7M27 20v7h-7M12 27H5v-7" fill="none" stroke="#22203F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="round" id="mute" aria-label="Sound on or off" aria-pressed="false"></button>
     </div>
-  </header>
+  </div>
 
   <div class="stage" id="stage">
     <canvas id="gl" aria-label="Rain to the Lake: fly the rain cloud over Clear Creek and visit the game lands"></canvas>
@@ -262,8 +271,8 @@
     </div>
   </div>
 
-  <nav class="picker" aria-label="Games">
-    <div class="row-label">Games</div>
+  <div class="shelf-head"><h2 id="games-h">Games and their places</h2></div>
+  <nav class="picker" aria-labelledby="games-h">
     <div class="tiles">
       <button class="tile" data-g="maze" aria-pressed="false"><canvas width="144" height="108"></canvas>MARBLE MAZE</button>
       <button class="tile" data-g="ramp" aria-pressed="false"><canvas width="144" height="108"></canvas>RAMP RACE</button>
@@ -276,8 +285,9 @@
     </div>
   </nav>
 
-  <footer>For grown-ups. <b>How it fits together:</b> Rain to the Lake is home. Paul is the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). The two hill games are played at true size on a real ski slope: Echo Mountain's main run, where the lodge sits at the top by Squaw Pass Road and the run falls about 190 m to the north. A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops. <b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes. <b>Marble Hill:</b> press the red button, then touch where the marble should go: the finger pushes the marble sideways (up to 1.9 m/s²). At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The 58 m course lies on the top of Echo Mountain's main run and drops 15 m. Measured: the ground, on a 4 m grid (AWS Terrain Tiles, zoom 15), and where the forest stands (a 10 m Sentinel-2 photo, October 2024). Physics: the marble feels 5/7 · g · sin θ of the real slope under it (between about 10° and 20° here) and the real side slope across it, so it drifts and Paul steers against that. Modeled: snow drag, chosen so the marble tops out near 3.4 m/s; the winter snow cover; the course itself. <b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots. <b>Word Hill:</b> on the same run as Marble Hill, 25 m to the east, with more snow drag (about 2.3 m/s) to leave time to read. The marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10. <b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number. so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch. <b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data) and the photo draped over it (contains modified Copernicus Sentinel data 2024: the median of four nearly cloud-free Sentinel-2 passes from late August to early October 2024, clouds masked, about 31 m per pixel). Drag the ground to move the map, drag the cloud to move the cloud, pinch to zoom, twist to turn, slide two fingers up or down to tilt; the compass turns the map back to north. Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells. <b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses. <b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</footer>
-</div>
+  <section class="credit" aria-labelledby="grownups-h"><h2 id="grownups-h">For grown-ups</h2><p><b>How it fits together:</b> Rain to the Lake is home. Paul is the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). The two hill games are played at true size on a real ski slope: Echo Mountain's main run, where the lodge sits at the top by Squaw Pass Road and the run falls about 190 m to the north. A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops.</p><p><b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes.</p><p><b>Marble Hill:</b> press the red button, then touch where the marble should go: the finger pushes the marble sideways (up to 1.9 m/s²). At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The 58 m course lies on the top of Echo Mountain's main run and drops 15 m. Measured: the ground, on a 4 m grid (AWS Terrain Tiles, zoom 15), and where the forest stands (a 10 m Sentinel-2 photo, October 2024). Physics: the marble feels 5/7 · g · sin θ of the real slope under it (between about 10° and 20° here) and the real side slope across it, so it drifts and Paul steers against that. Modeled: snow drag, chosen so the marble tops out near 3.4 m/s; the winter snow cover; the course itself.</p><p><b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots.</p><p><b>Word Hill:</b> on the same run as Marble Hill, 25 m to the east, with more snow drag (about 2.3 m/s) to leave time to read. The marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10.</p><p><b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number. so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch.</p><p><b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data) and the photo draped over it (contains modified Copernicus Sentinel data 2024: the median of four nearly cloud-free Sentinel-2 passes from late August to early October 2024, clouds masked, about 31 m per pixel). Drag the ground to move the map, drag the cloud to move the cloud, pinch to zoom, twist to turn, slide two fingers up or down to tilt; the compass turns the map back to north. Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells.</p><p><b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses.</p><p><b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</p></section>
+  <a data-next></a>
+</main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -1148,7 +1158,7 @@
     c.fillStyle=C.ink; c.strokeStyle=C.ink; c.lineCap="round"; c.lineWidth=9;
     if(ch===" "){ c.beginPath(); c.moveTo(26,70); c.lineTo(26,92); c.lineTo(102,92); c.lineTo(102,70); c.stroke(); }
     else if(ch==="."){ c.beginPath(); c.arc(64,84,15,0,Math.PI*2); c.fill(); }
-    else { c.font="700 96px Fredoka, 'Arial Rounded MT Bold', Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(ch,64,70); }
+    else { c.font="600 92px 'Atkinson Hyperlegible Next', Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(ch,64,70); }
     t.needsUpdate=true;
   }
   var glyphMats={};
@@ -1202,7 +1212,7 @@
     }
     function paintBar(){
       var h=""; for(var i=0;i<sent.length;i++){ var tch=typed[i], cls="c", txt;
-        if(tch===undefined){ txt=sent[i]===" "?"&nbsp;":sent[i]; cls+=" todo"+(i===typed.length?" next":""); }
+        if(tch===undefined){ txt=sent[i]===" "?"&nbsp;":sent[i]; cls+=" todo"+(i===typed.length?" nx":""); }
         else if(tch===null){ txt="_"; cls+=" miss"; } else { txt=tch===" "?"&nbsp;":tch; }
         if(sent[i]===" ") cls+=" sp"; h+='<span class="'+cls+'">'+txt+'</span>'; }
       bar.innerHTML=h;
@@ -1305,7 +1315,7 @@
     // counting numbers beside each block: columns along the front edge, rows down the left side
     var numCache={};
     function numMat(n){ if(numCache[n]) return numCache[n]; var cv=document.createElement("canvas"); cv.width=cv.height=64; var g=cv.getContext("2d");
-      g.font="700 44px Fredoka, 'Arial Rounded MT Bold', Arial, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.lineJoin="round";
+      g.font="600 44px 'Atkinson Hyperlegible Next', Arial, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.lineJoin="round";
       g.lineWidth=9; g.strokeStyle=C.paper; g.strokeText(String(n),32,35); g.fillStyle=C.ink; g.fillText(String(n),32,35);
       return (numCache[n]=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false})); }
     if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ Object.keys(numCache).forEach(function(k){ var m=numCache[k]; delete numCache[k]; var fresh=numMat(k); m.map=fresh.map; m.needsUpdate=true; numCache[k]=m; }); });
@@ -1801,12 +1811,12 @@
       if(best&&best!==pcM){ pcM=best; pcB.textContent=TITLE[best.name]; pcI.textContent=PLACE[best.name]+" · under the cloud"; photoBg(pcThumb,best.name,56); pcBtn.setAttribute("aria-label","Fly to "+PLACE[best.name]+" and play "+TITLE[best.name]); }
       pcard.hidden=!best; if(!best) pcM=null; }
     var reward=document.createElement("div"); reward.className="reward"; reward.hidden=true; stageEl.appendChild(reward);
-    reward.innerHTML='<div class="card" role="dialog" aria-label="Raindrops for the cloud"><div class="big"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5C12 2.5 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-12.5-7-12.5Z" fill="#1E88FF"/><path d="M9 15.5a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg><span></span></div><p>Raindrops for the cloud!</p><ul></ul><button type="button">Rain!</button></div>';
+    reward.innerHTML='<div class="rcard" role="dialog" aria-label="Raindrops for the cloud"><div class="big"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5C12 2.5 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-12.5-7-12.5Z" fill="#1E88FF"/><path d="M9 15.5a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg><span></span></div><p>Raindrops for the cloud!</p><ul></ul><button type="button">Rain!</button></div>';
     reward.querySelector("button").addEventListener("click",function(){ S.click(); reward.hidden=true; });
     function showReward(got,parts){ reward.querySelector(".big span").textContent="+"+got; var ul=reward.querySelector("ul"); ul.innerHTML="";
       parts.forEach(function(p){ var li=document.createElement("li"), a=document.createElement("span"), n=document.createElement("b"); a.textContent=TITLE[p.k]||p.k; n.textContent=String(Math.round(p.n)); li.appendChild(a); li.appendChild(n); ul.appendChild(li); });
       ul.hidden=!parts.length; reward.hidden=false; setTimeout(function(){ try{ reward.querySelector("button").focus({preventScroll:true}); }catch(e){} },50); }
-    var credit=document.createElement("div"); credit.className="credit"; credit.hidden=true; credit.textContent="Photo: Copernicus Sentinel-2 data 2024"; stageEl.appendChild(credit);
+    var credit=document.createElement("div"); credit.className="pcredit"; credit.hidden=true; credit.textContent="Photo: Copernicus Sentinel-2 data 2024"; stageEl.appendChild(credit);
     function moveCloud(p){ if(!rayTo(p,UP,-2.2)) return; var l=root.worldToLocal(hit.clone()); cloudWant.set(clamp(l.x,-(GW-1)/2*CELL,(GW-1)/2*CELL),CLOUDY,clamp(l.z,-(GH-1)/2*CELL,(GH-1)/2*CELL)); }
     function fitPts(){ var w=(GW-1)/2*CELL, d=(GH-1)/2*CELL; return [[-w,0,-d],[w,0,-d],[-w,-1.6,d],[w,-1.6,d],[-w,7,-d],[w,CLOUDY+1,0]].map(function(q){ return root.localToWorld(new THREE.Vector3(q[0],q[1],q[2])); }); }
     wx.querySelector("#wxCold").addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setT(T0-4); S.click(); speak(T0<=0?"Brrr! Snow all the way down.":"Colder! More snow up high."); });
@@ -1936,16 +1946,16 @@
     q.fillStyle=C.red; q.beginPath(); q.arc(26,70,9,0,Math.PI*2); q.fill(); q.stroke();
     var wd=document.querySelector('.tile[data-g="word"] canvas').getContext("2d"); wd.lineJoin="round"; wd.strokeStyle=C.ink; wd.lineWidth=5;
     wd.fillStyle=C.grass; wd.beginPath(); wd.moveTo(0,40); wd.lineTo(144,104); wd.lineTo(0,104); wd.closePath(); wd.fill();
-    wd.font="700 30px Fredoka, Arial, sans-serif"; wd.textAlign="center"; wd.textBaseline="middle";
+    wd.font="600 30px 'Atkinson Hyperlegible Next', Arial, sans-serif"; wd.textAlign="center"; wd.textBaseline="middle";
     [["A",30,30],["b",70,48],["c",110,66]].forEach(function(k){ wd.fillStyle=C.wood; wd.fillRect(k[1]-17,k[2]-17,34,34); wd.strokeRect(k[1]-17,k[2]-17,34,34); wd.fillStyle=C.ink; wd.fillText(k[0],k[1],k[2]+2); });
     var tl=document.querySelector('.tile[data-g="tiles"] canvas').getContext("2d"); tl.lineJoin="round"; tl.strokeStyle=C.ink; tl.lineWidth=4;
     for(var ty=0;ty<3;ty++) for(var tx=0;tx<4;tx++){ tl.fillStyle=C.teal; tl.fillRect(14+tx*22,18+ty*22,18,18); tl.strokeRect(14+tx*22,18+ty*22,18,18); }
     tl.fillStyle=C.yellow; tl.fillRect(112,62,18,18); tl.strokeRect(112,62,18,18);
-    tl.font="700 34px Fredoka, Arial, sans-serif"; tl.fillStyle=C.ink; tl.textAlign="center"; tl.fillText("+",120,44);
+    tl.font="600 34px 'Atkinson Hyperlegible Next', Arial, sans-serif"; tl.fillStyle=C.ink; tl.textAlign="center"; tl.fillText("+",120,44);
     var wt=document.querySelector('.tile[data-g="wordtime"] canvas').getContext("2d"); wt.lineJoin="round"; wt.strokeStyle=C.ink; wt.lineWidth=4;
     wt.fillStyle=C.orange; wt.fillRect(46,6,52,52); wt.strokeRect(46,6,52,52); wt.fillStyle=C.paper; wt.fillRect(52,12,40,40);
     wt.fillStyle=C.yellow; wt.beginPath(); wt.arc(72,32,13,0,Math.PI*2); wt.fill(); wt.stroke();
-    wt.font="700 26px Fredoka, Arial, sans-serif"; wt.textAlign="center"; wt.textBaseline="middle";
+    wt.font="600 26px 'Atkinson Hyperlegible Next', Arial, sans-serif"; wt.textAlign="center"; wt.textBaseline="middle";
     ["s","u","n"].forEach(function(ch,i){ var x=30+i*42; wt.fillStyle=C.wood; wt.fillRect(x-17,66,34,34); wt.strokeRect(x-17,66,34,34); wt.fillStyle=C.ink; wt.fillText(ch,x,84); });
     var rn=document.querySelector('.tile[data-g="rain"] canvas').getContext("2d"); rn.lineJoin="round"; rn.lineCap="round"; rn.strokeStyle=C.ink; rn.lineWidth=4;
     rn.fillStyle="#3F9446"; rn.beginPath(); rn.moveTo(0,100); rn.lineTo(40,40); rn.lineTo(62,62); rn.lineTo(84,30); rn.lineTo(144,100); rn.closePath(); rn.fill(); rn.stroke();
