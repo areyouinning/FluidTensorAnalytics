@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why do the numbers that matter have no units? | FluidTA</title>
+<meta name="description" content="Dimensional analysis and the Buckingham π theorem, Einstein index notation with the Navier-Stokes equations written out, and a field guide to Reynolds, Péclet, Prandtl, Froude and the rest.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+  .tbox { overflow-x: auto; margin: 16px 0; background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); }
+  table.dn { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 16px; }
+  table.dn th, table.dn td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  table.dn th { font-weight: 600; background: var(--sunk); position: sticky; top: 0; }
+  table.dn td:nth-child(2) { font-family: var(--mono); white-space: nowrap; }
+  table.dn tr.grp td { background: var(--sunk); font-weight: 600; color: var(--ink-soft); }
+</style>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Why do the numbers that matter have no units?</h1>
+  <p class="lede" style="margin-top:14px">A ship model in a towing tank, a blood vessel and a river can all be the same flow, as long as a few unit-free numbers match. Finding those numbers is dimensional analysis. Keeping the equations short enough to see them is the job of Einstein's summation notation.</p>
+
+  <h2>Units have to cancel</h2>
+  <p>Every physical quantity is built from a few base dimensions: mass M, length L, time T and temperature Θ. Speed is L T⁻¹, viscosity is M L⁻¹ T⁻¹. Any honest law of nature keeps working when you switch from metres to feet, so it can only depend on combinations where all the units cancel.</p>
+  <p>That gives a counting rule, the <b>Buckingham π theorem</b>, published by Edgar Buckingham in 1914. If a problem involves <span class="m">n</span> quantities built from <span class="m">r</span> independent dimensions, it can be rewritten in terms of <span class="m">n</span> − <span class="m">r</span> unit-free groups. Pipe flow depends on density, speed, diameter and viscosity: 4 quantities, 3 dimensions, so 1 group. That group is the Reynolds number, and two pipes with the same Reynolds number behave alike, whatever their size or fluid.</p>
+  <figure class="fig" data-diagram="pigroups"><figcaption>Pick the quantities a problem depends on. The page counts the independent dimensions (the rank of the dimension matrix), finds one set of unit-free groups with exact exponents, and lists the named numbers you can build from your picks. Any group can be multiplied by the others or raised to a power and is still unit-free, so the set shown is one choice among many.</figcaption></figure>
+
+  <h2>Einstein's shorthand</h2>
+  <p>Fluid equations are full of sums over directions. Einstein's convention, introduced in 1916, drops the summation signs: <b>an index that appears twice in a term is summed over 1, 2 and 3.</b> An index that appears once is free, and the equation holds for each of its values.</p>
+  <ul>
+    <li><code>aᵢ bᵢ</code> means a₁b₁ + a₂b₂ + a₃b₃, the dot product. The repeated <span class="m">i</span> is a dummy, and any letter would do.</li>
+    <li><code>Aᵢⱼ xⱼ</code> is a matrix times a vector: one equation for each free <span class="m">i</span>.</li>
+    <li><code>δᵢⱼ</code> is 1 when <span class="m">i</span> = <span class="m">j</span> and 0 otherwise, so <code>δᵢⱼ xⱼ = xᵢ</code>.</li>
+    <li><code>εᵢⱼₖ</code> is +1 when <span class="m">i</span>, <span class="m">j</span>, <span class="m">k</span> run in the order 1 2 3 (or a rotation of it), −1 when they run backwards, and 0 if any index repeats. It writes the cross product as <code>(a × b)ᵢ = εᵢⱼₖ aⱼ bₖ</code>.</li>
+    <li>An index may appear at most twice in a term. <code>aᵢ bᵢ cᵢ</code> means nothing.</li>
+  </ul>
+  <figure class="fig" data-diagram="einstein" data-view="vec"><figcaption>Type any two vectors. For each component of the cross product, ε kills 25 of the 27 possible terms.</figcaption></figure>
+
+  <h2>Navier–Stokes in two lines</h2>
+  <p>Momentum and mass for an incompressible fluid take two short lines in index form. Pick a component and see them written out in full.</p>
+  <figure class="fig" data-diagram="einstein" data-view="ns"><figcaption><b>Unit-free</b> measures lengths in units of a size L, speeds in units of U, time in units of L/U and pressure in units of ρU². Everything about the fluid and the scale then collapses into one number in front of the viscous term: 1/Re.</figcaption></figure>
+  <p>That last step is the whole argument of this page in one move. Scale the variables by the problem's own sizes, and the equations say that only the Reynolds number can tell two flows apart. Add gravity, a free surface, heat or rotation, and more groups appear. The table below is a guide to them.</p>
+
+  <h2>A field guide</h2>
+  <p>Each number is a ratio of two effects. If it is large, the first effect wins. Here <span class="m">U</span> is a speed, <span class="m">L</span> a length, <span class="m">ρ</span> density, <span class="m">μ</span> viscosity, <span class="m">ν</span> = <span class="m">μ</span>/<span class="m">ρ</span>, <span class="m">D</span> a mass diffusivity, <span class="m">α</span> a heat diffusivity, <span class="m">g</span> gravity and <span class="m">σ</span> surface tension.</p>
+  <div class="tbox"><table class="dn">
+    <thead><tr><th>Number</th><th>Formula</th><th>Compares</th><th>When it matters</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">Motion and friction</td></tr>
+      <tr><td>Reynolds, Re</td><td>ρUL/μ = UL/ν</td><td>inertia to viscous friction</td><td>Pipe flow turns turbulent above about 2,300; a bacterium swims at around 10⁻⁴, where coasting is impossible.</td></tr>
+      <tr><td>Strouhal, St</td><td>fL/U</td><td>oscillation to travel time</td><td>Near 0.2 for vortices shed by a cylinder; 0.2 to 0.4 for cruising flyers. See <a href="/vortex-shedding.html">vortex shedding</a>.</td></tr>
+      <tr><td>Euler, Eu</td><td>Δp/(ρU²)</td><td>pressure difference to flow inertia</td><td>Pressure drops and losses in pipes and valves.</td></tr>
+      <tr><td>Mach, Ma</td><td>U/c</td><td>flow speed to the speed of sound</td><td>Air behaves as incompressible below about 0.3; above 1, shock waves.</td></tr>
+      <tr><td>Knudsen, Kn</td><td>λ/L</td><td>molecular mean free path to body size</td><td>Above about 0.1 the fluid stops acting like a continuum: thin gases, tiny channels.</td></tr>
+      <tr><td>Womersley, Wo</td><td>L√(ω/ν)</td><td>pulsation to viscous diffusion</td><td>Pulsing blood flow: above about 1 the velocity profile flattens instead of staying parabolic.</td></tr>
+      <tr><td>Stokes, Stk</td><td>τₚU/L</td><td>a particle's response time to the flow's time</td><td>Whether dust, droplets or sediment follow the flow or fly off it.</td></tr>
+      <tr class="grp"><td colspan="4">Gravity, free surfaces and drops</td></tr>
+      <tr><td>Froude, Fr</td><td>U/√(gL)</td><td>flow speed to surface-wave speed</td><td>Ship waves and open channels; a hydraulic jump forms where Fr falls through 1.</td></tr>
+      <tr><td>Weber, We</td><td>ρU²L/σ</td><td>inertia to surface tension</td><td>Whether a drop or jet breaks up.</td></tr>
+      <tr><td>Capillary, Ca</td><td>μU/σ</td><td>viscous forces to surface tension</td><td>Coating, wetting and bubbles in narrow tubes.</td></tr>
+      <tr><td>Bond, Bo</td><td>ΔρgL²/σ</td><td>gravity to surface tension</td><td>Above about 1, drops sag and puddle; below, they stay round.</td></tr>
+      <tr class="grp"><td colspan="4">Spreading of heat and stuff</td></tr>
+      <tr><td>Péclet, Pe</td><td>UL/D, or UL/α for heat</td><td>carrying by the flow to spreading by diffusion</td><td>Large Pe: a dye streak keeps its shape. Pe = Re·Sc for mass and Re·Pr for heat.</td></tr>
+      <tr><td>Prandtl, Pr</td><td>ν/α</td><td>momentum diffusion to heat diffusion</td><td>About 0.7 for air and about 7 for water at room temperature: a property of the fluid alone.</td></tr>
+      <tr><td>Schmidt, Sc</td><td>ν/D</td><td>momentum diffusion to mass diffusion</td><td>Around 1 for gases; hundreds to about a thousand for small molecules in water.</td></tr>
+      <tr><td>Lewis, Le</td><td>α/D</td><td>heat diffusion to mass diffusion</td><td>Combustion and drying, where heat and species travel together.</td></tr>
+      <tr><td>Nusselt, Nu</td><td>hL/k</td><td>heat carried by flow to heat conducted</td><td>The answer most heat-transfer correlations give.</td></tr>
+      <tr><td>Sherwood, Sh</td><td>kₘL/D</td><td>mass carried by flow to mass diffused</td><td>The mass-transfer twin of Nusselt.</td></tr>
+      <tr><td>Biot, Bi</td><td>hL/kₛ</td><td>heat crossing the surface to heat moving inside a solid</td><td>Below about 0.1, a body heats evenly all the way through.</td></tr>
+      <tr><td>Damköhler, Da</td><td>reaction rate × L/U</td><td>reaction speed to flow speed</td><td>Whether a reactor or a river mixes faster than it reacts.</td></tr>
+      <tr class="grp"><td colspan="4">Buoyancy and rotation</td></tr>
+      <tr><td>Grashof, Gr</td><td>gβΔT L³/ν²</td><td>buoyancy to viscosity</td><td>Natural convection, the free-convection cousin of Re².</td></tr>
+      <tr><td>Rayleigh, Ra</td><td>gβΔT L³/(να)</td><td>buoyancy to viscosity and heat diffusion together</td><td>A layer heated from below starts to convect at about 1,708 between rigid plates. Ra = Gr·Pr.</td></tr>
+      <tr><td>Richardson, Ri</td><td>(gΔρ/ρ) L/U²</td><td>stratification to shear</td><td>Whether a stratified flow mixes; in the gradient form, below about 1/4 shear instability is possible.</td></tr>
+      <tr><td>Rossby, Ro</td><td>U/(fL)</td><td>inertia to the Coriolis effect</td><td>Small Ro means rotation rules: weather systems and ocean gyres. Here f is the Coriolis parameter.</td></tr>
+      <tr><td>Ekman, Ek</td><td>ν/(fL²)</td><td>viscosity to the Coriolis effect</td><td>Thin boundary layers on the sea floor and under the wind. Some books put 2Ω in place of f.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Several numbers are products of others: Pe = Re·Pr or Re·Sc, Ra = Gr·Pr, Ca = We/Re. This is the π theorem again: any product or power of unit-free groups is unit-free too, so each field keeps whichever form says something useful.</p>
+
+  <p class="credit">Edgar Buckingham, "On physically similar systems", <i>Physical Review</i> (1914). Albert Einstein introduced the summation convention in his 1916 paper on general relativity. The thresholds in the table are the usual textbook values, and real flows shift them with shape, roughness and disturbance. The tools, the table and these words are new.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

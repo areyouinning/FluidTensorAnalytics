@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Does photosynthesis run on quantum coherence? | FluidTA</title>
+<meta name="description" content="A small light-harvesting network computed exactly: how quantum coherence, and the noise that destroys it, decide how much sunlight reaches the reaction centre.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Does photosynthesis run on quantum coherence?</h1>
+  <p class="lede" style="margin-top:14px">When a leaf catches a photon, the energy lands on one of hundreds of pigment molecules and has to find its way to a reaction centre, where it is turned into chemistry. It almost never gets lost on the way. In 2007, experiments seemed to show it travelling as a quantum wave, trying many paths at once. The real story turned out to be stranger, and it involves noise.</p>
+
+  <h2>The 2007 surprise, and what came after</h2>
+  <p>Gregory Engel, Graham Fleming and colleagues fired ultrashort laser pulses at a bacterial light-harvesting protein called FMO, cooled to 77 kelvin. In the signal they saw beats: oscillations that lasted more than half a picosecond. Beats like that are the signature of <b>quantum coherence</b>, an excitation spread over several pigments at once with definite phase between them. The suggestion was that the energy searched for the exit the way a quantum computer searches a list.</p>
+  <p>Over the following decade, that picture got pulled apart. Most of the long-lived beats turned out to come from vibrations of the molecules, not from the electronic state that carries the energy. Measured at room temperature, the electronic coherence itself fades within tens of femtoseconds, far shorter than the time the energy takes to arrive. Few researchers now think that photosynthesis relies on long-lived electronic coherence.</p>
+  <p>What survived is subtler. Quantum mechanics still sets the rules: the excitation spreads over neighbouring pigments, and its phases matter in its first moments. And the jiggling protein around the pigments, which destroys that coherence, turns out to help the energy get through.</p>
+
+  <h2>A network you can watch</h2>
+  <p>Here are seven pigments, joined where they are close enough to pass energy. Pigment 1 catches the light. Pigment 3 hands it to the <span class="t-green">reaction centre</span>. Each pigment has its own energy, and the couplings that join them are weak by comparison, as in FMO.</p>
+  <figure class="fig" data-diagram="exciton" data-view="net"><figcaption>The orange disc on each pigment shows how much of the excitation sits there. <b>Dephasing γ</b> is how fast the surroundings scramble the quantum phases. At 0 the excitation sloshes back and forth in waves. Turn it up and the sloshing gives way to hopping. Coherence is the total size of the off-diagonal terms of the density matrix, the part that holds the phases.</figcaption></figure>
+  <p>With no dephasing, look at pigment 3. The wave washes over it and away again, and much of the energy settles into shapes that barely touch the exit. Those shapes only drain slowly.</p>
+
+  <h2>Why a little noise helps</h2>
+  <p>Below is the share of the energy that reaches the reaction centre for every amount of dephasing. It is solved exactly, not simulated. Nothing is sampled.</p>
+  <figure class="fig" data-diagram="exciton" data-view="sweep"><figcaption>The same network and the same slider as above. Energy that doesn't arrive is lost: a 1 ns lifetime is assumed everywhere, while the exit takes energy at 1 per picosecond.</figcaption></figure>
+  <ul>
+    <li><b>No noise:</b> 87% arrives, with an average trip of 56 ps. The pigments' energies don't line up, so the wave mostly bounces back. Some of the energy gets stuck in states that hardly overlap the exit.</li>
+    <li><b>Some noise, around 10 per ps:</b> 98.7% arrives, in about 7 ps. The protein's jiggling smears the energy levels so they overlap, and it breaks the interference that traps the wave.</li>
+    <li><b>Too much noise, 10,000 per ps:</b> only 61% arrives, in about 200 ps. Watched that closely, the excitation can hardly move: each hop is cut off before it starts. That is the quantum Zeno effect.</li>
+  </ul>
+  <p>This middle zone is called <b>environment-assisted quantum transport</b>. It was worked out in 2008 and 2009 by Martin Plenio and Susana Huelga, and by Masoud Mohseni, Patrick Rebentrost, Seth Lloyd and Alán Aspuru-Guzik. Their calculations used FMO's own energies and found its natural noise near the sweet spot.</p>
+
+  <h2>What is exact here</h2>
+  <p>The excitation is a 7×7 density matrix. It obeys a master equation with the pigments' energies and couplings, pure dephasing at rate γ on every pigment (the Haken–Strobl model), trapping at the exit and a slow loss everywhere. The curve is exact: the total time spent in each state solves one linear system. The moving picture steps the same equation forward with fourth-order Runge–Kutta, and the delivered share and the losses always add up to one.</p>
+  <p>The network is made up for this page. Its energies, couplings, exit rate and lifetime are set to match FMO's scales, but it is not FMO, and the numbers above belong to it alone. Real proteins also have slow, structured noise and vibrations that this simple model leaves out.</p>
+
+  <p class="credit">The experiment is G. S. Engel and colleagues, <i>Nature</i> (2007). The noise-assisted picture is from M. B. Plenio and S. F. Huelga, <i>New Journal of Physics</i> (2008), and from M. Mohseni, P. Rebentrost, S. Lloyd and A. Aspuru-Guzik, <i>Journal of Chemical Physics</i> (2008), with P. Rebentrost and colleagues, <i>New Journal of Physics</i> (2009). On the short room-temperature coherence, see H.-G. Duan and colleagues, <i>PNAS</i> (2017). The network, the calculations, the diagrams and these words are new.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
