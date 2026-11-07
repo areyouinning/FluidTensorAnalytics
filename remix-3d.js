@@ -1,5 +1,5 @@
-/* The three DataGenetics remixes, in raw WebGL2. One small renderer (coloured points and lines, a drag-to-orbit camera) and one experiment per page, chosen by body[data-remix].
-   Everything shown is computed: the sphere's readouts count the points on screen, the staircase's lines are the exact Markov chain, and the chase steps the sight-line geometry directly. */
+/* The DataGenetics remixes, in raw WebGL2. One small renderer (coloured points and lines, a drag-to-orbit camera) and one experiment per page, chosen by body[data-remix].
+   Everything shown is computed: the sphere's readouts count the points on screen, the chase steps the sight-line geometry directly. */
 'use strict';
 window.REMIX = (() => {
   const $ = id => document.getElementById(id), cv = $('gl'), gl = cv.getContext('webgl2', { antialias: true, alpha: false });
@@ -81,38 +81,6 @@ window.REMIX = (() => {
       needs: () => CAM.spin !== 0 };
   }
 
-  /* ---------- Parrondo's staircase. e = .005; Game A wins .495; Game B wins .095 on a multiple of 3 and .745 otherwise */
-  const E = .005, WIN = { A: [.5 - E, .5 - E, .5 - E], B: [.1 - E, .75 - E, .75 - E] }; WIN.R = WIN.A.map((p, i) => (p + WIN.B[i]) / 2);
-  const PLANS = { A: { name: 'A only', at: () => 'A', c: INK.ice }, B: { name: 'B only', at: () => 'B', c: INK.coral }, ABB: { name: 'A B B', at: i => i % 3 === 0 ? 'A' : 'B', c: INK.mint }, R: { name: 'Coin toss', at: () => 'R', c: INK.cyan } };
-  function exact(plan, n) { let pi = [1, 0, 0], m = 0; const out = [0]; for (let i = 0; i < n; i++) { const p = WIN[plan.at(i)]; const q = [0, 0, 0]; for (let s = 0; s < 3; s++) { m += pi[s] * (2 * p[s] - 1); q[(s + 1) % 3] += pi[s] * p[s]; q[(s + 2) % 3] += pi[s] * (1 - p[s]); } pi = q; out.push(m); } return { out, pi }; }
-  function steadyB() { let pi = [1 / 3, 1 / 3, 1 / 3]; const p = WIN.B; for (let k = 0; k < 2000; k++) { const q = [0, 0, 0]; for (let s = 0; s < 3; s++) { q[(s + 1) % 3] += pi[s] * p[s]; q[(s + 2) % 3] += pi[s] * (1 - p[s]); } pi = q; } return pi; }
-  function parrondo() {
-    const N = narrow ? 300 : 700, T = 1000, STEP = .055, RATE = 40, S = { plan: 'ABB', round: 0, c: new Int32Array(N), was: new Int32Array(N), jit: new Float32Array(N), f: 0, y: 0, hold: 0, running: !calm };
-    const EX = {}; for (const k in PLANS) EX[k] = exact(PLANS[k], T).out;
-    for (let i = 0; i < N; i++) S.jit[i] = .42 + .5 * Math.random();
-    const mean = () => { let m = 0; for (let i = 0; i < N; i++) m += S.c[i]; return m / N; };
-    function restart() { S.c.fill(0); S.was.fill(0); S.round = 0; S.f = 0; S.hold = 0; S.y = 0; dirty = true; hud(); }
-    function play() { const p = WIN[PLANS[S.plan].at(S.round)]; for (let i = 0; i < N; i++) { const s = ((S.c[i] % 3) + 3) % 3; S.was[i] = S.c[i]; S.c[i] += Math.random() < p[s] ? 1 : -1; } S.round++; }
-    function hud() { const [W, H] = chartStart(), m = 8, top = 8, bot = H - 22, x = i => m + i / T * (W - 2 * m - 62), all = Object.values(EX).flatMap(e => [e[T]]), hi = Math.max(...all, 2), lo = Math.min(...all, -2), y = v => bot - (v - lo) / (hi - lo) * (bot - top);
-      g2.strokeStyle = css(INK.ice); g2.globalAlpha = .4; g2.beginPath(); g2.moveTo(m, y(0)); g2.lineTo(x(T), y(0)); g2.stroke(); g2.globalAlpha = 1;
-      for (const k in EX) { g2.strokeStyle = css(PLANS[k].c); g2.lineWidth = k === S.plan ? 2.5 : 1.25; g2.globalAlpha = k === S.plan ? 1 : .6; g2.beginPath(); for (let i = 0; i <= T; i += 5) { i ? g2.lineTo(x(i), y(EX[k][i])) : g2.moveTo(x(i), y(EX[k][i])); } g2.stroke(); g2.globalAlpha = 1; g2.lineWidth = 1; }
-      let prev = -99; g2.fillStyle = css(INK.white); g2.textAlign = 'left'; for (const k of Object.keys(EX).sort((a, b) => y(EX[a][T]) - y(EX[b][T]))) { prev = Math.max(prev + 13, y(EX[k][T])); g2.fillText(PLANS[k].name, x(T) + 5, Math.min(prev, H - 6)); }
-      g2.fillStyle = css(INK.white); g2.beginPath(); g2.arc(x(Math.min(S.round, T)), y(mean()), 4, 0, TAU); g2.fill(); g2.strokeStyle = INK.night; g2.lineWidth = 2; g2.stroke(); g2.lineWidth = 1;
-      const bad = S.c.reduce((a, c) => a + (((c % 3) + 3) % 3 === 0 ? 1 : 0), 0) / N;
-      read(PLANS[S.plan].name, [['Round', S.round], ['Crowd average', '$' + mean().toFixed(2)], ['Exact expected', '$' + EX[S.plan][Math.min(S.round, T)].toFixed(2)], ['On the coral side', (bad * 100).toFixed(0) + '%']]); }
-    group(Object.entries(PLANS).map(([k, v]) => [k, v.name]), k => { S.plan = k; restart(); }, 'ABB');
-    const pause = button(calm ? 'Play' : 'Pause', () => { S.running = !S.running; pause.textContent = S.running ? 'Pause' : 'Play'; });
-    button('Restart', restart);
-    CAM.dist = 4.3; CAM.pitch = .2; CAM.spin = calm ? 0 : .1; cv.setAttribute('aria-label', 'A crowd of beads on a three-sided spiral stair; height is each player\'s balance');
-    restart();
-    return { S, EX, exact, steadyB, PLANS, mean, play, restart, step(dt) { if (!S.running) return; if (S.round >= T) { S.hold += dt; if (S.hold > 3) restart(); return; } S.f += dt * RATE; while (S.f >= 1 && S.round < T) { play(); S.f -= 1; if (S.f >= 1) S.was.set(S.c); } if (S.frame = (S.frame || 0) + 1, S.frame % 4 === 0) hud(); dirty = true; },
-      scene() { lines.clear(); points.clear(); const t = mean(); S.y += (t * STEP - S.y) * .08; CAM.target = [0, S.y, 0]; const lo = Math.floor(t - 26), hi = Math.ceil(t + 26), pos = (c, r) => { const a = c / 3 * TAU; return [Math.cos(a) * r, c * STEP, Math.sin(a) * r]; };
-        for (let c = lo; c < hi; c++) { const bad = ((c % 3) + 3) % 3 === 0, col = bad ? INK.coral : INK.mint; lines.seg(pos(c, .32), pos(c, 1), col, bad ? .95 : .6); for (let k = 0; k < 8; k++) lines.seg(pos(c + k / 8, 1), pos(c + (k + 1) / 8, 1), INK.ice, .3); }
-        for (let i = 0; i < 48; i++) { const a = i / 48 * TAU, b = (i + 1) / 48 * TAU; lines.seg([Math.cos(a) * 1.08, t * STEP, Math.sin(a) * 1.08], [Math.cos(b) * 1.08, t * STEP, Math.sin(b) * 1.08], INK.white, .55); }
-        const f = S.running ? Math.min(1, S.f) : 1; for (let i = 0; i < N; i++) { const c = S.was[i] + (S.c[i] - S.was[i]) * f, q = pos(c, S.jit[i]); points.add(q[0], q[1], q[2], INK.white, .9); }
-        lines.draw(gl.LINES); points.draw(gl.POINTS, 3.2); }, needs: () => S.running || CAM.spin !== 0 };
-  }
-
   /* ---------- motion camouflage. The prey wanders at speed 1; the hunter takes the point of the prey-to-tree line it can reach this step, and a second hunter runs straight at the prey for comparison */
   function camouflage() {
     const DT = .02, CATCH = .06, S = { ratio: 1.1, P: [0, 0, 0], u: [1, 0, 0], H: [0, 0, 0], Q: [0, 0, 0], t: 0, tP: [], tH: [], tQ: [], offH: 0, offQ: 0, maxH: 0, blown: 0, done: 0, hold: 0, wob: [0, 0, 0], eye: [], running: !calm };
@@ -144,7 +112,7 @@ window.REMIX = (() => {
   }
 
   /* ---------- run */
-  const X = { sphere, parrondo, camouflage }[document.body.dataset.remix]();
+  const X = { sphere, camouflage }[document.body.dataset.remix]();
   function draw() { gl.clear(gl.COLOR_BUFFER_BIT); gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.uniformMatrix4fv(U.vp, false, viewProj()); X.scene(); dirty = false; }
   addEventListener('resize', size); size();
   let last = performance.now(); function loop(t) { const dt = Math.min(.1, (t - last) / 1000); last = t; if (CAM.spin) { CAM.yaw += CAM.spin * dt; dirty = true; } if (X.step) X.step(dt); if (dirty && w && h) draw(); requestAnimationFrame(loop); } requestAnimationFrame(loop);

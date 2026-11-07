@@ -19,7 +19,7 @@ window.FTA_CATALOG = [
   { href: '/optimal-channel-networks.html', shelf: 'explore', topics: ['fluids', 'water'], thumb: 'river', title: 'Why do rivers branch the way they do?', blurb: 'Grow a drainage network by minimizing one number.' },
   { href: '/votes-as-rain.html', shelf: 'explore', topics: ['fluids'], thumb: 'rain', title: 'What if votes fell like rain?', blurb: 'U.S. House votes land on their counties and mix as a fluid.' },
   { href: '/remix-sphere.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'sphere', title: 'How do you pick a random point in a ball?', blurb: 'Four methods. Two are wrong, and you can see it from the right angle.' },
-  { href: '/remix-parrondo.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'stairs', title: 'Can two losing games make a winner?', blurb: 'Watch a crowd of players climb a three-sided stair.' },
+  { href: '/intransitive-dice.html', shelf: 'explore', topics: ['chance', 'math'], thumb: 'dice', title: 'Is there a best die?', blurb: 'Pick any of four dice and another one beats it, two times in three. Play the page and see why.', fresh: true },
   { href: '/remix-camouflage.html', shelf: 'explore', topics: ['remix'], thumb: 'stalk', title: 'How do you sneak up on something watching you?', blurb: 'Stay exactly in front of one tree. Dragonflies do something like it.' },
 
   { href: '/way-of-water.html', shelf: 'way', topics: ['fluids'], thumb: 'wayWater', title: 'The Way of Water', blurb: 'Why stirring mixes, from one stagnation point to the tangle. Eleven chapters.' },
