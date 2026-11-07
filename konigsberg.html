@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you cross every bridge once? | FluidTA</title>
+<meta name="description" content="Walk the seven bridges of Königsberg, see why Euler said no, then build your own bridges and let the page find a walk.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="play">
+<main id="main" class="article">
+  <a class="crumb" href="/play.html">Play</a>
+  <h1>Can you cross every bridge once?</h1>
+  <p class="lede" style="margin-top:14px">The river Pregel ran through Königsberg in two branches around an island, and seven bridges joined the four pieces of land. People there asked whether you could take a walk that crossed every bridge exactly once. In 1736 Leonhard Euler answered no, and explained why so plainly that the explanation turned into a branch of mathematics.</p>
+
+  <h2>Try it</h2>
+  <p>Pick a piece of land to start on, then tap a bridge next to you to cross it. Crossed bridges turn orange and get a number. You don't have to finish where you started.</p>
+  <figure class="fig" data-diagram="bridges" data-mode="walk"><figcaption>A is the north bank, B the south bank, C the island and D the land between the two branches to the east. The map is a schematic of the bridges as they stood in 1736, not to scale.</figcaption></figure>
+  <p>However you go, you run out of road at six. Try starting in each of the four places. Six is always the best.</p>
+
+  <h2>Why it can't be done</h2>
+  <p>Euler noticed that the shapes don't matter, and neither do the lengths. All that matters is which land each bridge joins. Switch the figure above to <b>Graph</b>: each land becomes a dot and each bridge a line between two dots.</p>
+  <p>Now follow a walk through any land that isn't where you start or finish. You come in over one bridge and go out over another. Every visit uses up two bridges, so a land in the middle of the walk needs an even number of them. Only the start and the end can have an odd number.</p>
+  <p>Count Königsberg's bridges. The island has <span class="t-orange">5</span>, and the other three lands have <span class="t-orange">3</span> each. That is four lands with an odd count, and a walk has room for at most two. So no walk crosses all seven, and it isn't a matter of trying harder.</p>
+  <p>The rule works the other way too, though Euler's paper didn't fully prove it. That proof came later, from Carl Hierholzer, published in 1873. If you can get from any land to any other, and none or exactly two lands have an odd number of bridges, then a walk over every bridge once exists. With two odd lands it runs from one to the other. With none, it ends where it began.</p>
+
+  <h2>Build your own</h2>
+  <p>Tap a bridge to knock it down, or a dashed one to build it. The page counts the odd lands and says whether a walk exists. <b>Show a walk</b> numbers one in order.</p>
+  <figure class="fig" data-diagram="bridges" data-mode="build"><figcaption>One new bridge between two of the odd lands leaves only two odd ones, and a walk appears. Taking one away does the same. Build two and you can get a round trip.</figcaption></figure>
+
+  <p class="credit">After Leonhard Euler, <i>Solutio problematis ad geometriam situs pertinentis</i>, written in 1736 and published in 1741, and Carl Hierholzer's 1873 paper for the half Euler left open. The walks shown are found by trying bridges in turn, which is quick with so few. The map, the diagrams and these words are new.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

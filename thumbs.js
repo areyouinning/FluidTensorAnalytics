@@ -89,6 +89,11 @@
       return o;
     },
     sphere: function () { var R = rng(31), o = '<circle cx="160" cy="90" r="78" fill="none" stroke="' + L + '" stroke-width="2"/>'; for (var k = 0; k < 260; k++) { var r = R() * 76, a = R() * 6.283; o += dot((160 + r * Math.cos(a)).toFixed(1), (90 + r * Math.sin(a)).toFixed(1), 2, r < 30 ? O : B, .85); } return o; },
+    bridges: function () { // Königsberg: a river in two branches round an island, and seven bridges
+      var o = rect(0, 70, 320, 50, B, 0, .35) + '<path d="M222 82H320V108H222Q212 95 222 82Z" fill="var(--sunk)"/><ellipse cx="104" cy="95" rx="66" ry="15" fill="var(--sunk)"/>';
+      [[70, 66, 70, 82], [138, 66, 138, 82], [70, 108, 70, 124], [138, 108, 138, 124], [170, 95, 220, 95], [270, 66, 270, 84], [270, 106, 270, 124]].forEach(function (p, k) { o += line('M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3], k === 4 ? O : I, 7); });
+      return o + text(160, 160, '5 · 3 · 3 · 3', 18, S);
+    },
     dice: function () { // four dice round a loop, each arrow a 2/3 win
       var P = [[160, 34], [240, 90], [160, 146], [80, 90]], F = ['var(--blue)', 'var(--orange)', 'var(--purple)', 'var(--green)'], N = ['4', '3', '6', '5'], o = '';
       P.forEach(function (p, k) { var q = P[(k + 1) % 4], dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
