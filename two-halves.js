@@ -1,9 +1,29 @@
-/* The puzzle: choose up to six visits, each a dose and a split. Scored exactly, in your browser. */
+/* The puzzle: choose a dose and a split at each of six steps. Scored exactly, in your browser. */
 import { P, BEST, run, solve, fate } from './diagrams/twohalf-core.js';
 
 const plan = Array.from({ length: P.rounds }, () => [0, .5]);
 const rows = [];
 const $ = id => document.getElementById(id);
+let mine = null, site = null;
+/* false until setup finishes, so the preset the page opens with is not recorded as something you did */
+let live = false;
+
+/* A schedule is small enough to live in a link: "6.6,35;5.2,38;4.4,45".
+   Interior empty steps have to stay, because a step's position sets how hard its vehicles
+   are cleared. Trailing ones can go, since run() pads the rest with no dose. */
+function encode(sched) {
+  const out = sched.map(([d, f]) => (d > 0 ? +d.toFixed(1) : 0) + ',' + Math.round(f * 100));
+  while (out.length && /^0,/.test(out[out.length - 1])) out.pop();
+  return out.join(';');
+}
+function decode(s) {
+  const steps = String(s).split(';').filter(Boolean).map(p => {
+    const [d, f] = p.split(',').map(Number);
+    if (!isFinite(d) || !isFinite(f)) return null;
+    return [Math.max(0, Math.min(P.dose, d)), Math.max(.01, Math.min(.99, f / 100))];
+  });
+  return steps.length && steps.length <= P.rounds && steps.every(Boolean) ? steps : null;
+}
 
 function make() {
   const box = $('plan');
@@ -81,9 +101,15 @@ function score() {
     bar.appendChild(sp);
   }
 
+  if (mine) {
+    const B = window.FTABest;
+    const kept = (live && r.total > 0) ? B.record('two-halves', r.score, false) : { best: B.get('two-halves') };
+    mine.textContent = kept.best == null ? 'not yet' : (kept.best * 100).toFixed(2) + '%';
+  }
+
   const m = $('plan-msg');
   const gap = r.score - P.best;
-  if (r.total === 0) { m.className = 'pmsg'; m.textContent = 'Give at least one visit a dose.'; return; }
+  if (r.total === 0) { m.className = 'pmsg'; m.textContent = 'Give at least one step a dose.'; return; }
   if (gap > 1e-6) {
     m.className = 'pmsg win';
     m.textContent = 'You beat the best I found, ' + (P.best * 100).toFixed(2) + '%, by ' + (gap * 100).toFixed(2) + ' points. Tell me how.';
@@ -126,7 +152,27 @@ function key() {
     '<span><i style="background:var(--line)"></i>Lost to the dose</span>';
 }
 
+/* the best strip, the share link, and anything a link handed us */
+function bests() {
+  const B = window.FTABest;
+  if (!B) return;
+  [mine, site] = B.strip($('best'), ['Your best on this device', 'Best I found']);
+  site.textContent = (P.best * 100).toFixed(2) + '%';
+  B.copier($('share-row'), () => B.share({ s: encode(plan) }), 'Copy my result link');
+
+  const sent = decode(B.parse().s || '');
+  if (!sent) { score(); live = true; return; }
+  live = true;
+  put(sent);
+  const r = run(sent);
+  const m = $('plan-msg');
+  m.className = 'pmsg';
+  m.textContent = 'Loaded from a link and recomputed here: ' + (r.score * 100).toFixed(2) +
+    '%. The link carried the schedule, not the score, so that number is this page’s, not theirs.';
+}
+
 make();
 buttons();
 key();
 put([[5, .5], [5, .5], [5, .5]]);
+bests();

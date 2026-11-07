@@ -7,6 +7,7 @@
 <meta name="description" content="A puzzle about coincidence: an editor too big to ship whole, two gene copies to fix, and a dose that costs you cells. Exact scoring in your browser.">
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
+<script src="/fta-best.js" defer></script>
 <style>
   .plan { display: grid; gap: 10px; margin: 18px 0 14px; }
   .visit { display: grid; gap: 2px; padding: 10px 14px 12px; background: var(--panel); border-radius: var(--radius-sm); box-shadow: var(--shadow); }
@@ -65,7 +66,10 @@
   </div>
   <div class="fate" id="fate" aria-hidden="true"></div>
   <div class="fkey" id="fate-key"></div>
+  <div id="best"></div>
+  <div class="ctl" id="share-row"></div>
   <p class="pmsg" id="plan-msg" aria-live="polite">Loading.</p>
+  <p class="nojs" style="margin-top:12px">Your best is kept in this browser, on this device. There is no server behind this site, so nobody else sees it and clearing your site data clears it. The result link carries your schedule rather than your score, so whoever opens it recomputes the number here, from the schedule itself — a link cannot claim more than it did.</p>
   <p class="nojs" style="margin-top:12px">The best schedule I found scores <b>7.32%</b>: three doses of 6.6, 5.2 and 4.4 at the first three steps, giving half A 35%, 38% and 45% of each. That came from coordinate ascent out of many starting points, and two separate implementations agree on it, so it is the best I found rather than a proved optimum. <b>Improve mine</b> runs the same search from wherever your sliders sit, so it can stall somewhere worse than the schedule above — that is how the method behaves, not a bug in it.</p>
 
   <h2 id="left-out">What this leaves out</h2>
