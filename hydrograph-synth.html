@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How does rain become a flood? | FluidTA</title>
+<meta name="description" content="A hydrograph synth: turn a storm into a river's rise and fall, first with the textbook SCS unit hydrograph, then with a modular rack of losses, reservoirs and channel routing you patch together. You can listen to it too.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>How does rain become a flood?</h1>
+  <p class="lede" style="margin-top:14px">Rain falls for a few hours. The river at the bottom of the valley rises for a day and takes two more to fall. The curve of its flow over time is called a hydrograph, and hydrologists build them from the rain, piece by piece, the way a synthesizer builds a sound. Here are two synths: a simple one with a few knobs, and a modular one you patch together.</p>
+
+  <h2>The simple synth: the unit hydrograph</h2>
+  <p>In 1932, LeRoy Sherman had an idea that still runs flood studies today. Suppose one millimetre of runoff, spread over the whole catchment, always reaches the outlet in the same shape of rise and fall. Call that shape the <em>unit hydrograph</em>. Two millimetres give the same shape twice as tall. Rain that keeps falling gives a stack of shapes, each started a little later. Adding up those shifted copies is called <em>convolution</em>.</p>
+  <p>The US Soil Conservation Service (now the NRCS) found a standard shape that fits many catchments. It peaks at a time T<sub>p</sub> after the rain, and the peak is about 0.208·A ÷ T<sub>p</sub> cubic metres a second for each millimetre of runoff, with the area A in km² and T<sub>p</sub> in hours. Bigger catchments make bigger floods. Slower catchments, with a longer lag, make lower and later ones.</p>
+  <p>Not all the rain runs off. Some soaks into the ground. The SCS <em>curve number</em> CN says how much: 98 for a car park, around 75 for farmland, 40 to 60 for a forest on deep soil. Its storage is S = 25,400 ÷ CN − 254 mm. The first 0.2·S of rain all soaks in, and after that the runoff is Q = (P − 0.2S)² ÷ (P + 0.8S).</p>
+  <figure class="fig" data-diagram="hydrosynth" data-view="fixed"><figcaption>The rain falls in the first hours, shown at the top. Light bars are all the rain and dark bars are the part that runs off. The orange curve is the flow at the outlet. Press Listen to hear it as a tone: the pitch rises with the flow.</figcaption></figure>
+  <p>Try the same storm on a car park and on a forest: change the curve number from 98 to 50. Then try a short, sharp storm against a long, gentle one with the same total rain. A long lag smooths both into the same shape.</p>
+
+  <h2>The modular synth</h2>
+  <p>A modular synthesizer splits a sound into modules: an oscillator makes the tone, a filter shapes it, an envelope controls its loudness. You patch cables between them, and you can pull any module out to hear what it does. A catchment splits the same way.</p>
+  <ul>
+    <li><b>Rain</b> is the oscillator, the source.</li>
+    <li><b>Losses</b> take out what soaks in, by the curve number or by a φ index: a steady soaking rate in mm an hour.</li>
+    <li><b>Hillslope</b> is a <em>Nash cascade</em>: water drains through a chain of n identical leaky buckets, each emptying at a rate of its store ÷ k. One bucket gives a sharp rise and a long tail. More buckets give a rounder, later peak. Nash showed in 1957 that the result is a gamma curve, much like the SCS shape.</li>
+    <li><b>Channel</b> is <em>Muskingum routing</em>, from the Muskingum River in Ohio in the 1930s. A flood wave takes K hours to travel down the channel and spreads out on the way. X between 0 and 0.5 sets how little it spreads: 0 is a reservoir that flattens it most, and 0.5 passes it on unchanged.</li>
+    <li><b>Baseflow</b> is the river's steady flow from groundwater, there before the storm and after it.</li>
+  </ul>
+  <figure class="fig" data-diagram="hydrosynth" data-view="modular"><figcaption>Each dashed line is the flow after one module: green straight off the land, purple after the hillslope, orange after the channel. The black line is what reaches the outlet. Press Bypassed or Patched to pull a module out of the chain or put it back.</figcaption></figure>
+  <p>Bypass everything except the rain and the flow is the storm itself, spiky and instant. Patch the modules back in one at a time and watch the flood get later, lower and longer. Neither the buckets nor the channel lose water: the area under the curve stays the same and only its shape changes. That is the whole trick of a flood plain and a reservoir. They do not stop the water, they spread it out in time.</p>
+
+  <p class="credit">The methods are the textbook ones: L. K. Sherman (1932) for the unit hydrograph; the SCS curve number and dimensionless unit hydrograph from the USDA National Engineering Handbook, Part 630, here in its common gamma form with m = 3.7; J. E. Nash (1957) for the cascade; G. T. McCarthy (1938) for Muskingum routing. The numbers are for a made-up catchment, worked out in your browser at 15-minute steps. Real flood studies calibrate every knob against measured floods.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

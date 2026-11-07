@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How far away is everything? | FluidTA</title>
+<meta name="description" content="The cosmic distance ladder, rung by rung: Eratosthenes measures the Earth, Aristarchus the Moon and Sun, parallax the stars, and each rung stands on the one below. After Terence Tao's talk.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>How far away is everything?</h1>
+  <p class="lede" style="margin-top:14px">Nobody has run a tape measure to the Sun. Every distance in astronomy was worked out from the one before it, a ladder of clever arguments that starts with a shadow in Egypt. Terence Tao tells this story in his talk "The Cosmic Distance Ladder". Here you can climb it yourself.</p>
+  <figure class="fig" data-diagram="ladder" data-rung="scale"><figcaption>Each rung, on a scale where every step up is a thousand times farther, with the method that reaches it.</figcaption></figure>
+
+  <h2>Rung 1: the size of the Earth</h2>
+  <p>Around 240 BC, Eratosthenes heard that at noon on the summer solstice, the Sun lit the bottom of a well in Syene. It was straight overhead. At the same moment in Alexandria, to the north, an upright stick cast a shadow: the sunlight came in about 7.2° off vertical, one fiftieth of a full circle. Sunlight arrives in parallel rays, so the two cities must be 7.2° apart around the Earth. Multiply their distance by 50 and you have the whole circumference.</p>
+  <figure class="fig" data-diagram="ladder" data-rung="earth"><figcaption>Eratosthenes worked in stadia, and nobody is sure how long his stadion was. 800 km is a fair modern figure for the distance. The radius you set here carries up to the next rungs.</figcaption></figure>
+
+  <h2>Rung 2: the Moon</h2>
+  <p>Around 270 BC, Aristarchus of Samos watched lunar eclipses, when the Moon passes through the Earth's shadow. The shadow looked about two Moons wide to him; it's closer to 2.6. The Sun and Moon look the same size in the sky, so the shadow cone narrows by one Moon width over the trip to the Moon. That makes the Earth about (2.6 + 1) Moons across. Knowing the Moon's size in kilometres and its size in the sky, half a degree, gives its distance.</p>
+  <figure class="fig" data-diagram="ladder" data-rung="moon"><figcaption>This uses the Earth's radius from rung 1. Change rung 1 and this answer moves with it.</figcaption></figure>
+
+  <h2>Rung 3: the Sun, and how errors grow</h2>
+  <p>At half moon, the Sun, Moon and Earth make a right-angled triangle, with the right angle at the Moon. Measure the angle at the Earth between the Moon and the Sun, and you know how many times farther the Sun is. Aristarchus measured 87° and concluded the Sun was about 19 times farther than the Moon. The true angle is about 89.85°, and the true answer is about 390 times.</p>
+  <figure class="fig" data-diagram="ladder" data-rung="sun"><figcaption>Drag the angle toward 90° and watch the answer run away. Near 90°, a tenth of a degree changes the result by a factor of several. Aristarchus's method was right. The measurement was beyond the instruments of his day.</figcaption></figure>
+  <p>That is the lesson of the whole ladder. Each rung stands on the one below, so its errors are inherited, and a rung like this one multiplies them. Even so, Aristarchus's Sun was far larger than the Earth, and he seems to have taken that as a reason to put the Sun, not the Earth, at the centre.</p>
+
+  <h2>Rung 4: the planets</h2>
+  <p>Copernicus and Kepler got the shape of the solar system right before anyone knew its size. Kepler's third law, from 1619, links each planet's year to its distance from the Sun, so every orbit was known in units of the Earth's. One true distance would fix them all. Edmond Halley proposed one: time Venus crossing the face of the Sun from places far apart on the Earth. The transits of 1761 and 1769 sent expeditions around the world and put the Sun at about 150 million km.</p>
+
+  <h2>Rung 5: the nearest stars</h2>
+  <p>As the Earth goes round the Sun, a nearby star seems to shift a little against much farther ones, the way your thumb jumps when you close one eye and then the other. The shift is tiny, less than a second of arc, a 3,600th of a degree, for even the closest stars. Friedrich Bessel was the first to measure one, for the star 61 Cygni in 1838. He found 0.314″; the modern value is 0.286″. A star with a parallax of one arcsecond is one parsec away, 206,265 times the Earth–Sun distance.</p>
+  <figure class="fig" data-diagram="ladder" data-rung="stars"><figcaption>The baseline is the Earth's orbit, known from rung 4. Parallax reaches a few thousand light-years with today's space telescopes.</figcaption></figure>
+
+  <h2>Rungs 6 and up: standard candles</h2>
+  <p>Beyond parallax, astronomers use lights of known brightness. In 1912, Henrietta Leavitt found that Cepheid variable stars in the Small Magellanic Cloud pulse with a period that tracks their true brightness. Time the pulse, compare true brightness with how faint the star looks, and the distance follows. Parallax distances to nearby Cepheids set the scale. Edwin Hubble used Cepheids to show that Andromeda lies far outside our galaxy. In 1929 he found that farther galaxies recede faster. Exploding white dwarfs, type Ia supernovae, are brighter still. In 1998 they showed that the expansion of the universe is speeding up.</p>
+  <p>Every one of these rungs still leans on the ones below. Today's best measurements of how fast the universe expands disagree with each other by several percent, a puzzle known as the Hubble tension, and part of the hunt is for an error hiding somewhere down the ladder.</p>
+
+  <p class="credit">After Terence Tao's talk "The Cosmic Distance Ladder". The calculations are the classical ones, simplified as in the talk: the Moon rung assumes the Earth's shadow narrows by exactly one Moon width on the way to the Moon. The diagrams and these words are new. The modern values are rounded: the Earth's circumference 40,075 km, Moon 384,400 km, Sun 149.6 million km.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

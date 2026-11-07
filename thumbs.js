@@ -101,6 +101,26 @@
       [18, 12, 8, 4, 3, 6, 10].forEach(function (r, k) { o += dot(P[k][0], P[k][1], 11, 'var(--sunk)') + dot(P[k][0], P[k][1], r * .9, O, .85); });
       return o;
     },
+    ladder: function () { // rungs climbing a log scale: Earth, Moon, Sun, a star, a galaxy
+      var o = line('M60 160V20', I, 3), xs = [90, 130, 170, 215, 265], ys = [150, 122, 94, 64, 34], fs = [B, S, 'var(--gold)', O, P], rs = [9, 6, 13, 5, 10], k;
+      for (k = 0; k < 5; k++) { o += line('M54 ' + ys[k] + 'H66', I, 2) + line('M66 ' + ys[k] + 'L' + (xs[k] - rs[k] - 4) + ' ' + ys[k], L, 2) + dot(xs[k], ys[k], rs[k], fs[k]); }
+      return o + text(250, 160, '×1000 a step', 15, S);
+    },
+    imglog: function () { // rings and spokes on the left; their logarithm, a straight grid of stripes, on the right
+      var o = '', k;
+      for (k = 5; k > 0; k--) o += dot(80, 90, k * 14, k % 2 ? B : 'var(--gold)');
+      for (k = 0; k < 6; k++) { var t = k * Math.PI / 6; o += line('M' + (80 - 70 * Math.cos(t)).toFixed(1) + ' ' + (90 - 70 * Math.sin(t)).toFixed(1) + 'L' + (80 + 70 * Math.cos(t)).toFixed(1) + ' ' + (90 + 70 * Math.sin(t)).toFixed(1), W, 2); }
+      o += line('M160 90h22m-8-7 8 7-8 7', S, 3);
+      for (k = 0; k < 5; k++) o += rect(196 + k * 22, 20, 22, 140, k % 2 ? B : 'var(--gold)');
+      for (k = 1; k < 6; k++) o += line('M196 ' + (20 + k * 23.3).toFixed(1) + 'H306', W, 2);
+      return o;
+    },
+    hydrograph: function () { // rain bars falling from the top, and the river's rise and long fall below
+      var o = '', k, d = 'M24 150';
+      for (k = 0; k < 9; k++) { var h = [10, 22, 36, 30, 22, 16, 10, 6, 3][k]; o += rect(40 + k * 12, 20, 9, h, B, 2); }
+      for (k = 0; k <= 60; k++) { var t = k / 60 * 3.2, q = Math.pow(t * Math.exp(1 - t), 3.7); d += 'L' + (24 + k * 4.6).toFixed(1) + ' ' + (150 - 8 - 90 * q).toFixed(1); }
+      return o + line('M24 150H300', L, 2) + line(d, O, 4);
+    },
     units: function () { // Re = ρUL/μ, and the four base dimensions cancelling
       return text(160, 74, 'Re = ρUL/μ', 34, I) + text(160, 120, 'M·L⁻³ · L·T⁻¹ · L', 17, S) + text(160, 146, 'M·L⁻¹·T⁻¹', 17, S) + line('M84 128H236', S, 2) + text(270, 138, '= 1', 22, B);
     },

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What is the logarithm of a picture? | FluidTA</title>
+<meta name="description" content="Take the log of an image two ways: of its brightness, so a blazing star and a faint galaxy fit in one picture, and of its positions, so circles unroll into stripes and Escher's Print Gallery appears.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>What is the logarithm of a picture?</h1>
+  <p class="lede" style="margin-top:14px">A picture is a grid of numbers: a brightness at every position. You can take the logarithm of either one. Take it of the brightness and you can see a faint galaxy next to a blazing star. Take it of the positions and circles unroll into straight stripes.</p>
+
+  <h2>The log of the brightness</h2>
+  <p>The night sky below holds a star 100,000 times brighter than the dark sky around it, and a faint spiral galaxy. A screen can show only 256 shades of grey. Scale the brightness straight onto those shades and the star takes the whole range: everything else rounds down to black.</p>
+  <p>The logarithm counts how many times you multiply, not how much you add. On a log scale, going from 1 to 10 takes the same step as going from 10,000 to 100,000. So the faint things get room. Slide toward logarithmic and watch the galaxy come out of the dark.</p>
+  <figure class="fig" data-diagram="imglog" data-view="bright"><figcaption>The shown brightness is log(1 + a·x) ÷ log(1 + a), where x is the pixel's brightness as a share of the brightest. Small a is nearly linear. Large a is nearly a pure logarithm.</figcaption></figure>
+  <p>Astronomers do this with almost every picture of the sky, and so does your eye: you can see in starlight and in sunshine, a hundred million times brighter. Phone cameras do a version of it when they make an "HDR" photo. Sound works the same way. Decibels are a logarithm, because your ears handle a range of about a trillion in loudness.</p>
+
+  <h2>The log of the positions</h2>
+  <p>Now leave the brightness alone and move the pixels. Put the middle of the picture at zero and treat each position as a complex number z, a distance r from the middle at an angle θ. Its logarithm is</p>
+  <p style="text-align:center;font-size:1.2em">log z = ln r + iθ</p>
+  <p>The distance becomes the across position, as ln r. The angle becomes the up-and-down position. A circle around the middle has one fixed r, so it turns into a straight up-and-down line. A spoke has one fixed angle, so it turns into a straight across line. And because ln turns multiplying into adding, every ring 1.6 times bigger than the last lands the same step to the right.</p>
+  <figure class="fig" data-diagram="imglog" data-view="map"><figcaption>Left: the picture. Right: the same picture at log z, with ln r from −4.5 at the left edge to 0 at the right and the angle running from π at the top to −π at the bottom. Try the clock: its rim and ticks become straight lines down the right side, and each hand becomes a band at its own angle, fattening toward the centre, where a hand of fixed width takes up more and more of the angle. "Your photo" is read in your browser and never sent anywhere.</figcaption></figure>
+  <p>The map is <em>conformal</em>: it keeps small angles the same, so the rings and spokes still meet at right angles after the map. Engineers use this to unroll a flow around a pipe or the field around a wire into straight lines, where it is easy to solve, and then roll it back up.</p>
+
+  <h2>Escher's twist</h2>
+  <p>In 1956 M. C. Escher drew <em>Print Gallery</em>: a young man in a gallery looks at a print of a harbour town, and the town curls around until it contains the gallery he is standing in. In 2003, Bart de Smit and Hendrik Lenstra worked out the mathematics Escher had found by hand. The picture is a <em>Droste</em> picture, one that holds a copy of itself, s times smaller, in the middle, forever. Take its logarithm and that zoom becomes a repeat: the pattern repeats every ln s across. The angle repeats every 2π up and down. Turn the log picture so a repeat across lines up with a repeat up and down, and exponentiate back. The copies now spiral into each other.</p>
+  <p>In formulas, the turn multiplies log z by α = 1 − i·ln s ÷ (2π). Pick "Escher twist" above and change the Droste scale. The left picture becomes the Droste picture, and the right one is its twist.</p>
+
+  <p class="credit">The sky is made up for this page, with a star 100,000 times the sky's brightness. The Escher transform follows B. de Smit and H. W. Lenstra Jr., "The mathematical structure of Escher's Print Gallery", Notices of the AMS 50(4), 2003, using the single-turn version, α = 1 − i·ln s/(2π). The pictures are drawn in your browser.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
