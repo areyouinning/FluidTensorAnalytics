@@ -100,6 +100,7 @@ details.getdata summary{ cursor:pointer; font-weight:600; font-size:16px }
 .cmd{ display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:.4em 0 }
 .cmd code{ font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; background:var(--wash); color:var(--ink); padding:7px 10px; border-radius:3px; overflow-x:auto; min-width:0; flex:1 1 260px; white-space:nowrap }
 .drop{ outline:2px dashed var(--water); outline-offset:6px }
+.usgs{ align-items:center } .usgs input{ background:var(--sheet); border:1px solid var(--rule); border-radius:3px; padding:6px 8px; font-variant-numeric:tabular-nums; min-width:0 }
 .toast{ font-size:13px; color:var(--accent); min-height:1em }
 
 @media (max-width:900px){
@@ -199,8 +200,11 @@ details.getdata summary{ cursor:pointer; font-weight:600; font-size:16px }
     <summary>Use real gage data</summary>
     <div class="body">
       <p>The five regimes above are synthetic. Each one runs a two-reservoir model (quickflow plus a slow groundwater store) driven by seeded random storms and a snowmelt pulse, tuned to look like that kind of stream. They are not records from any gage.</p>
-      <p>To play a real stream, load one water year of daily discharge. The page reads USGS RDB tab-delimited files, or any CSV with a date column (YYYY-MM-DD) followed by a discharge value. If the file spans several water years, choose one from the menu that appears. Gaps are filled by linear interpolation.</p>
-      <p>The script <a href="/fetch_usgs.py" download><b>fetch_usgs.py</b></a> downloads one water year from USGS and writes that CSV. It uses only the Python standard library. Run it on a computer that can reach USGS:</p>
+      <p><b>Straight from USGS.</b> Type a gage's site number and a water year, then fetch. The page asks the USGS Water Data API for that year's daily mean discharge, and falls back to the older NWIS daily-values service if it has to. Nothing is sent anywhere else.</p>
+      <div class="cmd usgs"><label class="src" for="usgsSite">Site</label><input id="usgsSite" inputmode="numeric" autocomplete="off" value="09241000" aria-label="USGS site number" size="11"><label class="src" for="usgsWy">Water year</label><input id="usgsWy" inputmode="numeric" size="5" aria-label="Water year"><button class="btn" id="usgsGo">Fetch from USGS</button></div>
+      <p>Find site numbers on the <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS Water Data</a> map. 09241000 is the Elk River at Clark, Colorado.</p>
+      <p>Or load a file. To play a real stream from a file, load one water year of daily discharge. The page reads USGS RDB tab-delimited files, or any CSV with a date column (YYYY-MM-DD) followed by a discharge value. If the file spans several water years, choose one from the menu that appears. Gaps are filled by linear interpolation.</p>
+      <p>For offline use, the script <a href="/fetch_usgs.py" download><b>fetch_usgs.py</b></a> downloads one water year from USGS and writes that CSV. It uses only the Python standard library. Run it on a computer that can reach USGS:</p>
       <div class="cmd"><code id="cmdText">python fetch_usgs.py 09241000 2023</code><button class="btn" id="copyCmd">Copy</button></div>
       <p>The arguments are a USGS site number and a water year. The script tries the USGS Water Data OGC API first and falls back to the legacy NWIS daily-values service. You can also drop a file anywhere on this page.</p>
       <div class="toast" id="toast" role="status"></div>
@@ -443,6 +447,30 @@ function useWY(wy){
   useSeries(vals, loaded.site?`USGS ${loaded.site}`:loaded.name, `WY ${wy}`+(filled>0?`, ${filled} days interpolated`:""), false, new Date(start));
   [...$("regimes").children].forEach(b=>b.setAttribute("aria-pressed","false")); $("reroll").disabled=true;
 }
+/* ---------- USGS web APIs: daily mean discharge (00060, statistic 00003) for one water year ---------- */
+const OGC="https://api.waterdata.usgs.gov/ogcapi/v0/collections/daily/items", NWIS="https://waterservices.usgs.gov/nwis/dv/";
+async function usgsYear(site,wy){
+  const start=`${wy-1}-10-01`, end=`${wy}-09-30`, rows=new Map(); let why="";
+  try{ let url=OGC+"?"+new URLSearchParams({monitoring_location_id:"USGS-"+site,parameter_code:"00060",statistic_id:"00003",time:start+"/"+end,f:"json",limit:"1000"}), pages=0;
+    while(url&&pages++<20){ const r=await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status); const d=await r.json();
+      for(const f of d.features||[]){ const p=f.properties||{}, day=String(p.time||"").slice(0,10), v=parseFloat(p.value); if(day.length===10&&isFinite(v)&&v>=0) rows.set(day,v); }
+      url=(d.links||[]).find(l=>l.rel==="next")?.href||null; } }
+  catch(e){ why="Water Data API: "+e.message+". "; }
+  if(rows.size<300){
+    try{ const r=await fetch(NWIS+"?"+new URLSearchParams({format:"rdb",sites:site,parameterCd:"00060",statCd:"00003",startDT:start,endDT:end,siteStatus:"all"}));
+      if(!r.ok) throw new Error("HTTP "+r.status); return await r.text(); }
+    catch(e){ if(!rows.size) throw new Error(why+"NWIS: "+e.message+". USGS may be down, or this browser may be blocking the request."); } }
+  return [...rows].sort().map(([d,v])=>`USGS\t${site}\t${d}\t${v}`).join("\n");
+}
+function lastWY(){ const t=new Date(); return t.getMonth()>=9?t.getFullYear():t.getFullYear()-1; }
+$("usgsWy").value=lastWY();
+$("usgsGo").onclick=async()=>{ const site=$("usgsSite").value.trim(), wy=parseInt($("usgsWy").value,10), b=$("usgsGo");
+  if(!/^\d{8,15}$/.test(site)){ say("A USGS site number is 8 to 15 digits, like 09241000."); return; }
+  if(!(wy>=1890&&wy<=lastWY())){ say("Pick a water year that has ended, up to "+lastWY()+"."); return; }
+  b.disabled=true; b.textContent="Fetching…"; $("toast").textContent="";
+  try{ const text=await usgsYear(site,wy); parseText(text,"USGS "+site); if(loaded) loaded.site=site; const sel=$("wy"); if(loaded&&loaded.good.includes(wy)){ sel.value=wy; useWY(wy); } $("toast").textContent=`Loaded USGS ${site}, water year ${wy}.`; }
+  catch(err){ say(err.message.includes("300")||err.message.includes("date column")?`USGS has fewer than 300 days of discharge for site ${site} in water year ${wy}.`:err.message); }
+  finally{ b.disabled=false; b.textContent="Fetch from USGS"; } };
 function readFile(f){ const r=new FileReader(); r.onload=()=>{ try{ parseText(String(r.result),f.name); $("toast").textContent=""; }catch(err){ say(err.message); } }; r.readAsText(f); }
 function say(msg){ $("toast").textContent=msg; document.querySelector("details.getdata").open=true; }
 $("loadBtn").onclick=()=>$("file").click();
