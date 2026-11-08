@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Find it with a dichotomous key | FluidTA</title>
+<meta name="description" content="A field-guide key to the whole site: answer a or b at each step until one page is left.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+  .dkey { margin-top: 8px; }
+  .dkey-n { margin: 0 0 10px; font-weight: 600; color: var(--ink-soft); font-size: 16px; letter-spacing: .02em; }
+  .dkey-ab { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+  .dkey-opt { appearance: none; border: 0; text-align: left; cursor: pointer; font: inherit; color: var(--ink); background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 20px; display: flex; gap: 14px; align-items: baseline; min-height: 88px; transition: transform .15s ease-out; }
+  .dkey-opt:hover { transform: translateY(-2px); } .dkey-opt:active { transform: scale(.99); }
+  .dkey-opt b { flex: none; font-size: 22px; color: var(--blue-t, var(--blue)); min-width: 2.2em; }
+  .dkey-opt span { font-size: 19px; line-height: 1.35; }
+  .dkey-trail { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .dkey-crumb { appearance: none; border: 0; background: none; padding: 4px 0; font: inherit; font-size: 16px; color: var(--ink-soft); text-align: left; cursor: pointer; }
+  .dkey-crumb b { color: var(--ink); margin-right: 6px; } .dkey-crumb:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+  .dkey-done { font-weight: 600; margin: 0 0 12px; }
+  .dkey .cards { max-width: 420px; }
+  .dkey-tools { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .dkey-full { margin-top: 28px; } .dkey-full summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+  .dkey-print { list-style: none; padding: 0; margin: 8px 0 0; font-size: 16px; line-height: 1.45; }
+  .dkey-print li { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--line); }
+  .dkey-print li:nth-child(odd) { margin-top: 6px; } .dkey-print b { flex: none; min-width: 2.6em; }
+  .dkey-to { margin-left: auto; padding-left: 12px; text-align: right; color: var(--ink-soft); white-space: nowrap; }
+  @media (max-width: 560px) { .dkey-print li { flex-wrap: wrap; } .dkey-to { white-space: normal; margin-left: 2.6em; text-align: left; padding: 0; } }
+</style>
+</head>
+<body data-tab="home">
+<main id="main" class="article">
+  <a class="crumb" href="/">Home</a>
+  <h1>Find it with a dichotomous key</h1>
+  <p class="lede" style="margin-top:14px">Biologists name a plant with a key: two statements at a time, pick the one that's true, follow it, and repeat until one name is left. This key does the same for everything on the site. Each answer is a or b.</p>
+  <figure class="fig" data-diagram="key"><figcaption>Your answers stay in the address bar, so Back works and you can send someone straight to the same result.</figcaption></figure>
+</main>
+</body>
+</html>
