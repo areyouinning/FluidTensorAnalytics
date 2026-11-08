@@ -1,7 +1,8 @@
-/* FluidTA colors and type, once, for light and dark. Every page that shares the look starts here. */
+/* FluidTA colors and type, once, for light and dark. Every page that shares the look starts here.
+   Dark is the default. A page turns light only when <html data-theme="light">, which the head script sets from the reader's choice. */
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap');
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --paper: #FCFBF9; --panel: #FFFFFF; --sunk: #F1EFEA; --ink: #1B1D21; --ink-soft: #4A4F57; --line: #DCDFE4;
   /* marks: checked with the palette validator for both themes. text: the same hues, darkened to pass 4.5:1 as words. */
   --blue: #1F6FEB; --orange: #D4640A; --purple: #7C3AED; --green: #1E9E5A; --red: #C8321F; --gold: #FFC21A;
@@ -13,8 +14,9 @@
   --mono: 'Atkinson Hyperlegible Mono', ui-monospace, Menlo, Consolas, monospace;
   --radius: 18px; --radius-sm: 10px; --gutter: 16px; --measure: 66ch; --tabs: 64px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+@media all {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --paper: #10161D; --panel: #19222C; --sunk: #0B1016; --ink: #EEF1F4; --ink-soft: #B6BFC9; --line: #303C49;
     --blue: #4D94EA; --orange: #DB7A26; --purple: #9B7AE8; --green: #34AE72; --red: #FF8A75;
     --blue-t: #8CC2FF; --orange-t: #FFB070; --purple-t: #C4A8FF; --green-t: #6FD9A4;

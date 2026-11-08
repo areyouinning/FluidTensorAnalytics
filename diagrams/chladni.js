@@ -18,7 +18,7 @@ export default function (fig) {
   const probe = document.createElement('i'); probe.hidden = true; fig.appendChild(probe);
   const rgb = name => { probe.hidden = false; probe.style.color = `var(${name})`; const v = getComputedStyle(probe).color.match(/[\d.]+/g).map(Number); probe.hidden = true; return v; };
   let COL; const paintCols = () => { COL = { plate: rgb('--sunk'), sand: rgb('--ink'), up: rgb('--orange'), down: rgb('--blue') }; };
-  paintCols(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { paintCols(); draw(0); });
+  paintCols(); addEventListener('fta-theme', () => { paintCols(); draw(0); });
 
   const S = { k: NOTES.findIndex(q => q.n === 1 && q.m === 2 && q.s === -1), mix: null, view: 0, t: 0, sound: false, run: !calm() };
   const X = new Float32Array(N), Y = new Float32Array(N);

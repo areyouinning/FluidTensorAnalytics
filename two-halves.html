@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Can you fix both copies at once? | FluidTA</title>
 <meta name="description" content="A puzzle about coincidence: an editor too big to ship whole, two gene copies to fix, and a dose that costs you cells. Exact scoring in your browser.">
@@ -34,6 +35,15 @@
   <p>That is a puzzle about coincidence, and coincidences stack badly. This page is the puzzle, with the arithmetic done exactly as you move the sliders.</p>
 
   <div class="note"><p>Where the question comes from: a gene can come in versions that differ at a single letter, and a person can carry two copies of the version they would rather not have. Correcting one letter precisely takes a bigger machine than cutting the gene does, and a common workaround is to split that machine across two delivery vehicles that both have to arrive. Two halves, two copies. Everything below is a made-up model of that shape, not biology and not advice — the <a href="#left-out">last section</a> lists what it leaves out, which is most of the real problem.</p></div>
+
+  <h2>What is the machine?</h2>
+  <p>Every cell carries a long instruction book written in four letters. Sometimes a single letter is "wrong" — a typo that a body copies faithfully for a lifetime. The machine in this puzzle is a <b>gene editor</b>: a protein you can aim at one chosen spot in that book and have it rewrite a single letter, leaving the rest untouched.</p>
+  <p>Aiming is the clever part. The editor carries a short <span class="t-purple">guide</span>, a scrap of matching text, and it slides along until the guide finds the one place that reads the same. There it holds on, and a small attached part flips the letter. Older tools only <em>cut</em> the book at that spot and let the cell patch the gap, which is rougher; rewriting one letter cleanly takes more parts, and more parts take more room. That room is the whole problem.</p>
+
+  <h2>What makes a package too big?</h2>
+  <p>The editor cannot walk into a cell on its own. It is delivered inside a <b>vehicle</b> — most often a harmless shell borrowed from a virus, which is good at getting in but has a small, fixed cargo hold. It carries only so many letters of code: about 4,700. A protein that merely cuts fits inside with room to spare. The full one-letter rewriter — the targeting protein, the guide, and the rewriting part together — runs past that limit.</p>
+  <p>When the cargo will not fit, you split it. Half the code goes in one vehicle, half in another, each built so that the two pieces snap back together once they are both inside the same cell. That solves the size problem and creates this puzzle's problem instead: a cell is only fixed if <span class="t-blue">half A</span> <em>and</em> <span class="t-orange">half B</span> both arrive, and arrivals are a matter of chance.</p>
+  <figure class="fig" data-diagram="packsize"><figcaption>Drag the rewriter's size. Below about 4,700 letters the whole editor fits one vehicle; above it, the load has to ride in two.</figcaption></figure>
 
   <h2>Both halves, same cell</h2>
   <p>A vehicle either reaches a given cell or it does not, and the arrivals are independent. Send a lot and almost every cell gets something; send few and most get nothing. A cell with <span class="t-blue">half A</span> alone has no machine. Neither does a cell with <span class="t-orange">half B</span> alone. Only the <span class="t-green">overlap</span> counts.</p>

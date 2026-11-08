@@ -35,7 +35,7 @@ export default function (fig) {
   let COL = {};
   const colors = () => { const pa = rgb('--panel'), ik = rgb('--ink'), dark = pa[0] + pa[1] + pa[2] < 300;
     COL = { bg: rgb('--sunk'), base: pa.map((v, n) => v + (ik[n] - v) * (dark ? .32 : 0)), line: rgb('--line'), o: rgb('--orange'), b: rgb('--blue') }; };
-  colors(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { colors(); draw(); });
+  colors(); addEventListener('fta-theme', () => { colors(); draw(); });
 
   /* grid cells as unit vectors (body frame, z = spin axis) */
   const dl = 2 * Math.PI / NX, dp = Math.PI / NY, N = NX * NY;

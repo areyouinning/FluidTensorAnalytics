@@ -56,7 +56,7 @@ export default function (fig) {
   const probe = document.createElement('i'); probe.hidden = true; fig.appendChild(probe);
   const rgb = name => { probe.hidden = false; probe.style.color = `var(${name})`; const v = getComputedStyle(probe).color.match(/[\d.]+/g).map(Number); probe.hidden = true; return v; };
   let COL; const cols = () => { COL = { bg: rgb('--panel'), a: rgb('--blue'), b: rgb('--orange'), body: rgb('--ink') }; }; cols();
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', cols);
+  addEventListener('fta-theme', cols);
   const box = controls(fig), S = { run: !calm(), budget: 14 };
   let sim, info;
 

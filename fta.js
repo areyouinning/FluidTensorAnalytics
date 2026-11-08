@@ -1,7 +1,7 @@
 /* FluidTA kit: the site's frame and its loaders. One script tag on every page.
    <script src="/fta.js" defer></script>            native page: top bar, tab bar, shelves, diagrams, footer
    <script src="/fta.js" data-guest defer></script>  a tool with its own look: one slim bar, nothing else changes
-   data-guest="kids" gives Paul's games the gold bar. */
+   data-guest="kids" gives the kids' games the gold bar. */
 (function () {
   var me = document.currentScript, guest = me.hasAttribute('data-guest');
   var base = me.src.replace(/fta\.js.*$/, '');
@@ -22,6 +22,23 @@
       document.head.appendChild(s);
     });
   }
+  /* the theme: dark unless the reader picked light. The page's head script applied it before first paint; this is the switch. */
+  var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+  function theme() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+  if (!document.documentElement.hasAttribute('data-theme')) document.documentElement.setAttribute('data-theme', 'dark');
+  function themeButton(cls) {
+    var b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls;
+    function paint() { var d = theme() === 'dark'; b.innerHTML = d ? SUN : MOON; b.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode'); b.title = b.getAttribute('aria-label'); }
+    b.addEventListener('click', function () {
+      var t = theme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem('fta-theme', t); } catch (e) {}
+      window.dispatchEvent(new CustomEvent('fta-theme', { detail: t }));   // canvas diagrams repaint on this
+    });
+    window.addEventListener('fta-theme', paint); paint();
+    return b;
+  }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   function entry() { return (window.FTA_CATALOG || []).find(function (e) { return e.href === path; }); }
   function shelfOf() {
@@ -41,8 +58,11 @@
       'div{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px;padding:0 12px;background:#FCFBF9;color:#1B1D21;border-bottom:1px solid #DCDFE4}' +
       'a{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 4px;color:inherit;text-decoration:none}' +
       'a:focus-visible{outline:3px solid #1F6FEB;outline-offset:2px}svg{width:20px;height:20px}' +
-      (kids ? 'div{background:#FFF;color:#0E1B2B;border:0;border-radius:22px;margin-top:10px;box-shadow:0 8px 24px rgba(14,27,43,.18)}' : '@media(prefers-color-scheme:dark){div{background:#10161D;color:#EEF1F4;border-color:#303C49}}') +
-      '</style><div><a href="/">' + DROP + 'FluidTA</a><a href="' + tab.href + '">All of ' + esc(tab.label) + '</a></div>';
+      'button{appearance:none;border:0;background:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;cursor:pointer}button:focus-visible{outline:3px solid #1F6FEB}button svg{width:20px;height:20px}span{display:flex;align-items:center;gap:4px}' +
+      (kids ? 'div{background:#FFF;color:#0E1B2B;border:0;border-radius:22px;margin-top:10px;box-shadow:0 8px 24px rgba(14,27,43,.18)}' : 'div.dark{background:#10161D;color:#EEF1F4;border-color:#303C49}') +
+      '</style><div><a href="/">' + DROP + 'FluidTA</a><span><a href="' + tab.href + '">All of ' + esc(tab.label) + '</a></span></div>';
+    var row = root.querySelector('div'), shade = function () { row.classList.toggle('dark', theme() === 'dark'); };
+    shade(); window.addEventListener('fta-theme', shade);
     document.body.insertBefore(host, document.body.firstChild);
     var link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -58,6 +78,7 @@
     var top = document.createElement('div');
     var main = document.querySelector('main'); if (main && !main.id) main.id = 'main';
     top.innerHTML = '<a class="skip" href="#' + (main ? main.id : 'main') + '">Skip to the page</a><header class="bar"><a class="mark" href="/">' + DROP + 'FluidTA</a></header><nav class="tabs" aria-label="Site">' + nav + '</nav>';
+    top.querySelector('.bar').appendChild(themeButton('theme'));
     while (top.lastChild) body.insertBefore(top.lastChild, body.firstChild);
     var foot = document.createElement('footer');
     foot.className = 'site';
