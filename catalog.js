@@ -37,6 +37,7 @@ window.FTA_CATALOG = [
   { href: '/way-of-claude.html', shelf: 'way', topics: [], thumb: 'wayClaude', title: 'The Way of Claude', blurb: 'How a language model works, written by one. Eleven chapters.' },
 
   { href: '/weather-map.html', shelf: 'tools', topics: ['water'], thumb: 'radar', title: 'Weather where you are', blurb: 'Local forecast and live radar.' },
+  { href: '/wind-twin.html', shelf: 'tools', topics: ['fluids', 'water'], thumb: 'windtwin', title: 'Wind where you actually are', blurb: 'Your real terrain, a real forecast, and the solve that makes them agree.', fresh: true },
   { href: '/water-resources-dashboard.html', shelf: 'tools', topics: ['water'], thumb: 'snow', title: 'Colorado water, today', blurb: 'Snow, drought, streamflow and reservoirs on one map.' },
   { href: '/peak-finder-v3.html', shelf: 'tools', topics: [], thumb: 'peaks', title: 'Which peak is that?', blurb: 'Point your phone at the Front Range.' },
   { href: '/reservoir-optimization-complete.html', shelf: 'tools', topics: ['water'], thumb: 'pareto', title: 'How much can a reservoir promise?', blurb: 'Trade yield against shortage with four optimizers.' },
