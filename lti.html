@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Use FluidTA in your class | FluidTA</title>
+<meta name="description" content="Embed any FluidTA page in your course, as a plain iframe or an LTI 1.3 activity.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+  .build{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:18px 0}
+  .build label{display:block;font-weight:600;margin:12px 0 4px}
+  .build select,.build input[type=text]{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--sunk);color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:4px}
+  .seg button{appearance:none;border:0;background:none;color:var(--ink-soft);font:600 15px/1 var(--font);padding:10px 16px;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--blue);color:var(--on-accent)}
+  .out{display:flex;gap:8px;margin-top:10px}
+  .out code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;background:var(--sunk);padding:10px 12px;border-radius:var(--radius-sm);font:var(--mono);font-size:14px}
+  .out button{flex:none;border:0;background:var(--blue);color:var(--on-accent);border-radius:var(--radius-sm);padding:0 16px;font:600 15px/1 var(--font);cursor:pointer}
+  .prev{margin-top:12px;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;background:var(--sunk)}
+  .prev iframe{display:block;width:100%;height:360px;border:0;background:var(--paper)}
+  table.urls{width:100%;border-collapse:collapse;margin:10px 0}
+  table.urls td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top} table.urls td:first-child{font-weight:600;white-space:nowrap}
+  table.urls code{font-size:14px}
+</style>
+</head>
+<body data-tab="tools">
+<main id="main" class="article">
+  <a class="crumb" href="/tools.html">Tools</a>
+  <h1>Use FluidTA in your class</h1>
+  <p class="lede" style="margin-top:14px">Every page here can live inside your course. The quickest way is an embed link. If your LMS speaks LTI 1.3, there's a one-click activity option too.</p>
+
+  <h2>Build an embed link</h2>
+  <p>Pick a page and copy the link into your LMS's "embed" or "external URL" box. In embed mode the page drops its own menus and sits cleanly in the frame.</p>
+  <div class="build">
+    <label for="pg">Page</label>
+    <select id="pg"></select>
+    <label>How you'll add it</label><br>
+    <div class="seg" id="mode" role="group" aria-label="Embed method">
+      <button data-m="iframe" aria-pressed="true">Embed URL</button>
+      <button data-m="html" aria-pressed="false">iframe tag</button>
+      <button data-m="lti" aria-pressed="false">LTI custom field</button>
+    </div>
+    <div class="out"><code id="snippet"></code><button id="copy" type="button">Copy</button></div>
+    <div class="prev"><iframe id="prev" title="Preview" loading="lazy"></iframe></div>
+  </div>
+
+  <h2>The LTI 1.3 activity</h2>
+  <p>A single sign-on activity that appears in your course needs a tiny server to receive the launch, because this site is static and a launch arrives as a POST that static hosting can't read. That server is a small <a href="https://github.com/areyouinning/FluidTensorAnalytics/tree/main/lti">Cloudflare Worker in the repository</a> — deploy it once, then register these URLs in your LMS (replace <code>&lt;worker&gt;</code> with the address it gives you):</p>
+  <table class="urls">
+    <tr><td>OIDC login URL</td><td><code>https://&lt;worker&gt;/login</code></td></tr>
+    <tr><td>Redirect / Target Link URI</td><td><code>https://&lt;worker&gt;/launch</code></td></tr>
+    <tr><td>Public JWK Set URL</td><td><code>https://&lt;worker&gt;/jwks</code></td></tr>
+    <tr><td>Config JSON (Canvas)</td><td><code>https://&lt;worker&gt;/config</code></td></tr>
+  </table>
+  <p>To point an activity at a particular page, set the custom field <code>fta_page</code> to its file name (for example <code>fta_page=hydrograph-synth.html</code>), or set the activity's URL to that page. The Worker opens the page in the same embed mode as above, after checking the launch is genuine.</p>
+  <p>It's a content launch: it shows the page. It doesn't send grades back or use Deep Linking — the <a href="https://github.com/areyouinning/FluidTensorAnalytics/blob/main/lti/README.md">README</a> covers setup for Canvas and Moodle and where those extensions would go.</p>
+
+  <p class="credit">Nothing a student does in an embedded page is sent anywhere; the pages run entirely in the browser. The LTI Worker checks the launch token and then steps out of the way.</p>
+  <a data-next></a>
+</main>
+<script>
+(function(){
+  var ORIGIN=location.origin;
+  function ready(f){ if(window.FTA_CATALOG) f(); else setTimeout(function(){ready(f);},50); }
+  ready(function(){
+    var sel=document.getElementById('pg'), snip=document.getElementById('snippet'), prev=document.getElementById('prev'), mode='iframe';
+    var pages=window.FTA_CATALOG.filter(function(e){return /\.html$/.test(e.href);}).sort(function(a,b){return a.title.localeCompare(b.title);});
+    pages.forEach(function(e){ var o=document.createElement('option'); o.value=e.href; o.textContent=e.title; sel.appendChild(o); });
+    var home=document.createElement('option'); home.value='/index.html'; home.textContent='Home'; sel.insertBefore(home,sel.firstChild); sel.value='/cosmic-ladder.html';
+    function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+    function update(){ var slug=sel.value.replace(/^\//,''); var url=ORIGIN+'/'+slug+'?embed=1';
+      if(mode==='iframe') snip.textContent=url;
+      else if(mode==='html') snip.textContent='<iframe src="'+url+'" style="width:100%;height:600px;border:0" allow="fullscreen" title="FluidTA"></iframe>';
+      else snip.textContent='fta_page='+slug;
+      prev.src=ORIGIN+'/'+slug+'?embed=1'; }
+    sel.addEventListener('change',update);
+    document.getElementById('mode').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; mode=b.dataset.m;
+      [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b);}); update(); });
+    document.getElementById('copy').addEventListener('click',function(){ var t=snip.textContent; navigator.clipboard&&navigator.clipboard.writeText(t); this.textContent='Copied'; var b=this; setTimeout(function(){b.textContent='Copy';},1200); });
+    update();
+  });
+})();
+</script>
+</body>
+</html>

@@ -41,6 +41,7 @@ window.FTA_CATALOG = [
   { href: '/water-resources-dashboard.html', shelf: 'tools', topics: ['water'], thumb: 'snow', title: 'Colorado water, today', blurb: 'Snow, drought, streamflow and reservoirs on one map.' },
   { href: '/peak-finder-v3.html', shelf: 'tools', topics: [], thumb: 'peaks', title: 'Which peak is that?', blurb: 'Point your phone at the Front Range.' },
   { href: '/reservoir-optimization-complete.html', shelf: 'tools', topics: ['water'], thumb: 'pareto', title: 'How much can a reservoir promise?', blurb: 'Trade yield against shortage with four optimizers.' },
-  { href: '/reservoir-optimization-moo.html', shelf: 'tools', topics: ['water'], thumb: 'parallel', title: 'What if a reservoir has four goals?', blurb: 'Read the tradeoffs on parallel coordinates.' }
+  { href: '/reservoir-optimization-moo.html', shelf: 'tools', topics: ['water'], thumb: 'parallel', title: 'What if a reservoir has four goals?', blurb: 'Read the tradeoffs on parallel coordinates.' },
+  { href: '/lti.html', shelf: 'tools', topics: [], thumb: 'lti', title: 'Use FluidTA in your class', blurb: 'Embed any page in your course, as an iframe or an LTI 1.3 activity.' }
 ];
 window.FTA_TOPICS = { fluids: 'Fluids', tensors: 'Tensors', water: 'Water', chance: 'Chance', math: 'Math', remix: 'DataGenetics remixes' };

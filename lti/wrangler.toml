@@ -1,0 +1,14 @@
+# Deploy with: npm install && npx wrangler deploy
+# First set the secrets (see README.md): STATE_SECRET, PLATFORMS, and optionally TOOL_JWKS.
+name = "fluidta-lti"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+SITE = "https://fluidta.com"
+# PLATFORMS and the secrets are set with `wrangler secret put`, not here, so they stay out of the repo.
+
+# Optional: serve the tool on your own subdomain instead of *.workers.dev
+# [[routes]]
+# pattern = "lti.fluidta.com/*"
+# custom_domain = true
