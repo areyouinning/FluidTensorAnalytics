@@ -2,17 +2,18 @@
    One knob: how expensive vertical adjustment is. Cheap and the air climbs; dear and it leaves
    the slice sideways, which is what going "around" looks like when you are watching a cross-section. */
 import { svg, el, clear, label, controls, slider, readouts, C } from './kit.js';
-import { syntheticHill, buildField, project } from './windcore.js';
+import { syntheticHill, buildField, project, levelAt } from './windcore.js';
 
-const NX = 34, NY = 26, NZ = 18, SPAN = 9000, RELIEF = 420;
+const NX = 34, NY = 26, SPAN = 9000, RELIEF = 420;
 const DEM = syntheticHill(64, SPAN, RELIEF);
 const cache = new Map();
 
 function solveAt(R) {
   const key = R.toFixed(2);
   if (cache.has(key)) return cache.get(key);
-  const F = buildField(DEM, { nx: NX, ny: NY, nz: NZ, U: 8, dir: 270, z0: 0.2, R });
-  project(F, 240, 1.75);
+  const F = buildField(DEM, { nx: NX, ny: NY, U: 8, dir: 270, z0: 0.2, R });
+  project(F, 120, 1.3);
+  const NZ = F.nz;
   const j = NY >> 1;
   /* centre-of-cell velocities on the slice, plus how much air is leaving it sideways */
   const u = new Float32Array(NX * NZ), w = new Float32Array(NX * NZ), out = new Float32Array(NX * NZ);
@@ -33,7 +34,7 @@ function solveAt(R) {
   };
   upwind = col(3); crest = col(NX >> 1);
   const res = {
-    u, w, F, j,
+    u, w, F, j, NZ,
     ter: Array.from({ length: NX }, (_, i) => F.ter[j * NX + i]),
     side: Math.sqrt(side / n), vert: Math.sqrt(vert / n),
     speedup: crest / Math.max(.05, upwind)
@@ -64,7 +65,7 @@ export default function (fig) {
     /* streamlines traced through the slice; they stop where air leaves it */
     const sampleAt = (x, z) => {
       const i = Math.max(0, Math.min(NX - 1, Math.round((x - 10) / 340 * NX - .5)));
-      const k = Math.max(0, Math.min(NZ - 1, Math.round((z - base) / F.dz - .5)));
+      const k = levelAt(F, z - base);
       const o = k * NX + i;
       if (Number.isNaN(S.u[o]) && Number.isNaN(S.w[o])) return null;
       if (F.solid[F.cid(i, S.j, k)]) return null;

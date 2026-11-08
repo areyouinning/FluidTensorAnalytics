@@ -113,17 +113,51 @@ export function dirToVec(deg) {
   return { ex: Math.sin(r), ey: Math.cos(r) };
 }
 
+/* Where the horizontal levels sit, as heights above the domain floor. Fine at the bottom,
+   because that is where the answer is wanted and where the profile bends hardest: every
+   metre to 10, every ten to 100, then stretching geometrically up to the lid.
+
+   The honest caveat: these are heights above the LOWEST ground in the square, not above each
+   column's own ground. Where you stand near the floor of the view — a valley, a plain, most
+   back gardens — the metre-scale levels are genuinely at your feet. On a summit that stands
+   hundreds of metres above the lowest point, those fine levels are underground for that
+   column and its lowest air sits in the stretched part. Fixing that properly means a
+   terrain-following mesh, which is what WindNinja uses and what this is not. */
+export function levels(top) {
+  const zf = [];
+  for (let z = 0; z <= 10; z++) zf.push(z);                  // every metre
+  for (let z = 20; z <= 100; z += 10) zf.push(z);            // every ten
+  let step = 14;
+  while (zf[zf.length - 1] < top) {
+    zf.push(zf[zf.length - 1] + step);
+    step *= 1.42;
+  }
+  return Float64Array.from(zf);
+}
+
 /* ---------- the grid ----------
    Staggered (MAC): u on x-faces, v on y-faces, w on z-faces, L at cell centres. Divergence
-   is then exact on each cell and the Laplacian is the natural one, with no checkerboard. */
+   is then exact on each cell and the Laplacian is the natural one, with no checkerboard.
+   Levels are non-uniform, so every vertical term carries its own spacing: a cell's own
+   thickness for divergence, the gap between neighbouring centres for gradients. Pairing
+   those two the wrong way round breaks the projection quietly. */
 export function buildField(dem, opt = {}) {
-  const nx = opt.nx || 64, ny = opt.ny || 64, nz = opt.nz || 20;
+  const nx = opt.nx || 64, ny = opt.ny || 64;
   const z0 = opt.z0 ?? 0.2, Uref = opt.U ?? 5, zRef = opt.zRef ?? 10, dirDeg = opt.dir ?? 270;
   /* Metres above the lowest ground. The lid has to clear the terrain by a good margin or it
      absorbs the flow instead of squeezing it: measured on a 400 m ridge, a lid at 2.3x the
      relief gave a crest SLOWDOWN of 0.55x, while 4x and above converge on a 1.58x speed-up. */
   const top = opt.top ?? Math.max(1200, 4 * (dem.hi - dem.lo));
-  const dx = dem.spanM / nx, dy = dem.spanM / ny, dz = top / nz;
+  const zf = opt.zf || levels(top);
+  const nz = zf.length - 1;
+  /* zc: centre height of each level. ds: its thickness. dsf: gap between centres across
+     face k, with the half-cells at the ground and the lid. */
+  const zc = new Float64Array(nz), ds = new Float64Array(nz), dsf = new Float64Array(nz + 1);
+  for (let k = 0; k < nz; k++) { zc[k] = (zf[k] + zf[k + 1]) / 2; ds[k] = zf[k + 1] - zf[k]; }
+  dsf[0] = ds[0] / 2;
+  for (let k = 1; k < nz; k++) dsf[k] = zc[k] - zc[k - 1];
+  dsf[nz] = ds[nz - 1] / 2;
+  const dx = dem.spanM / nx, dy = dem.spanM / ny;
   const base = dem.lo;
 
   /* terrain height sampled onto the solver's own columns */
@@ -137,8 +171,7 @@ export function buildField(dem, opt = {}) {
   const solid = new Uint8Array(nx * ny * nz);
   const cid = (i, j, k) => (k * ny + j) * nx + i;
   for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const zc = base + (k + .5) * dz;
-    if (zc < ter[j * nx + i]) solid[cid(i, j, k)] = 1;
+    if (base + zc[k] < ter[j * nx + i]) solid[cid(i, j, k)] = 1;
   }
 
   const { ex, ey } = dirToVec(dirDeg);
@@ -151,20 +184,20 @@ export function buildField(dem, opt = {}) {
      in one direction. This is WindNinja's domain-average initialisation. */
   const colTer = (i, j) => ter[Math.max(0, Math.min(ny - 1, j)) * nx + Math.max(0, Math.min(nx - 1, i))];
   for (let k = 0; k < nz; k++) {
-    const zc = base + (k + .5) * dz;
+    const zAbs = base + zc[k];
     for (let j = 0; j < ny; j++) {
       for (let i = 0; i <= nx; i++) {
         const g = (colTer(i - 1, j) + colTer(i, j)) / 2;
-        u[uid(i, j, k)] = ex * logSpeed(Uref, zRef, zc - g, z0);
+        u[uid(i, j, k)] = ex * logSpeed(Uref, zRef, zAbs - g, z0);
       }
     }
     for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
       const g = (colTer(i, j - 1) + colTer(i, j)) / 2;
-      v[vid(i, j, k)] = ey * logSpeed(Uref, zRef, zc - g, z0);
+      v[vid(i, j, k)] = ey * logSpeed(Uref, zRef, zAbs - g, z0);
     }
   }
   /* w starts at zero, exactly as WindNinja initialises it */
-  return { nx, ny, nz, dx, dy, dz, base, top, ter, solid, u, v, w, cid, uid, vid, wid, dem, R: opt.R ?? 1, z0, Uref, zRef, dirDeg };
+  return { nx, ny, nz, dx, dy, zf, zc, ds, dsf, dzNear: ds[0], base, top, ter, solid, u, v, w, cid, uid, vid, wid, dem, R: opt.R ?? 1, z0, Uref, zRef, dirDeg };
 }
 
 /* zero every face that touches ground, so no air blows through rock */
@@ -180,15 +213,15 @@ export function applyWalls(F) {
 }
 
 export function divergence(F) {
-  const { nx, ny, nz, dx, dy, dz, solid, cid, uid, vid, wid, u, v, w } = F;
-  const d = new Float32Array(nx * ny * nz);
+  const { nx, ny, nz, dx, dy, ds, solid, cid, uid, vid, wid, u, v, w } = F;
+  const d = new Float64Array(nx * ny * nz);
   let peak = 0, sum = 0, cells = 0;
   for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const c = cid(i, j, k);
     if (solid[c]) continue;
     const val = (u[uid(i + 1, j, k)] - u[uid(i, j, k)]) / dx
       + (v[vid(i, j + 1, k)] - v[vid(i, j, k)]) / dy
-      + (w[wid(i, j, k + 1)] - w[wid(i, j, k)]) / dz;
+      + (w[wid(i, j, k + 1)] - w[wid(i, j, k)]) / ds[k];
     d[c] = val;
     peak = Math.max(peak, Math.abs(val));
     sum += val * val;
@@ -201,11 +234,21 @@ export function divergence(F) {
    Ground and other solid faces are Neumann (the wall term simply drops out of the stencil).
    Sides and top are open: L = 0 outside, which lets air leave. */
 export function project(F, iters = 400, omega = 1.7, onStep) {
-  const { nx, ny, nz, dx, dy, dz, solid, cid, uid, vid, wid, R } = F;
+  const { nx, ny, nz, dx, dy, ds, dsf, solid, cid, uid, vid, wid, R } = F;
   applyWalls(F);
   const before = divergence(F);
-  const L = new Float32Array(nx * ny * nz);
-  const ix = 1 / (dx * dx), iy = 1 / (dy * dy), iz = R / (dz * dz);
+  /* Float64, not 32: the vertical and horizontal coefficients differ by about 10^5 on a
+     stretched grid, and single precision has only about seven digits to spend, so the
+     residual stalls around 1e-5 for no physical reason. */
+  const L = new Float64Array(nx * ny * nz);
+  const ix = 1 / (dx * dx), iy = 1 / (dy * dy);
+  /* vertical coefficients per level: the cell's own thickness times the gap to the
+     neighbour's centre. izDn[k] reaches down across face k, izUp[k] up across face k+1. */
+  const izDn = new Float64Array(nz), izUp = new Float64Array(nz);
+  for (let k = 0; k < nz; k++) {
+    izDn[k] = R / (ds[k] * dsf[k]);
+    izUp[k] = R / (ds[k] * dsf[k + 1]);
+  }
   const fluid = (i, j, k) => i >= 0 && j >= 0 && k >= 0 && i < nx && j < ny && k < nz && !solid[cid(i, j, k)];
 
   /* The stencil is fixed once per cell, so build the diagonal up front and keep the inner
@@ -222,34 +265,64 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
     if (i < nx - 1) { if (!solid[c + 1]) dg += ix; } else dg += ix;
     if (j > 0) { if (!solid[c - nx]) dg += iy; } else dg += iy;
     if (j < ny - 1) { if (!solid[c + nx]) dg += iy; } else dg += iy;
-    if (k > 0 && !solid[c - sxy]) dg += iz;                  // k === 0 is the floor: wall
-    if (k < nz - 1) { if (!solid[c + sxy]) dg += iz; } else dg += iz;
+    if (k > 0 && !solid[c - sxy]) dg += izDn[k];             // k === 0 is the floor: wall
+    if (k < nz - 1) { if (!solid[c + sxy]) dg += izUp[k]; } else dg += izUp[k];
     diag[c] = dg;
   }
 
+  /* Solve a whole vertical column at a time, not a point at a time.
+
+     The levels are 1 m apart near the ground while the columns are hundreds of metres wide,
+     so the vertical couplings outweigh the horizontal ones by about 10^5. Point relaxation
+     cannot carry information along a stiff direction like that: with omega near 1.8 it does
+     not merely crawl, it diverges — measured, the residual grew 5.6x instead of falling.
+     Taking each column as one tridiagonal system and solving it exactly (Thomas) leaves only
+     the gentle horizontal coupling to iterate on, which is what makes a stretched grid
+     tractable at all. */
   const rhs = before.d;
+  const sub = new Float64Array(nz), dia = new Float64Array(nz), sup = new Float64Array(nz);
+  const rr = new Float64Array(nz), cp = new Float64Array(nz), dp = new Float64Array(nz);
   let it = 0;
   for (; it < iters; it++) {
     let worst = 0;
-    for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-      const c = cid(i, j, k);
-      const dg = diag[c];
-      if (dg === 0) continue;
-      let acc = 0;
-      if (i > 0 && !solid[c - 1]) acc += ix * L[c - 1];
-      if (i < nx - 1 && !solid[c + 1]) acc += ix * L[c + 1];
-      if (j > 0 && !solid[c - nx]) acc += iy * L[c - nx];
-      if (j < ny - 1 && !solid[c + nx]) acc += iy * L[c + nx];
-      if (k > 0 && !solid[c - sxy]) acc += iz * L[c - sxy];
-      if (k < nz - 1 && !solid[c + sxy]) acc += iz * L[c + sxy];
-      const target = (acc + rhs[c]) / dg;                    // +div because L_lap = -div
-      const d = omega * (target - L[c]);
-      L[c] += d;
-      const ad = d < 0 ? -d : d;
-      if (ad > worst) worst = ad;
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      /* the fluid run in this column: terrain only ever fills it from the bottom */
+      let k0 = 0;
+      while (k0 < nz && solid[cid(i, j, k0)]) k0++;
+      if (k0 >= nz) continue;
+      let n = 0;
+      for (let k = k0; k < nz; k++) {
+        const c = cid(i, j, k);
+        let acc = 0;
+        if (i > 0 && !solid[c - 1]) acc += ix * L[c - 1];
+        if (i < nx - 1 && !solid[c + 1]) acc += ix * L[c + 1];
+        if (j > 0 && !solid[c - nx]) acc += iy * L[c - nx];
+        if (j < ny - 1 && !solid[c + nx]) acc += iy * L[c + nx];
+        dia[n] = diag[c];
+        sub[n] = (k > k0 && !solid[c - sxy]) ? -izDn[k] : 0;
+        sup[n] = (k < nz - 1 && !solid[c + sxy]) ? -izUp[k] : 0;
+        rr[n] = acc + rhs[c];                                // +div because L_lap = -div
+        n++;
+      }
+      /* Thomas: forward sweep, then back-substitute */
+      cp[0] = sup[0] / dia[0];
+      dp[0] = rr[0] / dia[0];
+      for (let m = 1; m < n; m++) {
+        const den = dia[m] - sub[m] * cp[m - 1];
+        cp[m] = sup[m] / den;
+        dp[m] = (rr[m] - sub[m] * dp[m - 1]) / den;
+      }
+      let x = dp[n - 1];
+      for (let m = n - 1; m >= 0; m--) {
+        if (m < n - 1) x = dp[m] - cp[m] * x;
+        const c = cid(i, j, k0 + m);
+        const d = omega * (x - L[c]);
+        L[c] += d;
+        const ad = d < 0 ? -d : d;
+        if (ad > worst) worst = ad;
+      }
     }
-    /* stop once the sweep stops moving: the residual is as low as it is going to get */
-    if ((it & 31) === 31) {
+    if ((it & 15) === 15) {
       if (onStep) onStep(it / iters);
       if (worst < 1e-7) { it++; break; }
     }
@@ -275,7 +348,7 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
     const a = fluid(i, j, k - 1), b = fluid(i, j, k);
     if (!a) continue;                                        // k-1 must be real fluid
     if (k < nz && !b) continue;
-    F.w[wid(i, j, k)] += R * (Lat(i, j, k) - Lat(i, j, k - 1)) / dz;
+    F.w[wid(i, j, k)] += R * (Lat(i, j, k) - Lat(i, j, k - 1)) / dsf[k];
   }
   applyWalls(F);
   const after = divergence(F);
@@ -286,7 +359,7 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
 /* ---------- reading the answer ----------
    Wind at a fixed height above the local ground, as a 2D field for drawing. */
 export function surfaceSlice(F, zAGL = 10, out = 96) {
-  const { nx, ny, nz, dz, base, ter, uid, vid, u, v, cid, solid, z0 } = F;
+  const { nx, ny, nz, zc, ds, base, ter, uid, vid, u, v, cid, solid, z0 } = F;
   const U = new Float32Array(out * out), V = new Float32Array(out * out), S = new Float32Array(out * out);
   for (let b = 0; b < out; b++) for (let a = 0; a < out; a++) {
     const i = Math.min(nx - 1, Math.floor((a + .5) / out * nx));
@@ -296,10 +369,9 @@ export function surfaceSlice(F, zAGL = 10, out = 96) {
        a few centimetres counts as fluid but has nearly every face walled, so it carries almost
        no flow; trusting it and then scaling it up by a large log factor was enough to make the
        crest reading jump when the lid moved by three metres. Skip anything mostly buried. */
-    const floor = 0.4 * dz;
     let k = 0;
-    while (k < nz - 1 && (solid[cid(i, j, k)] || base + (k + .5) * dz - g < floor)) k++;
-    const cellAGL = Math.max(1, base + (k + .5) * dz - g);
+    while (k < nz - 1 && (solid[cid(i, j, k)] || base + zc[k] - g < 0.4 * ds[k])) k++;
+    const cellAGL = Math.max(0.2, base + zc[k] - g);
     const uu = (u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2;
     const vv = (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2;
     /* That cell centre sits anywhere from a metre to most of a cell above the ground,
@@ -311,6 +383,15 @@ export function surfaceSlice(F, zAGL = 10, out = 96) {
     U[o] = uu * f; V[o] = vv * f; S[o] = Math.hypot(U[o], V[o]);
   }
   return { U, V, S, n: out };
+}
+
+/* which level holds a given height above the domain floor; the levels are not evenly
+   spaced, so this is a search rather than a division */
+export function levelAt(F, zAboveBase) {
+  const { zf, nz } = F;
+  if (zAboveBase <= zf[0]) return 0;
+  for (let k = 0; k < nz; k++) if (zAboveBase < zf[k + 1]) return k;
+  return nz - 1;
 }
 
 /* bilinear sample in grid coordinates 0..n-1, the interpolation nullschool uses between
