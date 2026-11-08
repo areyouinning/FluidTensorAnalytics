@@ -2,6 +2,12 @@
    agree, then draw the result the way nullschool draws wind — particles carried by the field,
    leaving fading trails, coloured by speed. The physics lives in diagrams/windcore.js. */
 import { fetchDEM, buildField, project, surfaceSlice, sampleBilinear, syntheticHill, logSpeed } from './diagrams/windcore.js';
+import { mountSky, compass, fmtH } from './wind-sky.js';
+
+/* Pressure levels are reported wherever they fall, which over high ground is often BELOW it:
+   at 1641 m in Westminster the 1000 and 925 hPa levels come back at 142 m and 810 m above sea
+   level. Those are extrapolated fictions, not air you are standing under, so they are dropped. */
+const LEVELS = [1000, 925, 850, 700, 500];
 
 const $ = id => document.getElementById(id);
 const S = {
@@ -13,16 +19,41 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 
 /* ---------- data ---------- */
 async function weather(lat, lon) {
+  const aloft = LEVELS.flatMap(p => [`wind_speed_${p}hPa`, `wind_direction_${p}hPa`, `geopotential_height_${p}hPa`]);
   const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) +
-    '&hourly=wind_speed_10m,wind_direction_10m,wind_speed_80m,temperature_2m&wind_speed_unit=ms&forecast_days=3&timezone=auto';
+    '&hourly=' + ['wind_speed_10m', 'wind_direction_10m', 'wind_speed_80m', 'wind_direction_80m', 'wind_speed_120m', 'wind_direction_120m', 'temperature_2m'].concat(aloft).join(',') +
+    '&wind_speed_unit=ms&forecast_days=3&timezone=auto';
   const r = await fetch(u);
   if (!r.ok) throw new Error('forecast ' + r.status);
   const j = await r.json();
   return {
     time: j.hourly.time, spd: j.hourly.wind_speed_10m, dir: j.hourly.wind_direction_10m,
     spd80: j.hourly.wind_speed_80m, temp: j.hourly.temperature_2m,
-    elev: j.elevation, tz: j.timezone
+    elev: j.elevation, tz: j.timezone, raw: j.hourly
   };
+}
+
+/* The profile you are standing under, from your face to the jet, with anything underground
+   thrown away. Heights are above the ground, not above the sea, because that is what you
+   are looking up through. */
+function profileAt(h) {
+  const H = S.hours, g = H.elev == null ? 0 : H.elev;
+  if (!H.raw) return [];
+  const near = [
+    { agl: 10, speed: H.raw.wind_speed_10m[h], dir: H.raw.wind_direction_10m[h] },
+    { agl: 80, speed: H.raw.wind_speed_80m[h], dir: H.raw.wind_direction_80m[h] },
+    { agl: 120, speed: H.raw.wind_speed_120m[h], dir: H.raw.wind_direction_120m[h] }
+  ];
+  const up = LEVELS.map(p => {
+    const msl = H.raw['geopotential_height_' + p + 'hPa'];
+    if (!msl) return null;
+    const agl = msl[h] - g;
+    if (!(agl > 220)) return null;                  // underground, or inside the near set already
+    return { agl, speed: H.raw['wind_speed_' + p + 'hPa'][h], dir: H.raw['wind_direction_' + p + 'hPa'][h], hPa: p };
+  }).filter(Boolean);
+  return near.concat(up)
+    .filter(L => Number.isFinite(L.speed) && Number.isFinite(L.dir))
+    .sort((a, b) => a.agl - b.agl);
 }
 async function geocode(name) {
   const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&name=' + encodeURIComponent(name));
@@ -158,6 +189,8 @@ function solve() {
   $('r-ratio').textContent = (mx / Math.max(.05, U)).toFixed(2) + '×';
   $('r-relief').textContent = Math.round(S.dem.hi - S.dem.lo) + ' m';
   $('r-div').textContent = res.drop > 50 ? Math.round(res.drop).toLocaleString() + '× less' : 'only ' + res.drop.toFixed(1) + '×';
+  S.layers = profileAt(S.hour);
+  renderProfile();
   note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across and ${Math.round(S.F.dz)} m tall, with the lid ${Math.round(S.F.top)} m above the lowest ground. Mean speed ${mean.toFixed(1)} m/s.`);
   startFlow();
 }
@@ -192,8 +225,24 @@ async function load(lat, lon, label) {
   }
 }
 
+/* the column of air above you, listed highest first the way you would meet it looking up */
+function renderProfile() {
+  const box = $('profile');
+  if (!box) return;
+  if (!S.layers || !S.layers.length) { box.innerHTML = '<p class="nojs">The profile aloft arrives with a real place.</p>'; return; }
+  box.innerHTML = '<ul class="prof">' + S.layers.slice().reverse().map(L =>
+    `<li><b>${fmtH(L.agl)}</b><span>${L.speed.toFixed(1)} m/s</span><span>${compass(L.dir)}</span>` +
+    `<i style="width:${Math.min(100, L.speed / 25 * 100).toFixed(0)}%"></i></li>`).join('') + '</ul>';
+}
+
 /* ---------- controls ---------- */
 function wire() {
+  const sky = mountSky($('sky-host'), () => ({ layers: S.layers, dem: S.dem }));
+  $('look').addEventListener('click', async () => {
+    const why = await sky.open();
+    if (why) note(why);
+  });
+
   $('go').addEventListener('click', async () => {
     const q = $('place').value.trim();
     if (!q) return;
