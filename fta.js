@@ -5,6 +5,9 @@
 (function () {
   var me = document.currentScript, guest = me.hasAttribute('data-guest');
   var base = me.src.replace(/fta\.js.*$/, '');
+  /* embed mode: a page sits inside an LMS or an iframe with no site chrome. Set by ?embed, or by being framed and told it's a launch. */
+  var embed = /[?&]embed\b/.test(location.search) || (function () { try { return window.top !== window.self && /[?&]lti\b/.test(location.search); } catch (e) { return false; } })();
+  if (embed) document.documentElement.setAttribute('data-embed', '');
   var TABS = [
     { href: '/', shelf: 'home', label: 'Home', icon: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>' },
     { href: '/explore.html', shelf: 'explore', label: 'Explore', icon: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>' },
@@ -146,6 +149,12 @@
   }
 
   function init() {
+    if (embed) {   // no top bar, tab bar, footer or slim guest bar: just the page, for an iframe or LMS launch
+      if (guest) return;   // a standalone page renders itself; nothing to strip
+      Promise.all([load('catalog.js'), load('thumbs.js')]).then(function () { chips(); shelves(); next(); }, function () {});
+      diagrams();
+      return;
+    }
     if (guest) { load('catalog.js').then(guestBar, guestBar); return; }
     frame();
     Promise.all([load('catalog.js'), load('thumbs.js')]).then(function () {

@@ -157,6 +157,13 @@
     snow: function () { var o = ''; for (var k = 0; k < 3; k++) o += line('M90 40 90 140', B, 5).replace('<path', '<path transform="rotate(' + k * 60 + ' 90 90)"'); [46, 74, 58, 96, 38].forEach(function (h, k) { o += rect(166 + k * 26, 140 - h, 20, h, k === 3 ? O : B, 3); }); return o; },
     peaks: function () { return '<path d="M0 150 58 92l28 26 50-62 42 46 34-30 44 42 64 28V180H0Z" fill="' + B + '" opacity=".75"/><path d="m136 56-18 22 12-4 8 8 10-7 8 4Z" fill="' + W + '"/>' + line('M136 54V24', O, 3) + dot(136, 22, 6, O); },
     pareto: function () { var R = rng(13), o = line('M36 20V152H300', S, 2); for (var k = 0; k < 40; k++) { var x = 44 + R() * 240, f = 18 + 12000 / (x + 60), y = f + R() * 70; o += dot(x.toFixed(0), Math.min(146, y).toFixed(0), 3, L); } for (var x2 = 44; x2 < 290; x2 += 24) o += dot(x2, (18 + 12000 / (x2 + 60)).toFixed(0), 5, O); return o; },
+    lti: function () { // a content card slotting into a frame: embed
+      var o = rect(28, 30, 150, 120, W, 12) + rect(28, 30, 150, 26, B, 12);
+      o += dot(44, 43, 4, W) + dot(58, 43, 4, W);
+      o += line('M44 74H162M44 96H162M44 118H120', S, 5);
+      o += rect(196, 48, 96, 84, G, 10) + line('M214 90H274M244 66V114', W, 7);
+      return o;
+    },
     parallel: function () { var R = rng(19), o = ''; [50, 123, 196, 270].forEach(function (x) { o += line('M' + x + ' 18V162', S, 2); }); for (var k = 0; k < 14; k++) { var d = 'M50 ' + (20 + R() * 140).toFixed(0) + 'L123 ' + (20 + R() * 140).toFixed(0) + 'L196 ' + (20 + R() * 140).toFixed(0) + 'L270 ' + (20 + R() * 140).toFixed(0); o += line(d, k === 2 ? O : B, k === 2 ? 3 : 1.4, k === 2 ? 1 : .45); } return o; }
   };
 })();
