@@ -169,6 +169,12 @@
   .explain #exOk{align-self:flex-end}
   .wxt{min-width:64px;text-align:center;font-weight:700;font-size:clamp(24px,4.6vw,34px);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:2px 8px;font-variant-numeric:tabular-nums}
   .wtkeys{gap:10px;flex-wrap:wrap;justify-content:center;width:calc(100% - 24px);max-width:640px}
+  .gpick{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:4;width:calc(100% - 24px);max-width:620px}
+  .gpick .gword{min-height:1em;font-weight:800;font-size:clamp(32px,8vw,56px);letter-spacing:.08em;color:#fff;text-shadow:0 3px 0 rgba(34,32,63,.3)}
+  .gpick .gtiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .gpick .gtile{appearance:none;border:0;cursor:pointer;width:clamp(52px,12vw,66px);height:clamp(52px,12vw,66px);border-radius:16px;background:#fff;color:#0E1B2B;font-family:inherit;font-weight:700;font-size:clamp(26px,7vw,36px);box-shadow:0 5px 0 #C9D6E3;touch-action:manipulation}
+  .gpick .gtile:active{transform:translateY(3px);box-shadow:0 2px 0 #C9D6E3}
+  .gpick .ghint{font-weight:600;font-size:16px;color:#0E1B2B;background:rgba(255,255,255,.9);border-radius:12px;padding:4px 12px;box-shadow:var(--chip)}
   .wtk{font-size:44px;padding:0 0 6px;background:var(--paper)}
   .wtk.used{opacity:.25}
   .wtk.wob{animation:nope .4s}
@@ -294,6 +300,7 @@
       <button class="tile" data-g="hill" aria-pressed="false"><canvas width="144" height="108"></canvas>MARBLE HILL</button>
       <button class="tile" data-g="launch" aria-pressed="false"><canvas width="144" height="108"></canvas>BIG LAUNCH</button>
       <button class="tile" data-g="word" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD HILL</button>
+      <button class="tile" data-g="gondola" aria-pressed="false"><canvas width="144" height="108"></canvas>ARGO GONDOLA</button>
       <button class="tile" data-g="rain" aria-pressed="false"><canvas width="144" height="108"></canvas>RAIN TO LAKE</button>
       <button class="tile" data-g="tiles" aria-pressed="false"><canvas width="144" height="108"></canvas>TILE TIME</button>
       <button class="tile" data-g="wordtime" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD TIME</button>
@@ -1622,10 +1629,10 @@
     return api;
   })();
   // the game lands on the Clear Creek map; each game is played on the real terrain around its land
-  var LANDS={maze:{lat:39.755,lon:-105.215,foot:6},ramp:{lat:39.64,lon:-105.33,foot:9},launch:{lat:39.80,lon:-105.085,foot:13},hill:{lat:39.6852,lon:-105.5199,dx:-1},word:{lat:39.6852,lon:-105.5199,dx:1},tiles:{lat:39.872,lon:-105.155,foot:7},wordtime:{lat:39.85,lon:-105.42,foot:5}};   // Golden, Evergreen foothills, Arvada, Echo Mountain ski area (both hills, one signpost), Standley Lake, northern foothills
+  var LANDS={maze:{lat:39.755,lon:-105.215,foot:6},ramp:{lat:39.64,lon:-105.33,foot:9},launch:{lat:39.80,lon:-105.085,foot:13},hill:{lat:39.6852,lon:-105.5199,dx:-1},word:{lat:39.6852,lon:-105.5199,dx:1},tiles:{lat:39.872,lon:-105.155,foot:7},wordtime:{lat:39.85,lon:-105.42,foot:5},gondola:{lat:39.7447,lon:-105.5131,foot:6}};   // Golden, Evergreen foothills, Arvada, Echo Mountain ski area (both hills, one signpost), Standley Lake, northern foothills
   var hubBank={pending:0,parts:[]}, backdrop=null, backdrops={};
-  var PLACE={rain:"Home: Clear Creek",maze:"Golden",ramp:"Evergreen foothills",hill:"Echo Mountain",word:"Echo Mountain",launch:"Arvada",tiles:"Standley Lake",wordtime:"Northern foothills"};
-  var TITLE={rain:"Rain to the Lake",maze:"Marble Maze",ramp:"Ramp Race",hill:"Marble Hill",word:"Word Hill",launch:"Big Launch",tiles:"Tile Time",wordtime:"Word Time"};
+  var PLACE={rain:"Home: Clear Creek",maze:"Golden",ramp:"Evergreen foothills",hill:"Echo Mountain",word:"Echo Mountain",launch:"Arvada",tiles:"Standley Lake",wordtime:"Northern foothills",gondola:"Idaho Springs"};
+  var TITLE={rain:"Rain to the Lake",maze:"Marble Maze",ramp:"Ramp Race",hill:"Marble Hill",word:"Word Hill",launch:"Big Launch",tiles:"Tile Time",wordtime:"Word Time",gondola:"Argo Gondola"};
   var SAT={w:2048,h:1024,bbox:[-105.80,39.55,-105.05,39.90]};   // clear-creek-sat.jpg covers the map's box exactly
   function photoBg(el,name,size){ var L=LANDS[name]; if(!L){ el.style.backgroundSize="cover"; el.style.backgroundPosition="center"; return; }   // a crop of the satellite photo about 7 km across, centred on the place
     var b=SAT.bbox, x=(L.lon-b[0])/(b[2]-b[0])*SAT.w, y=(b[3]-L.lat)/(b[3]-b[1])*SAT.h, r=110, k=size/(2*r);
@@ -2017,7 +2024,97 @@
   })();
 
   // ---------- game switching ----------
-  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,tiles:tilesG,wordtime:wordT}, cur=null, seen={};
+  // ---------- Argo Gondola: spell a word and the gondola climbs (Idaho Springs, on the real Clear Creek) ----------
+  var gondola=(function(){
+    var root=new THREE.Group(); root.visible=false; root.position.set(1200,0,0); scene.add(root);
+    var LEVELS=6, STA=[];                                   // stations up the cable; spell LEVELS words to reach the top
+    for(var i=0;i<=LEVELS;i++){ var f=i/LEVELS; STA.push({x:-7+14*f, y:0.9+4.1*f}); }
+    function cableAt(s){ s=clamp(s,0,1); var p=s*LEVELS, i=Math.min(LEVELS-1,Math.floor(p)), t=p-i; return {x:STA[i].x+(STA[i+1].x-STA[i].x)*t, y:STA[i].y+(STA[i+1].y-STA[i].y)*t}; }
+    // snowy slope under the cable
+    var slope=new THREE.Mesh(flat(new THREE.PlaneGeometry(22,9)),toon("#EAF4FF")); slope.rotation.x=-Math.PI/2+rad(20); slope.position.set(0,-0.2,-1.2); root.add(slope);
+    var pad=box(22,0.4,5,"#DCEBFB"); pad.position.set(0,-1.4,-1.2); root.add(pad);
+    // towers and cable
+    STA.forEach(function(s,i){ var h=s.y, pst=post(0.09,C.dirt2); pst.scale.y=h; pst.position.set(s.x,0,0); root.add(pst);
+      var wheel=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.05,8,16),toon(C.ink)); wheel.position.set(s.x,h,0.18); root.add(wheel);
+      if(i<LEVELS){ var a=STA[i], b=STA[i+1], mid=new THREE.Vector3((a.x+b.x)/2,(a.y+b.y)/2,0.18), len=Math.hypot(b.x-a.x,b.y-a.y);
+        var cab=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,len,8),toon("#3A2A1E")); cab.position.copy(mid); cab.rotation.z=Math.PI/2-Math.atan2(b.y-a.y,b.x-a.x); root.add(cab); } });
+    // the Argo mill headframe at the top = the goal
+    var top=STA[LEVELS], mill=new THREE.Group(); mill.position.set(top.x+0.6,0,-0.2); root.add(mill);
+    [-0.35,0.35].forEach(function(dx){ var p=post(0.08,C.wood); p.scale.y=top.y+1.4; p.position.set(dx,0,0); mill.add(p); var p2=post(0.06,C.wood); p2.scale.y=top.y+1.0; p2.position.set(dx*2.0,0,0); mill.add(p2);
+      var br=box(Math.abs(dx),0.08,0.08,C.wood); br.position.set(dx*1.5,top.y*0.6,0); br.rotation.z=rad(dx>0?-30:30); mill.add(br); });
+    var mw=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.08,10,20),toon(C.red)); mw.position.set(0,top.y+1.5,0.1); mill.add(mw);
+    var flag=box(0.6,0.4,0.05,C.yellow); flag.position.set(0.3,top.y+2.1,0); mill.add(flag); var fp=post(0.04,C.paper); fp.scale.y=top.y+2.3; mill.add(fp);
+    // pines beside the run
+    [[-8.6,-3.2],[8.6,-3.4]].forEach(function(p){ var t=new THREE.Group(); var tr=post(0.07,C.dirt2); tr.scale.y=0.6; t.add(tr); var c1=cone(0.42,0.95,"#2E7D46"); c1.position.y=0.8; t.add(c1); var c2=cone(0.32,0.7,"#2E7D46"); c2.position.y=1.25; t.add(c2); t.position.set(p[0],-0.6,p[1]); root.add(t); });
+    // the cabin
+    var cabinG=new THREE.Group(); root.add(cabinG);
+    var hang=post(0.04,C.ink); hang.scale.y=0.55; hang.position.y=0.3; cabinG.add(hang);
+    var cw=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.035,8,14),toon(C.ink)); cw.position.y=0.5; cabinG.add(cw);
+    var body=box(1.15,0.95,0.85,C.teal); body.position.y=-0.16; cabinG.add(body);
+    var winGlass=box(0.82,0.46,0.02,"#D9F2FF"); winGlass.position.set(0,-0.04,0.44); cabinG.add(winGlass);
+    var roofc=box(1.3,0.12,0.95,C.red); roofc.position.y=0.34; cabinG.add(roofc);
+    var cabinS=0, cabinT=0;
+
+    // audio: the robot phoneme clips, stitched (same building blocks as Sound It Out). Silent + a tone fallback where the files aren't served.
+    var PH="/audio/phonics/", pbuf={};
+    function pget(u){ if(pbuf[u]) return pbuf[u]; var c=ac(); if(!c) return Promise.resolve(null); pbuf[u]=fetch(u).then(function(r){ return r.ok?r.arrayBuffer():Promise.reject(); }).then(function(a){ return new Promise(function(ok,no){ c.decodeAudioData(a,ok,no); }); }).catch(function(){ return null; }); return pbuf[u]; }
+    function pplay(urls,opts){ var c=ac(); if(!c) return Promise.resolve(); opts=opts||{}; return Promise.all(urls.map(pget)).then(function(bufs){ var rate=opts.rate||1,gap=opts.gap||0,ov=opts.overlap||0,t=c.currentTime+0.05,any=false; bufs.forEach(function(b,i){ if(!b) return; any=true; var s=c.createBufferSource(); s.buffer=b; s.playbackRate.value=rate; s.connect(c.destination); s.start(t); t+=b.duration/rate+gap-(i<bufs.length-1?ov:0); }); return new Promise(function(r){ setTimeout(r,Math.max(120,(t-c.currentTime)*1000)); }); }); }
+    var soundUrl=function(l){ return PH+"sounds/"+l+".mp3"; }, phraseUrl=function(n){ return PH+"words/_"+n+".mp3"; };
+
+    // words: the short-a family, as a trie
+    var WORDS=("cat can cap cab cam bat ban bad bag dad dab dam fan fat fad gag gap gas had ham hat has jab jam jag lad lap lab lag mad man map mat nap nab nag pad pan pat pal rag ram ran rap rat sad sag sap sat tab tad tag tan tap van vat wag yam yap zap zag").split(" ");
+    var trie={next:{},end:false}; WORDS.forEach(function(w){ var n=trie; for(var k=0;k<w.length;k++){ var ch=w[k]; n=n.next[ch]||(n.next[ch]={next:{},end:false}); } n.end=true; });
+    function nodeAt(p){ var n=trie; for(var k=0;k<p.length;k++){ n=n.next[p[k]]; if(!n) return null; } return n; }
+
+    // DOM picker over the stage
+    var bar=document.createElement("div"); bar.className="gpick"; bar.hidden=true;
+    bar.innerHTML='<div class="gword" aria-live="polite"></div><div class="gtiles" role="group" aria-label="Choose the next letter"></div><div class="ghint"></div>';
+    stageEl.appendChild(bar);
+    var wordEl=bar.querySelector(".gword"), tilesEl=bar.querySelector(".gtiles"), hintEl=bar.querySelector(".ghint");
+    var path="", level=0, busy=false;
+    function render(){
+      var n=nodeAt(path)||trie; wordEl.textContent=path?path.toUpperCase():"";
+      tilesEl.innerHTML="";
+      Object.keys(n.next).sort().forEach(function(ch){ var b=document.createElement("button"); b.type="button"; b.className="gtile"; b.textContent=ch; b.setAttribute("aria-label","Add "+ch);
+        b.addEventListener("click",function(){ if(!busy){ lastTouch=now(); cancelDemo(); pickLetter(ch); } }); tilesEl.appendChild(b); });
+      hintEl.textContent=path?"Spell a word to climb!":"Tap a letter to start a word.";
+    }
+    function pickLetter(ch){ path+=ch; S.tick(); pplay([soundUrl(ch)]); var n=nodeAt(path); render();
+      if(n&&n.end&&!Object.keys(n.next).length) completeWord(); }
+    function completeWord(){
+      var word=path; busy=true; tilesEl.innerHTML=""; hintEl.textContent="“"+word.toUpperCase()+"” — up we go!";
+      var urls=[]; for(var k=0;k<word.length;k++) urls.push(soundUrl(word[k]));
+      pplay(urls,{gap:0.08}).then(function(){ pplay(urls,{rate:1.12,overlap:0.045}); });   // sound out, then blend, alongside the climb
+      level=Math.min(LEVELS,level+1); cabinT=level/LEVELS; S.go();                      // climb right away
+      if(level>=LEVELS){ setTimeout(win,700); } else { path=""; setTimeout(function(){ busy=false; render(); },900); }
+    }
+    function win(){
+      var tp=root.localToWorld(new THREE.Vector3(STA[LEVELS].x+0.6,STA[LEVELS].y+1.6,0)); var sp=toScreen(tp); confetti(sp.x,sp.y); S.tada();
+      pplay([phraseUrl("top")]); if(!demo.active) speak(pick(["You made it to the top! Six words!","To the top! Super spelling!"]));
+      hintEl.textContent="You reached the Argo Mill! 🏁";
+      if(!afterRound(LEVELS*3,"gondola")) setTimeout(function(){ if(cur===api) reset(); },4200);
+      busy=true;
+    }
+    function reset(){ path=""; level=0; cabinS=cabinT=0; busy=false; render(); }
+
+    function fitPts(){ var pts=[]; [[-7.8,0.2,0.8],[-7.8,0.2,-0.8],[8.8,top.y+2.0,0.8],[8.8,top.y+2.0,-0.8]].forEach(function(a){ pts.push(root.localToWorld(new THREE.Vector3(a[0],a[1],a[2]))); }); return pts; }
+    var camTgt=new THREE.Vector3();
+    function frame(dt,alpha){ cabinS+=(cabinT-cabinS)*(1-Math.exp(-dt/0.6)); var c=cableAt(cabinS); cabinG.position.set(c.x,c.y-0.55,0.0);
+      camTgt.copy(root.localToWorld(new THREE.Vector3(c.x+1.1,c.y+0.7,0))); cam.target.lerp(camTgt,1-Math.exp(-dt/0.5)); setRumble(0); }
+    function autoWord(word,tok){ var i=0; function step(){ if(tok!==demo.token) return Promise.reject("cancel"); if(i>=word.length) return wait(500,tok); pickLetter(word[i++]); return wait(520,tok).then(step); } return step(); }
+    var api={ name:"gondola", root:root, goVisible:false, ownScene:true,
+      anchor:function(){ return root.localToWorld(new THREE.Vector3(0,2,0)); }, fit:function(){ return fitPts(); },
+      enter:function(){ cam.dir.set(0.04,0.12,1).normalize(); root.updateMatrixWorld(true); cam.off=0; reset(); cam.target.copy(root.localToWorld(new THREE.Vector3(1.1,0.9,0))); cam.distWant=8.6; cam.dist=cam.distWant; bar.hidden=false; },
+      exit:function(){ bar.hidden=true; setRumble(0); },
+      step:function(){}, frame:frame, overlay:function(){},
+      down:function(){ return false; }, move:function(){}, up:function(){}, idleOK:function(){ return !busy; },
+      cancel:function(){ reset(); },
+      demo:function(kind,tok){ reset(); if(kind==="intro") speak("The Argo gondola! Spell a word and it climbs. Spell six words to ride to the top. Watch!");
+        return wait(700,tok).then(function(){ return autoWord(pick(["cat","map","ram","tan","nap","sat"]),tok); }).then(function(){ busy=false; if(kind==="intro") speak("Your turn!",true); return wait(300,tok); }); } };
+    return api;
+  })();
+
+  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,tiles:tilesG,wordtime:wordT,gondola:gondola}, cur=null, seen={};
   var tiles=[].slice.call(document.querySelectorAll(".tile[data-g]"));
   function runDemo(kind){
     if(kind==="intro") seen[cur.name]=true;
@@ -2054,7 +2151,7 @@
   document.getElementById("startBtn").addEventListener("click",function(){
     started=true; ac(); startRumble(); S.click(); document.getElementById("start").hidden=true; demo.token++; demo.active=false; cur.cancel(); runDemo("intro");
   });
-  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",tiles:"Tile time!",wordtime:"Word time!"};
+  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",tiles:"Tile time!",wordtime:"Word time!",gondola:"Argo gondola!"};
   tiles.forEach(function(t){ t.addEventListener("click",function(){ var g=t.dataset.g; S.click(); select(g); if(!started) runDemo("attract"); else if(!seen[g]) runDemo("intro"); else { lastTouch=now(); speak(NAMES[g]); } }); });
 
   // tile icons
@@ -2088,6 +2185,13 @@
     for(var ty=0;ty<3;ty++) for(var tx=0;tx<4;tx++){ tl.fillStyle=C.teal; tl.fillRect(14+tx*22,18+ty*22,18,18); tl.strokeRect(14+tx*22,18+ty*22,18,18); }
     tl.fillStyle=C.yellow; tl.fillRect(112,62,18,18); tl.strokeRect(112,62,18,18);
     tl.font="600 34px 'Atkinson Hyperlegible Next', Arial, sans-serif"; tl.fillStyle=C.ink; tl.textAlign="center"; tl.fillText("+",120,44);
+    (function(){ var gc=document.querySelector('.tile[data-g="gondola"] canvas').getContext("2d"); gc.lineJoin="round"; gc.lineCap="round"; gc.strokeStyle=C.ink;
+      gc.fillStyle="#EAF4FF"; gc.beginPath(); gc.moveTo(0,108); gc.lineTo(0,74); gc.lineTo(144,34); gc.lineTo(144,108); gc.closePath(); gc.fill();
+      gc.strokeStyle=C.ink; gc.lineWidth=3; gc.beginPath(); gc.moveTo(10,40); gc.lineTo(134,14); gc.stroke();   // cable
+      [[28,54],[112,36]].forEach(function(t){ gc.strokeStyle=C.dirt2; gc.lineWidth=5; gc.beginPath(); gc.moveTo(t[0],t[1]+22); gc.lineTo(t[0],t[1]-10); gc.stroke(); });
+      gc.fillStyle=C.teal; gc.strokeStyle=C.ink; gc.lineWidth=4; gc.save(); gc.translate(70,40); gc.beginPath(); gc.moveTo(0,-14); gc.lineTo(0,-4); gc.stroke();
+      gc.fillRect(-16,-4,32,22); gc.strokeRect(-16,-4,32,22); gc.fillStyle="#D9F2FF"; gc.fillRect(-11,1,22,10); gc.restore();
+      gc.fillStyle=C.red; gc.fillRect(126,8,12,10); gc.strokeRect(126,8,12,10); })();
     var wt=document.querySelector('.tile[data-g="wordtime"] canvas').getContext("2d"); wt.lineJoin="round"; wt.strokeStyle=C.ink; wt.lineWidth=4;
     wt.fillStyle=C.orange; wt.fillRect(46,6,52,52); wt.strokeRect(46,6,52,52); wt.fillStyle=C.paper; wt.fillRect(52,12,40,40);
     wt.fillStyle=C.yellow; wt.beginPath(); wt.arc(72,32,13,0,Math.PI*2); wt.fill(); wt.stroke();
