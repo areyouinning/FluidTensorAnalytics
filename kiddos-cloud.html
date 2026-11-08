@@ -2059,7 +2059,7 @@
     var PH="/audio/phonics/", pbuf={};
     function pget(u){ if(pbuf[u]) return pbuf[u]; var c=ac(); if(!c) return Promise.resolve(null); pbuf[u]=fetch(u).then(function(r){ return r.ok?r.arrayBuffer():Promise.reject(); }).then(function(a){ return new Promise(function(ok,no){ c.decodeAudioData(a,ok,no); }); }).catch(function(){ return null; }); return pbuf[u]; }
     function pplay(urls,opts){ var c=ac(); if(!c) return Promise.resolve(); opts=opts||{}; return Promise.all(urls.map(pget)).then(function(bufs){ var rate=opts.rate||1,gap=opts.gap||0,ov=opts.overlap||0,t=c.currentTime+0.05,any=false; bufs.forEach(function(b,i){ if(!b) return; any=true; var s=c.createBufferSource(); s.buffer=b; s.playbackRate.value=rate; s.connect(c.destination); s.start(t); t+=b.duration/rate+gap-(i<bufs.length-1?ov:0); }); return new Promise(function(r){ setTimeout(r,Math.max(120,(t-c.currentTime)*1000)); }); }); }
-    var soundUrl=function(l){ return PH+"sounds/"+l+".mp3"; }, phraseUrl=function(n){ return PH+"words/_"+n+".mp3"; };
+    var soundUrl=function(l){ return PH+"sounds/"+l+".mp3"; }, wordUrl=function(w){ return PH+"words/"+w+".mp3"; }, phraseUrl=function(n){ return PH+"words/_"+n+".mp3"; };
 
     // words: the short-a family, as a trie
     var WORDS=("cat can cap cab cam bat ban bad bag dad dab dam fan fat fad gag gap gas had ham hat has jab jam jag lad lap lab lag mad man map mat nap nab nag pad pan pat pal rag ram ran rap rat sad sag sap sat tab tad tag tan tap van vat wag yam yap zap zag").split(" ");
@@ -2084,7 +2084,7 @@
     function completeWord(){
       var word=path; busy=true; tilesEl.innerHTML=""; hintEl.textContent="“"+word.toUpperCase()+"” — up we go!";
       var urls=[]; for(var k=0;k<word.length;k++) urls.push(soundUrl(word[k]));
-      pplay(urls,{gap:0.08}).then(function(){ pplay(urls,{rate:1.12,overlap:0.045}); });   // sound out, then blend, alongside the climb
+      pplay(urls,{gap:0.08}).then(function(){ pplay([wordUrl(word)]); });   // sound it out, then the whole word (recorded), alongside the climb
       level=Math.min(LEVELS,level+1); cabinT=level/LEVELS; S.go();                      // climb right away
       if(level>=LEVELS){ setTimeout(win,700); } else { path=""; setTimeout(function(){ busy=false; render(); },900); }
     }
