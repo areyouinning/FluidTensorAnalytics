@@ -9,6 +9,7 @@ window.FTA_CATALOG = [
   { href: '/connections.html', shelf: 'play', topics: ['math'], thumb: 'numbers', title: 'C0nn3ct10ns', blurb: 'Find four numbers that share a property.' },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
+  { href: '/sound-it-out.html', shelf: 'play', topics: ['kids'], thumb: 'phonics', title: 'Sound It Out', blurb: 'Tap letters to build real words and hear a real voice sound them out and blend them.', fresh: true, kids: true },
   { href: '/kiddos-cloud.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Kiddo's Cloud", blurb: 'Be a rain cloud over Clear Creek. Fly to real places, play, and rain.', kids: true },
 
   { href: '/tensor-analysis.html', shelf: 'explore', topics: ['tensors'], thumb: 'tensor', title: 'What is a tensor, really?', blurb: 'Build one from three lists, then squeeze 960 numbers into 90.' },

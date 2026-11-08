@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sound It Out | FluidTA</title>
+<meta name="description" content="A phonics game: tap letters to build real words, hear each sound, and blend them into the whole word — with a real recorded voice.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+  .ph{display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 4px}
+  .ph-word{position:relative;min-height:1.3em;display:flex;gap:10px;align-items:center;justify-content:center;font-weight:700;font-size:clamp(56px,16vw,120px);line-height:1;letter-spacing:.04em}
+  .ph-let{display:inline-block;color:var(--ink);animation:phIn .22s ease-out both}
+  .ph-word.sounding .ph-let{color:var(--blue-t,var(--blue))}
+  .ph-word.pop{animation:phPop .5s ease-out}
+  .ph-ghost{font-size:clamp(20px,5vw,30px);font-weight:600;color:var(--ink-soft);letter-spacing:0}
+  @keyframes phIn{from{transform:translateY(-18px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+  @keyframes phPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .ph-pick{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:560px}
+  .ph-tile{appearance:none;border:0;cursor:pointer;width:clamp(64px,18vw,88px);height:clamp(64px,18vw,88px);border-radius:20px;
+    background:var(--panel);box-shadow:var(--shadow);color:var(--ink);font-family:inherit;font-weight:700;font-size:clamp(32px,9vw,46px);
+    display:grid;place-items:center;transition:transform .12s ease-out;touch-action:manipulation}
+  .ph-tile:hover{transform:translateY(-3px)} .ph-tile:active{transform:scale(.94)}
+  .ph-tile:nth-child(5n+1){color:var(--blue-t,var(--blue))} .ph-tile:nth-child(5n+2){color:var(--orange-t,var(--orange))}
+  .ph-tile:nth-child(5n+3){color:var(--green-t,var(--green))} .ph-tile:nth-child(5n+4){color:var(--purple-t,var(--purple))}
+  .ph-say{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:52px}
+  .ph-btn{appearance:none;border:0;cursor:pointer;font-family:inherit;font-weight:600;font-size:20px;min-height:52px;padding:0 22px;border-radius:999px;
+    background:var(--blue);color:var(--on-accent);box-shadow:var(--shadow)}
+  .ph-btn.ready{animation:phPulse 1.3s ease-in-out infinite}
+  .ph-btn.ghost{background:var(--sunk);color:var(--ink)} .ph-btn:disabled{opacity:.6}
+  @keyframes phPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .ph-hint{margin:0;color:var(--ink-soft);font-size:18px;text-align:center;min-height:1.4em}
+  .ph-star{position:absolute;left:50%;top:50%;width:12px;height:12px;border-radius:3px;pointer-events:none;animation:phStar .9s ease-out forwards}
+  @keyframes phStar{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(180deg);opacity:0}}
+  @media (prefers-reduced-motion: reduce){.ph-let,.ph-word.pop,.ph-btn.ready,.ph-star{animation:none}}
+</style>
+</head>
+<body data-tab="play">
+<main id="main" class="article">
+  <a class="crumb" href="/play.html">Play</a>
+  <h1>Sound It Out</h1>
+  <p class="lede" style="margin-top:14px">Tap a letter. Only the letters that can keep a real word going will show up next. You'll hear each sound as you add it — then blend them into the whole word.</p>
+  <figure class="fig" data-diagram="phonics"><figcaption>Every sound is a short recording, stitched together in your browser as you build the word. This batch is the short‑<b>a</b> family (cat, man, nap…). Nothing you do is sent anywhere.</figcaption></figure>
+  <h2>How it works</h2>
+  <p>Behind the game is a little tree of every short‑<b>a</b> word. At each step it offers only the letters that still lead somewhere, so you can never build a non‑word. When the letters so far spell a real word, <b>Say it</b> lights up: it plays each letter's sound in turn (c… a… t) and then the word said normally (cat), the way reading is taught — sound, then blend.</p>
+  <p class="credit">The voice is generated with ElevenLabs, once, and saved as small audio clips; the game only plays and stitches them, so it works offline and sends nothing. More word families can be added by recording their sounds the same way.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
