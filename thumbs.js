@@ -52,7 +52,7 @@
       return o + rect(143, 73, s - 4, s - 4, P, 6) + text(158, 95, '4', 18, 'var(--on-accent)');
     },
     scramble3d: function () { return '<g transform="translate(60 26) skewY(-14) scale(.85)">' + this.scramble() + '</g><g opacity=".45" transform="translate(96 62) skewY(-14) scale(.85)">' + this.scramble() + '</g>'; },
-    garage: function () { // Paul's Cloud: a big cumulus over the mountains, raining
+    garage: function () { // Kiddo's Cloud: a big cumulus over the mountains, raining
       var o = rect(0, 0, 320, 180, 'var(--gold)') + rect(16, 14, 288, 152, 'var(--sky)', 16);
       o += '<path d="M16 152 84 98l36 26 50-44 134 76v4a14 14 0 0 1-14 14H30a14 14 0 0 1-14-14Z" fill="var(--spruce)"/><path d="m170 80-20 18 14-3 8 8 10-7 10 5Z" fill="var(--snow)"/>';
       [[150, 108], [172, 116], [194, 108], [214, 116], [236, 108]].forEach(function (p, k) { o += '<path transform="translate(' + p[0] + ' ' + p[1] + ') scale(.62)" d="M12 2.5S5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-12.5-7-12.5Z" fill="var(--drop)"/>'; });

@@ -30,6 +30,9 @@ pre code { background: none; padding: 0; }
 .bar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 var(--gutter); background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .mark { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; font-size: 20px; color: var(--ink); text-decoration: none; }
 .mark svg { width: 24px; height: 24px; flex: none; }
+.bar .theme { appearance: none; border: 0; background: none; color: var(--ink-soft); display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: 4px; border-radius: 50%; cursor: pointer; }
+.bar .theme:hover { color: var(--ink); background: var(--sunk); } .bar .theme svg { width: 22px; height: 22px; }
+@media (max-width: 759px) { .bar .theme { margin-left: auto; } }
 .tabs { position: fixed; inset: auto 0 0 0; z-index: 100; display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 18px rgba(0, 0, 0, .08); }
 .tabs a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: var(--tabs); font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none; }
 .tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

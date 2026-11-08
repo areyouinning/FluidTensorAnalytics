@@ -7,7 +7,7 @@ const C = (a, na, b, nb) => ({ a, na, b, nb });
 
 export const KEY = C(
   'You want to play: there is a goal, a score or a win.',
-  C('It is for a kid, or the kid in you: fly a rain cloud, roll marbles, launch things.', '/pauls-game-garage.html',
+  C('It is for a kid, or the kid in you: fly a rain cloud, roll marbles, launch things.', '/kiddos-cloud.html',
     'It is a puzzle for a grown-up brain.',
     C('Chess queens are involved.',
       C('The classic: eight queens, and no two may attack.', '/eight-queens.html',
