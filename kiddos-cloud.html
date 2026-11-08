@@ -48,6 +48,8 @@
   .round svg [stroke="#22203F"]{stroke:currentColor} .round svg [fill="#22203F"]{fill:currentColor}
   .stage .round{background:#fff;color:#0E1B2B}
   .round svg{width:28px;height:28px}
+  .eyebtn{position:absolute;left:12px;bottom:14px;z-index:4}
+  .eyebtn.on{background:#FFC21A;color:#0E1B2B} .stage .eyebtn.on{background:#FFC21A}
   .round.nope{animation:nope .4s}
   @keyframes nope{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
   body.full{overflow:hidden} body.full .bar,body.full .tabs,body.full .skip,body.full #fta-bar{display:none}
@@ -458,7 +460,7 @@
   try{ renderer=new THREE.WebGLRenderer({canvas:glc,antialias:true}); }catch(e){ fail("This device could not start 3D drawing (WebGL)."); return; }
   renderer.setPixelRatio(Math.min(window.matchMedia("(pointer: coarse)").matches?1.5:2,window.devicePixelRatio||1));
   var scene=new THREE.Scene(); scene.background=new THREE.Color(C.sky);
-  var camera=new THREE.PerspectiveCamera(38,1,0.1,2600);
+  var BASEFOV=38, camera=new THREE.PerspectiveCamera(BASEFOV,1,0.1,2600);
   var cam={dir:new THREE.Vector3(0,1,1).normalize(),target:new THREE.Vector3(),dist:12,distWant:12,off:0};
   scene.fog=new THREE.Fog(C.sky,20,60);
   var FOG={color:{value:new THREE.Color(C.sky)},near:{value:20},far:{value:60}};
@@ -516,12 +518,23 @@
 
   // ---------- camera and screen helpers ----------
   var W=1,H=1, tmp=new THREE.Vector3(), ray=new THREE.Raycaster(), plane=new THREE.Plane(), hit=new THREE.Vector3();
-  function placeCamera(){ var t=cam.target.clone(); t.x+=cam.off; camera.position.copy(t).addScaledVector(cam.dir,cam.dist); camera.lookAt(t); camera.updateMatrixWorld(); }
+  function placeCamera(){
+    if(cam.eye){ if(camera.fov!==(cam.fov||64)){ camera.fov=cam.fov||64; camera.updateProjectionMatrix(); } camera.position.copy(cam.eye); camera.up.set(0,1,0); camera.lookAt(cam.look); camera.updateMatrixWorld(); return; }
+    if(camera.fov!==BASEFOV){ camera.fov=BASEFOV; camera.updateProjectionMatrix(); }
+    var t=cam.target.clone(); t.x+=cam.off; camera.position.copy(t).addScaledVector(cam.dir,cam.dist); camera.lookAt(t); camera.updateMatrixWorld(); }
+  /* immersive 'what the ball sees' camera, shared by the two slope games */
+  var imm={on:false,tmpE:new THREE.Vector3(),tmpL:new THREE.Vector3(),land:false};
+  function ballView(bank,x,s,gy,R){ bank.updateMatrixWorld();
+    cam.eye=imm.tmpE.set(x,gy+R+0.55,-(s-0.85)); bank.localToWorld(cam.eye);
+    cam.look=imm.tmpL.set(x*0.4,gy+R-0.25,-(s+6)); bank.localToWorld(cam.look); cam.fov=66; }
+  function setImmersive(on){ on=!!on; imm.on=on; if(!on){ cam.eye=null; if(cur&&cur.fit){ cam.distWant=fitDist(cur.fit()); } }
+    if(typeof eyeBtn!=="undefined"&&eyeBtn){ eyeBtn.setAttribute("aria-pressed",on?"true":"false"); eyeBtn.classList.toggle("on",on); } }
+  function immersiveOK(){ return cur&&(cur.name==="hill"||cur.name==="word"); }
   function fitDist(pts,mx,top){ mx=mx||0.9; top=top||0.7; // smallest distance that keeps every key point on screen
-    var keep=cam.dist, keepOff=cam.off, lo=2, hi=90; cam.off=0; camera.updateProjectionMatrix();
+    var keep=cam.dist, keepOff=cam.off, keepEye=cam.eye, lo=2, hi=90; cam.eye=null; cam.off=0; camera.fov=BASEFOV; camera.updateProjectionMatrix();
     for(var it=0;it<28;it++){ var mid=(lo+hi)/2; cam.dist=mid; placeCamera();
       var ok=pts.every(function(q){ tmp.copy(q).project(camera); return tmp.z<1&&Math.abs(tmp.x)<mx&&tmp.y<top&&tmp.y>-0.9; }); if(ok) hi=mid; else lo=mid; }
-    cam.dist=keep; cam.off=keepOff; placeCamera(); return hi;
+    cam.dist=keep; cam.off=keepOff; cam.eye=keepEye; placeCamera(); return hi;
   }
   function toScreen(v){ tmp.copy(v).project(camera); return {x:(tmp.x+1)/2*W,y:(1-tmp.y)/2*H}; }
   function wpos(obj){ return obj.getWorldPosition(new THREE.Vector3()); }
@@ -545,6 +558,9 @@
 
   // ---------- demonstrate, then hand over (shared) ----------
   var finger=document.getElementById("finger"), goBtn=document.getElementById("go");
+  // immersive 'ball view' toggle, shown only on the two slope games
+  var eyeBtn=document.createElement("button"); eyeBtn.className="round eyebtn"; eyeBtn.type="button"; eyeBtn.hidden=true; eyeBtn.setAttribute("aria-pressed","false"); eyeBtn.setAttribute("aria-label","Ball view: see what the marble sees");
+  eyeBtn.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 16s5-8 13-8 13 8 13 8-5 8-13 8S3 16 3 16Z" fill="none" stroke="#22203F" stroke-width="2.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="4.4" fill="#22203F"/></svg>';
   var demo={active:false,token:0,target:null};
   var lastTouch=now();
   function wait(ms,tok){ return new Promise(function(res,rej){ setTimeout(function(){ tok===demo.token?res():rej("cancel"); },ms); }); }
@@ -1016,6 +1032,7 @@
       gems.forEach(function(g){ if(!g.got){ g.m.rotation.y=clock*2+g.ph; g.m.position.y=g.m.userData.y0+0.05*Math.sin(clock*3+g.ph); } });
       camS+=(Math.max(0,s)-camS)*(1-Math.exp(-dt/0.2));
       var t=track.localToWorld(new THREE.Vector3(0,hAt(0,camS+3),-(camS+3))); cam.target.copy(t);
+      if(imm.on&&cur===hill) ballView(bank,x,s,gy,R);
       setRumble(phase==="roll"?Math.min(0.12,Math.abs(st.vs)*0.05):0);
       if(demo.active&&auto&&fx!==null){ ring.visible=true; ring.position.copy(bank.localToWorld(new THREE.Vector3(fx,hAt(fx,s+1.4)+0.32,-(s+1.4)))); } else ring.visible=false;
     }
@@ -1343,6 +1360,7 @@
         if(t.fly>0){ t.fly=Math.max(0,t.fly-dt*2.5); t.m.position.y=t.m.userData.y0+(1-t.fly)*1.4; t.m.rotation.y=(1-t.fly)*6; t.m.visible=t.fly>0.05; }
         if(t.fade>0){ t.fade=Math.max(0,t.fade-dt*3); t.m.scale.setScalar(Math.max(0.01,t.fade)); if(t.fade===0) t.m.visible=false; } });
       camS+=(Math.max(0,s)-camS)*(1-Math.exp(-dt/0.2)); cam.target.copy(track.localToWorld(new THREE.Vector3(0,hAt(0,camS+3),-(camS+3))));
+      if(imm.on&&cur===word) ballView(bank,x,s,gy,R);
       setRumble(phase==="roll"?Math.min(0.12,Math.abs(st.vs)*0.05):0);
     }
     function fitPts(){ var pts=[]; [-RAIL-0.3,RAIL+0.3].forEach(function(x){ [-1.2,8].forEach(function(s){ pts.push(track.localToWorld(new THREE.Vector3(x,hAt(x,s)+0.5,-s))); }); }); return pts; }
@@ -2010,7 +2028,9 @@
   function select(name){
     demo.token++; demo.active=false; demo.target=null; finger.hidden=true;
     if(cur){ cur.exit(); cur.root.visible=false; }
+    if(imm.on) setImmersive(false);
     cur=GAMES[name]; cur.root.visible=true; shared.visible=!cur.ownScene; tilt.g0=null; cur.enter(); setLandscape(cur); goBtn.hidden=!cur.goVisible; homeBtn.hidden=name==="rain"; if(typeof paintGnav==="function") paintGnav(name);
+    eyeBtn.hidden=!immersiveOK(); if(name==="word"&&imm.land) setImmersive(true);
     tiles.forEach(function(t){ t.setAttribute("aria-pressed",t.dataset.g===name?"true":"false"); });
     stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",rain:"Rain to the Lake: make rain and snow over real Colorado mountains and watch the water run down Clear Creek",tiles:"Tile Time: make the target number with blocks of tiles",wordtime:"Word Time: spell the picture with letter blocks"}[name]);
   }
@@ -2030,6 +2050,7 @@
   glc.addEventListener("pointerup",up); glc.addEventListener("pointercancel",up);
   goBtn.addEventListener("pointerdown",function(ev){ ev.preventDefault(); if(!started||!cur.go) return; touched(); cur.go(); });
   goBtn.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&started&&cur.go){ ev.preventDefault(); touched(); cur.go(); } });
+  stageEl.appendChild(eyeBtn); eyeBtn.addEventListener("click",function(){ if(!immersiveOK()) return; touched(); setImmersive(!imm.on); S.click(); });
   document.getElementById("startBtn").addEventListener("click",function(){
     started=true; ac(); startRumble(); S.click(); document.getElementById("start").hidden=true; demo.token++; demo.active=false; cur.cancel(); runDemo("intro");
   });
@@ -2085,7 +2106,9 @@
     W=stageEl.clientWidth; H=stageEl.clientHeight; if(!W||!H) return;
     renderer.setSize(W,H,false); camera.aspect=W/H; camera.updateProjectionMatrix();
     var d=Math.min(2,window.devicePixelRatio||1); fx.width=Math.round(W*d); fx.height=Math.round(H*d); fctx.setTransform(d,0,0,d,0,0);
-    if(cur){ cam.distWant=cur===maze?fitDist(cur.fit(),0.94,0.8):fitDist(cur.fit()); cam.dist=cam.distWant; }
+    var tiltable=matchMedia("(pointer:coarse)").matches||window.innerHeight<=600;
+    var land=W>H*1.2&&tiltable; if(land!==imm.land){ imm.land=land; if(cur&&cur.name==="word") setImmersive(land); }
+    if(cur&&!imm.on){ cam.distWant=cur===maze?fitDist(cur.fit(),0.94,0.8):fitDist(cur.fit()); cam.dist=cam.distWant; }
   }
 
   // ---------- loop: fixed 1/120 s physics, interpolated drawing ----------
