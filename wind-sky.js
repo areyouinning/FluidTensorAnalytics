@@ -143,7 +143,7 @@ export function mountSky(host, getData) {
   function seedParts(layers) {
     S.parts = [];
     for (let li = 0; li < layers.length; li++) {
-      const want = 150;
+      const want = 260;
       for (let k = 0; k < want; k++) S.parts.push(newPart(li, layers[li]));
     }
   }
@@ -151,7 +151,11 @@ export function mountSky(host, getData) {
     /* Scatter on the plane in a disc around the viewer. The inner radius has to go very
        small or nothing ever passes near the zenith: at 0.35 of the layer height the highest
        any particle can appear is about 70 degrees, so looking straight up showed empty sky. */
-    const r = L.agl * (0.02 + Math.pow(Math.random(), 0.6) * 14);
+    /* Squared, not square-rooted. Spreading them evenly over the disc is the honest
+       distribution, but it piles almost everything out near the horizon where a layer is
+       far away and sub-pixel; biasing inward puts them in the 20-60 degree band people
+       actually look at. This is a choice about where to draw, not about the wind. */
+    const r = L.agl * (0.02 + Math.pow(Math.random(), 2) * 9);
     const a = Math.random() * 360;
     return { li, e: r * Math.sin(a * RAD), n: r * Math.cos(a * RAD), age: Math.random() * 300 | 0 };
   }
@@ -215,18 +219,25 @@ export function mountSky(host, getData) {
       const q = project(az, elev, W, H);
       if (!q) continue;
       /* a short dash pointing the way it is going, longer when it is overhead and quick */
-      const ahead = { e: p.e + v.e * L.speed * 2.2, n: p.n + v.n * L.speed * 2.2 };
-      const d2 = Math.hypot(ahead.e, ahead.n);
-      const q2 = project((Math.atan2(ahead.e, ahead.n) / RAD + 360) % 360, Math.atan2(L.agl, d2) / RAD, W, H);
-      if (!q2) continue;
-      const fade = Math.max(0.32, Math.min(0.95, (elev - 1) / 18));
-      ctx.strokeStyle = SPEED_COLOR(L.speed);
+      /* Bubbles, not streaks. Overhead is near, so a bubble there is large; towards the
+         horizon the same air is far away and shrinks, which is the perspective doing the
+         work rather than a drawn trail. */
+      const fade = Math.max(0.3, Math.min(0.92, (elev - 1) / 18));
+      const r = 1.3 + 5.2 * Math.pow(Math.min(90, elev) / 90, 0.85) - p.li * 0.25;
+      if (r <= 0.4) continue;
       ctx.globalAlpha = fade;
-      ctx.lineWidth = Math.max(1, 2.6 - p.li * 0.4);
+      ctx.fillStyle = SPEED_COLOR(L.speed);
       ctx.beginPath();
-      ctx.moveTo(q[0], q[1]);
-      ctx.lineTo(q2[0], q2[1]);
-      ctx.stroke();
+      ctx.arc(q[0], q[1], r, 0, 6.2832);
+      ctx.fill();
+      /* the catchlight that makes a disc read as a bubble, only where it is big enough to see */
+      if (r > 2.6) {
+        ctx.globalAlpha = fade * 0.55;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(q[0] - r * 0.3, q[1] - r * 0.33, r * 0.3, 0, 6.2832);
+        ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
 

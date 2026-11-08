@@ -99,7 +99,8 @@
   <h2>What it is not</h2>
   <p>This is a toy built from the same ideas as a serious tool, which is not the same as being one. The honest list:</p>
   <ul class="howto" style="font-size:17px;color:var(--ink)">
-    <li><b>The grid is coarse.</b> Cells are a couple of hundred metres across and tens of metres tall. WindNinja solves on a terrain-following mesh that hugs the surface; this one masks out cells whose centres fall below ground, which is blunter exactly where you care most.</li>
+    <li><b>The fine levels are above the lowest ground, not above you.</b> The solver's levels are a metre apart up to 10 m and ten apart up to 100, which is proper resolution where the profile bends hardest — but those heights are measured from the floor of the square, not from each column's own ground. Stand near the low point of the view and the metre-scale levels are at your feet. Stand on a summit three hundred metres above it and they are underground, and your air sits in the stretched part. Measuring from each column instead needs a terrain-following mesh, which is what WindNinja has and this does not.</li>
+    <li><b>It is still coarse sideways.</b> Columns are a couple of hundred metres apart, and the ground is represented by switching whole cells off below the surface rather than by cutting them, which is blunt on a steep slope.</li>
     <li><b>It is steady state.</b> One forecast hour in, one wind field out. No gusts, no turbulence, no time.</li>
     <li><b>No slope flow and no stability model.</b> Real mountain air drains downhill on clear nights and climbs sunlit slopes by day. WindNinja models that; this does not. The over-or-around knob is yours to set by hand instead of being derived from the temperature profile.</li>
     <li><b>The forecast is a point.</b> A real downscaling run can take a whole gridded forecast as input. This takes one column and assumes it applies across the square.</li>

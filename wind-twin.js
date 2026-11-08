@@ -171,8 +171,8 @@ function hourLabel(i) {
 function solve() {
   const h = S.hour, U = S.hours.spd[h], dir = S.hours.dir[h];
   const t0 = performance.now();
-  S.F = buildField(S.dem, { nx: 48, ny: 48, nz: 26, U, dir, z0: S.z0, R: S.R });
-  const res = project(S.F, 400, 1.8);
+  S.F = buildField(S.dem, { nx: 48, ny: 48, U, dir, z0: S.z0, R: S.R });
+  const res = project(S.F, 160, 1.3);
   S.slice = surfaceSlice(S.F, S.zAGL, 96);
   let mx = 0, sum = 0;
   for (let i = 0; i < S.slice.S.length; i++) { mx = Math.max(mx, S.slice.S[i]); sum += S.slice.S[i]; }
@@ -191,7 +191,8 @@ function solve() {
   $('r-div').textContent = res.drop > 50 ? Math.round(res.drop).toLocaleString() + '× less' : 'only ' + res.drop.toFixed(1) + '×';
   S.layers = profileAt(S.hour);
   renderProfile();
-  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across and ${Math.round(S.F.dz)} m tall, with the lid ${Math.round(S.F.top)} m above the lowest ground. Mean speed ${mean.toFixed(1)} m/s.`);
+  const fine = S.F.zf.filter(z => z <= 100).length - 1;
+  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid at ${Math.round(S.F.top)} m. Mean speed ${mean.toFixed(1)} m/s.`);
   startFlow();
 }
 
