@@ -6,9 +6,13 @@ so any word in the family works with no per-word recording. The voice is a clear
 light "crunch" robot effect applied by ffmpeg, which suits stitched phonemes: a robot is meant to
 sound a little segmented.
 
-  audio/phonics/sounds/<letter>.mp3   one sound per grapheme (the /k/ of c, the short /a/, ...)
+  audio/phonics/sounds/<letter>.mp3   one sound per grapheme, for sounding out (c... a... t)
+  audio/phonics/words/<word>.mp3      each whole word, recorded, for the smooth blended "cat!"
   audio/phonics/words/_<name>.mp3     a few spoken rewards
   audio/phonics/manifest.json         the word list (for the game's trie), voice, model, effect
+
+Words are recorded whole (not stitched from the sounds) so the blend is smooth; the sounds are
+still used for the segmented "sound it out" step and for per-letter feedback.
 
 The ElevenLabs key is injected by the session proxy into the xi-api-key header, so this script
 sends a placeholder value. Override the voice/model/effect with the env vars below. ffmpeg is required.
@@ -78,6 +82,8 @@ def main(argv):
     jobs = []
     for lt in letters_used():
         jobs.append(("sound", lt, SOUND_CUE[lt], os.path.join(ROOT, "audio/phonics/sounds", lt + ".mp3")))
+    for w in WORDS:
+        jobs.append(("word", w, w, os.path.join(ROOT, "audio/phonics/words", w + ".mp3")))
     for name, txt in PHRASES.items():
         jobs.append(("phrase", name, txt, os.path.join(ROOT, "audio/phonics/words", "_" + name + ".mp3")))
 

@@ -4,8 +4,9 @@
    The clips and the word list come from /audio/phonics/ (made by scripts/gen_phonics.py). */
 
 const BASE = '/audio/phonics/';
-const soundUrl = l => BASE + 'sounds/' + l + '.mp3';
-const phraseUrl = n => BASE + 'words/_' + n + '.mp3';   // a few spoken rewards; words themselves are stitched from the sounds
+const soundUrl = l => BASE + 'sounds/' + l + '.mp3';     // one grapheme sound, for sounding out
+const wordUrl = w => BASE + 'words/' + w + '.mp3';       // the whole word, recorded, for the smooth blend
+const phraseUrl = n => BASE + 'words/_' + n + '.mp3';
 
 /* a tiny Web Audio engine: decode once, then schedule buffers back to back so a sound-out blends */
 function makeAudio() {
@@ -85,15 +86,15 @@ export default function (fig) {
     path += ch; audio.play([soundUrl(ch)]);   // hear the letter's sound as you add it
     const n = nodeAt(path);
     render();
-    if (n && n.end && !Object.keys(n.next).length) setTimeout(say, 350);   // a finished word: celebrate on its own
+    if (n && n.end) { audio.preload([wordUrl(path)]); if (!Object.keys(n.next).length) setTimeout(say, 350); }   // a finished word: celebrate on its own
   }
 
   async function say() {
     if (!nodeAt(path) || !nodeAt(path).end) return;
-    const word = path, urls = [...word].map(soundUrl); sayBtn.disabled = true; wordEl.classList.add('sounding');
-    await audio.play(urls, { gap: 0.1 });                   // c … a … t
+    const word = path; sayBtn.disabled = true; wordEl.classList.add('sounding');
+    await audio.play([...word].map(soundUrl), { gap: 0.1 });   // c … a … t, from the phoneme clips
     await new Promise(r => setTimeout(r, 180));
-    await audio.play(urls, { rate: 1.12, overlap: 0.045 }); // blended into the word, stitched from the same sounds
+    await audio.play([wordUrl(word)]);                         // the whole word, recorded, so the blend is smooth
     wordEl.classList.remove('sounding'); wordEl.classList.add('pop');
     burst();
     await audio.play([phraseUrl('win')]);
