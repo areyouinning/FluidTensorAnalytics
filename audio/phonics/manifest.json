@@ -1,6 +1,7 @@
 {
-"voice": "21m00Tcm4TlvDq8ikWAM",
+"voice": "EXAVITQu4vr4xnSDxMaL",
 "model": "eleven_turbo_v2_5",
+"effect": "bella-crunch-robot",
 "words": [
 "cat",
 "can",
@@ -88,6 +89,7 @@
 "phrases": [
 "nice",
 "win",
-"try"
+"try",
+"top"
 ]
 }

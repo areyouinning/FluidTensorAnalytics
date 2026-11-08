@@ -5,8 +5,7 @@
 
 const BASE = '/audio/phonics/';
 const soundUrl = l => BASE + 'sounds/' + l + '.mp3';
-const wordUrl = w => BASE + 'words/' + w + '.mp3';
-const phraseUrl = n => BASE + 'words/_' + n + '.mp3';
+const phraseUrl = n => BASE + 'words/_' + n + '.mp3';   // a few spoken rewards; words themselves are stitched from the sounds
 
 /* a tiny Web Audio engine: decode once, then schedule buffers back to back so a sound-out blends */
 function makeAudio() {
@@ -20,11 +19,13 @@ function makeAudio() {
   return {
     ensure, buf,
     preload(urls) { urls.forEach(buf); },
-    /* play a list of urls in order, each after the last, with a gap (seconds); resolves when done */
-    async play(urls, gap) {
-      const c = ensure(); if (!c) return;
+    /* play a list of urls in order; opts.gap spaces them, opts.rate speeds each, opts.overlap pulls the
+       next one in early (so phonemes blend into a word). Resolves when the last has played. */
+    async play(urls, opts) {
+      const c = ensure(); if (!c) return; opts = opts || {};
+      const rate = opts.rate || 1, gap = opts.gap || 0, overlap = opts.overlap || 0;
       const bufs = await Promise.all(urls.map(buf)); let t = c.currentTime + 0.05;
-      bufs.forEach(b => { if (!b) return; const s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(t); t += b.duration + (gap || 0); });
+      bufs.forEach((b, i) => { if (!b) return; const s = c.createBufferSource(); s.buffer = b; s.playbackRate.value = rate; s.connect(c.destination); s.start(t); t += b.duration / rate + gap - (i < bufs.length - 1 ? overlap : 0); });
       return new Promise(r => setTimeout(r, Math.max(0, (t - c.currentTime)) * 1000));
     }
   };
@@ -81,21 +82,21 @@ export default function (fig) {
   }
 
   function pick(ch) {
-    path += ch; audio.play([soundUrl(ch)], 0);   // hear the letter's sound as you add it
+    path += ch; audio.play([soundUrl(ch)]);   // hear the letter's sound as you add it
     const n = nodeAt(path);
     render();
-    if (n && n.end) { audio.preload([wordUrl(path)]); if (!Object.keys(n.next).length) setTimeout(say, 350); }   // a dead-end word: celebrate on its own
+    if (n && n.end && !Object.keys(n.next).length) setTimeout(say, 350);   // a finished word: celebrate on its own
   }
 
   async function say() {
     if (!nodeAt(path) || !nodeAt(path).end) return;
-    const word = path; sayBtn.disabled = true; wordEl.classList.add('sounding');
-    await audio.play([...word].map(soundUrl), 0.12);        // c … a … t
-    await new Promise(r => setTimeout(r, 160));
-    await audio.play([wordUrl(word)], 0);                   // cat!
+    const word = path, urls = [...word].map(soundUrl); sayBtn.disabled = true; wordEl.classList.add('sounding');
+    await audio.play(urls, { gap: 0.1 });                   // c … a … t
+    await new Promise(r => setTimeout(r, 180));
+    await audio.play(urls, { rate: 1.12, overlap: 0.045 }); // blended into the word, stitched from the same sounds
     wordEl.classList.remove('sounding'); wordEl.classList.add('pop');
     burst();
-    await audio.play([phraseUrl('win')], 0);
+    await audio.play([phraseUrl('win')]);
     sayBtn.disabled = false;
     setTimeout(() => { wordEl.classList.remove('pop'); }, 700);
   }
