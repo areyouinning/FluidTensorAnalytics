@@ -22,6 +22,21 @@
   }
 
   window.FTA_THUMBS = {
+    circles: function () {
+      /* the unit circle with its point, and the two legs the angle cuts it into */
+      var cx = 160, cy = 96, r = 62, a = -0.95;
+      var px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
+      var o = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + L + '" stroke-width="2.5"/>';
+      o += line('M' + (cx - 84) + ' ' + cy + 'H' + (cx + 84), S, 1.5, .7);
+      o += line('M' + cx + ' ' + (cy - 84) + 'V' + (cy + 84), S, 1.5, .7);
+      o += rect(cx, py, px - cx, cy - py, B, 0, .16);
+      o += line('M' + cx + ' ' + cy + 'L' + px.toFixed(1) + ' ' + py.toFixed(1), I, 2.5);
+      o += line('M' + cx + ' ' + cy + 'H' + px.toFixed(1), O, 3.5);
+      o += line('M' + px.toFixed(1) + ' ' + cy + 'V' + py.toFixed(1), G, 3.5);
+      o += dot(px, py, 7, P);
+      o += text(cx + 20, cy - 8, 'θ', 15, I, 'middle');
+      return o;
+    },
     windtwin: function () {
       /* a ridge in section, with streamlines lifting over it and speeding up at the crest */
       var o = '', i, x, y, k;
