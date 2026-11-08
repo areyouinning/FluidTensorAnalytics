@@ -191,6 +191,14 @@
     snow: function () { var o = ''; for (var k = 0; k < 3; k++) o += line('M90 40 90 140', B, 5).replace('<path', '<path transform="rotate(' + k * 60 + ' 90 90)"'); [46, 74, 58, 96, 38].forEach(function (h, k) { o += rect(166 + k * 26, 140 - h, 20, h, k === 3 ? O : B, 3); }); return o; },
     peaks: function () { return '<path d="M0 150 58 92l28 26 50-62 42 46 34-30 44 42 64 28V180H0Z" fill="' + B + '" opacity=".75"/><path d="m136 56-18 22 12-4 8 8 10-7 8 4Z" fill="' + W + '"/>' + line('M136 54V24', O, 3) + dot(136, 22, 6, O); },
     pareto: function () { var R = rng(13), o = line('M36 20V152H300', S, 2); for (var k = 0; k < 40; k++) { var x = 44 + R() * 240, f = 18 + 12000 / (x + 60), y = f + R() * 70; o += dot(x.toFixed(0), Math.min(146, y).toFixed(0), 3, L); } for (var x2 = 44; x2 < 290; x2 += 24) o += dot(x2, (18 + 12000 / (x2 + 60)).toFixed(0), 5, O); return o; },
+    phonics: function () { // three letter tiles c a t and a little speaker: sound them out
+      var o = '', L3 = ['c', 'a', 't'], cols = [B, O, G];
+      L3.forEach(function (ch, i) { var x = 40 + i * 78; o += rect(x, 54, 64, 64, W, 14) + text(x + 32, 98, ch, 40, cols[i]); });
+      o += line('M40 140H280', L, 4);
+      o += '<path d="M150 150 l18 -12 v24 z" fill="' + I + '"/>';
+      for (var k = 0; k < 3; k++) o += '<path d="M' + (172 + k * 9) + ' ' + (150 - 6 - k * 3) + ' a ' + (8 + k * 6) + ' ' + (8 + k * 6) + ' 0 0 1 0 ' + (24 + k * 6) + '" fill="none" stroke="' + I + '" stroke-width="3"/>';
+      return o;
+    },
     lti: function () { // a content card slotting into a frame: embed
       var o = rect(28, 30, 150, 120, W, 12) + rect(28, 30, 150, 26, B, 12);
       o += dot(44, 43, 4, W) + dot(58, 43, 4, W);
