@@ -22,6 +22,25 @@
   }
 
   window.FTA_THUMBS = {
+    windtwin: function () {
+      /* a ridge in section, with streamlines lifting over it and speeding up at the crest */
+      var o = '', i, x, y, k;
+      var ter = function (t) { return 150 - 74 * Math.exp(-Math.pow((t - 0.5) * 5.2, 2)); };
+      for (k = 0; k < 6; k++) {
+        var h0 = 134 - k * 21, d = '';
+        for (i = 0; i <= 40; i++) {
+          x = i / 40;
+          var lift = Math.exp(-Math.pow((x - 0.5) * 5.2, 2)) * (74 - k * 9);
+          y = h0 - lift * 0.82;
+          d += (i ? 'L' : 'M') + (10 + x * 300).toFixed(1) + ' ' + y.toFixed(1);
+        }
+        o += line(d, k < 2 ? O : B, k < 2 ? 2.6 : 2, 0.9);
+      }
+      var hd = 'M10 150';
+      for (i = 0; i <= 40; i++) hd += 'L' + (10 + i / 40 * 300).toFixed(1) + ' ' + ter(i / 40).toFixed(1);
+      o += '<path d="' + hd + 'L310 150Z" fill="' + I + '" opacity="0.9"/>';
+      return o;
+    },
     tiling: function () {
       var q = [1, 3, 5, 0, 2, 4], t = [[0, 0, 2, 3], [0, 1, 4, 5], [0, 2, 0, 0], [1, 3, 1, 2], [2, 4, 3, 4], [3, 5, 5, 5], [4, 5, 0, 1], [5, 5, 2, 3]], c = [B, O, P, G], s = 26, x = 82, y = 12, o = rect(x, y, s * 6, s * 6, W);
       t.forEach(function (a, k) { o += rect(x + a[2] * s + 1.5, y + a[0] * s + 1.5, (a[3] - a[2] + 1) * s - 3, (a[1] - a[0] + 1) * s - 3, c[k % 4], 3, .85); });
