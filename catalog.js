@@ -11,6 +11,7 @@ window.FTA_CATALOG = [
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
   { href: '/sound-it-out.html', shelf: 'play', topics: ['kids'], thumb: 'phonics', title: 'Sound It Out', blurb: 'Tap letters to build real words and hear a real voice sound them out and blend them.', fresh: true, kids: true },
   { href: '/kiddos-cloud.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Kiddo's Cloud", blurb: 'Be a rain cloud over Clear Creek. Fly to real places, play, and rain.', kids: true },
+  { href: '/truck-lab.html', shelf: 'play', topics: ['kids'], thumb: 'truck', title: "Paul's Truck Lab", blurb: 'Diggers, dumpers and a crane, with the levers that really move them.', fresh: true, kids: true },
 
   { href: '/tensor-analysis.html', shelf: 'explore', topics: ['tensors'], thumb: 'tensor', title: 'What is a tensor, really?', blurb: 'Build one from three lists, then squeeze 960 numbers into 90.' },
   { href: '/climate-tensor-ops.html', shelf: 'explore', topics: ['tensors', 'water'], thumb: 'cube', title: 'Why is climate data a cube?', blurb: 'Real March 1987 weather, and the shape rules that make the sums easy.' },
@@ -19,6 +20,7 @@ window.FTA_CATALOG = [
   { href: '/navier-stokes-demo.html', shelf: 'explore', topics: ['fluids', 'tensors'], thumb: 'stir', title: 'What happens when you stir?', blurb: 'Drag through a live fluid and see how it spins and stretches.' },
   { href: '/navier-stokes-3d-demo.html', shelf: 'explore', topics: ['fluids'], thumb: 'barrier', title: 'What if you pull the wall between two fluids?', blurb: 'Set two densities, remove the barrier, watch it mix in 3D.' },
   { href: '/optimal-channel-networks.html', shelf: 'explore', topics: ['fluids', 'water'], thumb: 'river', title: 'Why do rivers branch the way they do?', blurb: 'Grow a drainage network by minimizing one number.' },
+  { href: '/rivers-all-the-way-down.html', shelf: 'explore', topics: ['fluids', 'water', 'math'], thumb: 'riverlog', title: 'What does a river sound like?', blurb: 'A branching network, its logarithm, and the scale step you can hear. One translation drives all four panels.', fresh: true },
   { href: '/votes-as-rain.html', shelf: 'explore', topics: ['fluids'], thumb: 'rain', title: 'What if votes fell like rain?', blurb: 'U.S. House votes land on their counties and mix as a fluid.' },
   { href: '/remix-sphere.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'sphere', title: 'How do you pick a random point in a ball?', blurb: 'Four methods. Two are wrong, and you can see it from the right angle.' },
   { href: '/photosynthesis-quantum.html', shelf: 'explore', topics: ['math'], thumb: 'exciton', title: 'Does photosynthesis run on quantum coherence?', blurb: 'Watch energy cross seven pigments, and find out why a little noise helps it arrive.', fresh: true },
