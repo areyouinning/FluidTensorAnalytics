@@ -3,6 +3,8 @@
    leaving fading trails, coloured by speed. The physics lives in diagrams/windcore.js. */
 import { fetchDEM, buildField, project, surfaceSlice, sampleBilinear, syntheticHill, logSpeed } from './diagrams/windcore.js';
 import { mountSky, compass, fmtH } from './wind-sky.js';
+import { windForFlight, groundAt } from './diagrams/windcore.js';
+import { fly } from './diagrams/discflight.js';
 
 /* Pressure levels are reported wherever they fall, which over high ground is often BELOW it:
    at 1641 m in Westminster the 1000 and 925 hPa levels come back at 142 m and 810 m above sea
@@ -13,7 +15,8 @@ const $ = id => document.getElementById(id);
 const S = {
   lat: 39.8366, lon: -105.0372, place: 'Westminster, Colorado',
   hours: null, hour: 0, dem: null, F: null, slice: null,
-  R: 1, z0: 0.2, zAGL: 10, span: 12000, busy: false, anim: 0
+  R: 1, z0: 0.2, zAGL: 10, span: 12000, busy: false, anim: 0,
+  bearing: 90, speed: 25, angle: 12, stability: 0, shots: null
 };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -65,9 +68,11 @@ async function geocode(name) {
 
 /* ---------- drawing the ground ---------- */
 function hillshade() {
-  const cv = $('ground'), dem = S.dem;
+  const dem = S.dem;
   if (!dem) return;
-  const n = dem.n, px = cv.width = cv.height = n;
+  const cv = $('ground');
+  const n = dem.n;
+  cv.width = cv.height = n;
   const ctx = cv.getContext('2d');
   const img = ctx.createImageData(n, n);
   const rng = Math.max(1, dem.hi - dem.lo), dark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -91,6 +96,7 @@ function hillshade() {
     img.data[o + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
+  /* the disc panel crops this same image to its own zoom, in drawDisc */
 }
 
 /* ---------- particles, after nullschool ---------- */
@@ -191,6 +197,7 @@ function solve() {
   $('r-div').textContent = res.drop > 50 ? Math.round(res.drop).toLocaleString() + '× less' : 'only ' + res.drop.toFixed(1) + '×';
   S.layers = profileAt(S.hour);
   renderProfile();
+  throwDisc();
   const fine = S.F.zf.filter(z => z <= 100).length - 1;
   note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid at ${Math.round(S.F.top)} m. Mean speed ${mean.toFixed(1)} m/s.`);
   startFlow();
@@ -224,6 +231,100 @@ async function load(lat, lon, label) {
     S.busy = false;
     $('go').disabled = false;
   }
+}
+
+/* ---------- the disc ----------
+   Two throws, same release: one through the solved field, one through still air. The gap
+   between the lines is the terrain's contribution, which is the only reason this is here. */
+function throwDisc() {
+  if (!S.F) return;
+  const opts = {
+    speed: S.speed, angle: S.angle, stability: S.stability, bearing: S.bearing,
+    hyzer: 0, nose: -2, spin: 1200, rhbh: true,
+    ground: (x, y) => groundAt(S.F, x, y),
+    startZ: groundAt(S.F, 0, 0) + 1.5
+  };
+  const live = fly(opts, (x, y, z) => windForFlight(S.F, x, y, z));
+  const calm = fly(opts, null);
+  S.shots = { live, calm };
+
+  const d = live.distance - calm.distance;
+  $('d-dist').textContent = live.distance.toFixed(0) + ' m';
+  $('d-still').textContent = calm.distance.toFixed(0) + ' m';
+  $('d-delta').textContent = (d >= 0 ? '+' : '') + d.toFixed(0) + ' m';
+  const a = live.across;
+  $('d-finish').textContent = Math.abs(a) < 2 ? 'straight' : Math.abs(a).toFixed(0) + ' m ' + (a > 0 ? 'right' : 'left');
+  $('d-peak').textContent = (live.peak - groundAt(S.F, 0, 0)).toFixed(1) + ' m';
+  $('d-time').textContent = live.time.toFixed(1) + ' s';
+  $('d-note').textContent = live.landed
+    ? `Thrown ${compass(S.bearing)} at ${S.speed} m/s. The wind ${Math.abs(d) < 2 ? 'barely touched it' : (d > 0 ? 'added ' + d.toFixed(0) + ' m' : 'took ' + (-d).toFixed(0) + ' m')}.`
+    : 'The disc left the square before landing — try a slower throw or a wider view.';
+  drawDisc();
+}
+
+function drawDisc() {
+  const cv = $('disc'), box = cv.parentElement.getBoundingClientRect();
+  const side = Math.round(Math.min(box.width, 560));
+  cv.width = side; cv.height = side;
+  $('ground2').style.width = cv.style.width = side + 'px';
+  $('ground2').style.height = cv.style.height = side + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, side, side);
+  if (!S.shots) return;
+
+  /* A throw is about a hundred metres and the map is twelve kilometres, so on the map's own
+     scale the whole flight is three pixels wide. This panel zooms to the throw. */
+  const reach = Math.max(S.shots.live.distance, S.shots.calm.distance, 60);
+  const span = Math.max(150, reach * 2.4);
+  const X = x => side / 2 + x / span * side;
+  const Y = y => side / 2 - y / span * side;
+
+  /* the same hillshade, cropped to that window */
+  const src = $('ground'), g2 = $('ground2');
+  if (src && src.width && g2) {
+    g2.width = g2.height = side;
+    const n = src.width, r = Math.min(n / 2, span / S.span * n / 2);
+    const gx = g2.getContext('2d');
+    gx.imageSmoothingEnabled = true;
+    gx.clearRect(0, 0, side, side);
+    gx.drawImage(src, n / 2 - r, n / 2 - r, 2 * r, 2 * r, 0, 0, side, side);
+  }
+
+  /* a scale bar, because the zoom changes with every throw */
+  const barM = span >= 600 ? 100 : span >= 300 ? 50 : 25;
+  const barPx = barM / span * side;
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(14, side - 18); ctx.lineTo(14 + barPx, side - 18);
+  ctx.moveTo(14, side - 22); ctx.lineTo(14, side - 14);
+  ctx.moveTo(14 + barPx, side - 22); ctx.lineTo(14 + barPx, side - 14);
+  ctx.stroke();
+  ctx.font = '600 12px system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(barM + ' m', 14, side - 26);
+
+  const line = (path, col, width, dash) => {
+    ctx.strokeStyle = col; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    path.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+  line(S.shots.calm.path, 'rgba(255,255,255,0.45)', 2, [6, 5]);
+  line(S.shots.live.path, '#FF8A5C', 3);
+
+  const end = S.shots.live.path[S.shots.live.path.length - 1];
+  const cEnd = S.shots.calm.path[S.shots.calm.path.length - 1];
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.arc(X(cEnd[0]), Y(cEnd[1]), 4, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#FF8A5C';
+  ctx.beginPath(); ctx.arc(X(end[0]), Y(end[1]), 6.5, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(X(0), Y(0), 5, 0, 6.2832); ctx.fill();
+  ctx.font = '600 13px system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fillText('you', X(0) + 9, Y(0) + 4);
 }
 
 /* the column of air above you, listed highest first the way you would meet it looking up */
@@ -279,6 +380,12 @@ function wire() {
   bind('agl', 'zAGL', v => v + ' m', () => { S.slice = surfaceSlice(S.F, S.zAGL, 96); startFlow(); });
   bind('rough', 'z0', v => v.toFixed(2) + ' m', solve);
   bind('span', 'span', v => (v / 1000) + ' km', () => load(S.lat, S.lon, S.place));
+
+  /* the disc: these only re-throw, they never re-solve the wind */
+  bind('bearing', 'bearing', v => compass(v) + ' ' + v + '°', throwDisc);
+  bind('speed', 'speed', v => v + ' m/s', throwDisc);
+  bind('angle', 'angle', v => v + '°', throwDisc);
+  bind('stability', 'stability', v => v < -0.4 ? 'understable ' + v : v > 0.4 ? 'overstable +' + v : 'neutral', throwDisc);
 
   addEventListener('resize', () => { if (S.slice) startFlow(); });
 }

@@ -74,6 +74,30 @@
   </div>
   <p class="nojs note" id="note">Starting up.</p>
 
+  <h2>Throw something through it</h2>
+  <p>A wind field is abstract until something has to fly through it. This throws a disc from the middle of the square, through the air the solver worked out, and draws the same throw again in still air beside it. The gap between the two lines is what the terrain did to your shot.</p>
+  <div class="stack" style="margin-top:14px">
+    <canvas id="ground2" aria-hidden="true"></canvas>
+    <canvas id="disc" role="img" aria-label="A disc trajectory over the terrain, with the same throw in still air for comparison"></canvas>
+  </div>
+  <div class="ctl">
+    <label>Throw toward<input type="range" id="bearing" min="0" max="350" step="10" value="90"><output id="bearing-out"></output></label>
+    <label>Arm speed<input type="range" id="speed" min="12" max="32" step="1" value="25"><output id="speed-out"></output></label>
+    <label>Launch angle<input type="range" id="angle" min="-5" max="30" step="1" value="12"><output id="angle-out"></output></label>
+    <label>Disc<input type="range" id="stability" min="-3" max="3" step="0.5" value="0"><output id="stability-out"></output></label>
+  </div>
+  <div class="read">
+    <div class="stat"><small>Carry in this wind</small><b id="d-dist">–</b></div>
+    <div class="stat"><small>In still air</small><b id="d-still">–</b></div>
+    <div class="stat"><small>The wind's doing</small><b id="d-delta">–</b></div>
+    <div class="stat"><small>Finishes</small><b id="d-finish">–</b></div>
+    <div class="stat"><small>Highest point</small><b id="d-peak">–</b></div>
+    <div class="stat"><small>Seconds aloft</small><b id="d-time">–</b></div>
+  </div>
+  <p class="nojs note" id="d-note">Pick a place first, then throw.</p>
+  <p>The flight model is the one behind the site's <a href="/disc-flight-simulator.html">Disc Flight Simulator</a>, with the wind put where it belongs. That page treated wind as a sideways shove on the disc. Wind does not shove a wing, it changes the air it is moving through — so here it enters the relative airflow, and lift, drag and the angle of attack all follow from that. A headwind therefore makes the disc climb and float, which is what a headwind really does, rather than pushing it backwards.</p>
+  <div class="note"><p>The coefficients are fitted, not measured, and they differ from that page's. Its numbers landed a 25 m/s drive at 25 m — about a quarter of the real thing — so drag, lift, turn and fade were all refitted here against a throw you can pace out: 25 m/s at 12&deg; carries 88 m in six seconds, an understable disc finishing right and an overstable one left. Treat it as a believable disc, not a measured one.</p></div>
+
   <h2>The column above you</h2>
   <p>The twin solves the air near the ground, where terrain decides things. Above that, the forecast carries its own profile: the wind a kilometre up is usually faster, and often pointing somewhere else entirely. <b>Look up</b> puts those layers over your camera, each drifting at the speed and bearing the forecast gives it.</p>
   <div id="profile"></div>
