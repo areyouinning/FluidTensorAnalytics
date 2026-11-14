@@ -22,6 +22,39 @@
   }
 
   window.FTA_THUMBS = {
+    truck: function () {
+      /* a digger in side view: boom, stick, bucket, and the ground it bites */
+      var o = rect(0, 140, 320, 40, L);
+      o += rect(96, 86, 92, 46, O, 7);                       // body
+      o += rect(104, 62, 44, 30, B, 5);                      // cab
+      o += line('M176 100 L228 58', I, 9);                   // boom
+      o += line('M228 58 L254 100', I, 8);                   // stick
+      o += '<path d="M248 96 L276 104 L268 126 L242 116 Z" fill="' + G + '"/>';
+      o += dot(120, 138, 20, I) + dot(120, 138, 9, W);
+      o += dot(170, 138, 20, I) + dot(170, 138, 9, W);
+      o += dot(228, 58, 6, P);                               // the pivot
+      return o;
+    },
+    riverlog: function () {
+      /* a branching network on the left, the same lengths laid out as even steps on the right */
+      var o = '', seed = 11;
+      function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+      function branch(x, y, a, len, d) {
+        if (d === 0) return;
+        var x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+        o += line('M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'L' + x2.toFixed(1) + ' ' + y2.toFixed(1), B, d * 1.1, .95);
+        branch(x2, y2, a - 0.42 - rnd() * 0.22, len * 0.72, d - 1);
+        branch(x2, y2, a + 0.42 + rnd() * 0.22, len * 0.72, d - 1);
+      }
+      branch(78, 166, -Math.PI / 2, 42, 5);
+      for (var k = 0; k < 5; k++) {                          // the even steps it becomes
+        var yy = 150 - k * 26;
+        o += line('M196 ' + yy + 'H' + (214 + k * 20), k < 2 ? O : P, 5, .95);
+        o += dot(196, yy, 3.5, S);
+      }
+      o += text(246, 172, 'log', 16, S);
+      return o;
+    },
     circles: function () {
       /* the unit circle with its point, and the two legs the angle cuts it into */
       var cx = 160, cy = 96, r = 62, a = -0.95;
