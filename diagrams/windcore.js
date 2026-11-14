@@ -38,12 +38,17 @@ export const lat2y = (lat, z) => {
 export const mPerDegLat = 111132.9;
 export const mPerDegLon = lat => 111320 * Math.cos(lat * Math.PI / 180);
 
-function loadTile(z, x, y) {
+/* An <img> that never loads and never errors leaves its promise hanging forever, and every
+   caller of this is inside a Promise.all — so one stalled tile holds up the whole map. Give
+   it a clock. A tile that misses the deadline is treated exactly like one that 404s: the
+   caller counts it as missing and says so on the page. */
+function loadTile(z, x, y, ms = 12000) {
   return new Promise((ok, no) => {
     const img = new Image();
+    const t = setTimeout(() => { img.src = ''; no(new Error('tile ' + z + '/' + x + '/' + y + ' timed out')); }, ms);
     img.crossOrigin = 'anonymous';
-    img.onload = () => ok(img);
-    img.onerror = () => no(new Error('tile ' + z + '/' + x + '/' + y));
+    img.onload = () => { clearTimeout(t); ok(img); };
+    img.onerror = () => { clearTimeout(t); no(new Error('tile ' + z + '/' + x + '/' + y)); };
     img.src = `${TILES}/${z}/${x}/${y}.png`;
   });
 }
