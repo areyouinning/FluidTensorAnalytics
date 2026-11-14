@@ -329,7 +329,7 @@ function solve() {
   const h = S.hour, U = S.hours.spd[h], dir = S.hours.dir[h];
   const t0 = performance.now();
   S.F = buildField(S.dem, { nx: 48, ny: 48, U, dir, z0: S.z0, R: S.R });
-  const res = project(S.F, 160, 1.3);
+  const res = project(S.F, 160, 1.8);
   S.slice = surfaceSlice(S.F, S.zAGL, 96);
   let mx = 0, sum = 0;
   for (let i = 0; i < S.slice.S.length; i++) { mx = Math.max(mx, S.slice.S[i]); sum += S.slice.S[i]; }
@@ -350,7 +350,7 @@ function solve() {
   renderProfile();
   throwDisc();
   const fine = S.F.zf.filter(z => z <= 100).length - 1;
-  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid at ${Math.round(S.F.top)} m. Mean speed ${mean.toFixed(1)} m/s.`);
+  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} terrain-following grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid, which is flat ${Math.round(S.F.top)} m above the lowest ground. Every column starts at its own ground, so that first metre is a metre above the surface wherever you point — valley floor or summit. Mean speed ${mean.toFixed(1)} m/s.`);
   startFlow();
 }
 
