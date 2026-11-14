@@ -2,7 +2,7 @@
    One knob: how expensive vertical adjustment is. Cheap and the air climbs; dear and it leaves
    the slice sideways, which is what going "around" looks like when you are watching a cross-section. */
 import { svg, el, clear, label, controls, slider, readouts, C } from './kit.js';
-import { syntheticHill, buildField, project, levelAt } from './windcore.js';
+import { syntheticHill, buildField, project, levelAtColumn } from './windcore.js';
 
 const NX = 34, NY = 26, SPAN = 9000, RELIEF = 420;
 const DEM = syntheticHill(64, SPAN, RELIEF);
@@ -12,26 +12,26 @@ function solveAt(R) {
   const key = R.toFixed(2);
   if (cache.has(key)) return cache.get(key);
   const F = buildField(DEM, { nx: NX, ny: NY, U: 8, dir: 270, z0: 0.2, R });
-  project(F, 120, 1.3);
+  project(F, 120, 1.8);
   const NZ = F.nz;
   const j = NY >> 1;
   /* centre-of-cell velocities on the slice, plus how much air is leaving it sideways */
   const u = new Float32Array(NX * NZ), w = new Float32Array(NX * NZ), out = new Float32Array(NX * NZ);
   let side = 0, vert = 0, n = 0, crest = 0, upwind = 0;
+  /* The mesh follows the terrain, so every cell in the slice is air and none of it is rock;
+     k is a level above THIS column's own ground, not a height above the lowest point. */
   for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) {
-    const c = F.cid(i, j, k), o = k * NX + i;
-    if (F.solid[c]) { out[o] = NaN; continue; }
+    const o = k * NX + i;
     u[o] = (F.u[F.uid(i, j, k)] + F.u[F.uid(i + 1, j, k)]) / 2;
     w[o] = (F.w[F.wid(i, j, k)] + F.w[F.wid(i, j, k + 1)]) / 2;
     const vv = (F.v[F.vid(i, j, k)] + F.v[F.vid(i, j + 1, k)]) / 2;
     out[o] = Math.abs(vv);
     side += vv * vv; vert += w[o] * w[o]; n++;
   }
-  /* speed just above the ground, upwind shoulder against the crest */
-  const col = (i) => {
-    for (let k = 0; k < NZ; k++) if (!F.solid[F.cid(i, j, k)]) return Math.hypot(u[k * NX + i], w[k * NX + i]);
-    return 0;
-  };
+  /* speed just above the ground, upwind shoulder against the crest. Level 0 is half a metre
+     above the surface in every column now, so the two readings are taken at the same height
+     above their own ground and the comparison means something. */
+  const col = (i) => Math.hypot(u[i], w[i]);
   upwind = col(3); crest = col(NX >> 1);
   const res = {
     u, w, F, j, NZ,
@@ -51,7 +51,11 @@ export default function (fig) {
 
   function draw(R) {
     const S = solveAt(R), F = S.F;
-    const H = F.top;
+    /* The solver's lid sits about eight times the relief up, where the crest speed-up stops
+       moving. Drawing that whole column would shrink the hill to a bump, so the picture keeps
+       its own window on the bottom of the domain — the solve is unchanged, the frame is not
+       the lid. */
+    const H = Math.min(F.top, 2.2 * RELIEF + 800);
     const X = i => 10 + i / NX * 340;
     const Y = z => 200 - (z - base) / H * 176;
     clear(g);
@@ -65,10 +69,9 @@ export default function (fig) {
     /* streamlines traced through the slice; they stop where air leaves it */
     const sampleAt = (x, z) => {
       const i = Math.max(0, Math.min(NX - 1, Math.round((x - 10) / 340 * NX - .5)));
-      const k = levelAt(F, z - base);
+      if (z < S.ter[i]) return null;                 // below this column's ground
+      const k = levelAtColumn(F, i, S.j, z);         // this column's level for that height
       const o = k * NX + i;
-      if (Number.isNaN(S.u[o]) && Number.isNaN(S.w[o])) return null;
-      if (F.solid[F.cid(i, S.j, k)]) return null;
       return { u: S.u[o], w: S.w[o] };
     };
     for (let line = 0; line < 9; line++) {

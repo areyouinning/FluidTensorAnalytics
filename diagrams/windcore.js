@@ -17,10 +17,24 @@
    climbs the ridge. R < 1 makes it expensive, so air goes around. WindNinja ties that ratio
    to atmospheric stability; here it is a slider.
 
-   Differences from WindNinja, stated plainly: it solves on a terrain-following finite element
-   mesh, this solves on a staggered Cartesian grid with cells below ground masked out. Both
-   enforce the same constraint and the same impermeable ground, but the near-surface geometry
-   is coarser here. There is no diurnal slope flow and no non-neutral stability. */
+   The mesh follows the terrain, as WindNinja's does. Every column starts at its own ground
+   and ends at the same flat lid, so the metre-scale levels are a metre above the surface
+   wherever you stand — on the valley floor and on the summit alike. There are no masked
+   cells and no rock: the ground is a boundary, not a hole in the grid.
+
+   The coordinate, written out, is a hybrid sigma. Let s run from 0 at the ground to the lid
+   depth, and let g be how far this column's ground stands above the lowest ground in the
+   square. Then
+
+       z(s) = base + s + g B(s),     B(0) = 1,  B(lid) = 0
+
+   so near the surface (B = 1) height above ground is exactly s, identical for every column,
+   and by the lid the terrain's influence has been blended away to a flat ceiling. The
+   vertical stretch of a column is J = dz/ds = 1 + g B'(s), which is 1 near the ground and
+   shrinks aloft over the high columns, because they have less air above them.
+
+   Differences from WindNinja that remain: it uses finite elements, this uses finite volumes
+   on the same kind of mesh; there is no diurnal slope flow and no non-neutral stability. */
 
 export const KARMAN = 0.41;
 
@@ -118,16 +132,15 @@ export function dirToVec(deg) {
   return { ex: Math.sin(r), ey: Math.cos(r) };
 }
 
-/* Where the horizontal levels sit, as heights above the domain floor. Fine at the bottom,
-   because that is where the answer is wanted and where the profile bends hardest: every
-   metre to 10, every ten to 100, then stretching geometrically up to the lid.
+/* Where the levels sit in the computational coordinate s. Fine at the bottom, because that
+   is where the answer is wanted and where the profile bends hardest: every metre to 10,
+   every ten to 100, then stretching geometrically up to the lid.
 
-   The honest caveat: these are heights above the LOWEST ground in the square, not above each
-   column's own ground. Where you stand near the floor of the view — a valley, a plain, most
-   back gardens — the metre-scale levels are genuinely at your feet. On a summit that stands
-   hundreds of metres above the lowest point, those fine levels are underground for that
-   column and its lowest air sits in the stretched part. Fixing that properly means a
-   terrain-following mesh, which is what WindNinja uses and what this is not. */
+   Near the ground the mesh has B = 1, so s IS height above that column's own ground, and
+   these spacings mean what they say for every column in the square — the valley floor and
+   the summit get the same metre-scale levels at their own feet. Higher up, where the mesh
+   blends to a flat lid, a level's height above ground shrinks over high ground, which is
+   just the statement that a summit has less air above it. */
 export function levels(top) {
   const zf = [];
   for (let z = 0; z <= 10; z++) zf.push(z);                  // every metre
@@ -140,22 +153,47 @@ export function levels(top) {
   return Float64Array.from(zf);
 }
 
-/* ---------- the grid ----------
-   Staggered (MAC): u on x-faces, v on y-faces, w on z-faces, L at cell centres. Divergence
-   is then exact on each cell and the Laplacian is the natural one, with no checkerboard.
-   Levels are non-uniform, so every vertical term carries its own spacing: a cell's own
-   thickness for divergence, the gap between neighbouring centres for gradients. Pairing
-   those two the wrong way round breaks the projection quietly. */
+/* ---------- the mesh ----------
+   Staggered (MAC) in the computational coordinates (x, y, s): u on x-faces, v on y-faces,
+   and on the s-faces NOT the physical vertical velocity but the contravariant one,
+
+       omega = w - u dz/dx - v dz/dy      (the flow THROUGH a tilted s-surface)
+
+   which is the quantity that must vanish at the ground. Storing omega rather than w is what
+   makes the impermeable-ground condition one line instead of a mask, and what keeps the
+   projection's operator diagonal. Physical w is diagnosed afterwards for anything that has
+   to fly through the field.
+
+   Why this shape of the problem stays easy: the x-face of a computational cell has area
+   vector (J dy ds, 0, 0) — purely x, because x is untouched by the transform — and the
+   s-face has area vector dx dy (-dz/dx, -dz/dy, 1), whose dot with the velocity is exactly
+   dx dy omega. So the net volume flux out of a cell is a plain six-term difference, and the
+   minimisation done on those fluxes gives an operator and a correction that agree term for
+   term. The terrain's slope enters through the initial omega and through J, not through
+   cross-derivatives bolted onto a Laplacian. */
 export function buildField(dem, opt = {}) {
   const nx = opt.nx || 64, ny = opt.ny || 64;
   const z0 = opt.z0 ?? 0.2, Uref = opt.U ?? 5, zRef = opt.zRef ?? 10, dirDeg = opt.dir ?? 270;
-  /* Metres above the lowest ground. The lid has to clear the terrain by a good margin or it
-     absorbs the flow instead of squeezing it: measured on a 400 m ridge, a lid at 2.3x the
-     relief gave a crest SLOWDOWN of 0.55x, while 4x and above converge on a 1.58x speed-up. */
-  const top = opt.top ?? Math.max(1200, 4 * (dem.hi - dem.lo));
-  const zf = opt.zf || levels(top);
+  /* Depth of the computational domain, in metres above the lowest ground. The lid has to
+     clear the terrain by a good margin or it absorbs the flow instead of squeezing it:
+     measured on a 400 m ridge, a lid at 2.3x the relief gave a crest SLOWDOWN of 0.55x.
+
+     The margin that counts has MOVED with this mesh, and the old number is no longer the
+     right one. On the masked Cartesian grid the crest ratio had settled by 4x. On the
+     terrain-following mesh the same ridge reads 1.72 at a lid of 4.1x, 1.80 at 5.8x and
+     1.84 at 8.1x, where it stops moving (11.5x also gives 1.85). Four times the relief is
+     now 7% low. Asking for 6x lands the first level past it at about 8x, which is where it
+     converges, and costs four more levels. */
+  const relief = Math.max(1e-6, dem.hi - dem.lo);
+  const want = opt.top ?? Math.max(1200, 6 * relief);
+  const zf = opt.zf || levels(want);
   const nz = zf.length - 1;
-  /* zc: centre height of each level. ds: its thickness. dsf: gap between centres across
+  /* levels() stops at the first face PAST the depth asked for, so the real lid is zf[nz],
+     not `want`. Everything about the mesh has to be measured against the real one: a blend
+     whose ramp ends at `want` keeps going past the bottom of its cosine, which turns the
+     stretch back upwards and leaves the lid tilted by most of the relief. */
+  const top = zf[nz];
+  /* zc: centre of each level in s. ds: its thickness. dsf: gap between centres across
      face k, with the half-cells at the ground and the lid. */
   const zc = new Float64Array(nz), ds = new Float64Array(nz), dsf = new Float64Array(nz + 1);
   for (let k = 0; k < nz; k++) { zc[k] = (zf[k] + zf[k + 1]) / 2; ds[k] = zf[k + 1] - zf[k]; }
@@ -165,68 +203,131 @@ export function buildField(dem, opt = {}) {
   const dx = dem.spanM / nx, dy = dem.spanM / ny;
   const base = dem.lo;
 
-  /* terrain height sampled onto the solver's own columns */
-  const ter = new Float32Array(nx * ny);
+  /* The blend B(s): flat 1 while the mesh is still hugging the ground, then a cosine ramp
+     to 0 at the lid. The ramp has to be long enough that it never folds the mesh over —
+     J = 1 + g B' must stay positive, and B' peaks at pi/(2 ramp). Holding the ramp at two
+     thirds of the domain depth keeps the worst case at J = 0.41 on the highest column,
+     since the lid is at least four times the relief. */
+  const sFlat = top / 3, ramp = top - sFlat;
+  const blend = s => s <= sFlat ? 1 : s >= top ? 0 : (1 + Math.cos(Math.PI * (s - sFlat) / ramp)) / 2;
+  const dBlend = s => (s <= sFlat || s >= top) ? 0 : -Math.PI * Math.sin(Math.PI * (s - sFlat) / ramp) / (2 * ramp);
+  const Bc = new Float64Array(nz), dBc = new Float64Array(nz);
+  const Bf = new Float64Array(nz + 1), dBf = new Float64Array(nz + 1);
+  for (let k = 0; k < nz; k++) { Bc[k] = blend(zc[k]); dBc[k] = dBlend(zc[k]); }
+  for (let k = 0; k <= nz; k++) { Bf[k] = blend(zf[k]); dBf[k] = dBlend(zf[k]); }
+
+  /* terrain height sampled onto the solver's own columns, and how far each column's ground
+     stands above the lowest ground — the only terrain quantity the mesh needs */
+  const ter = new Float32Array(nx * ny), grel = new Float32Array(nx * ny);
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const si = Math.min(dem.n - 1, Math.floor((i + .5) / nx * dem.n));
     const sj = Math.min(dem.n - 1, Math.floor((j + .5) / ny * dem.n));
-    ter[j * nx + i] = dem.h[sj * dem.n + si];
+    const e = dem.h[sj * dem.n + si];
+    ter[j * nx + i] = e; grel[j * nx + i] = e - base;
   }
-  /* solid = cell centre below ground */
-  const solid = new Uint8Array(nx * ny * nz);
-  const cid = (i, j, k) => (k * ny + j) * nx + i;
-  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    if (base + zc[k] < ter[j * nx + i]) solid[cid(i, j, k)] = 1;
+  const colG = (i, j) => grel[Math.max(0, Math.min(ny - 1, j)) * nx + Math.max(0, Math.min(nx - 1, i))];
+  /* terrain slope per column, central difference, clamped at the edges */
+  const gx = new Float32Array(nx * ny), gy = new Float32Array(nx * ny);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    gx[j * nx + i] = (colG(i + 1, j) - colG(i - 1, j)) / (2 * dx);
+    gy[j * nx + i] = (colG(i, j + 1) - colG(i, j - 1)) / (2 * dy);
   }
 
-  const { ex, ey } = dirToVec(dirDeg);
-  const u = new Float32Array((nx + 1) * ny * nz), v = new Float32Array(nx * (ny + 1) * nz), w = new Float32Array(nx * ny * (nz + 1));
+  const cid = (i, j, k) => (k * ny + j) * nx + i;
   const uid = (i, j, k) => (k * ny + j) * (nx + 1) + i;
   const vid = (i, j, k) => (k * (ny + 1) + j) * nx + i;
   const wid = (i, j, k) => (k * ny + j) * nx + i;
+  const { ex, ey } = dirToVec(dirDeg);
+  const u = new Float32Array((nx + 1) * ny * nz), v = new Float32Array(nx * (ny + 1) * nz);
+  const om = new Float64Array(nx * ny * (nz + 1)), w = new Float32Array(nx * ny * (nz + 1));
 
-  /* initial field: the forecast's log profile in height above the local ground, blown
-     in one direction. This is WindNinja's domain-average initialisation. */
-  const colTer = (i, j) => ter[Math.max(0, Math.min(ny - 1, j)) * nx + Math.max(0, Math.min(nx - 1, i))];
+  /* Initial field: the forecast's log profile in height above the local ground, blown in one
+     direction. Height above ground is now exact per column — s minus the part of the column's
+     own relief the blend has already given back — rather than a height above the lowest
+     ground that happened to land inside the hill. */
   for (let k = 0; k < nz; k++) {
-    const zAbs = base + zc[k];
+    const shed = 1 - Bc[k];                       // how much of g this level has shed
     for (let j = 0; j < ny; j++) {
       for (let i = 0; i <= nx; i++) {
-        const g = (colTer(i - 1, j) + colTer(i, j)) / 2;
-        u[uid(i, j, k)] = ex * logSpeed(Uref, zRef, zAbs - g, z0);
+        const g = (colG(i - 1, j) + colG(i, j)) / 2;
+        u[uid(i, j, k)] = ex * logSpeed(Uref, zRef, zc[k] - g * shed, z0);
       }
     }
     for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
-      const g = (colTer(i, j - 1) + colTer(i, j)) / 2;
-      v[vid(i, j, k)] = ey * logSpeed(Uref, zRef, zAbs - g, z0);
+      const g = (colG(i, j - 1) + colG(i, j)) / 2;
+      v[vid(i, j, k)] = ey * logSpeed(Uref, zRef, zc[k] - g * shed, z0);
     }
   }
-  /* w starts at zero, exactly as WindNinja initialises it */
-  return { nx, ny, nz, dx, dy, zf, zc, ds, dsf, dzNear: ds[0], base, top, ter, solid, u, v, w, cid, uid, vid, wid, dem, R: opt.R ?? 1, z0, Uref, zRef, dirDeg };
+  const F = {
+    nx, ny, nz, dx, dy, zf, zc, ds, dsf, dzNear: ds[0], base, top, relief, sFlat,
+    ter, grel, gx, gy, Bc, dBc, Bf, dBf, u, v, om, w,
+    cid, uid, vid, wid, dem, R: opt.R ?? 1, z0, Uref, zRef, dirDeg
+  };
+  /* Physical w starts at zero, exactly as WindNinja initialises it. In this coordinate that
+     is NOT omega = 0: air moving horizontally across a slope is crossing the s-surfaces, and
+     omega records that. Setting omega to zero instead would be asserting a perfect drape and
+     quietly doing the solver's job for it. */
+  for (let k = 0; k <= nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const c = wid(i, j, k);
+    const [uf, vf] = faceUV(F, i, j, k);
+    om[c] = -(uf * gx[j * nx + i] * Bf[k] + vf * gy[j * nx + i] * Bf[k]);
+  }
+  applyWalls(F);
+  diagnoseW(F);
+  return F;
 }
 
-/* zero every face that touches ground, so no air blows through rock */
+/* u and v interpolated to the centre of s-face k: average across the face in the horizontal,
+   and across the two levels the face separates. */
+function faceUV(F, i, j, k) {
+  const { nx, ny, nz, uid, vid, u, v } = F;
+  const lev = kk => {
+    const a = (u[uid(i, j, kk)] + u[uid(i + 1, j, kk)]) / 2;
+    const b = (v[vid(i, j, kk)] + v[vid(i, j + 1, kk)]) / 2;
+    return [a, b];
+  };
+  if (k === 0) return lev(0);
+  if (k >= nz) return lev(nz - 1);
+  const a = lev(k - 1), b = lev(k);
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+}
+
+/* The vertical stretch J = dz/ds of a column, at a cell centre and at an s-face. 1 near the
+   ground, smaller aloft over high ground. */
+export const Jc = (F, i, j, k) => 1 + F.grel[j * F.nx + i] * F.dBc[k];
+export const Jf = (F, i, j, k) => 1 + F.grel[j * F.nx + i] * F.dBf[k];
+/* absolute height of a cell centre / an s-face in this column */
+export const zAtC = (F, i, j, k) => F.base + F.zc[k] + F.grel[j * F.nx + i] * F.Bc[k];
+export const zAtF = (F, i, j, k) => F.base + F.zf[k] + F.grel[j * F.nx + i] * F.Bf[k];
+/* height above this column's own ground — the number the whole mesh exists to get right */
+export const aglC = (F, i, j, k) => F.zc[k] - F.grel[j * F.nx + i] * (1 - F.Bc[k]);
+
+/* The ground is impermeable: nothing flows through the s = 0 surface. That is the entire
+   wall condition now — no mask, no faces to seal, no rock. u and v at the ground are free
+   to run along the slope, which is what air actually does. */
 export function applyWalls(F) {
-  const { nx, ny, nz, solid, cid, uid, vid, wid } = F;
-  const sol = (i, j, k) => (i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz) ? 0 : solid[cid(i, j, k)];
-  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i <= nx; i++)
-    if (sol(i - 1, j, k) || sol(i, j, k)) F.u[uid(i, j, k)] = 0;
-  for (let k = 0; k < nz; k++) for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++)
-    if (sol(i, j - 1, k) || sol(i, j, k)) F.v[vid(i, j, k)] = 0;
-  for (let k = 0; k <= nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++)
-    if (sol(i, j, k - 1) || sol(i, j, k) || k === 0) F.w[wid(i, j, k)] = 0;
+  const { nx, ny, wid, om } = F;
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) om[wid(i, j, 0)] = 0;
 }
 
+/* Divergence per cell, as a physical 1/s: net volume flux through the six faces divided by
+   the cell's physical volume J dx dy ds. The x-face carries J dy ds u, the y-face J dx ds v,
+   and the s-face dx dy omega. */
 export function divergence(F) {
-  const { nx, ny, nz, dx, dy, ds, solid, cid, uid, vid, wid, u, v, w } = F;
+  const { nx, ny, nz, dx, dy, ds, cid, uid, vid, wid, u, v, om } = F;
   const d = new Float64Array(nx * ny * nz);
   let peak = 0, sum = 0, cells = 0;
   for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const c = cid(i, j, k);
-    if (solid[c]) continue;
-    const val = (u[uid(i + 1, j, k)] - u[uid(i, j, k)]) / dx
-      + (v[vid(i, j + 1, k)] - v[vid(i, j, k)]) / dy
-      + (w[wid(i, j, k + 1)] - w[wid(i, j, k)]) / ds[k];
+    const jm = Jc(F, i, j, k);
+    const jxL = (jm + (i > 0 ? Jc(F, i - 1, j, k) : jm)) / 2;
+    const jxR = (jm + (i < nx - 1 ? Jc(F, i + 1, j, k) : jm)) / 2;
+    const jyD = (jm + (j > 0 ? Jc(F, i, j - 1, k) : jm)) / 2;
+    const jyU = (jm + (j < ny - 1 ? Jc(F, i, j + 1, k) : jm)) / 2;
+    const flux = (jxR * u[uid(i + 1, j, k)] - jxL * u[uid(i, j, k)]) * dy * ds[k]
+      + (jyU * v[vid(i, j + 1, k)] - jyD * v[vid(i, j, k)]) * dx * ds[k]
+      + (om[wid(i, j, k + 1)] - om[wid(i, j, k)]) * dx * dy;
+    const val = flux / (jm * dx * dy * ds[k]);
     d[c] = val;
     peak = Math.max(peak, Math.abs(val));
     sum += val * val;
@@ -235,44 +336,59 @@ export function divergence(F) {
   return { d, peak, rms: Math.sqrt(sum / Math.max(1, cells)), cells };
 }
 
-/* Solve L_xx + L_yy + R L_zz = -div(u0) by SOR, then correct the faces.
-   Ground and other solid faces are Neumann (the wall term simply drops out of the stencil).
-   Sides and top are open: L = 0 outside, which lets air leave. */
-export function project(F, iters = 400, omega = 1.7, onStep) {
-  const { nx, ny, nz, dx, dy, ds, dsf, solid, cid, uid, vid, wid, R } = F;
+/* Minimise the change to the draped wind subject to zero net flux per cell, then correct
+   the faces.
+
+   The minimisation is done on the FLUXES, not on the velocity components, and that is what
+   keeps this tractable on a terrain-following mesh. Penalise each face's flux change with
+   the weight that reproduces the physical cost over that face's own control volume, and the
+   stationarity conditions give one unknown per cell against a seven-point stencil, with no
+   cross-derivatives. Operator and correction then agree by construction — which matters
+   more than it sounds: a mismatched pair still produces a picture that looks fine while
+   dropping divergence by 1.4x instead of five orders of magnitude.
+
+   What is approximated, stated plainly: the horizontal adjustment and the through-surface
+   adjustment are penalised separately, so the cost of tilting the flow along a slope is not
+   cross-coupled between them. On gentle terrain that coupling is small; on a cliff it is
+   not, and this will under-charge for vertical motion there.
+
+   The ground is Neumann — the s = 0 face simply drops out of the stencil. Sides and lid are
+   open: lambda = 0 outside, which lets air leave. */
+export function project(F, iters = 400, omega = 1.8, onStep) {
+  const { nx, ny, nz, dx, dy, ds, dsf, cid, uid, vid, wid, R } = F;
   applyWalls(F);
   const before = divergence(F);
   /* Float64, not 32: the vertical and horizontal coefficients differ by about 10^5 on a
      stretched grid, and single precision has only about seven digits to spend, so the
      residual stalls around 1e-5 for no physical reason. */
   const L = new Float64Array(nx * ny * nz);
-  const ix = 1 / (dx * dx), iy = 1 / (dy * dy);
-  /* vertical coefficients per level: the cell's own thickness times the gap to the
-     neighbour's centre. izDn[k] reaches down across face k, izUp[k] up across face k+1. */
-  const izDn = new Float64Array(nz), izUp = new Float64Array(nz);
-  for (let k = 0; k < nz; k++) {
-    izDn[k] = R / (ds[k] * dsf[k]);
-    izUp[k] = R / (ds[k] * dsf[k + 1]);
-  }
-  const fluid = (i, j, k) => i >= 0 && j >= 0 && k >= 0 && i < nx && j < ny && k < nz && !solid[cid(i, j, k)];
+  const ixx = 1 / (dx * dx), iyy = 1 / (dy * dy);
 
-  /* The stencil is fixed once per cell, so build the diagonal up front and keep the inner
-     loop flat: no closures, no bounds objects. Out of the domain the floor is ground, a wall
-     that drops out; the sides and top are open and contribute against a ghost L = 0. Getting
-     that wrong leaves the operator disagreeing with the correction and the solve goes nowhere. */
+  /* Every coefficient is the face's flux weight divided by the cell's own volume, so that
+     on flat ground (J = 1 everywhere) this reduces term for term to the plain Cartesian
+     operator: 1/dx^2 sideways, R/(ds dsf) vertically. The mesh enters only as the ratio of
+     the face's stretch to the cell's. */
   const sxy = nx * ny;
-  const diag = new Float32Array(nx * ny * nz);
+  const cxL = new Float64Array(nx * ny * nz), cxR = new Float64Array(nx * ny * nz);
+  const cyD = new Float64Array(nx * ny * nz), cyU = new Float64Array(nx * ny * nz);
+  const czD = new Float64Array(nx * ny * nz), czU = new Float64Array(nx * ny * nz);
+  const diag = new Float64Array(nx * ny * nz);
   for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const c = cid(i, j, k);
-    if (solid[c]) continue;
-    let dg = 0;
-    if (i > 0) { if (!solid[c - 1]) dg += ix; } else dg += ix;
-    if (i < nx - 1) { if (!solid[c + 1]) dg += ix; } else dg += ix;
-    if (j > 0) { if (!solid[c - nx]) dg += iy; } else dg += iy;
-    if (j < ny - 1) { if (!solid[c + nx]) dg += iy; } else dg += iy;
-    if (k > 0 && !solid[c - sxy]) dg += izDn[k];             // k === 0 is the floor: wall
-    if (k < nz - 1) { if (!solid[c + sxy]) dg += izUp[k]; } else dg += izUp[k];
-    diag[c] = dg;
+    const jm = Jc(F, i, j, k);
+    const half = (a, b) => (a + b) / 2;
+    const jl = half(jm, i > 0 ? Jc(F, i - 1, j, k) : jm);
+    const jr = half(jm, i < nx - 1 ? Jc(F, i + 1, j, k) : jm);
+    const jd = half(jm, j > 0 ? Jc(F, i, j - 1, k) : jm);
+    const ju = half(jm, j < ny - 1 ? Jc(F, i, j + 1, k) : jm);
+    cxL[c] = ixx * jl / jm; cxR[c] = ixx * jr / jm;
+    cyD[c] = iyy * jd / jm; cyU[c] = iyy * ju / jm;
+    /* the s-faces: the cell's own thickness times the gap to the neighbour's centre,
+       with the face's stretch in the denominator because a squeezed column has less
+       distance to push the air through */
+    czD[c] = k > 0 ? R / (jm * Jf(F, i, j, k) * ds[k] * dsf[k]) : 0;   // k === 0 is the ground: wall
+    czU[c] = R / (jm * Jf(F, i, j, k + 1) * ds[k] * dsf[k + 1]);
+    diag[c] = cxL[c] + cxR[c] + cyD[c] + cyU[c] + czD[c] + czU[c];
   }
 
   /* Solve a whole vertical column at a time, not a point at a time.
@@ -283,7 +399,15 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
      not merely crawl, it diverges — measured, the residual grew 5.6x instead of falling.
      Taking each column as one tridiagonal system and solving it exactly (Thomas) leaves only
      the gentle horizontal coupling to iterate on, which is what makes a stretched grid
-     tractable at all. */
+     tractable at all.
+
+     That also moved where the relaxation factor can safely go, and the old setting was left
+     behind. The 1.8-diverges warning belonged to POINT relaxation; solving whole columns is
+     far more robust, and measured over 160 sweeps on hills of 420, 950 and 1800 m relief at
+     three values of R, the divergence drop climbs monotonically from about 5e3 at omega 1.3
+     to a peak near 1.85, then falls off a cliff: 2e7 at 1.85, 2e7 at 1.9, 4e3 at 1.95 and
+     nothing at all by 1.99. 1.8 buys three orders of magnitude over 1.3 for the same work
+     and keeps a margin from the edge. */
   const rhs = before.d;
   const sub = new Float64Array(nz), dia = new Float64Array(nz), sup = new Float64Array(nz);
   const rr = new Float64Array(nz), cp = new Float64Array(nz), dp = new Float64Array(nz);
@@ -291,23 +415,20 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
   for (; it < iters; it++) {
     let worst = 0;
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-      /* the fluid run in this column: terrain only ever fills it from the bottom */
-      let k0 = 0;
-      while (k0 < nz && solid[cid(i, j, k0)]) k0++;
-      if (k0 >= nz) continue;
-      let n = 0;
-      for (let k = k0; k < nz; k++) {
+      /* Every column runs the full depth now: the mesh starts at this column's own ground,
+         so there is no buried run to skip past. */
+      const n = nz;
+      for (let k = 0; k < nz; k++) {
         const c = cid(i, j, k);
         let acc = 0;
-        if (i > 0 && !solid[c - 1]) acc += ix * L[c - 1];
-        if (i < nx - 1 && !solid[c + 1]) acc += ix * L[c + 1];
-        if (j > 0 && !solid[c - nx]) acc += iy * L[c - nx];
-        if (j < ny - 1 && !solid[c + nx]) acc += iy * L[c + nx];
-        dia[n] = diag[c];
-        sub[n] = (k > k0 && !solid[c - sxy]) ? -izDn[k] : 0;
-        sup[n] = (k < nz - 1 && !solid[c + sxy]) ? -izUp[k] : 0;
-        rr[n] = acc + rhs[c];                                // +div because L_lap = -div
-        n++;
+        if (i > 0) acc += cxL[c] * L[c - 1];
+        if (i < nx - 1) acc += cxR[c] * L[c + 1];
+        if (j > 0) acc += cyD[c] * L[c - nx];
+        if (j < ny - 1) acc += cyU[c] * L[c + nx];
+        dia[k] = diag[c];
+        sub[k] = k > 0 ? -czD[c] : 0;
+        sup[k] = k < nz - 1 ? -czU[c] : 0;
+        rr[k] = acc + rhs[c];                                // +div because lap(lambda) = -div
       }
       /* Thomas: forward sweep, then back-substitute */
       cp[0] = sup[0] / dia[0];
@@ -320,7 +441,7 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
       let x = dp[n - 1];
       for (let m = n - 1; m >= 0; m--) {
         if (m < n - 1) x = dp[m] - cp[m] * x;
-        const c = cid(i, j, k0 + m);
+        const c = cid(i, j, m);
         const d = omega * (x - L[c]);
         L[c] += d;
         const ad = d < 0 ? -d : d;
@@ -334,64 +455,86 @@ export function project(F, iters = 400, omega = 1.7, onStep) {
   }
   F.sweeps = it;
 
-  /* u = u0 + grad L, with the vertical scaled by R. The open boundary faces are corrected
-     too, against the same ghost L = 0 the operator assumed, which is what lets air leave. */
+  /* u = u0 + grad(lambda), the vertical scaled by R and by the face's own stretch — exactly
+     the same ratio the operator put in its coefficient, which is why the divergence actually
+     goes to zero rather than merely getting smaller. Every face is corrected, including the
+     open sides and lid, against the same ghost lambda = 0 the operator assumed. The ground
+     face at k = 0 is the one exception: it stays sealed. */
   const Lat = (i, j, k) => (i < 0 || j < 0 || i >= nx || j >= ny || k >= nz) ? 0 : L[cid(i, j, k)];
-  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i <= nx; i++) {
-    const a = fluid(i - 1, j, k), b = fluid(i, j, k);
-    const aEdge = i === 0, bEdge = i === nx;
-    if (!(a || aEdge) || !(b || bEdge)) continue;            // a face against terrain stays walled
-    if ((i > 0 && !a) || (i < nx && !b)) continue;
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i <= nx; i++)
     F.u[uid(i, j, k)] += (Lat(i, j, k) - Lat(i - 1, j, k)) / dx;
-  }
-  for (let k = 0; k < nz; k++) for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++) {
-    const a = fluid(i, j - 1, k), b = fluid(i, j, k);
-    if ((j > 0 && !a) || (j < ny && !b)) continue;
+  for (let k = 0; k < nz; k++) for (let j = 0; j <= ny; j++) for (let i = 0; i < nx; i++)
     F.v[vid(i, j, k)] += (Lat(i, j, k) - Lat(i, j - 1, k)) / dy;
-  }
-  for (let k = 1; k <= nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const a = fluid(i, j, k - 1), b = fluid(i, j, k);
-    if (!a) continue;                                        // k-1 must be real fluid
-    if (k < nz && !b) continue;
-    F.w[wid(i, j, k)] += R * (Lat(i, j, k) - Lat(i, j, k - 1)) / dsf[k];
-  }
+  for (let k = 1; k <= nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++)
+    F.om[wid(i, j, k)] += R * (Lat(i, j, k) - Lat(i, j, k - 1)) / (Jf(F, i, j, k) * dsf[k]);
   applyWalls(F);
   const after = divergence(F);
   F.L = L;
+  diagnoseW(F);
   return { before, after, drop: before.rms / Math.max(1e-30, after.rms) };
 }
 
+/* Physical vertical velocity, recovered from the contravariant one: w = omega + u z_x + v z_y.
+   The solve never needs it; everything that has to fly through the field does. */
+export function diagnoseW(F) {
+  const { nx, ny, nz, gx, gy, Bf, wid, om, w } = F;
+  for (let k = 0; k <= nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const c = wid(i, j, k), g = j * nx + i;
+    const [uf, vf] = faceUV(F, i, j, k);
+    w[c] = om[c] + (uf * gx[g] + vf * gy[g]) * Bf[k];
+  }
+}
+
 /* ---------- reading the answer ----------
-   Wind at a fixed height above the local ground, as a 2D field for drawing. */
+   Wind at a fixed height above the local ground, as a 2D field for drawing.
+
+   This used to be the hardest function in the file, and the mesh has made it ordinary. On a
+   masked Cartesian grid a column's lowest unburied cell landed wherever the mask happened
+   to cut it — anywhere from a centimetre to most of a cell up — so every column was read at
+   a different height and then stretched to a common one by a log factor, and the crest
+   reading moved when the lid moved by three metres. Here the level at 10 m above ground is
+   the level at 10 m above ground, in every column, by construction. */
 export function surfaceSlice(F, zAGL = 10, out = 96) {
-  const { nx, ny, nz, zc, ds, base, ter, uid, vid, u, v, cid, solid, z0 } = F;
+  const { nx, ny, nz, uid, vid, u, v, z0 } = F;
   const U = new Float32Array(out * out), V = new Float32Array(out * out), S = new Float32Array(out * out);
+  const lg = z => Math.log(Math.max(z, z0 * 1.2 + 0.1) / z0);
   for (let b = 0; b < out; b++) for (let a = 0; a < out; a++) {
     const i = Math.min(nx - 1, Math.floor((a + .5) / out * nx));
     const j = Math.min(ny - 1, Math.floor((b + .5) / out * ny));
-    const g = ter[j * nx + i];
-    /* The lowest cell that is genuinely IN the air. A cell whose centre clears the ground by
-       a few centimetres counts as fluid but has nearly every face walled, so it carries almost
-       no flow; trusting it and then scaling it up by a large log factor was enough to make the
-       crest reading jump when the lid moved by three metres. Skip anything mostly buried. */
+    const cen = k => [(u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2,
+                      (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2];
     let k = 0;
-    while (k < nz - 1 && (solid[cid(i, j, k)] || base + zc[k] - g < 0.4 * ds[k])) k++;
-    const cellAGL = Math.max(0.2, base + zc[k] - g);
-    const uu = (u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2;
-    const vv = (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2;
-    /* That cell centre sits anywhere from a metre to most of a cell above the ground,
-       depending on where the mask happened to fall. Comparing columns at the height the
-       caller asked for, rather than at whatever height each cell landed, is the difference
-       between a stable reading and one that flips with the grid. */
-    const f = Math.log(Math.max(zAGL, z0 * 2) / z0) / Math.log(Math.max(cellAGL, z0 * 2) / z0);
+    while (k < nz - 2 && aglC(F, i, j, k + 1) <= zAGL) k++;
+    const z1 = aglC(F, i, j, k), z2 = aglC(F, i, j, k + 1);
+    const c1 = cen(k), c2 = cen(k + 1);
+    /* interpolate between the two levels in log height, the shape the profile actually has
+       near the ground; below the first centre (half a metre up) the same log carries it down */
+    const t = (lg(zAGL) - lg(z1)) / Math.max(1e-9, lg(z2) - lg(z1));
     const o = b * out + a;
-    U[o] = uu * f; V[o] = vv * f; S[o] = Math.hypot(U[o], V[o]);
+    U[o] = c1[0] + (c2[0] - c1[0]) * t;
+    V[o] = c1[1] + (c2[1] - c1[1]) * t;
+    S[o] = Math.hypot(U[o], V[o]);
   }
   return { U, V, S, n: out };
 }
 
-/* which level holds a given height above the domain floor; the levels are not evenly
-   spaced, so this is a search rather than a division */
+/* which level of a given column holds a given absolute height. The mesh follows the terrain,
+   so this depends on the column — a height that is level 3 in the valley is underground on
+   the ridge. Binary search, because the levels are not evenly spaced. */
+export function levelAtColumn(F, i, j, zAbs) {
+  const { nz } = F;
+  if (zAbs <= zAtF(F, i, j, 0)) return 0;
+  if (zAbs >= zAtF(F, i, j, nz)) return nz - 1;
+  let lo = 0, hi = nz;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (zAtF(F, i, j, mid) <= zAbs) lo = mid; else hi = mid;
+  }
+  return lo;
+}
+
+/* Kept for callers that think in heights above the domain floor. On a terrain-following mesh
+   that is only the lowest column's story, so prefer levelAtColumn where the column is known. */
 export function levelAt(F, zAboveBase) {
   const { zf, nz } = F;
   if (zAboveBase <= zf[0]) return 0;
@@ -403,19 +546,25 @@ export function levelAt(F, zAboveBase) {
    than be drawn on it. Coordinates are metres from the centre of the square: +x east,
    +y north, z absolute (metres above sea level, the same datum as the terrain).
 
-   Bilinear across the columns, nearest in the vertical. Nearest is honest here because the
-   levels are a metre apart where a thrown or falling thing spends its time; interpolating
-   between a 1 m and a 2 m level would be false precision over a field this coarse sideways. */
+   Bilinear across the columns, and each column read at its OWN level for that height — which
+   is the point of the mesh. Nearest in the vertical is honest here because the levels are a
+   metre apart where a thrown or falling thing spends its time; interpolating between a 1 m
+   and a 2 m level would be false precision over a field this coarse sideways.
+
+   The old version took one level index for all four corners, from the height above the
+   lowest ground. Across a slope those four cells were at four different heights above their
+   own ground, and some of them were inside the hill — which is why this function used to
+   need an "all four underground" escape hatch. It has none now because there is nothing to
+   be under. */
 export function windAt(F, xE, yN, zAbs) {
-  const { nx, ny, dx, dy, base, uid, vid, wid, u, v, w, cid, solid } = F;
-  const gx = xE / dx + nx / 2 - 0.5, gy = ny / 2 - 0.5 - yN / dy;
-  if (gx < -0.5 || gy < -0.5 || gx > nx - 0.5 || gy > ny - 0.5) return null;   // outside the square
-  const k = levelAt(F, zAbs - base);
-  const i0 = Math.max(0, Math.min(nx - 1, Math.floor(gx))), j0 = Math.max(0, Math.min(ny - 1, Math.floor(gy)));
+  const { nx, ny, dx, dy, uid, vid, wid, u, v, w } = F;
+  const px = xE / dx + nx / 2 - 0.5, py = ny / 2 - 0.5 - yN / dy;
+  if (px < -0.5 || py < -0.5 || px > nx - 0.5 || py > ny - 0.5) return null;   // outside the square
+  const i0 = Math.max(0, Math.min(nx - 1, Math.floor(px))), j0 = Math.max(0, Math.min(ny - 1, Math.floor(py)));
   const i1 = Math.min(nx - 1, i0 + 1), j1 = Math.min(ny - 1, j0 + 1);
-  const fx = Math.max(0, Math.min(1, gx - i0)), fy = Math.max(0, Math.min(1, gy - j0));
+  const fx = Math.max(0, Math.min(1, px - i0)), fy = Math.max(0, Math.min(1, py - j0));
   const at = (i, j) => {
-    if (solid[cid(i, j, k)]) return null;                                      // inside the hill
+    const k = levelAtColumn(F, i, j, zAbs);
     return [(u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2,
             (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2,
             (w[wid(i, j, k)] + w[wid(i, j, k + 1)]) / 2];
@@ -423,48 +572,35 @@ export function windAt(F, xE, yN, zAbs) {
   const c = [at(i0, j0), at(i1, j0), at(i0, j1), at(i1, j1)];
   const wt = [(1 - fx) * (1 - fy), fx * (1 - fy), (1 - fx) * fy, fx * fy];
   const out = [0, 0, 0];
-  let got = 0;
-  for (let n = 0; n < 4; n++) {
-    if (!c[n]) continue;
-    got += wt[n];
-    for (let d = 0; d < 3; d++) out[d] += c[n][d] * wt[n];
-  }
-  if (got < 1e-6) return [0, 0, 0];                                            // all four underground
-  for (let d = 0; d < 3; d++) out[d] /= got;
+  for (let n = 0; n < 4; n++) for (let d = 0; d < 3; d++) out[d] += c[n][d] * wt[n];
   return out;
 }
 
-/* The wind a column actually carries near its own ground, for anywhere the 3D field has
-   nothing to say.
-
-   Why this is needed: the levels are fine above the LOWEST ground in the square, so on a
-   summit a few hundred metres above that floor, everything within throwing height of the
-   surface falls inside blocked cells and the field reads zero. A disc released there would
-   fly through dead air and the wind would appear to do nothing at all. This walks up the
-   column to the first cell genuinely in the air, takes its wind, and brings it down to the
-   height asked for with the same neutral log profile the solver started from. It is the
-   surface slice's logic at a single point. */
+/* The wind a column carries below its first cell centre — the half metre of air between the
+   grass and zc[0]. The mesh means this is now the only gap left: a summit's surface air is
+   real cells carrying real flow, not the blocked cells that used to make a disc thrown from
+   a ridge fly through dead air. Below the first centre the neutral log profile carries the
+   value down, the same shape the solver started from. */
 export function windColumn(F, xE, yN, zAbs) {
-  const { nx, ny, dx, dy, nz, zc, ds, base, ter, uid, vid, u, v, cid, solid, z0 } = F;
+  const { nx, ny, dx, dy, ter, uid, vid, u, v, z0 } = F;
   const i = Math.max(0, Math.min(nx - 1, Math.floor(xE / dx + nx / 2)));
   const j = Math.max(0, Math.min(ny - 1, Math.floor(ny / 2 - yN / dy)));
-  const g = ter[j * nx + i];
-  let k = 0;
-  while (k < nz - 1 && (solid[cid(i, j, k)] || base + zc[k] - g < 0.4 * ds[k])) k++;
-  const cellAGL = Math.max(0.2, base + zc[k] - g);
-  const uu = (u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2;
-  const vv = (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2;
-  const agl = Math.max(0.2, zAbs - g);
-  const f = Math.log(Math.max(agl, z0 * 2) / z0) / Math.log(Math.max(cellAGL, z0 * 2) / z0);
+  const cellAGL = Math.max(0.2, aglC(F, i, j, 0));
+  const uu = (u[uid(i, j, 0)] + u[uid(i + 1, j, 0)]) / 2;
+  const vv = (v[vid(i, j, 0)] + v[vid(i, j + 1, 0)]) / 2;
+  const agl = Math.max(0.05, zAbs - ter[j * nx + i]);
+  const f = Math.log(Math.max(agl, z0 * 1.2 + 0.1) / z0) / Math.log(Math.max(cellAGL, z0 * 1.2 + 0.1) / z0);
   return [uu * f, vv * f, 0];
 }
 
-/* What a thrown thing should feel: the solved field where it has an answer, the column's own
-   near-surface wind where it does not. */
+/* What a thrown thing should feel: the solved field above the first level, the column's own
+   log profile in the half metre below it. */
 export function windForFlight(F, xE, yN, zAbs) {
-  const q = windAt(F, xE, yN, zAbs);
-  if (q && (q[0] !== 0 || q[1] !== 0 || q[2] !== 0)) return q;
-  return windColumn(F, xE, yN, zAbs);
+  const { nx, ny, dx, dy, ter } = F;
+  const i = Math.max(0, Math.min(nx - 1, Math.floor(xE / dx + nx / 2)));
+  const j = Math.max(0, Math.min(ny - 1, Math.floor(ny / 2 - yN / dy)));
+  if (zAbs - ter[j * nx + i] < aglC(F, i, j, 0)) return windColumn(F, xE, yN, zAbs);
+  return windAt(F, xE, yN, zAbs) || windColumn(F, xE, yN, zAbs);
 }
 
 /* The ground height at a point, same coordinates: what a thrown thing lands on.
