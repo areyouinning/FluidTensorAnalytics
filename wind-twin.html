@@ -20,7 +20,13 @@
   #meteo { display: block; width: 100%; touch-action: pan-y; cursor: crosshair; }
   .btn.sm { min-height: 34px; padding: 0 14px; font-size: 15px; }
   .btn.sm.on { background: var(--blue); color: var(--on-accent); border-color: var(--blue); }
-  .scale { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; color: var(--ink-soft); }
+  /* one control, three states: butt the buttons together so they read as a single switch */
+  .seg { display: inline-flex; }
+  .seg .btn.sm { border-radius: 0; margin-left: -1px; padding: 0 11px; }
+  .seg .btn.sm:first-child { border-radius: 999px 0 0 999px; margin-left: 0; }
+  .seg .btn.sm:last-child { border-radius: 0 999px 999px 0; }
+  .seg .btn.sm.on { position: relative; z-index: 1; }
+  .scale { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; color: var(--ink-soft); flex-wrap: wrap; }
   .scale i { flex: 1; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgb(70,120,190), rgb(90,180,170), rgb(220,190,90), rgb(230,120,60), rgb(240,240,245)); }
   /* the column of air above you */
   .prof { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
@@ -51,6 +57,11 @@
     <canvas id="flow" role="img" aria-label="Animated particles carried by the computed wind field over your terrain"></canvas>
   </div>
   <div class="scale"><span>calm</span><i></i><span>fast</span>
+    <span class="seg" role="group" aria-label="What the map shows under the wind">
+      <button class="btn sm on" data-base="relief" type="button" aria-pressed="true">Relief</button>
+      <button class="btn sm" data-base="map" type="button" aria-pressed="false">Map</button>
+      <button class="btn sm" data-base="sat" type="button" aria-pressed="false">Satellite</button>
+    </span>
     <button class="btn sm" id="radarbtn" type="button" aria-pressed="false">Radar</button>
   </div>
   <p class="where"><b id="where">—</b><span id="r-tz"></span></p>
@@ -156,6 +167,7 @@
     <li><b>The camera view is a backdrop, not a tracked scene.</b> There is no visual tracking of any kind: the overlay is aimed purely by the phone's compass and tilt. Indoors, in a car, or near anything steel, a phone compass can be tens of degrees out, and the whole sky will be rotated with it. The drawn skyline is the check — if it doesn't sit on the real ridge, the heading is wrong, not the wind.</li>
     <li><b>Layers aloft are the raw forecast, not the twin.</b> The terrain solve applies near the ground. The air a kilometre up is shown exactly as the forecast gives it, undownscaled, which is honest for a layer that mostly ignores the hills anyway.</li>
     <li><b>Elevation tiles are mixed quality.</b> Good enough to look at and to shape a flow, not good enough to build anything on.</li>
+    <li><b>Only the relief is guaranteed to match the physics.</b> <b>Relief</b> is drawn from the very elevation grid the solver runs on, so a ridge in the shading is a ridge in the wind. <b>Map</b> and <b>Satellite</b> are other people's pictures of the same ground, aligned by coordinates alone — they are the better answer to <em class="m">where is this</em>, and if their alignment and the relief ever disagree, the relief is what the arrows were computed from. Imagery can also be years old, which matters for a burn scar or a new reservoir and not at all for a mountain.</li>
     <li><b>The radar is one still frame, and it is coarse.</b> It is the newest composite RainViewer publishes — not a loop, and not a forecast of where the cell is going. The free tiles stop at zoom 7, which is roughly a kilometre per pixel, so the default 12 km square is about a dozen radar pixels across and will usually be one flat colour or empty. Widen <b>Across</b> to 30 km before expecting it to mean anything. Above zoom 7 that server returns a grey "Zoom in" card rather than an error, which draws like a solid overcast if you let it; the page checks for that card and reports missing radar instead.</li>
     <li><b>The peak list is 409 named Colorado summits above 13,000 feet</b>, taken from OpenStreetMap, which is not every bump on a skyline — an unlabelled peak may simply be below the cut. From the Front Range about 180 of them clear the horizon at once, far more than a screen can name, so the ones that get a label are chosen by how large they loom: angular height above level, which already combines elevation and distance. Carets stop after the forty biggest in view and names after fourteen. A peak you can see and cannot get a name for is losing a space contest, not missing.</li>
     <li><b>Peak heights are OpenStreetMap's, not survey marks</b>, and agree with published summit elevations to a few feet on the famous ones. The refraction constant is a standard-atmosphere average: on a cold morning over snow light bends about twice as hard and distant summits sit genuinely higher than drawn, and on a hot afternoon lower. Near peaks are unaffected either way.</li>
@@ -164,7 +176,7 @@
 
   <div class="note"><p><b>About your location.</b> Nothing here runs until you ask. If you press <b>Use my location</b>, your browser asks you first, and the coordinates go to public services to fetch the forecast and the ground tiles for that square — the same requests a weather page makes. The only thing kept is the last forecast, saved in your own browser so the page still has something to show if a service goes down; nothing leaves for anywhere else, and this site has no server to store it on. Typing a place name works identically and tells those services a town instead of a doorstep.</p></div>
 
-  <p class="credit">Method after <a href="https://firelab.github.io/windninja/" rel="noopener">WindNinja</a>, from the US Forest Service Missoula Fire Sciences Laboratory, whose conservation-of-mass solver "minimizes change in initial wind field while conserving mass". Look and particle treatment after <a href="https://earth.nullschool.net/" rel="noopener">earth.nullschool.net</a> by Cameron Beccario. Both were read and reimplemented here, not copied. Forecast from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>, falling back to the <a href="https://www.weather.gov/documentation/services-web-api" rel="noopener">US National Weather Service</a>; elevation from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">Terrain Tiles on AWS</a> (USGS 3DEP, SRTM and others); radar from <a href="https://www.rainviewer.com/" rel="noopener">RainViewer</a>. Want just the mountains named, full screen? That is <a href="/peak-finder-v3.html">Which peak is that?</a></p>
+  <p class="credit">Method after <a href="https://firelab.github.io/windninja/" rel="noopener">WindNinja</a>, from the US Forest Service Missoula Fire Sciences Laboratory, whose conservation-of-mass solver "minimizes change in initial wind field while conserving mass". Look and particle treatment after <a href="https://earth.nullschool.net/" rel="noopener">earth.nullschool.net</a> by Cameron Beccario. Both were read and reimplemented here, not copied. Forecast from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>, falling back to the <a href="https://www.weather.gov/documentation/services-web-api" rel="noopener">US National Weather Service</a>; elevation from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">Terrain Tiles on AWS</a> (USGS 3DEP, SRTM and others); radar from <a href="https://www.rainviewer.com/" rel="noopener">RainViewer</a>; satellite imagery from <a href="https://www.esri.com/" rel="noopener">Esri</a> (Maxar, Earthstar Geographics) and the road map from <a href="https://carto.com/attribution" rel="noopener">CARTO</a>, drawn from <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> data. Want just the mountains named, full screen? That is <a href="/peak-finder-v3.html">Which peak is that?</a></p>
   <a data-next></a>
 </main>
 <script type="module" src="/wind-twin.js"></script>
