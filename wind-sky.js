@@ -12,8 +12,50 @@
    Honest limits are at the bottom of this file and on the page. */
 
 import { peaksFrom, inPeakCountry } from './diagrams/peaks-co.js';
+import { skyAt, STARS, LINES } from './diagrams/sky-bodies.js';
 
 const RAD = Math.PI / 180;
+
+/* ---------- the sky, as it actually is ----------
+
+   Where things are comes from diagrams/sky-bodies.js, checked against JPL Horizons. What is
+   left here is how to draw them, and two bits of that are worth saying out loud.
+
+   HOW BIG A STAR IS. Magnitude is a logarithmic scale running backwards, and drawing a dot
+   whose area is proportional to the light would make Sirius a blob and everything else
+   invisible. The eye does not work that way either. So size runs linearly in magnitude —
+   roughly half a pixel per magnitude — which is what star atlases have always done, for the
+   same reason.
+
+   WHICH WAY THE CRESCENT POINTS. The moon's lit side faces the sun. That sounds too obvious
+   to state until you try to compute it from the position angle of the bright limb, which is
+   measured from celestial north through east and therefore needs the parallactic angle to
+   get onto a screen — and which is the single easiest thing in the sky to render as a mirror
+   image. So this does not use it. It takes the bearing from the moon to the sun directly in
+   the alt-azimuth frame the view already draws in, and points the limb that way. The horns
+   then cannot be backwards, because the geometry drawing them is the geometry that lights
+   them. */
+
+/* how faint you can see, by how dark it is */
+const LIMIT_MAG = { day: -4, civil: 1.2, nautical: 3.2, astronomical: 4.4, night: 5.0 };
+
+/* a star's drawn radius, in device pixels before scaling */
+function starRadius(mag) {
+  return Math.max(0.45, 2.9 - 0.46 * mag);
+}
+/* bluish-white for hot stars down to a warm tint for the bright red ones is a nicety this
+   catalogue cut does not carry colour for, so everything is the same warm white */
+const STAR_INK = 'rgba(255,252,244,';
+
+/* great-circle bearing from one alt-az point to another, measured from the zenith direction
+   toward increasing azimuth — which on this screen is "up" toward "right" */
+export function skyBearing(fromAz, fromAlt, toAz, toAlt) {
+  const dL = (toAz - fromAz) * RAD;
+  const a1 = fromAlt * RAD, a2 = toAlt * RAD;
+  const y = Math.sin(dL) * Math.cos(a2);
+  const x = Math.cos(a1) * Math.sin(a2) - Math.sin(a1) * Math.cos(a2) * Math.cos(dL);
+  return Math.atan2(y, x);
+}
 
 export function mountSky(host, getData) {
   const el = {};
@@ -24,6 +66,7 @@ export function mountSky(host, getData) {
       <div class="sky-hud">
         <button class="btn sky-x" type="button">Close</button>
         <button class="btn sky-peaks" type="button" hidden aria-pressed="false">Peaks</button>
+        <button class="btn sky-sky" type="button" aria-pressed="false">Sky</button>
         <div class="sky-read" aria-live="polite"></div>
       </div>
     </div>`;
@@ -32,7 +75,14 @@ export function mountSky(host, getData) {
   el.cv = host.querySelector('.sky-draw');
   el.read = host.querySelector('.sky-read');
   el.peaksBtn = host.querySelector('.sky-peaks');
+  el.skyBtn = host.querySelector('.sky-sky');
   host.querySelector('.sky-x').addEventListener('click', close);
+  el.skyBtn.addEventListener('click', () => {
+    S.showSky = !S.showSky;
+    el.skyBtn.setAttribute('aria-pressed', String(S.showSky));
+    el.skyBtn.classList.toggle('on', S.showSky);
+    if (S.showSky) refreshSky();
+  });
   el.peaksBtn.addEventListener('click', () => {
     S.showPeaks = !S.showPeaks;
     el.peaksBtn.setAttribute('aria-pressed', String(S.showPeaks));
@@ -42,8 +92,19 @@ export function mountSky(host, getData) {
   const S = {
     on: false, yaw: 0, pitch: 0, haveSensor: false, stream: null, raf: 0,
     drag: null, fovY: 62, parts: [], horizon: null, note: '',
-    peaks: [], showPeaks: false
+    peaks: [], showPeaks: false,
+    sky: null, showSky: false, skyAtMs: 0, lat: 0, lon: 0, elevM: 0
   };
+
+  /* The sky turns a degree every four minutes, which is a whole moon's width, so this is
+     recomputed on a clock rather than once when the view opens. Fifteen seconds is well
+     inside what anyone could notice and costs about a millisecond. */
+  function refreshSky(force) {
+    const now = Date.now();
+    if (!force && S.sky && now - S.skyAtMs < 15000) return;
+    S.skyAtMs = now;
+    S.sky = skyAt(S.lat, S.lon, new Date(), { elevM: S.elevM, magLimit: 5.0 });
+  }
 
   /* ---------- orientation ----------
      iOS hands us a true compass heading but only after an explicit tap. Android gives an
@@ -254,6 +315,132 @@ export function mountSky(host, getData) {
     }
     ctx.globalAlpha = 1;
 
+    /* ---------- the sky ----------
+       Drawn before the summits so a peak label always wins a fight with a star. */
+    let nearestBody = null;
+    if (S.showSky && S.sky) {
+      refreshSky();
+      const sky = S.sky;
+      const limit = LIMIT_MAG[sky.twilight] ?? 5;
+      /* In daylight the camera shows a blue sky and the honest answer is that you cannot see
+         any of this. The sun, the moon and Venus are the exceptions people really do pick out
+         in the afternoon, so those stay and the rest waits for dusk. */
+      const dim = sky.twilight === 'day' ? 0.5 : sky.twilight === 'civil' ? 0.75 : 1;
+
+      /* constellation lines first, underneath their own stars */
+      const placed = new Map();                   // STARS index -> screen point
+      for (const s of sky.stars) {
+        if (s.alt < -1 || s.mag > limit) continue;
+        const q = project(s.az, s.alt, W, H);
+        if (q) placed.set(s.i, q);
+      }
+      if (limit > 1.5) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(150,185,230,0.34)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (const [a, b] of LINES) {
+          const pa = placed.get(a), pb = placed.get(b);
+          if (!pa || !pb) continue;
+          /* a segment whose ends land on opposite sides of the screen has wrapped around
+             behind the viewer; the projection cannot say so, but the distance can */
+          if (Math.abs(pa[0] - pb[0]) > W * 0.6) continue;
+          ctx.moveTo(pa[0], pa[1]);
+          ctx.lineTo(pb[0], pb[1]);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      /* the stars */
+      for (const s of sky.stars) {
+        if (s.mag > limit) continue;
+        const q = placed.get(s.i);
+        if (!q) continue;
+        const below = horizonAt(s.az) > s.alt;
+        if (below) continue;                      // behind the hills: no star to see
+        const r = starRadius(s.mag);
+        const a = Math.min(1, Math.max(0.22, (limit - s.mag + 0.7) / 3)) * dim;
+        ctx.fillStyle = STAR_INK + a.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(q[0], q[1], r, 0, 6.2832);
+        ctx.fill();
+      }
+
+      /* names on the few brightest, so the view teaches rather than just sparkles */
+      if (limit > 1.5) {
+        ctx.font = '400 13px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(190,215,250,0.8)';
+        for (const s of sky.stars) {
+          if (!s.name || s.mag > Math.min(1.6, limit)) continue;
+          const q = placed.get(s.i);
+          if (!q || horizonAt(s.az) > s.alt) continue;
+          ctx.fillText(s.name, q[0], q[1] - 9);
+        }
+      }
+
+      /* the planets: discs rather than points, named, because that is the thing people
+         actually want to know when a bright dot will not twinkle */
+      for (const p of sky.planets) {
+        if (p.alt < 0 || p.mag > limit + 1.5) continue;
+        if (horizonAt(p.az) > p.alt) continue;
+        const q = project(p.az, p.alt, W, H);
+        if (!q) continue;
+        const r = Math.max(1.8, starRadius(p.mag) * 1.15);
+        ctx.fillStyle = 'rgba(255,238,200,' + (0.95 * dim).toFixed(2) + ')';
+        ctx.beginPath();
+        ctx.arc(q[0], q[1], r, 0, 6.2832);
+        ctx.fill();
+        ctx.font = '600 13px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,230,170,0.92)';
+        ctx.fillText(p.name, q[0], q[1] - r - 6);
+      }
+
+      /* the sun: drawn at its real angular size, which is a quarter of a degree and
+         therefore small — the sun looks big because it is bright, not because it is wide */
+      if (sky.sun.alt > -1 && horizonAt(sky.sun.az) <= sky.sun.alt) {
+        const q = project(sky.sun.az, sky.sun.alt, W, H);
+        if (q) {
+          const fy = (H / 2) / Math.tan(S.fovY / 2 * RAD);
+          const r = Math.max(5, fy * Math.tan(0.266 * RAD));
+          const g = ctx.createRadialGradient(q[0], q[1], r * 0.4, q[0], q[1], r * 3.4);
+          g.addColorStop(0, 'rgba(255,245,210,0.95)');
+          g.addColorStop(1, 'rgba(255,220,130,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(q[0], q[1], r * 3.4, 0, 6.2832); ctx.fill();
+          ctx.fillStyle = 'rgba(255,250,232,0.98)';
+          ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 6.2832); ctx.fill();
+        }
+      }
+
+      /* the moon, with the phase it really has */
+      const mo = sky.moon;
+      if (mo.alt > -1 && horizonAt(mo.az) <= mo.alt) {
+        const q = project(mo.az, mo.alt, W, H);
+        if (q) drawMoon(ctx, q, mo, sky.sun, H);
+      }
+
+      /* what are you pointing at? the brightest named thing within ten degrees of centre */
+      const cand = [];
+      if (mo.alt > 0) cand.push({ name: 'the Moon', az: mo.az, alt: mo.alt, mag: -12.7, extra: `${Math.round(mo.phase.illum * 100)}% lit, ${mo.phase.name}` });
+      if (sky.sun.alt > 0) cand.push({ name: 'the Sun', az: sky.sun.az, alt: sky.sun.alt, mag: -26.7, extra: '' });
+      for (const p of sky.planets) if (p.alt > 0 && p.mag <= limit + 1.5) cand.push({ name: p.name, az: p.az, alt: p.alt, mag: p.mag, extra: `magnitude ${p.mag.toFixed(1)}` });
+      for (const s of sky.stars) if (s.name && s.alt > 0 && s.mag <= Math.min(2.2, limit)) cand.push({ name: s.name, az: s.az, alt: s.alt, mag: s.mag, extra: `magnitude ${s.mag.toFixed(2)}` });
+      let best = null;
+      for (const c of cand) {
+        if (horizonAt(c.az) > c.alt) continue;
+        const dA = Math.abs(((c.az - S.yaw + 540) % 360) - 180);
+        const dE = Math.abs(c.alt - S.pitch);
+        if (dA > 10 || dE > 10) continue;
+        if (!best || c.mag < best.mag) best = c;
+      }
+      nearestBody = best;
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
+
     /* ---------- the named summits ----------
 
        WHICH ONES GET A NAME. There are four hundred named summits above 13,000 ft in
@@ -353,8 +540,52 @@ export function mountSky(host, getData) {
     el.read.textContent =
       `Facing ${compass(S.yaw)} ${Math.round(S.yaw)}°, ${S.pitch > 0 ? Math.round(S.pitch) + '° up' : Math.round(-S.pitch) + '° down'}` +
       (nearestPeak ? ` — ${nearestPeak.name}, ${Math.round(nearestPeak.distKm)} km` : '') +
+      (nearestBody ? ` — ${nearestBody.name}${nearestBody.extra ? ', ' + nearestBody.extra : ''}` : '') +
+      (S.showSky && S.sky && S.sky.twilight === 'day' ? ' — daylight, so only the sun, moon and Venus are drawn' : '') +
       (S.haveSensor ? '' : ' — drag to look around') + (S.note ? ' — ' + S.note : '');
     S.raf = requestAnimationFrame(frame);
+  }
+
+  /* The moon at its true angular size, lit from the true direction.
+
+     The disc is built as two pieces that share their poles: a half-circle on the bright side,
+     always, and the terminator, which is a half-ELLIPSE whose width is the full radius times
+     the cosine of the phase angle. That cosine carries the sign, and the sign is the whole
+     shape: positive and the terminator bulges away from the bright limb, giving a gibbous
+     moon fatter than half; negative and it cuts back across, leaving a crescent. At first
+     quarter the cosine is zero, the ellipse collapses to a straight line, and the moon is
+     exactly half lit — which is the test that the construction is right.
+
+     The rotation is the bearing from the moon to the sun, worked out on the sky itself, so
+     the horns point away from the sun because they are drawn away from the sun. */
+  function drawMoon(ctx, q, mo, sun, H) {
+    const fy = (H / 2) / Math.tan(S.fovY / 2 * RAD);
+    const R = Math.max(6, fy * Math.tan(mo.radiusDeg * RAD));
+    const cosI = Math.cos(mo.phase.phaseAngle * RAD);
+    const bearing = skyBearing(mo.az, mo.alt, sun.az, sun.alt);
+
+    ctx.save();
+    ctx.translate(q[0], q[1]);
+    /* screen: "up" is the zenith and +x is increasing azimuth, so a bearing measured from
+       the zenith toward increasing azimuth becomes a rotation of that same angle */
+    ctx.rotate(bearing);
+    /* after the rotation the sun lies along +y... so put the bright limb there by rotating a
+       further quarter turn, which lands the limb's midpoint on the sun side */
+    ctx.rotate(-Math.PI / 2);
+
+    /* the dark disc first, faintly: earthshine, and it keeps the moon a circle not a sliver */
+    ctx.fillStyle = 'rgba(120,130,150,0.22)';
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.2832); ctx.fill();
+
+    ctx.fillStyle = 'rgba(252,250,240,0.97)';
+    moonShape(ctx, R, cosI);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.font = '600 13px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(245,245,235,0.9)';
+    ctx.fillText(`Moon  ${Math.round(mo.phase.illum * 100)}%`, q[0], q[1] - R - 8);
   }
 
   function size() {
@@ -380,6 +611,8 @@ export function mountSky(host, getData) {
        ground at the centre plus a person, which matters: the same peak sits a tenth of a
        degree lower seen from the plains than from a foothills driveway. */
     const eye = (Number.isFinite(d.groundM) ? d.groundM : 1600) + 1.6;
+    S.lat = d.lat; S.lon = d.lon; S.elevM = Number.isFinite(d.groundM) ? d.groundM : 0;
+    refreshSky(true);
     S.peaks = inPeakCountry(d.lat, d.lon) ? peaksFrom(d.lat, d.lon, eye) : [];
     el.peaksBtn.hidden = S.peaks.length === 0;
     if (!S.peaks.length) { S.showPeaks = false; el.peaksBtn.setAttribute('aria-pressed', 'false'); el.peaksBtn.classList.remove('on'); }
@@ -403,6 +636,22 @@ export function mountSky(host, getData) {
     document.body.style.overflow = '';
   }
   return { open, close };
+}
+
+/* The lit part of a moon, as a path, with the sun along +x.
+
+   Exported on its own and kept free of any sky data, because it is the one piece of this
+   file whose correctness cannot be read off the screen: a mirrored crescent looks perfectly
+   like a crescent. Drawn alone it can be measured — fill it, count the lit pixels, and the
+   fraction must come out as (1 + cos i)/2, which is what the illuminated fraction means. The
+   sweep flag below is the whole argument, and it was wrong the first time. */
+export function moonShape(ctx, R, cosI) {
+  ctx.beginPath();
+  ctx.arc(0, 0, R, -Math.PI / 2, Math.PI / 2, false);          // the bright limb, facing +x
+  /* back along the terminator. Anticlockwise sends it through +x, cutting INTO the lit half
+     for a crescent; clockwise sends it through -x, bulging away for a gibbous moon. */
+  ctx.ellipse(0, 0, R * Math.abs(cosI), R, 0, Math.PI / 2, Math.PI * 1.5, cosI < 0);
+  ctx.closePath();
 }
 
 export const dirVec = deg => { const r = (deg + 180) * RAD; return { e: Math.sin(r), n: Math.cos(r) }; };
