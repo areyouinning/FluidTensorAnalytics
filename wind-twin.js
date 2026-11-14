@@ -16,7 +16,8 @@ const S = {
   lat: 39.8366, lon: -105.0372, place: 'Westminster, Colorado',
   hours: null, hour: 0, dem: null, F: null, slice: null,
   R: 1, z0: 0.2, zAGL: 10, span: 12000, busy: false, anim: 0,
-  bearing: 90, speed: 25, angle: 12, stability: 0, shots: null
+  bearing: 90, speed: 25, angle: 12, stability: 0, shots: null,
+  basemap: 'relief'
 };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -378,6 +379,13 @@ async function load(lat, lon, label) {
       : S.hours.source === 'NWS' ? 'Weather Service'
       : 'saved, ' + Math.round(S.hours.ageHours || 0) + 'h old';
     hillshade();
+    /* a new place, or a new width, means new tiles. The relief is already drawn above, so
+       this only has to go to the network when the basemap is one of the photographed ones —
+       and if those tiles don't come, the relief underneath is still a correct map. */
+    if (S.basemap !== 'relief') {
+      drawBasemap().then(said => said && note(said))
+        .catch(e => note('No basemap: ' + e.message + '. The relief is still shown.'));
+    }
     renderMeteogram();
     /* a radar frame is for where you were, not where you now are */
     if ($('radar')) { $('radar').hidden = true; $('radarbtn').classList.remove('on'); $('radarbtn').setAttribute('aria-pressed', 'false'); }
@@ -698,6 +706,138 @@ function renderMeteogram() {
   if (msg) msg.textContent = bits.length ? hourLabel(i) + ': ' + bits.join(', ') + '.' : '';
 }
 
+/* ---------- web-map tiles on the twin's own square ----------
+   The radar and the basemap both want the same thing: fetch the XYZ tiles covering this
+   square, paste them into one mosaic, then cut the square's exact window out of it. The
+   terrain already works in this scheme, so no map library is involved anywhere on the page.
+   `reject` lets a caller throw away a tile that loaded but is not what it asked for. */
+async function tileMosaic({ dem, z, url, side, reject, timeout = 9000 }) {
+  const halfLat = dem.spanM / 2 / mPerDegLat, halfLon = dem.spanM / 2 / mPerDegLon(dem.lat);
+  const west = dem.lon - halfLon, east = dem.lon + halfLon;
+  const north = dem.lat + halfLat, south = dem.lat - halfLat;
+  const x0 = Math.floor(lon2x(west, z)), x1 = Math.floor(lon2x(east, z));
+  const y0 = Math.floor(lat2y(north, z)), y1 = Math.floor(lat2y(south, z));
+  const cols = x1 - x0 + 1, rows = y1 - y0 + 1;
+
+  const imgs = await Promise.all(Array.from({ length: cols * rows }, (_, k) => new Promise(ok => {
+    const im = new Image();
+    const t = setTimeout(() => { im.src = ''; ok(null); }, timeout);   // a stalled tile is a missing tile
+    im.crossOrigin = 'anonymous';
+    im.onload = () => { clearTimeout(t); ok(im); };
+    im.onerror = () => { clearTimeout(t); ok(null); };
+    im.src = url(z, x0 + (k % cols), y0 + Math.floor(k / cols));
+  })));
+  const kept = reject ? imgs.map(im => (im && reject(im)) ? null : im) : imgs;
+
+  const m = document.createElement('canvas');
+  m.width = cols * 256; m.height = rows * 256;
+  const mx = m.getContext('2d');
+  kept.forEach((im, k) => { if (im) mx.drawImage(im, (k % cols) * 256, Math.floor(k / cols) * 256); });
+  return {
+    canvas: m, cols, rows, side,
+    got: kept.filter(Boolean).length, asked: cols * rows,
+    loadedAny: imgs.some(Boolean), keptAny: kept.some(Boolean),
+    /* the square's own window inside the mosaic */
+    sx: (lon2x(west, z) - x0) * 256, sy: (lat2y(north, z) - y0) * 256,
+    sw: (lon2x(east, z) - lon2x(west, z)) * 256, sh: (lat2y(south, z) - lat2y(north, z)) * 256
+  };
+}
+
+/* A zoom whose pixels are near the size the square is DRAWN at, not the size the terrain was
+   sampled at. The elevation grid is deliberately coarse — 96 samples across a 12 km square —
+   and a basemap pinned to that would be a blurry postage stamp under a sharp flow. Capped by
+   tile count so a wide square cannot quietly ask for a hundred tiles. */
+function pickTileZoom(lat, spanM, wantPx, maxTiles = 20) {
+  for (let z = 17; z >= 3; z--) {
+    const res = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, z);
+    const px = spanM / res;
+    if (px <= wantPx && Math.pow(Math.ceil(px / 256) + 1, 2) <= maxTiles) return z;
+  }
+  return 10;
+}
+
+/* Satellite imagery and a topographic map, both keyless and CORS-clean.
+
+   Two sources were tried and dropped. CARTO's basemaps answer every request with a valid
+   200 and a PNG that reads "API KEY REQUIRED" in grey across the tile — which pastes a
+   watermark over your map and calls it cartography. OpenStreetMap's own tile servers do
+   work keyless, and are deliberately not used: their tile usage policy asks applications to
+   run their own cache rather than lean on the volunteer ones. */
+const BASEMAPS = {
+  sat: {
+    label: 'Satellite',
+    /* note the order: Esri serves {z}/{y}/{x}, the opposite of almost everything else */
+    url: (z, x, y) => `https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+    credit: 'Imagery: Esri, Maxar, Earthstar Geographics'
+  },
+  map: {
+    label: 'Map',
+    url: (z, x, y) => `https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`,
+    credit: 'Map: Esri, HERE, Garmin, USGS, OpenStreetMap contributors'
+  }
+};
+
+/* Does every tile in the mosaic have identical pixels?
+
+   This is the cheapest general test for "the server answered, but with the same card every
+   time" — a key-required watermark, a "zoom in" placeholder, a quota notice. All of them
+   load as perfectly valid images with status 200, so nothing upstream of the pixels can tell
+   you. Real tiles covering a square of ground are never byte-identical to one another, and
+   the one honest exception — open ocean, unbroken ice — is not somewhere this page has
+   terrain to solve over. Checked only when there are at least two tiles, because one tile
+   is trivially identical to itself. */
+function tilesAllIdentical(canvas, cols, rows) {
+  if (cols * rows < 2) return false;
+  const cx = canvas.getContext('2d', { willReadFrequently: true });
+  let first = null;
+  for (let k = 0; k < cols * rows; k++) {
+    const d = cx.getImageData((k % cols) * 256, Math.floor(k / cols) * 256, 256, 256).data;
+    /* a coarse digest: every 97th pixel, which is plenty to separate two real tiles */
+    let h = 2166136261;
+    for (let i = 0; i < d.length; i += 97 * 4) {
+      h = Math.imul(h ^ d[i], 16777619) ^ d[i + 1];
+      h = Math.imul(h, 16777619) ^ d[i + 2];
+    }
+    if (first === null) first = h; else if (h !== first) return false;
+  }
+  return true;
+}
+
+/* ---------- what sits under the wind ----------
+   Relief is the twin's own hillshade, built from the same elevation grid the solver uses, so
+   it is the only one of the three that is guaranteed to agree with the physics. The other two
+   are photographs of the world, which is what you want when the question is "where IS this". */
+async function drawBasemap() {
+  const want = S.basemap || 'relief';
+  if (want === 'relief' || !S.dem) { hillshade(); return ''; }
+  const spec = BASEMAPS[want];
+  const cv = $('ground');
+  /* The hillshade canvas is only as big as the elevation grid — 96 px — and relies on CSS to
+     stretch it, which is fine for a soft relief and useless for imagery. Give the basemap the
+     pixels the square is actually drawn at. */
+  const side = Math.max(512, $('flow').width || 512);
+  cv.width = cv.height = side;
+  const z = pickTileZoom(S.dem.lat, S.dem.spanM, side);
+  const mos = await tileMosaic({ dem: S.dem, z, url: spec.url, side });
+  if (!mos.keptAny) throw new Error(spec.label.toLowerCase() + ' tiles would not load');
+  if (tilesAllIdentical(mos.canvas, mos.cols, mos.rows)) {
+    throw new Error('that tile server sent the same placeholder for every tile, not a map');
+  }
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, side, side);
+  ctx.drawImage(mos.canvas, mos.sx, mos.sy, mos.sw, mos.sh, 0, 0, side, side);
+  /* The flow is drawn in pale blues and whites and vanishes over bright ground. Knock the
+     basemap back rather than brightening the particles, because the particle colour IS the
+     speed scale and repainting it would break the legend. */
+  ctx.fillStyle = want === 'sat' ? 'rgba(10,14,22,0.30)' : 'rgba(255,255,255,0.26)';
+  ctx.fillRect(0, 0, side, side);
+  if (S.shots) drawDisc();                      // the throw panel crops this same image
+  const res = Math.round(156543.03392 * Math.cos(S.dem.lat * Math.PI / 180) / Math.pow(2, z));
+  const miss = mos.asked - mos.got;
+  return `${spec.label} tiles at zoom ${z}, about ${res} m a pixel. ${spec.credit}.` +
+    (miss ? ` ${miss} of ${mos.asked} tiles did not load, so part of the square is blank.` : '');
+}
+
 /* ---------- live radar, over your own ground ----------
    RainViewer publishes the composite as ordinary web-map tiles, which is exactly the tile
    scheme the terrain already uses — so the radar lands on the same square with the same
@@ -718,64 +858,44 @@ async function loadRadar() {
      Zoom 7 is about a kilometre per pixel at this latitude, which is close to the real
      resolution of a national composite anyway: there is no detail above it to lose. */
   const z = 7;
-  const halfLat = dem.spanM / 2 / mPerDegLat, halfLon = dem.spanM / 2 / mPerDegLon(dem.lat);
-  const west = dem.lon - halfLon, east = dem.lon + halfLon;
-  const north = dem.lat + halfLat, south = dem.lat - halfLat;
-  const x0 = Math.floor(lon2x(west, z)), x1 = Math.floor(lon2x(east, z));
-  const y0 = Math.floor(lat2y(north, z)), y1 = Math.floor(lat2y(south, z));
-  const cols = x1 - x0 + 1, rows = y1 - y0 + 1;
-
   const host = j.host || 'https://tilecache.rainviewer.com';
-  const imgs = await Promise.all(Array.from({ length: cols * rows }, (_, k) => new Promise(ok => {
-    const im = new Image();
-    const t = setTimeout(() => { im.src = ''; ok(null); }, 9000);   // a stalled tile is a missing tile
-    im.crossOrigin = 'anonymous';
-    im.onload = () => { clearTimeout(t); ok(im); };
-    im.onerror = () => { clearTimeout(t); ok(null); };
-    /* colour scheme 4, smoothed, no snow mask: legible over a hillshade */
-    im.src = `${host}${frame.path}/256/${z}/${x0 + (k % cols)}/${y0 + Math.floor(k / cols)}/4/1_0.png`;
-  })));
-
-  /* A placeholder card is flat grey wherever it is opaque; real echo never is. Reject any
-     tile that looks like one, so a change at the far end shows up as missing radar rather
-     than as a wash of fake weather. */
-  const real = imgs.map(im => {
-    if (!im) return null;
-    const t = document.createElement('canvas');
-    t.width = t.height = 256;
-    const tx = t.getContext('2d', { willReadFrequently: true });
-    tx.drawImage(im, 0, 0);
-    let opaque = 0, grey = 0;
-    const d = tx.getImageData(0, 0, 256, 256).data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i + 3] === 0) continue;
-      opaque++;
-      if (Math.abs(d[i] - d[i + 1]) < 8 && Math.abs(d[i + 1] - d[i + 2]) < 8) grey++;
+  const cv = $('radar');
+  const side = $('flow').width || 512;
+  const mos = await tileMosaic({
+    dem, z, side,
+    /* colour scheme 4, smoothed, no snow mask: legible over a hillshade or imagery */
+    url: (zz, x, y) => `${host}${frame.path}/256/${zz}/${x}/${y}/4/1_0.png`,
+    /* A placeholder card is flat grey wherever it is opaque; real echo never is. Reject any
+       tile that looks like one, so a change at the far end shows up as missing radar rather
+       than as a wash of fake weather. */
+    reject: im => {
+      const t = document.createElement('canvas');
+      t.width = t.height = 256;
+      const tx = t.getContext('2d', { willReadFrequently: true });
+      tx.drawImage(im, 0, 0);
+      let opaque = 0, grey = 0;
+      const d = tx.getImageData(0, 0, 256, 256).data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] === 0) continue;
+        opaque++;
+        if (Math.abs(d[i] - d[i + 1]) < 8 && Math.abs(d[i + 1] - d[i + 2]) < 8) grey++;
+      }
+      return opaque > 2000 && grey / opaque > 0.95;
     }
-    return (opaque > 2000 && grey / opaque > 0.95) ? null : im;
   });
-  if (imgs.some(Boolean) && !real.some(Boolean)) {
+  if (mos.loadedAny && !mos.keptAny) {
     throw new Error('the radar server sent a "zoom in" placeholder instead of a composite');
   }
 
-  const cv = $('radar');
-  const side = $('flow').width || 512;
   cv.width = cv.height = side;
   cv.style.width = cv.style.height = $('flow').style.width || (side + 'px');
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, side, side);
-  /* the mosaic, then the square's own window out of it */
-  const m = document.createElement('canvas');
-  m.width = cols * 256; m.height = rows * 256;
-  const mx = m.getContext('2d');
-  real.forEach((im, k) => { if (im) mx.drawImage(im, (k % cols) * 256, Math.floor(k / cols) * 256); });
-  const sx = (lon2x(west, z) - x0) * 256, sy = (lat2y(north, z) - y0) * 256;
-  const sw = (lon2x(east, z) - lon2x(west, z)) * 256, sh = (lat2y(south, z) - lat2y(north, z)) * 256;
   ctx.globalAlpha = 0.72;
   /* no smoothing: a radar pixel is a kilometre wide and should look like one, not be
      airbrushed into a soft cloud that implies detail the composite does not have */
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(m, sx, sy, sw, sh, 0, 0, side, side);
+  ctx.drawImage(mos.canvas, mos.sx, mos.sy, mos.sw, mos.sh, 0, 0, side, side);
   ctx.globalAlpha = 1;
 
   const age = Math.round((Date.now() / 1000 - frame.time) / 60);
@@ -870,6 +990,36 @@ function wire() {
     } catch (e) {
       note('No radar: ' + e.message + '.');
     } finally { rb.disabled = false; }
+  });
+
+  /* what sits under the wind. Relief is local and instant; the other two are somebody else's
+     tiles, so the button says so while they are on their way and says why if they don't come. */
+  const segs = [...document.querySelectorAll('[data-base]')];
+  for (const b of segs) b.addEventListener('click', async () => {
+    const want = b.dataset.base;
+    if (want === S.basemap) return;
+    const was = S.basemap;
+    S.basemap = want;
+    for (const o of segs) {
+      o.classList.toggle('on', o === b);
+      o.setAttribute('aria-pressed', String(o === b));
+    }
+    if (!S.dem) return;
+    if (want !== 'relief') note('Fetching the ' + BASEMAPS[want].label.toLowerCase() + '…');
+    try {
+      const said = await drawBasemap();
+      if (said) note(said);
+    } catch (e) {
+      /* put the switch back where it was: a button that looks selected over an unchanged
+         map is worse than no basemap */
+      S.basemap = was;
+      for (const o of segs) {
+        o.classList.toggle('on', o.dataset.base === was);
+        o.setAttribute('aria-pressed', String(o.dataset.base === was));
+      }
+      hillshade();
+      note('No basemap: ' + e.message + '.');
+    }
   });
 
   const bind = (id, key, fmt, after) => {
