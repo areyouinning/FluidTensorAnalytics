@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wind where you actually are | FluidTA</title>
-<meta name="description" content="A digital twin of the wind over your own terrain: a real forecast, real ground, and the mass-conserving solve that makes the two agree, drawn as moving air.">
+<meta name="description" content="A digital twin of the wind over your own terrain: a real forecast, real ground, and the mass-conserving solve that makes the two agree — plus the plain two-day forecast, live radar, and the named peaks on your skyline.">
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
 <style>
@@ -16,6 +16,10 @@
   .find { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
   .find input[type=text] { flex: 1 1 180px; min-height: 44px; padding: 0 14px; font: 400 17px var(--font); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; }
   .note { font-size: 15px; }
+  .meteo-wrap { width: 100%; margin: 14px 0 6px; background: var(--sunk); border-radius: var(--radius); padding: 6px 0; }
+  #meteo { display: block; width: 100%; touch-action: pan-y; cursor: crosshair; }
+  .btn.sm { min-height: 34px; padding: 0 14px; font-size: 15px; }
+  .btn.sm.on { background: var(--blue); color: var(--on-accent); border-color: var(--blue); }
   .scale { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; color: var(--ink-soft); }
   .scale i { flex: 1; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgb(70,120,190), rgb(90,180,170), rgb(220,190,90), rgb(230,120,60), rgb(240,240,245)); }
   /* the column of air above you */
@@ -31,6 +35,7 @@
   .sky-draw { touch-action: none; }
   .sky-hud { position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px)); pointer-events: none; }
   .sky-hud .btn { pointer-events: auto; background: rgba(255,255,255,.92); color: #11181f; }
+  .sky-hud .btn.on { background: #ffd9a0; color: #2a1c08; }
   .sky-read { flex: 1; text-align: right; font: 600 14px var(--font); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
 </style>
 </head>
@@ -42,9 +47,12 @@
 
   <div class="stack">
     <canvas id="ground" aria-hidden="true"></canvas>
+    <canvas id="radar" aria-hidden="true" hidden></canvas>
     <canvas id="flow" role="img" aria-label="Animated particles carried by the computed wind field over your terrain"></canvas>
   </div>
-  <div class="scale"><span>calm</span><i></i><span>fast</span></div>
+  <div class="scale"><span>calm</span><i></i><span>fast</span>
+    <button class="btn sm" id="radarbtn" type="button" aria-pressed="false">Radar</button>
+  </div>
   <p class="where"><b id="where">—</b><span id="r-tz"></span></p>
 
   <div class="find">
@@ -75,6 +83,14 @@
   </div>
   <p class="nojs note" id="note">Starting up.</p>
 
+  <h2>The next two days</h2>
+  <p>The same forecast, read the ordinary way. Three panels on one clock: how warm it will be and how close that is to the dew point, the chance of something falling out of the sky, and the wind with its gusts. Point anywhere on it and the twin above re-solves for that hour.</p>
+  <div class="meteo-wrap" hidden>
+    <canvas id="meteo" role="img" aria-label="Forecast chart: temperature and dew point, chance of precipitation, and wind with gusts, over the next two days"></canvas>
+  </div>
+  <p class="nojs note" id="meteo-note">The forecast arrives with a real place.</p>
+  <p>Temperatures are in Fahrenheit because that is how the forecast gets read out loud here; wind stays in metres per second to match the twin above it, where 10 m/s is a stiff breeze and 20 is a day to stay off a ladder.</p>
+
   <h2>Throw something through it</h2>
   <p>A wind field is abstract until something has to fly through it. This throws a disc from the middle of the square, through the air the solver worked out, and draws the same throw again in still air beside it. The gap between the two lines is what the terrain did to your shot.</p>
   <div class="stack" style="margin-top:14px">
@@ -102,6 +118,8 @@
   <h2>The column above you</h2>
   <p>The twin solves the air near the ground, where terrain decides things. Above that, the forecast carries its own profile: the wind a kilometre up is usually faster, and often pointing somewhere else entirely. <b>Look up</b> puts those layers over your camera, each drifting at the speed and bearing the forecast gives it.</p>
   <div id="profile"></div>
+  <p>In Colorado that view does a second job. A <b>Peaks</b> button appears, and the named summits go on the sky where the geometry puts them: bearing from spherical trigonometry, height above level from the summit's elevation minus the Earth's own curve. Over a hundred kilometres that curve drops the ground about 780 m away from your line of sight, and the air bends light back over roughly an eighth of it — leave both out and Pikes Peak from Denver lands half a degree high, a thumb's width off the real thing. A summit the twin's own terrain hides behind a nearer ridge is drawn hollow, because that is where the peak is rather than what you can see.</p>
+  <div class="note"><p><b>The old peak list was wrong, so this one is generated.</b> The site's <a href="/peak-finder-v3.html">Front Range Peak Finder</a> carries 52 hand-entered summits. Checked against the USGS national elevation model, most of those coordinates are not on their summits: the point listed for Chiefs Head Peak reads 825 m below the height beside it, Ypsilon Mountain 316 m below, Hagues Peak 280 m. A coordinate that far out is in a valley, and it throws the bearing as badly as the height — which is the one number a peak finder exists to get right. It had James Peak fourteen kilometres from James Peak. The list used here is built instead from every named Colorado summit in OpenStreetMap at or above 4,000 m, thinned so no two kept summits sit within 600 m of each other. That keeps Meeker beside Longs and Torreys beside Grays, which are two mountains to anyone looking at them, and drops the duplicate nodes that are not.</p></div>
   <p>Seen from underneath, a layer of air is a ceiling. A ray leaving your eye at some angle above the horizon meets a layer at a distance set by that angle, so the same wind races overhead and crawls near the horizon — which is how moving cloud has always looked. The skyline drawn in the camera view comes from the same elevation data as the map, so it doubles as a check: if the drawn ridge doesn't sit on the real one, your phone's compass is off, not the wind.</p>
   <div class="note"><p><b>Pressure levels can be underground.</b> A forecast reports the 1000 and 925 hPa levels wherever they fall, which in Westminster at 1641 m means 142 m and 810 m above sea level — beneath your feet. Those are extrapolated numbers, not air, and the page drops any level that does not clear the local ground.</p></div>
 
@@ -132,12 +150,15 @@
     <li><b>The camera view is a backdrop, not a tracked scene.</b> There is no visual tracking of any kind: the overlay is aimed purely by the phone's compass and tilt. Indoors, in a car, or near anything steel, a phone compass can be tens of degrees out, and the whole sky will be rotated with it. The drawn skyline is the check — if it doesn't sit on the real ridge, the heading is wrong, not the wind.</li>
     <li><b>Layers aloft are the raw forecast, not the twin.</b> The terrain solve applies near the ground. The air a kilometre up is shown exactly as the forecast gives it, undownscaled, which is honest for a layer that mostly ignores the hills anyway.</li>
     <li><b>Elevation tiles are mixed quality.</b> Good enough to look at and to shape a flow, not good enough to build anything on.</li>
+    <li><b>The radar is one still frame, and it is coarse.</b> It is the newest composite RainViewer publishes — not a loop, and not a forecast of where the cell is going. The free tiles stop at zoom 7, which is roughly a kilometre per pixel, so the default 12 km square is about a dozen radar pixels across and will usually be one flat colour or empty. Widen <b>Across</b> to 30 km before expecting it to mean anything. Above zoom 7 that server returns a grey "Zoom in" card rather than an error, which draws like a solid overcast if you let it; the page checks for that card and reports missing radar instead.</li>
+    <li><b>The peak list is 409 named Colorado summits above 13,000 feet</b>, taken from OpenStreetMap, which is not every bump on a skyline — an unlabelled peak may simply be below the cut. From the Front Range about 180 of them clear the horizon at once, far more than a screen can name, so the ones that get a label are chosen by how large they loom: angular height above level, which already combines elevation and distance. Carets stop after the forty biggest in view and names after fourteen. A peak you can see and cannot get a name for is losing a space contest, not missing.</li>
+    <li><b>Peak heights are OpenStreetMap's, not survey marks</b>, and agree with published summit elevations to a few feet on the famous ones. The refraction constant is a standard-atmosphere average: on a cold morning over snow light bends about twice as hard and distant summits sit genuinely higher than drawn, and on a hot afternoon lower. Near peaks are unaffected either way.</li>
   </ul>
   <p>Do not plan a flight, a burn, or a roof with it. Do use it to see why the wind at your back door is not the wind on the forecast.</p>
 
   <div class="note"><p><b>About your location.</b> Nothing here runs until you ask. If you press <b>Use my location</b>, your browser asks you first, and the coordinates go to public services to fetch the forecast and the ground tiles for that square — the same requests a weather page makes. The only thing kept is the last forecast, saved in your own browser so the page still has something to show if a service goes down; nothing leaves for anywhere else, and this site has no server to store it on. Typing a place name works identically and tells those services a town instead of a doorstep.</p></div>
 
-  <p class="credit">Method after <a href="https://firelab.github.io/windninja/" rel="noopener">WindNinja</a>, from the US Forest Service Missoula Fire Sciences Laboratory, whose conservation-of-mass solver "minimizes change in initial wind field while conserving mass". Look and particle treatment after <a href="https://earth.nullschool.net/" rel="noopener">earth.nullschool.net</a> by Cameron Beccario. Both were read and reimplemented here, not copied. Forecast from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>; elevation from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">Terrain Tiles on AWS</a> (USGS 3DEP, SRTM and others). Want the plain forecast instead? That is <a href="/weather-map.html">Weather where you are</a>.</p>
+  <p class="credit">Method after <a href="https://firelab.github.io/windninja/" rel="noopener">WindNinja</a>, from the US Forest Service Missoula Fire Sciences Laboratory, whose conservation-of-mass solver "minimizes change in initial wind field while conserving mass". Look and particle treatment after <a href="https://earth.nullschool.net/" rel="noopener">earth.nullschool.net</a> by Cameron Beccario. Both were read and reimplemented here, not copied. Forecast from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>, falling back to the <a href="https://www.weather.gov/documentation/services-web-api" rel="noopener">US National Weather Service</a>; elevation from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">Terrain Tiles on AWS</a> (USGS 3DEP, SRTM and others); radar from <a href="https://www.rainviewer.com/" rel="noopener">RainViewer</a>. Want just the mountains named, full screen? That is <a href="/peak-finder-v3.html">Which peak is that?</a></p>
   <a data-next></a>
 </main>
 <script type="module" src="/wind-twin.js"></script>
