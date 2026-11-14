@@ -394,6 +394,91 @@ export function levelAt(F, zAboveBase) {
   return nz - 1;
 }
 
+/* The wind at a point in the world, for anything that has to move through the field rather
+   than be drawn on it. Coordinates are metres from the centre of the square: +x east,
+   +y north, z absolute (metres above sea level, the same datum as the terrain).
+
+   Bilinear across the columns, nearest in the vertical. Nearest is honest here because the
+   levels are a metre apart where a thrown or falling thing spends its time; interpolating
+   between a 1 m and a 2 m level would be false precision over a field this coarse sideways. */
+export function windAt(F, xE, yN, zAbs) {
+  const { nx, ny, dx, dy, base, uid, vid, wid, u, v, w, cid, solid } = F;
+  const gx = xE / dx + nx / 2 - 0.5, gy = ny / 2 - 0.5 - yN / dy;
+  if (gx < -0.5 || gy < -0.5 || gx > nx - 0.5 || gy > ny - 0.5) return null;   // outside the square
+  const k = levelAt(F, zAbs - base);
+  const i0 = Math.max(0, Math.min(nx - 1, Math.floor(gx))), j0 = Math.max(0, Math.min(ny - 1, Math.floor(gy)));
+  const i1 = Math.min(nx - 1, i0 + 1), j1 = Math.min(ny - 1, j0 + 1);
+  const fx = Math.max(0, Math.min(1, gx - i0)), fy = Math.max(0, Math.min(1, gy - j0));
+  const at = (i, j) => {
+    if (solid[cid(i, j, k)]) return null;                                      // inside the hill
+    return [(u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2,
+            (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2,
+            (w[wid(i, j, k)] + w[wid(i, j, k + 1)]) / 2];
+  };
+  const c = [at(i0, j0), at(i1, j0), at(i0, j1), at(i1, j1)];
+  const wt = [(1 - fx) * (1 - fy), fx * (1 - fy), (1 - fx) * fy, fx * fy];
+  const out = [0, 0, 0];
+  let got = 0;
+  for (let n = 0; n < 4; n++) {
+    if (!c[n]) continue;
+    got += wt[n];
+    for (let d = 0; d < 3; d++) out[d] += c[n][d] * wt[n];
+  }
+  if (got < 1e-6) return [0, 0, 0];                                            // all four underground
+  for (let d = 0; d < 3; d++) out[d] /= got;
+  return out;
+}
+
+/* The wind a column actually carries near its own ground, for anywhere the 3D field has
+   nothing to say.
+
+   Why this is needed: the levels are fine above the LOWEST ground in the square, so on a
+   summit a few hundred metres above that floor, everything within throwing height of the
+   surface falls inside blocked cells and the field reads zero. A disc released there would
+   fly through dead air and the wind would appear to do nothing at all. This walks up the
+   column to the first cell genuinely in the air, takes its wind, and brings it down to the
+   height asked for with the same neutral log profile the solver started from. It is the
+   surface slice's logic at a single point. */
+export function windColumn(F, xE, yN, zAbs) {
+  const { nx, ny, dx, dy, nz, zc, ds, base, ter, uid, vid, u, v, cid, solid, z0 } = F;
+  const i = Math.max(0, Math.min(nx - 1, Math.floor(xE / dx + nx / 2)));
+  const j = Math.max(0, Math.min(ny - 1, Math.floor(ny / 2 - yN / dy)));
+  const g = ter[j * nx + i];
+  let k = 0;
+  while (k < nz - 1 && (solid[cid(i, j, k)] || base + zc[k] - g < 0.4 * ds[k])) k++;
+  const cellAGL = Math.max(0.2, base + zc[k] - g);
+  const uu = (u[uid(i, j, k)] + u[uid(i + 1, j, k)]) / 2;
+  const vv = (v[vid(i, j, k)] + v[vid(i, j + 1, k)]) / 2;
+  const agl = Math.max(0.2, zAbs - g);
+  const f = Math.log(Math.max(agl, z0 * 2) / z0) / Math.log(Math.max(cellAGL, z0 * 2) / z0);
+  return [uu * f, vv * f, 0];
+}
+
+/* What a thrown thing should feel: the solved field where it has an answer, the column's own
+   near-surface wind where it does not. */
+export function windForFlight(F, xE, yN, zAbs) {
+  const q = windAt(F, xE, yN, zAbs);
+  if (q && (q[0] !== 0 || q[1] !== 0 || q[2] !== 0)) return q;
+  return windColumn(F, xE, yN, zAbs);
+}
+
+/* The ground height at a point, same coordinates: what a thrown thing lands on.
+
+   Bilinear, deliberately. Nearest-cell made the ground a staircase of 250 m blocks, and a
+   flight path does not survive that: the centre of the square sits exactly on a rounding
+   boundary, so a disc drifting a millimetre sideways crossed into the next cell and the
+   ground stepped up 3.7 m into it, ending the flight on the first frame. A continuous
+   surface has no edges to trip over. */
+export function groundAt(F, xE, yN) {
+  const { nx, ny, dx, dy, ter } = F;
+  const gx = Math.max(0, Math.min(nx - 1.001, xE / dx + nx / 2 - 0.5));
+  const gy = Math.max(0, Math.min(ny - 1.001, ny / 2 - 0.5 - yN / dy));
+  const i = Math.floor(gx), j = Math.floor(gy), fx = gx - i, fy = gy - j;
+  const i1 = Math.min(nx - 1, i + 1), j1 = Math.min(ny - 1, j + 1);
+  return ter[j * nx + i] * (1 - fx) * (1 - fy) + ter[j * nx + i1] * fx * (1 - fy)
+       + ter[j1 * nx + i] * (1 - fx) * fy + ter[j1 * nx + i1] * fx * fy;
+}
+
 /* bilinear sample in grid coordinates 0..n-1, the interpolation nullschool uses between
    its grid points so particles see a smooth field rather than a staircase */
 export function sampleBilinear(fld, gx, gy) {
