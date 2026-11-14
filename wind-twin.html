@@ -71,6 +71,7 @@
     <div class="stat"><small>Relief across the square</small><b id="r-relief">–</b></div>
     <div class="stat"><small>Ground height</small><b id="r-elev">–</b></div>
     <div class="stat"><small>Divergence after the solve</small><b id="r-div">–</b></div>
+    <div class="stat"><small>Forecast from</small><b id="r-src">–</b></div>
   </div>
   <p class="nojs note" id="note">Starting up.</p>
 
@@ -134,7 +135,7 @@
   </ul>
   <p>Do not plan a flight, a burn, or a roof with it. Do use it to see why the wind at your back door is not the wind on the forecast.</p>
 
-  <div class="note"><p><b>About your location.</b> Nothing here runs until you ask. If you press <b>Use my location</b>, your browser asks you first, and the coordinates go to two public services to fetch the forecast and the ground tiles for that square — the same request a weather page makes. Nothing is stored, and this site has no server to store it on. Typing a place name works identically and tells those services a town instead of a doorstep.</p></div>
+  <div class="note"><p><b>About your location.</b> Nothing here runs until you ask. If you press <b>Use my location</b>, your browser asks you first, and the coordinates go to public services to fetch the forecast and the ground tiles for that square — the same requests a weather page makes. The only thing kept is the last forecast, saved in your own browser so the page still has something to show if a service goes down; nothing leaves for anywhere else, and this site has no server to store it on. Typing a place name works identically and tells those services a town instead of a doorstep.</p></div>
 
   <p class="credit">Method after <a href="https://firelab.github.io/windninja/" rel="noopener">WindNinja</a>, from the US Forest Service Missoula Fire Sciences Laboratory, whose conservation-of-mass solver "minimizes change in initial wind field while conserving mass". Look and particle treatment after <a href="https://earth.nullschool.net/" rel="noopener">earth.nullschool.net</a> by Cameron Beccario. Both were read and reimplemented here, not copied. Forecast from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>; elevation from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">Terrain Tiles on AWS</a> (USGS 3DEP, SRTM and others). Want the plain forecast instead? That is <a href="/weather-map.html">Weather where you are</a>.</p>
   <a data-next></a>
