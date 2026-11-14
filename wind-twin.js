@@ -21,7 +21,113 @@ const S = {
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ---------- data ---------- */
+/* ---------- keeping the forecast on its feet ----------
+
+   earth.nullschool.net never has this problem, and it is worth saying why: every request its
+   page makes goes to its own origin. It pulls GFS from NOAA on a schedule, converts it, and
+   serves its own files, so an upstream outage only makes its data stale. That needs a server
+   and a scheduled job, and this site is static pages with neither.
+
+   What a static page can do is the same idea twice over: ask somebody else when the first
+   service is down, and remember the last answer that worked. Open-Meteo went dark for several
+   hours on 12 November 2026 and the page simply failed; with these two it would have carried
+   on, first on the National Weather Service and then on yesterday's numbers, saying so.
+
+   The fallbacks are not equals. NWS is US-only and carries no winds aloft, so the sky view
+   loses its upper layers on that path. A cached forecast is yesterday's weather. Both are
+   labelled on the page rather than passed off as live. */
+
+const CACHE_KEY = 'fta-wind-last';
+
+function cacheSave(lat, lon, h) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      lat, lon, savedAt: Date.now(),
+      hours: { time: h.time, spd: h.spd, dir: h.dir, elev: h.elev, tz: h.tz, raw: h.raw }
+    }));
+  } catch (e) { /* storage is a convenience here, never a requirement */ }
+}
+function cacheLoad(lat, lon) {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    /* only reuse it for roughly the same place: a forecast for another valley is not a
+       fallback, it is a wrong answer wearing the right label */
+    if (Math.abs(c.lat - lat) > 0.4 || Math.abs(c.lon - lon) > 0.4) return null;
+    const age = (Date.now() - c.savedAt) / 3600e3;
+    return Object.assign({}, c.hours, { source: 'saved', ageHours: age });
+  } catch (e) { return null; }
+}
+
+/* NWS gives its grid as intervals with ISO durations, not an hourly list. Expand them. */
+function expandNWS(values, stamps) {
+  const out = new Array(stamps.length).fill(null);
+  for (const v of values || []) {
+    const bits = String(v.validTime).split('/');
+    const start = Date.parse(bits[0]);
+    const m = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?$/.exec(bits[1] || '');
+    if (!m || !isFinite(start)) continue;
+    const hrs = (+(m[1] || 0)) * 24 + (+(m[2] || 0)) + (+(m[3] || 0)) / 60;
+    const end = start + hrs * 3600e3;
+    for (let i = 0; i < stamps.length; i++) if (stamps[i] >= start && stamps[i] < end) out[i] = v.value;
+  }
+  return out;
+}
+
+async function weatherNWS(lat, lon) {
+  const pt = await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`);
+  if (!pt.ok) throw new Error('NWS points ' + pt.status);
+  const grid = (await pt.json()).properties.forecastGridData;
+  const gr = await fetch(grid);
+  if (!gr.ok) throw new Error('NWS grid ' + gr.status);
+  const P = (await gr.json()).properties;
+
+  const t0 = new Date();
+  t0.setMinutes(0, 0, 0);
+  const stamps = [], time = [];
+  for (let i = 0; i < 72; i++) {
+    const d = new Date(t0.getTime() + i * 3600e3);
+    stamps.push(d.getTime());
+    const p = n => String(n).padStart(2, '0');
+    time.push(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:00`);
+  }
+  const kmh = P.windSpeed && /km_h/.test(P.windSpeed.uom || '');
+  const spd = expandNWS(P.windSpeed && P.windSpeed.values, stamps).map(v => v == null ? null : (kmh ? v / 3.6 : v));
+  const dir = expandNWS(P.windDirection && P.windDirection.values, stamps);
+  if (!spd.some(v => v != null)) throw new Error('NWS returned no wind');
+
+  const fill = a => { let last = 0; return a.map(v => (v == null ? last : (last = v))); };
+  const S10 = fill(spd), D10 = fill(dir);
+  return {
+    time, spd: S10, dir: D10, spd80: null, temp: null,
+    elev: P.elevation ? P.elevation.value : null,
+    tz: 'NWS grid', source: 'NWS',
+    raw: { wind_speed_10m: S10, wind_direction_10m: D10 }
+  };
+}
+
+/* Open-Meteo first, then the National Weather Service, then whatever we saw last. */
 async function weather(lat, lon) {
+  try {
+    const h = await weatherOpenMeteo(lat, lon);
+    h.source = 'Open-Meteo';
+    cacheSave(lat, lon, h);
+    return h;
+  } catch (first) {
+    try {
+      const h = await weatherNWS(lat, lon);
+      cacheSave(lat, lon, h);
+      return h;
+    } catch (second) {
+      const c = cacheLoad(lat, lon);
+      if (c) return c;
+      throw new Error(first.message + '; the weather service fallback also failed (' + second.message + ')');
+    }
+  }
+}
+
+async function weatherOpenMeteo(lat, lon) {
   const aloft = LEVELS.flatMap(p => [`wind_speed_${p}hPa`, `wind_direction_${p}hPa`, `geopotential_height_${p}hPa`]);
   const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) +
     '&hourly=' + ['wind_speed_10m', 'wind_direction_10m', 'wind_speed_80m', 'wind_direction_80m', 'wind_speed_120m', 'wind_direction_120m', 'temperature_2m'].concat(aloft).join(',') +
@@ -42,14 +148,20 @@ async function weather(lat, lon) {
 function profileAt(h) {
   const H = S.hours, g = H.elev == null ? 0 : H.elev;
   if (!H.raw) return [];
+  /* the fallback sources carry 10 m and nothing else, so every level is optional */
+  const lvl = (agl, sKey, dKey) => {
+    const s = H.raw[sKey], d = H.raw[dKey];
+    if (!s || !d || s[h] == null || d[h] == null) return null;
+    return { agl, speed: s[h], dir: d[h] };
+  };
   const near = [
-    { agl: 10, speed: H.raw.wind_speed_10m[h], dir: H.raw.wind_direction_10m[h] },
-    { agl: 80, speed: H.raw.wind_speed_80m[h], dir: H.raw.wind_direction_80m[h] },
-    { agl: 120, speed: H.raw.wind_speed_120m[h], dir: H.raw.wind_direction_120m[h] }
-  ];
+    lvl(10, 'wind_speed_10m', 'wind_direction_10m'),
+    lvl(80, 'wind_speed_80m', 'wind_direction_80m'),
+    lvl(120, 'wind_speed_120m', 'wind_direction_120m')
+  ].filter(Boolean);
   const up = LEVELS.map(p => {
     const msl = H.raw['geopotential_height_' + p + 'hPa'];
-    if (!msl) return null;
+    if (!msl || msl[h] == null) return null;
     const agl = msl[h] - g;
     if (!(agl > 220)) return null;                  // underground, or inside the near set already
     return { agl, speed: H.raw['wind_speed_' + p + 'hPa'][h], dir: H.raw['wind_direction_' + p + 'hPa'][h], hPa: p };
@@ -222,7 +334,10 @@ async function load(lat, lon, label) {
     note('Fetching the ground…');
     S.dem = await fetchDEM(lat, lon, S.span, 96, note);
     if (S.dem.missing) note(`${S.dem.missing} terrain tile(s) would not load, so part of the ground is flat and wrong.`);
-    $('r-elev').textContent = Math.round(S.hours.elev) + ' m';
+    $('r-elev').textContent = S.hours.elev == null ? '–' : Math.round(S.hours.elev) + ' m';
+    $('r-src').textContent = S.hours.source === 'Open-Meteo' ? 'Open-Meteo'
+      : S.hours.source === 'NWS' ? 'Weather Service'
+      : 'saved, ' + Math.round(S.hours.ageHours || 0) + 'h old';
     hillshade();
     solve();
   } catch (e) {
@@ -339,7 +454,10 @@ function renderProfile() {
 
 /* ---------- controls ---------- */
 function wire() {
-  const sky = mountSky($('sky-host'), () => ({ layers: S.layers, dem: S.dem }));
+  const sky = mountSky($('sky-host'), () => ({
+    layers: S.layers, dem: S.dem, lat: S.lat, lon: S.lon,
+    groundM: S.F ? groundAt(S.F, 0, 0) : (S.hours && S.hours.elev) || 0
+  }));
   $('look').addEventListener('click', async () => {
     const why = await sky.open();
     if (why) note(why);
