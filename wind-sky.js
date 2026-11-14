@@ -6,7 +6,12 @@
    at the layer's real speed appear fast overhead and crawl near the horizon, which is exactly
    how moving cloud looks. Nothing here is a cartoon of wind: the velocities are the forecast's.
 
+   The same view will also name the mountains, where there are mountains worth naming. See
+   diagrams/peaks-co.js for that geometry.
+
    Honest limits are at the bottom of this file and on the page. */
+
+import { peaksFrom, inPeakCountry } from './diagrams/peaks-co.js';
 
 const RAD = Math.PI / 180;
 
@@ -18,6 +23,7 @@ export function mountSky(host, getData) {
       <canvas class="sky-draw"></canvas>
       <div class="sky-hud">
         <button class="btn sky-x" type="button">Close</button>
+        <button class="btn sky-peaks" type="button" hidden aria-pressed="false">Peaks</button>
         <div class="sky-read" aria-live="polite"></div>
       </div>
     </div>`;
@@ -25,11 +31,18 @@ export function mountSky(host, getData) {
   el.cam = host.querySelector('.sky-cam');
   el.cv = host.querySelector('.sky-draw');
   el.read = host.querySelector('.sky-read');
+  el.peaksBtn = host.querySelector('.sky-peaks');
   host.querySelector('.sky-x').addEventListener('click', close);
+  el.peaksBtn.addEventListener('click', () => {
+    S.showPeaks = !S.showPeaks;
+    el.peaksBtn.setAttribute('aria-pressed', String(S.showPeaks));
+    el.peaksBtn.classList.toggle('on', S.showPeaks);
+  });
 
   const S = {
     on: false, yaw: 0, pitch: 0, haveSensor: false, stream: null, raf: 0,
-    drag: null, fovY: 62, parts: [], horizon: null, note: ''
+    drag: null, fovY: 62, parts: [], horizon: null, note: '',
+    peaks: [], showPeaks: false
   };
 
   /* ---------- orientation ----------
@@ -241,6 +254,83 @@ export function mountSky(host, getData) {
     }
     ctx.globalAlpha = 1;
 
+    /* ---------- the named summits ----------
+
+       WHICH ONES GET A NAME. There are four hundred named summits above 13,000 ft in
+       Colorado and from the Front Range a hundred and eighty of them are above the horizon
+       at once. Drawing a caret on each makes a picket fence, and letting labels fall where
+       they may hands the few readable slots to whichever obscure 13er the loop reached
+       first — the first pass of this put "Emma Burr Mountain" over the Continental Divide
+       and left Grays, Torreys and Blue Sky bare.
+
+       So they are ranked by how big they look: the angular height above level, which already
+       folds in both elevation and distance, and is a fair stand-in for what makes a mountain
+       catch your eye. The biggest in view draws first and claims its label; the rest fill in
+       around it until the space runs out. Carets stop after the top forty, which is as many
+       as a skyline can carry before it reads as a fence.
+
+       A summit the twin's own terrain stands in front of is drawn hollow and faint with a
+       dotted stem: that is where the peak IS, not what you can see from here. */
+    let nearestPeak = null;
+    if (S.showPeaks && S.peaks.length) {
+      const taken = [];
+      ctx.textAlign = 'left';
+      ctx.font = '600 14px system-ui, sans-serif';
+
+      const inView = [];
+      for (const pk of S.peaks) {
+        const q = project(pk.az, pk.el, W, H);
+        if (!q || q[0] < -40 || q[0] > W + 40) continue;
+        inView.push({ pk, q, hidden: horizonAt(pk.az) > pk.el + 0.05 });
+      }
+      inView.sort((a, b) => b.pk.el - a.pk.el);        // the ones that loom largest go first
+
+      /* the readout names the biggest thing you are actually pointing at, within 12 degrees
+         of the middle of the view, which is about where a person would say "that one" */
+      let best = null;
+      for (const v of inView) {
+        if (v.hidden) continue;
+        const off = Math.abs(((v.pk.az - S.yaw + 540) % 360) - 180);
+        if (off < 12 && (!best || v.pk.el > best.pk.el)) best = v;
+      }
+      nearestPeak = best && best.pk;
+
+      inView.forEach((v, rank) => {
+        const { pk, q, hidden } = v;
+        if (rank < 40) {
+          ctx.globalAlpha = hidden ? 0.3 : 0.95;
+          ctx.strokeStyle = '#ffd9a0';
+          ctx.lineWidth = 2;
+          ctx.beginPath();                             // a caret sitting on the summit
+          ctx.moveTo(q[0] - 7, q[1] + 7);
+          ctx.lineTo(q[0], q[1]);
+          ctx.lineTo(q[0] + 7, q[1] + 7);
+          ctx.stroke();
+          if (hidden) {
+            ctx.beginPath();                           // a stem: it is behind that ridge
+            ctx.setLineDash([3, 3]);
+            ctx.moveTo(q[0], q[1] + 7);
+            ctx.lineTo(q[0], q[1] + 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+        if (taken.length >= 14) return;                // past this the skyline is all text
+
+        const txt = `${pk.name}  ${pk.elevFt.toLocaleString()}′`;
+        const w = ctx.measureText(txt).width + 12;
+        const bx = q[0] + 10, by = q[1] - 20;
+        if (taken.some(t => bx < t.x + t.w && bx + w > t.x && by < t.y + 20 && by + 20 > t.y)) return;
+        taken.push({ x: bx, y: by, w });
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = hidden ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.6)';
+        ctx.fillRect(bx - 5, by, w, 20);
+        ctx.fillStyle = hidden ? 'rgba(255,217,160,0.55)' : '#ffd9a0';
+        ctx.fillText(txt, bx, by + 14);
+      });
+      ctx.globalAlpha = 1;
+    }
+
     /* labels where each layer crosses straight ahead */
     ctx.textAlign = 'left';
     ctx.font = '600 14px system-ui, sans-serif';
@@ -262,6 +352,7 @@ export function mountSky(host, getData) {
 
     el.read.textContent =
       `Facing ${compass(S.yaw)} ${Math.round(S.yaw)}°, ${S.pitch > 0 ? Math.round(S.pitch) + '° up' : Math.round(-S.pitch) + '° down'}` +
+      (nearestPeak ? ` — ${nearestPeak.name}, ${Math.round(nearestPeak.distKm)} km` : '') +
       (S.haveSensor ? '' : ' — drag to look around') + (S.note ? ' — ' + S.note : '');
     S.raf = requestAnimationFrame(frame);
   }
@@ -284,6 +375,15 @@ export function mountSky(host, getData) {
     size();
     addEventListener('resize', size);
     S.horizon = skyline(d.dem, 1.6);
+
+    /* The summits, if this is a place that has any in the list. Eye height is the twin's own
+       ground at the centre plus a person, which matters: the same peak sits a tenth of a
+       degree lower seen from the plains than from a foothills driveway. */
+    const eye = (Number.isFinite(d.groundM) ? d.groundM : 1600) + 1.6;
+    S.peaks = inPeakCountry(d.lat, d.lon) ? peaksFrom(d.lat, d.lon, eye) : [];
+    el.peaksBtn.hidden = S.peaks.length === 0;
+    if (!S.peaks.length) { S.showPeaks = false; el.peaksBtn.setAttribute('aria-pressed', 'false'); el.peaksBtn.classList.remove('on'); }
+
     seedParts(d.layers);
     const camNote = await startCam();
     const ok = await askSensors();
