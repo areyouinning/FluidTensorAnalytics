@@ -199,6 +199,22 @@ function profileAt(h) {
     lvl(80, 'wind_speed_80m', 'wind_direction_80m'),
     lvl(120, 'wind_speed_120m', 'wind_direction_120m')
   ].filter(Boolean);
+  /* ---------- the first ten metres ----------
+     The forecast's lowest level is 10 m, and nearly everything a person actually feels
+     happens underneath it: a 5 m/s wind at 10 m is about 1.6 m/s at ankle height over
+     short grass. Those levels are not measured and not forecast. They are the neutral
+     logarithmic surface profile — the same law the solver starts its own field from —
+     anchored on the 10 m value and run downward with the roughness length the slider is
+     set to. Flagged derived, because they are.
+     Direction is held at the 10 m direction. Turning across the first ten metres is well
+     under a degree, which is finer than the forecast resolves in the first place, so
+     inventing a twist here would be inventing precision. */
+  const ten = near.find(L => L.agl === 10);
+  const low = [];
+  if (ten) for (const z of [0.5, 1, 2, 4, 7]) {
+    if (z <= S.z0 * 1.6) continue;        // inside the roughness, where the log law stops meaning anything
+    low.push({ agl: z, speed: logSpeed(ten.speed, 10, z, S.z0), dir: ten.dir, derived: true });
+  }
   const up = LEVELS.map(p => {
     const msl = H.raw['geopotential_height_' + p + 'hPa'];
     if (!msl || msl[h] == null) return null;
@@ -206,7 +222,7 @@ function profileAt(h) {
     if (!(agl > 220)) return null;                  // underground, or inside the near set already
     return { agl, speed: H.raw['wind_speed_' + p + 'hPa'][h], dir: H.raw['wind_direction_' + p + 'hPa'][h], hPa: p };
   }).filter(Boolean);
-  return near.concat(up)
+  return low.concat(near, up)
     .filter(L => Number.isFinite(L.speed) && Number.isFinite(L.dir))
     .sort((a, b) => a.agl - b.agl);
 }
@@ -497,9 +513,12 @@ function renderProfile() {
   const box = $('profile');
   if (!box) return;
   if (!S.layers || !S.layers.length) { box.innerHTML = '<p class="nojs">The profile aloft arrives with a real place.</p>'; return; }
+  const anyLow = S.layers.some(L => L.derived);
   box.innerHTML = '<ul class="prof">' + S.layers.slice().reverse().map(L =>
-    `<li><b>${fmtH(L.agl)}</b><span>${L.speed.toFixed(1)} m/s</span><span>${compass(L.dir)}</span>` +
-    `<i style="width:${Math.min(100, L.speed / 25 * 100).toFixed(0)}%"></i></li>`).join('') + '</ul>';
+    `<li><b>${fmtH(L.agl)}${L.derived ? '*' : ''}</b><span>${L.speed.toFixed(1)} m/s</span><span>${compass(L.dir)}</span>` +
+    `<i style="width:${Math.min(100, L.speed / 25 * 100).toFixed(0)}%"></i></li>`).join('') + '</ul>' +
+    (anyLow ? '<p class="note">* below 10 m the forecast has nothing, so these are the neutral log ' +
+      'profile run down from the 10 m wind at the roughness you set. Computed, not forecast.</p>' : '');
 }
 
 /* ---------- the plain forecast ----------

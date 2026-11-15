@@ -214,24 +214,83 @@ export function mountSky(host, getData) {
     return [x, y];
   }
 
+  /* ---------- where your face is ----------
+     Height above the GROUND is what the forecast reports, but the geometry here is about
+     height above the EYE, and once the profile carries levels below ten metres the two stop
+     being interchangeable. A plane 50 cm off the grass is a metre BELOW your face: you look
+     down at it, it meets the ground in front of your boots, and drawing it overhead would be
+     a straightforward lie about which way to look. So every plane is placed by its offset
+     from the eye, which also lets that offset be negative. */
+  const EYE = 1.6;
+  const offset = L => L.agl - EYE;
+  /* the one length in the geometry: how far the plane sits from the eye. Floored, because a
+     plane that passes within centimetres of your face has no useful scatter radius. */
+  const scatterRef = L => Math.max(1.2, Math.abs(offset(L)));
+
+  /* With the first ten metres resolved there are twenty-odd layers rather than a dozen, so
+     the count is a budget split between them instead of a fixed number each. */
+  const PART_BUDGET = 3200;
+  const TRAIL_S = 0.55;              // seconds of drift drawn behind each bubble
+  const LIFE = 30;                   // seconds a bubble may live, if the rim has not taken it first
+
   function seedParts(layers) {
     S.parts = [];
-    for (let li = 0; li < layers.length; li++) {
-      const want = 260;
-      for (let k = 0; k < want; k++) S.parts.push(newPart(li, layers[li]));
+    if (!layers.length) return;
+    /* The first ten metres get a double share. Those planes are close enough that the band
+       of sky they occupy is thin — a couple of degrees around the horizon until you tilt
+       down at the grass — and an even split spreads them too thin to read as a layer. */
+    const wt = L => (L.derived ? 2 : 1);
+    const total = layers.reduce((s, L) => s + wt(L), 0);
+    const share = L => Math.max(70, Math.min(400, Math.round(PART_BUDGET * wt(L) / total)));
+    /* seeded highest first, so the near-ground air ends up last in the array and therefore
+       draws over the air a kilometre up, which is the order you are actually looking through */
+    const byHeight = layers.map((L, i) => i).sort((a, b) => layers[b].agl - layers[a].agl);
+    for (const li of byHeight) {
+      const n = share(layers[li]);
+      for (let k = 0; k < n; k++) S.parts.push(seedPart(li, layers[li]));
     }
   }
-  function newPart(li, L) {
-    /* Scatter on the plane in a disc around the viewer. The inner radius has to go very
-       small or nothing ever passes near the zenith: at 0.35 of the layer height the highest
-       any particle can appear is about 70 degrees, so looking straight up showed empty sky. */
-    /* Squared, not square-rooted. Spreading them evenly over the disc is the honest
-       distribution, but it piles almost everything out near the horizon where a layer is
-       far away and sub-pixel; biasing inward puts them in the 20-60 degree band people
-       actually look at. This is a choice about where to draw, not about the wind. */
-    const r = L.agl * (0.02 + Math.pow(Math.random(), 2) * 9);
+  const RIM = L => scatterRef(L) * 9;   // where a plane has flattened to a couple of degrees
+
+  /* A first fill, scattered across the disc so the view is populated the moment it opens.
+     Squared, not square-rooted: spreading them evenly over the disc is the honest areal
+     distribution, but it piles almost everything out near the horizon where a layer is far
+     away and sub-pixel, and biasing inward puts them in the 20-60 degree band people
+     actually look at. This is a choice about where to draw, not about the wind. */
+  function seedPart(li, L) {
+    const r = RIM(L) * (0.002 + Math.pow(Math.random(), 2));
     const a = Math.random() * 360;
-    return { li, e: r * Math.sin(a * RAD), n: r * Math.cos(a * RAD), age: Math.random() * 300 | 0 };
+    return { li, e: r * Math.sin(a * RAD), n: r * Math.cos(a * RAD), age: Math.random() * LIFE };
+  }
+
+  /* ---------- a replacement comes in from upwind ----------
+     The first version re-scattered a dead bubble anywhere in the disc, and the result was a
+     view that emptied out on the side you most want to look at. The wind only goes one way:
+     every bubble spends its life drifting downwind, so a population that is born everywhere
+     and dies at the rim sits, on average, downwind — and facing INTO the wind showed four
+     bubbles where it should have shown forty.
+     So a replacement enters on the upwind rim and crosses. The impact parameter is how far
+     off centre its line passes; biasing it inward keeps enough traffic through the high
+     elevations overhead, which uniform crossings would leave bare. A bubble now lives
+     exactly as long as it takes to cross what you can see, which is the longest a bubble
+     can honestly last. */
+  function newPart(li, L) {
+    const v = dirVec(L.dir);                    // unit vector pointing downwind
+    const Rr = RIM(L);
+    const b = Rr * (Math.random() < 0.5 ? -1 : 1) * Math.pow(Math.random(), 1.6);
+    const d = Math.sqrt(Math.max(0, Rr * Rr - b * b));
+    /* Entering at the rim and nowhere else put every newborn at the same place on the
+       screen, and since parallel paths on a plane converge to one vanishing point, that
+       place is a point: the view grew a starburst with a bright hub, which is perspective
+       being honest about a population that was not. Starting each one at a random fraction
+       of its own crossing spreads them along the whole chord, which is the steady state the
+       flow would have reached anyway. */
+    const s = -d + 2 * d * Math.random();
+    return {
+      li, age: 0,
+      e: v.e * s - v.n * b,                     // along the wind by s, then b across it
+      n: v.n * s + v.e * b
+    };
   }
 
   const SPEED_COLOR = s => {
@@ -278,27 +337,92 @@ export function mountSky(host, getData) {
 
     /* the layers, far ones first so near air draws over them */
     const order = layers.map((L, i) => i).sort((a, b) => layers[b].agl - layers[a].agl);
-    const dt = 1 / 30;
+    /* The whole view is a six-times time-lapse. The same gain applies to every layer, so
+       what you see between two heights is their real ratio; it is the clock that is fast,
+       not one layer relative to another.
+       The step is wall-clock, not a frame count. Assuming a thirtieth of a second per frame
+       made the time-lapse a property of the DISPLAY: on the 144 Hz monitor this was built
+       on, the air was moving at nearly thirty times real speed rather than six, and on a
+       phone dropping frames it would have crawled. The clamp keeps a backgrounded tab from
+       teleporting everything when it comes back. */
+    const now = performance.now();
+    const dt = Math.min(0.1, Math.max(0, (now - (S.lastT || now - 16)) / 1000));
+    S.lastT = now;
+    const GAIN = 6;
+    ctx.lineCap = 'round';
     for (const p of S.parts) {
       const L = layers[p.li];
       if (!L) continue;
-      const v = dirVec(L.dir);
-      p.e += v.e * L.speed * dt * 6;
-      p.n += v.n * L.speed * dt * 6;
-      p.age++;
+      const v = dirVec(L.dir), step = L.speed * GAIN;
+      p.e += v.e * step * dt;
+      p.n += v.n * step * dt;
+      p.age += dt;
+      const dz = offset(L), ref = scatterRef(L);
       const dist = Math.hypot(p.e, p.n);
-      if (p.age > 420 || dist > L.agl * 16) { Object.assign(p, newPart(p.li, L)); continue; }
-      const elev = Math.atan2(L.agl, dist) / RAD;
+      /* Out at the rim a plane is some six degrees off the horizon and nearly spent, so that
+         is where a bubble turns around and comes back in from upwind. The age cap is only a
+         backstop for the layers five kilometres up, whose rim is far enough away that a
+         crossing would take a quarter of an hour. */
+      if (p.age > LIFE || dist > ref * 9.4) { Object.assign(p, newPart(p.li, L)); continue; }
+      /* negative when the plane is below your face, which is most of the new low levels */
+      const elev = Math.atan2(dz, dist) / RAD;
       const az = (Math.atan2(p.e, p.n) / RAD + 360) % 360;
       const q = project(az, elev, W, H);
       if (!q) continue;
-      /* a short dash pointing the way it is going, longer when it is overhead and quick */
-      /* Bubbles, not streaks. Overhead is near, so a bubble there is large; towards the
-         horizon the same air is far away and shrinks, which is the perspective doing the
-         work rather than a drawn trail. */
-      const fade = Math.max(0.3, Math.min(0.92, (elev - 1) / 18));
-      const r = 1.3 + 5.2 * Math.pow(Math.min(90, elev) / 90, 0.85) - p.li * 0.25;
+      /* Nearness, as the sine of how far off the horizon the plane sits: one straight
+         overhead (or straight down at the grass), near zero where a layer flattens into the
+         skyline and the same air is kilometres away. It drives size and alpha together, so a
+         bubble dims as the perspective shrinks it instead of dimming on its own schedule. */
+      const t = Math.min(1, Math.abs(Math.sin(elev * RAD)));
+      /* half a second of fading in, so a replacement arriving mid-view does not pop */
+      const fade = (0.3 + 0.62 * Math.pow(t, 0.55)) * Math.min(1, p.age / 0.5);
+      const r = 1.1 + 5.0 * Math.sqrt(t);
       if (r <= 0.4) continue;
+
+      /* ---------- the tail ----------
+         A bubble alone tells you where air is, not that it is moving; two frames of a
+         thirty-frame second is not something an eye integrates. So each one carries the
+         half-second of drift it just finished.
+         That segment is a straight line in the WORLD, travelled at constant speed, so it
+         needs no stored history: take the position half a second back, project it, done.
+         Projecting rather than smearing the canvas is the point — a screen-space trail
+         would drag sideways across the frame the instant you turn the phone, and read as
+         wind that is not there. */
+      drawTail: if (r > 1.0) {
+        const tailAt = b => {
+          const te = p.e - v.e * b, tn = p.n - v.n * b;
+          return project((Math.atan2(te, tn) / RAD + 360) % 360,
+            Math.atan2(dz, Math.hypot(te, tn)) / RAD, W, H);
+        };
+        /* How long half a second of drift looks depends entirely on where the plane is: a
+           bubble overhead moves a few pixels, one out near the horizon of a low layer sweeps
+           most of the frame, because the projection stretches without bound as the plane
+           flattens into the skyline. Half a frame of streak stops reading as wind and starts
+           reading as a scratch on the lens, so the trail is measured on SCREEN and the time
+           behind it is cut back to fit. The arc is near enough straight over this distance
+           for one correction to land. */
+        let back = step * TRAIL_S;
+        const probe = tailAt(back);
+        /* No tail at all rather than an unclamped one: a null probe means the half second
+           reaches round behind you, where there is no sensible length to cut back to. */
+        if (!probe) break drawTail;
+        const len = Math.hypot(probe[0] - q[0], probe[1] - q[1]);
+        const cap = Math.max(12, Math.min(0.1 * W, 6 * r));
+        if (len > cap) back *= cap / len;
+        let prev = q;
+        for (let s = 1; s <= 2 && prev; s++) {
+          const tq = tailAt(back * s / 2);
+          if (!tq || Math.hypot(tq[0] - prev[0], tq[1] - prev[1]) > W * 0.25) break;
+          ctx.globalAlpha = fade * (s === 1 ? 0.55 : 0.28);
+          ctx.strokeStyle = SPEED_COLOR(L.speed);
+          ctx.lineWidth = r * (s === 1 ? 0.85 : 0.5);
+          ctx.beginPath();
+          ctx.moveTo(prev[0], prev[1]);
+          ctx.lineTo(tq[0], tq[1]);
+          ctx.stroke();
+          prev = tq;
+        }
+      }
       ctx.globalAlpha = fade;
       ctx.fillStyle = SPEED_COLOR(L.speed);
       ctx.beginPath();
@@ -524,12 +648,18 @@ export function mountSky(host, getData) {
     /* A layer fills every elevation from the horizon to the zenith, so it has no single
        position to label. Spread the labels in height order instead: higher label, higher air.
        The dashes themselves carry the real geometry. */
+    /* Twenty-odd layers is more labels than a column of text can hold, so they thin to a
+       dozen by stride — the lowest and the highest always among them, since those two are
+       the span the whole profile is about. */
+    const MAXLAB = 12;
+    const stride = Math.max(1, Math.ceil(order.length / MAXLAB));
     for (let oi = 0; oi < order.length; oi++) {
+      if (oi % stride && oi !== order.length - 1) continue;
       const i = order[oi], L = layers[i];
       const rank = layers.length < 2 ? 0.5 : i / (layers.length - 1);
       const p = project(S.yaw, 9 + rank * 58, W, H);
       if (!p) continue;
-      const txt = `${fmtH(L.agl)}  ${L.speed.toFixed(1)} m/s  ${compass(L.dir)}`;
+      const txt = `${fmtH(L.agl)}${L.derived ? '*' : ''}  ${L.speed.toFixed(1)} m/s  ${compass(L.dir)}`;
       ctx.fillStyle = 'rgba(0,0,0,0.45)';
       const w = ctx.measureText(txt).width + 12;
       ctx.fillRect(p[0] - 6, p[1] - 14, w, 20);
@@ -656,9 +786,16 @@ export function moonShape(ctx, R, cosI) {
 
 export const dirVec = deg => { const r = (deg + 180) * RAD; return { e: Math.sin(r), n: Math.cos(r) }; };
 export const compass = deg => ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
-export const fmtH = m => m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+/* sub-metre heights are real now that the profile resolves the first ten metres, and
+   "0.5 m" rounded to "1 m" would have hidden a level underneath another one */
+export const fmtH = m => m >= 1000 ? (m / 1000).toFixed(1) + ' km'
+  : m < 9.95 ? m.toFixed(1) + ' m' : Math.round(m) + ' m';
 
-/* What this is not: the camera is a backdrop, not a tracked scene. There is no visual
+/* What this is not: the levels below ten metres are the neutral log profile computed down
+   from the 10 m forecast, not forecast values, and neutral is the assumption carrying them —
+   a clear night steepens the real profile, a sunny afternoon flattens it.
+
+   And: the camera is a backdrop, not a tracked scene. There is no visual
    odometry and no SLAM, so alignment is only as good as the phone's compass, which indoors
    or near metal can be tens of degrees out. The skyline drawn from the terrain is the honest
    check: if it does not sit on the real hills, the heading is wrong, not the wind. */
