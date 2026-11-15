@@ -64,10 +64,16 @@ export function mountSky(host, getData) {
       <video class="sky-cam" playsinline muted autoplay></video>
       <canvas class="sky-draw"></canvas>
       <div class="sky-hud">
-        <button class="btn sky-x" type="button">Close</button>
-        <button class="btn sky-peaks" type="button" hidden aria-pressed="false">Peaks</button>
-        <button class="btn sky-sky" type="button" aria-pressed="false">Sky</button>
-        <div class="sky-read" aria-live="polite"></div>
+        <div class="sky-tune">
+          <label><span>Tracers</span><input class="sky-op" type="range" min="10" max="100" step="5" value="100"></label>
+          <label><span>View</span><input class="sky-fov" type="range" min="35" max="100" step="1" value="62"></label>
+        </div>
+        <div class="sky-row">
+          <button class="btn sky-x" type="button">Close</button>
+          <button class="btn sky-peaks" type="button" hidden aria-pressed="false">Peaks</button>
+          <button class="btn sky-sky" type="button" aria-pressed="false">Sky</button>
+          <div class="sky-read" aria-live="polite"></div>
+        </div>
       </div>
     </div>`;
   el.wrap = host.querySelector('.sky-wrap');
@@ -89,9 +95,29 @@ export function mountSky(host, getData) {
     el.peaksBtn.classList.toggle('on', S.showPeaks);
   });
 
+  /* ---------- the two knobs ----------
+     TRACERS is taste: the air is busy, and how much of the world you want to see through it
+     is yours to set.
+     VIEW is not taste, it is a calibration, and the browser cannot do it for you. The overlay
+     is drawn through a pinhole camera of some assumed field of view; the real camera's field
+     of view is not exposed to a web page by any API, and `object-fit: cover` then crops the
+     stream to the shape of the screen, so even knowing the lens would not settle it. Assume
+     too narrow a field and everything drawn is magnified — the sky looks stretched. The page
+     already names the check: slide this until the drawn skyline sits on the real ridge. Kept
+     per device, because it is a property of the phone, not of the weather. */
+  el.op = host.querySelector('.sky-op');
+  el.fov = host.querySelector('.sky-fov');
+  const KEY = 'fluidta.sky.fov';
+  el.op.addEventListener('input', () => { S.opacity = +el.op.value / 100; });
+  el.fov.addEventListener('input', () => {
+    S.fovY = +el.fov.value;
+    try { localStorage.setItem(KEY, String(S.fovY)); } catch (err) { /* private window */ }
+  });
+
   const S = {
     on: false, yaw: 0, pitch: 0, haveSensor: false, stream: null, raf: 0,
     drag: null, fovY: 62, parts: [], horizon: null, note: '',
+    opacity: 1, swarm: null, swarmAge: 0, puffNote: '', openedAt: 0, lastT: 0,
     peaks: [], showPeaks: false,
     sky: null, showSky: false, skyAtMs: 0, lat: 0, lon: 0, elevM: 0
   };
@@ -137,17 +163,32 @@ export function mountSky(host, getData) {
     return true;
   }
 
+  /* a field of view the phone remembers, since it is a property of the phone */
+  try {
+    const saved = +localStorage.getItem(KEY);
+    if (saved >= 35 && saved <= 100) { S.fovY = saved; el.fov.value = String(saved); }
+  } catch (err) { /* private window */ }
+
   /* drag works whether or not the sensors do, so the view is never stuck */
   function dragging() {
     const c = el.cv;
-    const down = e => { S.drag = { x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch }; c.setPointerCapture(e.pointerId); };
+    const down = e => {
+      S.drag = { x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch, t: performance.now(), moved: 0 };
+      c.setPointerCapture(e.pointerId);
+    };
     const move = e => {
       if (!S.drag) return;
+      S.drag.moved = Math.max(S.drag.moved, Math.hypot(e.clientX - S.drag.x, e.clientY - S.drag.y));
+      if (S.drag.moved < 6) return;                      // a thumb is never perfectly still
       S.haveSensor = false;                              // the hand wins once it takes over
       S.yaw = (S.drag.yaw - (e.clientX - S.drag.x) * 0.25 + 360) % 360;
       S.pitch = Math.max(-80, Math.min(85, S.drag.pitch + (e.clientY - S.drag.y) * 0.22));
     };
-    const up = () => { S.drag = null; };
+    /* A tap that did not turn into a drag releases a puff. */
+    const up = () => {
+      if (S.drag && S.drag.moved < 6 && performance.now() - S.drag.t < 500) release();
+      S.drag = null;
+    };
     c.addEventListener('pointerdown', down);
     c.addEventListener('pointermove', move);
     c.addEventListener('pointerup', up);
@@ -293,6 +334,69 @@ export function mountSky(host, getData) {
     };
   }
 
+  /* ---------- a puff, released at your feet ----------
+
+     Tap and a ball of marked air a couple of metres across appears where you are standing,
+     with a parcel of it in every layer at once. Then it comes apart, because every layer is
+     a different wind: the half-metre parcel barely leaves, the ten-metre one walks off, the
+     kilometre one is gone before you can follow it, and often in another direction entirely.
+
+     That coming-apart IS the shear. The ambient tracers show it too, but they are a steady
+     state — nothing in them marks a moment, so there is no "then" to compare a "now" against.
+     A puff is a clock you started. Smoke candles on a range, a handful of grass thrown up, a
+     balloon let go: all of them work for the same reason, which is that the eye is far better
+     at watching one thing spread than at reading a field of many.
+
+     WHERE IT IS RELEASED is the whole trick, and the obvious answer is wrong. Dropping it at
+     your feet is the honest picture of a smoke candle, and it is useless: parcels at the same
+     spot on the ground but in different layers are at wildly different elevations — the four
+     kilometre one is at the zenith, the half metre one is at your boots — so the puff is
+     never all in frame and you cannot watch it do the one thing it exists to do.
+     Put each parcel instead where your LINE OF SIGHT crosses its own layer. Every point on
+     that ray projects to the same place on the screen, so all of them start as a single dot
+     in the middle of the view, however far apart they are in the world. Then they fan. The
+     perspective does the gathering; the wind does the separating.
+     Layers the ray never meets — the ones below your face when you are looking up — are left
+     out rather than faked, and the readout says how many caught it. */
+  const SWARM_LIFE = 25;                 // seconds before the marks are gone
+  const SWARM_INK = '226,172,255';       // a violet nothing on the speed ramp uses
+  function release() {
+    const d = getData();
+    const layers = (d && d.layers) || [];
+    if (!layers.length) return;
+    const tanP = Math.tan(S.pitch * RAD);
+    const se = Math.sin(S.yaw * RAD), cn = Math.cos(S.yaw * RAD);
+    const hits = [];
+    if (Math.abs(S.pitch) > 3) {
+      for (let li = 0; li < layers.length; li++) {
+        const dz = offset(layers[li]);
+        const dist = dz / tanP;
+        /* no further out than that layer's own rim — past there its ambient tracers have
+           already given up, and a parcel would be a dot that never visibly moves */
+        if (dist >= 3 && dist <= RIM(layers[li])) hits.push({ li, dist });
+      }
+    }
+    /* Looking flat along the horizon the ray meets nothing nearby, so the puff falls back to
+       the candle at your feet — correct, just harder to follow. */
+    const spots = hits.length >= 2 ? hits : layers.map((L, li) => ({ li, dist: 2.2 }));
+    const parts = [];
+    for (const { li, dist } of spots) {
+      /* a ball a few per cent of the way across, so it reads as a puff and not a pixel */
+      const spread = Math.max(0.8, dist * 0.04);
+      for (let k = 0; k < 26; k++) {
+        const a = Math.random() * 360, rr = spread * Math.sqrt(Math.random());
+        parts.push({
+          li,
+          e: dist * se + rr * Math.sin(a * RAD),
+          n: dist * cn + rr * Math.cos(a * RAD)
+        });
+      }
+    }
+    S.swarm = parts;
+    S.swarmAge = 0;
+    S.puffNote = `puff released into ${spots.length} layer${spots.length === 1 ? '' : 's'}`;
+  }
+
   const SPEED_COLOR = s => {
     const t = Math.max(0, Math.min(1, s / 18));
     const stops = [[90, 150, 210], [95, 190, 175], [225, 195, 95], [235, 125, 65], [245, 245, 250]];
@@ -375,7 +479,7 @@ export function mountSky(host, getData) {
          bubble dims as the perspective shrinks it instead of dimming on its own schedule. */
       const t = Math.min(1, Math.abs(Math.sin(elev * RAD)));
       /* half a second of fading in, so a replacement arriving mid-view does not pop */
-      const fade = (0.3 + 0.62 * Math.pow(t, 0.55)) * Math.min(1, p.age / 0.5);
+      const fade = (0.3 + 0.62 * Math.pow(t, 0.55)) * Math.min(1, p.age / 0.5) * S.opacity;
       const r = 1.1 + 5.0 * Math.sqrt(t);
       if (r <= 0.4) continue;
 
@@ -438,6 +542,48 @@ export function mountSky(host, getData) {
       }
     }
     ctx.globalAlpha = 1;
+
+    /* ---------- the puff ----------
+       Drawn over the ambient air and never dimmed by the Tracers slider, because turning the
+       ambient down to see the world is exactly when you want the marked parcels to stay
+       legible. They keep their violet the whole way out: these are not another wind, they are
+       the same wind with a timestamp on it. */
+    if (S.swarm) {
+      S.swarmAge += dt;
+      if (S.swarmAge > SWARM_LIFE) { S.swarm = null; S.puffNote = ''; }
+      else {
+        const gone = Math.max(0, 1 - Math.pow(S.swarmAge / SWARM_LIFE, 3));   // holds, then goes
+        for (const p of S.swarm) {
+          const L = layers[p.li];
+          if (!L) continue;
+          const v = dirVec(L.dir), step = L.speed * GAIN;
+          p.e += v.e * step * dt;
+          p.n += v.n * step * dt;
+          const dz = offset(L), dist = Math.hypot(p.e, p.n);
+          const elev = Math.atan2(dz, dist) / RAD;
+          const q = project((Math.atan2(p.e, p.n) / RAD + 360) % 360, elev, W, H);
+          if (!q) continue;
+          const t = Math.min(1, Math.abs(Math.sin(elev * RAD)));
+          const r = 1.4 + 5.6 * Math.sqrt(t);
+          const a = gone * (0.45 + 0.5 * Math.pow(t, 0.55));
+          /* a longer tail than the ambient air carries: this one is meant to be followed */
+          const back = step * TRAIL_S * 2;
+          const te = p.e - v.e * back, tn = p.n - v.n * back;
+          const tq = project((Math.atan2(te, tn) / RAD + 360) % 360,
+            Math.atan2(dz, Math.hypot(te, tn)) / RAD, W, H);
+          if (tq && Math.hypot(tq[0] - q[0], tq[1] - q[1]) < W * 0.22) {
+            ctx.globalAlpha = a * 0.5;
+            ctx.strokeStyle = 'rgb(' + SWARM_INK + ')';
+            ctx.lineWidth = r * 0.8;
+            ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(tq[0], tq[1]); ctx.stroke();
+          }
+          ctx.globalAlpha = a;
+          ctx.fillStyle = 'rgb(' + SWARM_INK + ')';
+          ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 6.2832); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
 
     /* ---------- the sky ----------
        Drawn before the summits so a peak label always wins a fight with a star. */
@@ -642,29 +788,54 @@ export function mountSky(host, getData) {
       ctx.globalAlpha = 1;
     }
 
-    /* labels where each layer crosses straight ahead */
-    ctx.textAlign = 'left';
-    ctx.font = '600 14px system-ui, sans-serif';
-    /* A layer fills every elevation from the horizon to the zenith, so it has no single
-       position to label. Spread the labels in height order instead: higher label, higher air.
-       The dashes themselves carry the real geometry. */
-    /* Twenty-odd layers is more labels than a column of text can hold, so they thin to a
-       dozen by stride — the lowest and the highest always among them, since those two are
-       the span the whole profile is about. */
-    const MAXLAB = 12;
-    const stride = Math.max(1, Math.ceil(order.length / MAXLAB));
-    for (let oi = 0; oi < order.length; oi++) {
-      if (oi % stride && oi !== order.length - 1) continue;
-      const i = order[oi], L = layers[i];
-      const rank = layers.length < 2 ? 0.5 : i / (layers.length - 1);
-      const p = project(S.yaw, 9 + rank * 58, W, H);
-      if (!p) continue;
-      const txt = `${fmtH(L.agl)}${L.derived ? '*' : ''}  ${L.speed.toFixed(1)} m/s  ${compass(L.dir)}`;
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      const w = ctx.measureText(txt).width + 12;
-      ctx.fillRect(p[0] - 6, p[1] - 14, w, 20);
-      ctx.fillStyle = SPEED_COLOR(L.speed);
-      ctx.fillText(txt, p[0], p[1]);
+    /* ---------- the key ----------
+
+       These used to be hung in the sky itself, spread up the view in height order: the lowest
+       layer near the horizon, the highest near the zenith. It was a tempting way to put the
+       label near its air, and it was a lie about the vertical scale — the worse the more
+       honest the rest of the view got. Once the profile resolved the first ten metres, half
+       the labels were sub-10 m levels, so the ladder read 0.5 m, 1 m, 2 m, 4 m, 7 m marching
+       up thirty degrees of sky with the remaining four kilometres of atmosphere squeezed in
+       above the top of the frame. Anyone reading that as a height axis — which is exactly
+       what evenly spaced height labels are — would conclude the view was stretched.
+
+       A layer has no single position: it fills every elevation from the horizon to overhead.
+       So nothing here gets a position. The heights go in a plain list, pinned to the side,
+       and the geometry is left to the bubbles, which have it right. */
+    {
+      const sc = Math.max(1, Math.min(2, W / 420));          // device pixels per CSS pixel-ish
+      const rowH = 19 * sc, pad = 7 * sc;
+      const rows = order.map(i => layers[i]).slice(0, 14);    // highest first, as you meet them
+      ctx.font = `600 ${Math.round(12.5 * sc)}px system-ui, sans-serif`;
+      let wide = 0;
+      const txt = rows.map(L => {
+        const s = `${fmtH(L.agl)}${L.derived ? '*' : ''}  ${L.speed.toFixed(1)}  ${compass(L.dir)}`;
+        wide = Math.max(wide, ctx.measureText(s).width);
+        return s;
+      });
+      const boxW = wide + pad * 2 + rowH * 0.9;
+      const capH = 15 * sc;                                  // room for the caption line
+      const boxH = rows.length * rowH + pad * 2 + capH;
+      const x0 = pad, y0 = Math.max(pad, H * 0.5 - boxH / 2);
+      ctx.globalAlpha = 0.82;
+      ctx.fillStyle = 'rgba(8,14,20,0.62)';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x0, y0, boxW, boxH, 8 * sc) : ctx.rect(x0, y0, boxW, boxH);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+      rows.forEach((L, k) => {
+        const y = y0 + pad + rowH * (k + 0.5);
+        ctx.fillStyle = SPEED_COLOR(L.speed);
+        ctx.beginPath();
+        ctx.arc(x0 + pad + rowH * 0.25, y, rowH * 0.22, 0, 6.2832);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.93)';
+        ctx.fillText(txt[k], x0 + pad + rowH * 0.7, y + rowH * 0.2);
+      });
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = `400 ${Math.round(10.5 * sc)}px system-ui, sans-serif`;
+      ctx.fillText('height · m/s · from', x0 + pad, y0 + boxH - pad - 1 * sc);
     }
 
     el.read.textContent =
@@ -672,6 +843,9 @@ export function mountSky(host, getData) {
       (nearestPeak ? ` — ${nearestPeak.name}, ${Math.round(nearestPeak.distKm)} km` : '') +
       (nearestBody ? ` — ${nearestBody.name}${nearestBody.extra ? ', ' + nearestBody.extra : ''}` : '') +
       (S.showSky && S.sky && S.sky.twilight === 'day' ? ' — daylight, so only the sun, moon and Venus are drawn' : '') +
+      /* the hint is for the first half minute; after that it is clutter on a phone screen */
+      (S.puffNote ? ' — ' + S.puffNote
+        : (now - S.openedAt < 30000 ? ' — tap to release a puff' : '')) +
       (S.haveSensor ? '' : ' — drag to look around') + (S.note ? ' — ' + S.note : '');
     S.raf = requestAnimationFrame(frame);
   }
@@ -731,6 +905,8 @@ export function mountSky(host, getData) {
     const d = getData();
     if (!d || !d.layers || !d.layers.length) return 'no wind profile yet — pick a place first';
     S.on = true;
+    S.openedAt = performance.now();
+    S.swarm = null; S.puffNote = '';
     el.wrap.hidden = false;
     document.body.style.overflow = 'hidden';
     size();
