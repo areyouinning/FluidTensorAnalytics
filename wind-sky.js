@@ -66,12 +66,14 @@ export function mountSky(host, getData) {
       <div class="sky-hud">
         <div class="sky-tune">
           <label><span>Tracers</span><input class="sky-op" type="range" min="10" max="100" step="5" value="100"></label>
-          <label><span>View</span><input class="sky-fov" type="range" min="35" max="100" step="1" value="62"></label>
+          <label><span>View</span><input class="sky-fov" type="range" min="35" max="100" step="1" value="55"></label>
         </div>
         <div class="sky-row">
           <button class="btn sky-x" type="button">Close</button>
           <button class="btn sky-peaks" type="button" hidden aria-pressed="false">Peaks</button>
           <button class="btn sky-sky" type="button" aria-pressed="false">Sky</button>
+          <button class="btn sky-align" type="button" aria-pressed="false">Align</button>
+          <button class="btn sky-aim" type="button" hidden>Reset aim</button>
           <div class="sky-read" aria-live="polite"></div>
         </div>
       </div>
@@ -107,16 +109,36 @@ export function mountSky(host, getData) {
      per device, because it is a property of the phone, not of the weather. */
   el.op = host.querySelector('.sky-op');
   el.fov = host.querySelector('.sky-fov');
-  const KEY = 'fluidta.sky.fov';
+  el.aim = host.querySelector('.sky-aim');
+  const KEY = 'fluidta.sky.fov', CAL = 'fluidta.sky.aim';
   el.op.addEventListener('input', () => { S.opacity = +el.op.value / 100; });
   el.fov.addEventListener('input', () => {
     S.fovY = +el.fov.value;
     try { localStorage.setItem(KEY, String(S.fovY)); } catch (err) { /* private window */ }
   });
+  el.aim.addEventListener('click', () => { S.yawOff = 0; S.pitchOff = 0; saveAim(); });
+  el.alignBtn = host.querySelector('.sky-align');
+  el.alignBtn.addEventListener('click', () => {
+    if (S.align) { S.align = null; S.alignNote = ''; }
+    else {
+      const up = fiducials();
+      if (!up.length) { S.alignNote = 'nothing to align on — no moon, sun or bright planet above the skyline'; }
+      else {
+        S.align = up[0];
+        S.showSky = true;                                // so you can see where it thinks it is
+        el.skyBtn.setAttribute('aria-pressed', 'true');
+        el.skyBtn.classList.add('on');
+        S.alignNote = 'tap the ' + describe(S.align);
+      }
+    }
+    el.alignBtn.setAttribute('aria-pressed', String(!!S.align));
+    el.alignBtn.classList.toggle('on', !!S.align);
+  });
 
   const S = {
     on: false, yaw: 0, pitch: 0, haveSensor: false, stream: null, raf: 0,
-    drag: null, fovY: 62, parts: [], horizon: null, note: '',
+    yawOff: 0, pitchOff: 0, align: null, alignNote: '',
+    drag: null, fovY: 55, parts: [], horizon: null, note: '',
     opacity: 1, swarm: null, swarmAge: 0, puffNote: '', openedAt: 0, lastT: 0,
     peaks: [], showPeaks: false,
     sky: null, showSky: false, skyAtMs: 0, lat: 0, lon: 0, elevM: 0
@@ -133,20 +155,42 @@ export function mountSky(host, getData) {
   }
 
   /* ---------- orientation ----------
-     iOS hands us a true compass heading but only after an explicit tap. Android gives an
-     absolute alpha, measured anticlockwise from north, and the screen may itself be rotated. */
+     The back camera looks out of the device's own -z axis and does not care what the screen
+     is doing, so the honest way to read where it is aimed is to build the device's rotation
+     from alpha/beta/gamma and ask where that axis ends up pointing.
+
+     The obvious shortcut — pitch = beta - 90 — is right only while the phone is upright in
+     portrait. Turn it on its side and beta falls to zero while gamma does all the tilting, so
+     a level landscape view reported eighty degrees down (measured, from a photograph taken at
+     Valmont on 2026-11-15: the sun sat seven degrees ABOVE the middle of that frame). The
+     matrix has no such special case, and it also removes the screen-angle term that used to
+     be added to the heading to cancel the same mistake. */
+  function viewFrom(a, b, g) {
+    const A = a * RAD, B = b * RAD, G = g * RAD;
+    const cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(B), sB = Math.sin(B),
+      cG = Math.cos(G), sG = Math.sin(G);
+    /* the device's z axis (out of the screen) in earth coordinates: x east, y north, z up */
+    const zx = cA * sG + sA * sB * cG;
+    const zy = sA * sG - cA * sB * cG;
+    const zz = cB * cG;
+    const vx = -zx, vy = -zy, vz = -zz;                  // the camera looks the other way
+    return {
+      yaw: (Math.atan2(vx, vy) / RAD + 360) % 360,
+      pitch: Math.atan2(vz, Math.hypot(vx, vy) || 1e-9) / RAD
+    };
+  }
   function onOrient(e) {
-    let yaw = null;
+    let v = null;
     if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
-      yaw = e.webkitCompassHeading;                      // already degrees clockwise from north
+      /* iOS hands over a true heading; take the tilt from the same matrix with north removed */
+      const t = viewFrom(0, e.beta || 0, e.gamma || 0);
+      v = { yaw: (e.webkitCompassHeading + t.yaw) % 360, pitch: t.pitch };
     } else if (e.absolute && typeof e.alpha === 'number') {
-      yaw = 360 - e.alpha;
+      v = viewFrom(e.alpha, e.beta || 0, e.gamma || 0);
     }
-    if (yaw === null) return;
-    const scr = (screen.orientation && screen.orientation.angle) || 0;
-    S.yaw = (yaw + scr + 360) % 360;
-    /* beta is tilt away from flat-on-its-back; 90 is holding it upright, which we call level */
-    if (typeof e.beta === 'number') S.pitch = Math.max(-80, Math.min(80, e.beta - 90));
+    if (!v) return;
+    S.yaw = (v.yaw + S.yawOff + 720) % 360;
+    S.pitch = Math.max(-85, Math.min(85, v.pitch + S.pitchOff));
     S.haveSensor = true;
   }
   async function askSensors() {
@@ -168,25 +212,65 @@ export function mountSky(host, getData) {
     const saved = +localStorage.getItem(KEY);
     if (saved >= 35 && saved <= 100) { S.fovY = saved; el.fov.value = String(saved); }
   } catch (err) { /* private window */ }
+  /* and the compass correction, which is a property of the phone in the same way */
+  function saveAim() {
+    try { localStorage.setItem(CAL, Math.round(S.yawOff) + ',' + Math.round(S.pitchOff)); }
+    catch (err) { /* private window */ }
+  }
+  try {
+    const parts = String(localStorage.getItem(CAL) || '').split(',').map(Number);
+    if (parts.length === 2 && parts.every(Number.isFinite)) {
+      S.yawOff = parts[0]; S.pitchOff = Math.max(-45, Math.min(45, parts[1]));
+    }
+  } catch (err) { /* private window */ }
 
   /* drag works whether or not the sensors do, so the view is never stuck */
   function dragging() {
     const c = el.cv;
     const down = e => {
-      S.drag = { x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch, t: performance.now(), moved: 0 };
+      S.drag = {
+        x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch,
+        sensor: S.haveSensor, yawOff: S.yawOff, pitchOff: S.pitchOff,
+        t: performance.now(), moved: 0
+      };
       c.setPointerCapture(e.pointerId);
     };
+    /* With no sensor, a drag IS the aim. With a sensor, a drag is a correction to it: the
+       phone keeps tracking and the offset rides along, so you can drag the drawn sun onto the
+       real one and then turn around with it still right. A phone compass can be tens of
+       degrees out — two screenshots of the same view one minute apart at Valmont read 97° and
+       179° when the truth was about 220° — and nothing in a browser can fix that for you. */
     const move = e => {
       if (!S.drag) return;
       S.drag.moved = Math.max(S.drag.moved, Math.hypot(e.clientX - S.drag.x, e.clientY - S.drag.y));
       if (S.drag.moved < 6) return;                      // a thumb is never perfectly still
-      S.haveSensor = false;                              // the hand wins once it takes over
-      S.yaw = (S.drag.yaw - (e.clientX - S.drag.x) * 0.25 + 360) % 360;
-      S.pitch = Math.max(-80, Math.min(85, S.drag.pitch + (e.clientY - S.drag.y) * 0.22));
+      const dYaw = -(e.clientX - S.drag.x) * 0.25, dPit = (e.clientY - S.drag.y) * 0.22;
+      if (S.drag.sensor) {
+        S.yawOff = S.drag.yawOff + dYaw;
+        S.pitchOff = Math.max(-45, Math.min(45, S.drag.pitchOff + dPit));
+        saveAim();
+      } else {
+        S.yaw = (S.drag.yaw + dYaw + 720) % 360;
+        S.pitch = Math.max(-85, Math.min(85, S.drag.pitch + dPit));
+      }
     };
-    /* A tap that did not turn into a drag releases a puff. */
-    const up = () => {
-      if (S.drag && S.drag.moved < 6 && performance.now() - S.drag.t < 500) release();
+    /* A tap that did not turn into a drag releases a puff — unless Align is armed, in which
+       case the tap is the calibration and the puff would only be in the way. */
+    const up = e => {
+      if (S.drag && S.drag.moved < 6 && performance.now() - S.drag.t < 500) {
+        if (S.align) {
+          const r = c.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width * c.width;
+          const y = (e.clientY - r.top) / r.height * c.height;
+          const fresh = fiducials().find(b => b.name === S.align.name);
+          S.alignNote = fresh
+            ? alignOn(fresh, x, y, c.width, c.height)
+            : `the ${S.align.name} has gone below the skyline`;
+          S.align = null;
+          el.alignBtn.setAttribute('aria-pressed', 'false');
+          el.alignBtn.classList.remove('on');
+        } else release();
+      }
       S.drag = null;
     };
     c.addEventListener('pointerdown', down);
@@ -253,6 +337,62 @@ export function mountSky(host, getData) {
     const y = H / 2 - fy * Math.tan((elev - S.pitch) * RAD);
     if (!isFinite(x) || !isFinite(y)) return null;
     return [x, y];
+  }
+  /* The same pinhole run backwards: a point on the screen, and where in the sky it is looking.
+     Inverting the page's OWN projection rather than a textbook one is deliberate — whatever
+     this model gets slightly wrong, the alignment inherits, so the body lands exactly on the
+     pixel you touched. */
+  function unproject(x, y, W, H) {
+    const fy = (H / 2) / Math.tan(S.fovY / 2 * RAD);
+    return {
+      az: (S.yaw + Math.atan2(x - W / 2, fy) / RAD + 720) % 360,
+      alt: S.pitch + Math.atan2(H / 2 - y, fy) / RAD
+    };
+  }
+
+  /* ---------- aligning on a body in the sky ----------
+     A phone compass can be eighty degrees out and drift while you stand still, and no browser
+     API can correct it. But the sky can: the Moon's azimuth and altitude are computable to
+     far better than anyone can tap, it is half a degree wide, and it is right there in the
+     frame. Touch it and the page learns how wrong it is in one go — both axes at once, since
+     a single point fixes exactly the two pointing unknowns. (It fixes only those. Scale, the
+     field of view, needs two landmarks at a known separation; that is the View slider's job.)
+
+     The Moon is the one that matters, because the Sun is unusable for most of the hours
+     anyone is out here, and it goes first for a second reason: you can look straight at it. */
+  function fiducials() {
+    refreshSky(true);
+    const s = S.sky;
+    if (!s) return [];
+    const out = [];
+    if (s.moon && s.moon.alt > 5) out.push(s.moon);
+    if (s.sun && s.sun.alt > 5) out.push(s.sun);
+    for (const p of (s.planets || [])) if (p.alt > 12 && p.mag < 0.5) out.push(p);
+    return out;
+  }
+  function describe(b) {
+    const up = Math.round(b.alt), dir = compass(b.az);
+    const lit = b.phase ? `, ${Math.round(b.phase.illum * 100)}% lit` : '';
+    return `${b.name}${lit} — ${up}° up, ${dir}`;
+  }
+  /* A crescent's bright part is not centred on the disc, so aim for the middle of the whole
+     circle rather than the middle of the light. At half a degree across, being a touch off
+     costs a fraction of a degree against the tens this is correcting, so it hardly matters —
+     but it is the difference between a careful tap and a lucky one. */
+  function alignOn(b, x, y, W, H) {
+    const want = unproject(x, y, W, H);
+    let dYaw = ((b.az - want.az + 540) % 360) - 180;
+    const dPitch = b.alt - want.alt;
+    if (S.haveSensor) {
+      S.yawOff = ((S.yawOff + dYaw + 540) % 360) - 180;
+      S.pitchOff = Math.max(-45, Math.min(45, S.pitchOff + dPitch));
+      saveAim();
+    } else {
+      S.yaw = (S.yaw + dYaw + 720) % 360;
+      S.pitch = Math.max(-85, Math.min(85, S.pitch + dPitch));
+    }
+    const off = Math.hypot(dYaw * Math.cos(b.alt * RAD), dPitch);
+    return `aligned on the ${b.name} — it was ${off < 1 ? 'under a degree' : Math.round(off) + '°'} out`;
   }
 
   /* ---------- where your face is ----------
@@ -394,6 +534,7 @@ export function mountSky(host, getData) {
     }
     S.swarm = parts;
     S.swarmAge = 0;
+    S.alignNote = '';
     S.puffNote = `puff released into ${spots.length} layer${spots.length === 1 ? '' : 's'}`;
   }
 
@@ -405,12 +546,22 @@ export function mountSky(host, getData) {
     return `rgb(${(a[0] + (b[0] - a[0]) * g) | 0},${(a[1] + (b[1] - a[1]) * g) | 0},${(a[2] + (b[2] - a[2]) * g) | 0})`;
   };
 
+  /* One throw anywhere in the draw used to end the animation frame chain for good, and the
+     view simply froze with a stale readout and no way to tell why — which is exactly what it
+     did on a phone, where there is no console to look at. The loop now always reschedules and
+     says what broke. */
   function frame() {
+    try { draw(); } catch (err) {
+      S.note = 'drawing error: ' + (err && err.message ? err.message : err);
+    }
+    S.raf = requestAnimationFrame(frame);
+  }
+  function draw() {
     const d = getData();
     const layers = (d && d.layers) || [];
     const cv = el.cv, W = cv.width, H = cv.height, ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, W, H);
-    if (!layers.length) { S.raf = requestAnimationFrame(frame); return; }
+    if (!layers.length) return;
 
     /* the ground, and the skyline the twin's terrain actually makes */
     ctx.save();
@@ -816,7 +967,9 @@ export function mountSky(host, getData) {
       const boxW = wide + pad * 2 + rowH * 0.9;
       const capH = 15 * sc;                                  // room for the caption line
       const boxH = rows.length * rowH + pad * 2 + capH;
-      const x0 = pad, y0 = Math.max(pad, H * 0.5 - boxH / 2);
+      /* centred, but never under the sliders: in landscape the frame is short and the caption
+       was being clipped by the Tracers row (seen at Valmont, 2026-11-15) */
+    const x0 = pad, y0 = Math.max(pad, Math.min(H * 0.5 - boxH / 2, H * 0.80 - boxH));
       ctx.globalAlpha = 0.82;
       ctx.fillStyle = 'rgba(8,14,20,0.62)';
       ctx.beginPath();
@@ -838,16 +991,39 @@ export function mountSky(host, getData) {
       ctx.fillText('height · m/s · from', x0 + pad, y0 + boxH - pad - 1 * sc);
     }
 
+    /* While Align is armed, ring where the page BELIEVES the body is. The gap between that
+       ring and the real thing in the frame is the compass error, made visible — and once you
+       have tapped, the ring lands on it. */
+    if (S.align) {
+      const q = project(S.align.az, S.align.alt, W, H);
+      if (q) {
+        const k = Math.max(1, Math.min(2, W / 420));      // the key's scale, computed again
+        const rr = 26 * k, t = (now % 1600) / 1600;
+        ctx.strokeStyle = 'rgba(255,217,160,0.95)';
+        ctx.lineWidth = 2 * k;
+        ctx.beginPath(); ctx.arc(q[0], q[1], rr, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1 - t;
+        ctx.beginPath(); ctx.arc(q[0], q[1], rr + t * 22 * k, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    /* the offsets only do anything while a sensor is driving the view, so they are only
+       reported then — with no compass the drag IS the aim and there is nothing to correct */
+    const nudged = S.haveSensor && (Math.abs(S.yawOff) >= 1 || Math.abs(S.pitchOff) >= 1);
     el.read.textContent =
       `Facing ${compass(S.yaw)} ${Math.round(S.yaw)}°, ${S.pitch > 0 ? Math.round(S.pitch) + '° up' : Math.round(-S.pitch) + '° down'}` +
       (nearestPeak ? ` — ${nearestPeak.name}, ${Math.round(nearestPeak.distKm)} km` : '') +
       (nearestBody ? ` — ${nearestBody.name}${nearestBody.extra ? ', ' + nearestBody.extra : ''}` : '') +
       (S.showSky && S.sky && S.sky.twilight === 'day' ? ' — daylight, so only the sun, moon and Venus are drawn' : '') +
       /* the hint is for the first half minute; after that it is clutter on a phone screen */
-      (S.puffNote ? ' — ' + S.puffNote
-        : (now - S.openedAt < 30000 ? ' — tap to release a puff' : '')) +
-      (S.haveSensor ? '' : ' — drag to look around') + (S.note ? ' — ' + S.note : '');
-    S.raf = requestAnimationFrame(frame);
+      (S.alignNote ? ' — ' + S.alignNote
+        : S.puffNote ? ' — ' + S.puffNote
+          : (now - S.openedAt < 30000 ? ' — tap to release a puff' : '')) +
+      (S.haveSensor ? '' : ' — drag to look around') +
+      (nudged ? ` — aim nudged ${Math.round(S.yawOff)}°, ${Math.round(S.pitchOff)}°` : '') +
+      (S.note ? ' — ' + S.note : '');
+    if (el.aim.hidden === nudged) el.aim.hidden = !nudged;
   }
 
   /* The moon at its true angular size, lit from the true direction.
@@ -907,6 +1083,9 @@ export function mountSky(host, getData) {
     S.on = true;
     S.openedAt = performance.now();
     S.swarm = null; S.puffNote = '';
+    S.align = null; S.alignNote = '';
+    el.alignBtn.setAttribute('aria-pressed', 'false');
+    el.alignBtn.classList.remove('on');
     el.wrap.hidden = false;
     document.body.style.overflow = 'hidden';
     size();
