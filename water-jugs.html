@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can two jugs measure any amount? | FluidTA</title>
+<meta name="description" content="The water-jug riddle: a 3-litre jug, a 5-litre jug, and exactly 4 litres to measure. Pour it yourself, then see why the answer is the greatest common divisor.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can two jugs measure any amount?</h1>
+  <p class="lede" style="margin-top:14px">You have a 3-litre jug, a 5-litre jug, a tap and a drain. No markings. Measure out exactly 4 litres. You may fill a jug to the brim, empty it, or pour one into the other until the first runs dry or the second is full. That is all.</p>
+
+  <h2>Try it</h2>
+  <p>Pour for yourself before you press <b>Solve</b>. Then change the jugs and the target, and look for a pair where the riddle cannot be done.</p>
+  <figure class="fig" data-diagram="jugs"><figcaption>The grid on the right is every possible state: litres in A across, litres in B up. Green dots hold the target. Your moves trace a path; pours run along the diagonals.</figcaption></figure>
+
+  <h2>Why some targets are impossible</h2>
+  <p>Every move adds or removes a whole jugful from the total water you are holding, so the total is always <em>some number of A-jugs plus some number of B-jugs</em>, where the numbers can be negative (a jugful poured down the drain). With jugs of 6 and 4, every such total is even, so 3 litres is out of reach for good. In general the amounts you can make are exactly the multiples of the <b>greatest common divisor</b> of the two sizes, as long as they fit in a jug.</p>
+  <p>That the multiples of the gcd are all reachable, and nothing else is, is <b>Bézout’s identity</b>: for whole numbers <i>a</i> and <i>b</i> there are whole numbers <i>m</i> and <i>n</i> with <i>m·a + n·b</i> = gcd(<i>a</i>, <i>b</i>). For 3 and 5 the gcd is 1, and 2·5 − 2·3 = 4: fill the 5 twice, tip out the 3 twice. That is the six-move solution, read straight off the equation.</p>
+
+  <h2>The path is a billiard shot</h2>
+  <p>Watch the grid while it solves. Filling and emptying slide the dot along an edge. Pouring keeps the total fixed, so the dot runs down a diagonal until it hits a wall. The whole solution is a ball bouncing around a table, and it only ever lands on lattice points. Keep filling the same jug and pouring into the other and the ball visits every reachable amount in turn, which is the Euclidean algorithm for the gcd played out in water.</p>
+
+  <p class="credit">The riddle is centuries old; the gcd rule is Bézout’s (1779). “Solve” runs a breadth-first search over the states, so its answer is a shortest one. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

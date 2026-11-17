@@ -20,10 +20,10 @@ const PEOPLE = [
     how: 'Asked why a thumb over a hose speeds up the jet (friction, reclaimed), and how broadcast-spawning coral beats the odds (turbulence folds two clouds together, so the mean of the product beats the product of the means). From him: a good riddle and a careful experiment are the same move.' },
   { name: 'Roseanna Neupauer', label: 'Neupauer', who: 'inverse problems', hue: ORANGE,
     how: 'Runs the plume backward — the same transport equation, solved from the sensor backward in time, names which neighborhood a signal came from, every suspect at once. From her: an unknown is just a forward problem read the other way, and a monitor that sees nothing is evidence too.' },
-  { name: 'Balaji', label: 'Balaji', who: 'statistics & water', hue: GREEN,
-    how: 'Taught the hypergeometric distribution with a pond — tag some fish, catch again, and let the notebook be the model. He was also the generous critic who read work outside his own wheelhouse and asked the questions that actually mattered.' },
-  { name: 'Hari', label: 'Hari', who: 'fluid mechanics', hue: PURPLE,
-    how: 'Draws a cube on the board, and everything — Navier–Stokes included — comes out of that control volume, one careful step at a time. The site’s instinct to build every result from something you can see on a chalkboard is his.' }
+  { name: 'Rajagopalan Balaji', label: 'Balaji', who: 'hydroclimatology · CU Boulder', hue: GREEN,
+    how: 'Taught the hypergeometric distribution with a pond — tag some fish, catch again, and let the notebook be the model. A hydroclimatologist who reads rivers and monsoons through statistics, he was also the generous critic who read work outside his own wheelhouse and asked the questions that actually mattered.' },
+  { name: 'Harihar Rajaram', label: 'Hari', who: 'd. 2024 · CU Boulder, Johns Hopkins', hue: PURPLE,
+    how: 'Hari drew a cube on the board, and everything — Navier–Stokes included — came out of that control volume, one careful step at a time. He modeled water moving through rock, ice and soil, edited Water Resources Research, and is remembered by his students for intellect, humility and warmth. The site’s instinct to build every result from something you can see on a chalkboard is his. In memory.' }
 ];
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

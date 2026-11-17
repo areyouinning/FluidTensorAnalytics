@@ -224,6 +224,12 @@
     snow: function () { var o = ''; for (var k = 0; k < 3; k++) o += line('M90 40 90 140', B, 5).replace('<path', '<path transform="rotate(' + k * 60 + ' 90 90)"'); [46, 74, 58, 96, 38].forEach(function (h, k) { o += rect(166 + k * 26, 140 - h, 20, h, k === 3 ? O : B, 3); }); return o; },
     peaks: function () { return '<path d="M0 150 58 92l28 26 50-62 42 46 34-30 44 42 64 28V180H0Z" fill="' + B + '" opacity=".75"/><path d="m136 56-18 22 12-4 8 8 10-7 8 4Z" fill="' + W + '"/>' + line('M136 54V24', O, 3) + dot(136, 22, 6, O); },
     pareto: function () { var R = rng(13), o = line('M36 20V152H300', S, 2); for (var k = 0; k < 40; k++) { var x = 44 + R() * 240, f = 18 + 12000 / (x + 60), y = f + R() * 70; o += dot(x.toFixed(0), Math.min(146, y).toFixed(0), 3, L); } for (var x2 = 44; x2 < 290; x2 += 24) o += dot(x2, (18 + 12000 / (x2 + 60)).toFixed(0), 5, O); return o; },
+    jugs: function () { // a small jug and a big jug, part full, with the target between them
+      var o = rect(86, 96, 48, 54, B, 0, .55) + line('M86 60V150H134V60', I, 4);
+      o += rect(186, 70, 60, 80, O, 0, .55) + line('M186 34V150H246V34', I, 4);
+      o += text(110, 172, '3', 18, S) + text(216, 172, '5', 18, S) + text(160, 36, '4 ?', 24, G);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
