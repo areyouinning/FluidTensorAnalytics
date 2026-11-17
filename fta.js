@@ -92,7 +92,7 @@
     while (top.lastChild) body.insertBefore(top.lastChild, body.firstChild);
     var foot = document.createElement('footer');
     foot.className = 'site';
-    foot.innerHTML = 'Made for fun in Westminster, Colorado. <a href="mailto:taylor@fluidtensoranalytics.com">Say hello</a> · <a href="/obovoid.html">Inspirations</a>.';
+    foot.innerHTML = 'Made for fun in Westminster, Colorado. <a href="mailto:taylor@fluidtensoranalytics.com">Say hello</a> · <a href="/obovoid.html">Inspirations</a> · <a href="https://github.com/areyouinning/FluidTensorAnalytics/blob/main/NOTICE.md">Public domain (CC0)</a>.';
     body.appendChild(foot);
   }
 
