@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What one question gets you out? | FluidTA</title>
+<meta name="description" content="Two doors, two guards, one who lies. Try four questions and see in a table of all four possible worlds which ones work, and why a lie passed through a liar comes out true.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+[data-diagram="guards"] .read{grid-template-columns:1fr}
+[data-diagram="guards"] .stat b{font:600 16px/1.4 var(--font)}
+[data-diagram="guards"] .stat:last-child b{font-weight:400}
+</style>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>What one question gets you out?</h1>
+  <p class="lede" style="margin-top:14px">There are two doors. One leads out and the other does not. Each door has a guard. One guard always tells the truth and the other always lies, and you do not know which is which. You may ask one guard one yes-or-no question. What do you ask?</p>
+
+  <h2>Try four questions</h2>
+  <p>Each question goes to the guard at the left door. The table shows all four possible worlds and the answer you would hear in each.</p>
+  <figure class="fig" data-diagram="guards"><figcaption>Rows: who stands at the left door. Columns: which door is the way out. A question works when each column agrees with itself and the two columns differ.</figcaption></figure>
+
+  <h2>Why the obvious question fails</h2>
+  <p>Ask “Is your door the way out?” and you get a yes or a no. A truth-teller says yes when the door is out. A liar says yes when it is not. The same answer turns up in both kinds of world, so you have an answer and no reason to believe it.</p>
+
+  <h2>The trick</h2>
+  <p>Route the question through both guards, or through the same guard twice.</p>
+  <p>Take question 3. If you happen to ask the truth-teller, the other guard is the liar, whose answer would be false, and the truth-teller reports it faithfully. If you happen to ask the liar, the other guard’s answer would be true, and the liar flips it. Either way what you hear is false. A reliably wrong answer is as useful as a reliably right one: hear “yes” and take the other door.</p>
+  <p>Question 4 uses one guard twice. Asked about their own answer, a truth-teller just repeats it. A liar lies about their lie, and two lies cancel. Either way “yes” means this door.</p>
+
+  <h2>Flipping twice</h2>
+  <p>An answer passed through a liar is flipped, and flipping twice restores it. In logic this is double negation: not-not-P is P. In computing it is the same arithmetic as adding two bits and keeping only the last digit, which is called XOR.</p>
+  <p>You cannot find out who is lying with one question, and you do not need to.</p>
+
+  <p class="credit">A knights-and-knaves puzzle of the kind Raymond Smullyan collected; this two-door version is widely known from the 1986 film <i>Labyrinth</i>. The table is computed from the rules, not written in. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

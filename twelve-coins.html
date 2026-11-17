@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can three weighings find the fake coin? | FluidTA</title>
+<meta name="description" content="Twelve coins, one fake, a balance and three weighings. Try it, and see why counting the possibilities tells you how the first weighing has to go.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+.cn-hist{margin:12px 0 0;padding-left:26px;font:16px/1.5 var(--mono);color:var(--ink-soft)}
+.cn-hist:empty{display:none}
+.read .stat:nth-child(3){grid-column:1/-1}
+</style>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can three weighings find the fake coin?</h1>
+  <p class="lede" style="margin-top:14px">Twelve coins look identical, but one is fake and weighs slightly more or slightly less than the rest. You do not know which. You have a balance with two pans and no weights. Find the fake coin, and whether it is heavy or light, in three weighings.</p>
+
+  <h2>Try it</h2>
+  <p>Tap a coin to move it: off the scale, left pan, right pan. “H” and “L” show what a coin could still be.</p>
+  <figure class="fig" data-diagram="coins"><figcaption>The pans must hold the same number of coins. After each weighing the page counts which of the 24 answers still fit every result.</figcaption></figure>
+
+  <h2>Counting the answers</h2>
+  <p>The fake is one of 12 coins, and it is heavy or light. That is 12 × 2 = 24 possible answers.</p>
+  <p>A weighing has three outcomes: left heavier, right heavier, or balanced. Three weighings can tell apart at most 3 × 3 × 3 = 27 situations. Since 24 fits under 27, it is just possible, with almost nothing to spare.</p>
+
+  <h2>What that says about the first weighing</h2>
+  <p>After one weighing, two more remain, so each outcome may leave at most 3 × 3 = 9 answers.</p>
+  <p>Weigh 4 against 4 and the outcomes leave 8, 8 and 8. Weigh 6 against 6 and they leave 12, 12 and 0, which is already too many. Weigh 3 against 3 and they leave 6, 6 and 12, again too many.</p>
+
+  <h2>Why the later weighings work</h2>
+  <p>A coin that sat on the heavy side can now only be heavy. One that sat on the light side can only be light. If the pans tipped, every coin left off the scale is genuine. If they balanced, every coin that was on the scale is genuine.</p>
+  <p>So a later weighing can mix “possibly heavy”, “possibly light” and known-genuine coins to split what remains into three roughly equal parts.</p>
+
+  <p>Each weighing is worth one three-way answer, and the riddle is solved by never wasting one.</p>
+
+  <p class="credit">A puzzle from the 1940s that spread among mathematicians during the war. The count of what is still possible is worked out exactly after each weighing. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

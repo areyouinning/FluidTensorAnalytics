@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can the better treatment look worse? | FluidTA</title>
+<meta name="description" content="Simpson's paradox with real kidney-stone data: one treatment wins for small stones and for large stones, and still loses overall. Slide the patient mix and watch the reversal come and go.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>Can the better treatment look worse?</h1>
+  <p class="lede" style="margin-top:14px">A 1986 study compared two treatments for kidney stones, 350 patients each. Treatment A did better on small stones. Treatment A did better on large stones. Put all the patients together, and treatment B did better. Every number is correct.</p>
+
+  <h2>The numbers</h2>
+  <p>For small stones, A cured 81 of 87 (93%) and B cured 234 of 270 (87%). For large stones, A cured 192 of 263 (73%) and B cured 55 of 80 (69%). Add them up: A cured 273 of 350 (78%), B cured 289 of 350 (83%).</p>
+  <figure class="fig" data-diagram="simpson"><figcaption>Each line runs from a treatment’s large-stone success rate to its small-stone rate. The dot is its overall rate, and it slides along the line as its mix of patients changes.</figcaption></figure>
+
+  <h2>Where the reversal comes from</h2>
+  <p>Look at who got which treatment. A is the more invasive one, and doctors gave it mostly to the hard cases: three quarters of A’s patients had large stones. B went mostly to the easy cases. So A’s overall figure is an average weighted towards its harder group, and B’s towards its easier one.</p>
+  <p>That is all an overall rate is: a weighted average of the group rates. In the picture, A’s line is above B’s all the way along, which is the statement that A is better for any given kind of stone. But each treatment’s dot sits at a different place along its line. Press <b>Same mix for both</b> and the dots line up one above the other, with A on top. The paradox needs the two groups to be unevenly split, and it vanishes when they are not.</p>
+
+  <h2>Which number do you believe?</h2>
+  <p>Here, the split ones. Stone size affects both which treatment you were given and how likely you were to recover, so it has to be held fixed before the treatments can be compared. A patient with a large stone should look at the large-stone row, where A wins.</p>
+  <p>The combined table is not wrong arithmetic. It answers a different question: which <em>group of patients</em> did better, not which <em>treatment</em> works better. Whenever a total disagrees with every one of its parts, look for something that sorted people into the groups.</p>
+
+  <p class="credit">Data from Charig, Webb, Payne and Wickham, <i>British Medical Journal</i>, 1986. The effect is named for Edward Simpson (1951), though Yule described it in 1903. The success rates within each group are held at their real values while you move the mix. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

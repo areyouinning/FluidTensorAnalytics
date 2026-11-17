@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you take the last stone? | FluidTA</title>
+<meta name="description" content="Nim: three piles of stones, take turns, and whoever takes the last stone wins. Play the computer, then see the one line of binary arithmetic that decides every game.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can you take the last stone?</h1>
+  <p class="lede" style="margin-top:14px">Three piles of stones. You and the computer take turns. On your turn, take as many stones as you like from one pile, at least one. Whoever takes the last stone wins.</p>
+
+  <h2>Try it</h2>
+  <p>Tap a stone to take it and every stone above it. Start from 3, 4, 5 and see whether you can win.</p>
+  <figure class="fig" data-diagram="nim"><figcaption>Tap a stone to take it and the stones above it. Choose who starts, then press “Show the secret” to see the numbers the computer is using.</figcaption></figure>
+
+  <h2>The rule</h2>
+  <p>Write each pile size in binary and add the columns without carrying: a column is 1 if it holds an odd number of 1s, and 0 otherwise. This is called XOR, and the result is the nim-sum.</p>
+  <p>If the nim-sum is zero, the player about to move loses against perfect play. If it is not zero, that player can win.</p>
+
+  <h2>Why it works</h2>
+  <p>First, when all piles are empty the nim-sum is zero, and the player who must move has already lost.</p>
+  <p>Second, from a zero position every move changes exactly one pile. That changes at least one binary column, so the nim-sum is no longer zero.</p>
+  <p>Third, from a non-zero position there is always a move back to zero. Find the leftmost column where the sum has a 1. Pick a pile with a 1 in that column. Shrink it to (pile XOR nim-sum), which is smaller. The nim-sum is now zero.</p>
+  <p>So whoever faces a non-zero position can keep handing back a zero, until the last stone is gone.</p>
+
+  <h2>An example</h2>
+  <p>With piles 3, 4 and 5, the binary is 011, 100 and 101. The columns give 010, which is 2. The nim-sum is not zero, so the first player wins. Take 2 from the pile of 3, leaving 1, 4 and 5. That is 001, 100 and 101, which add to 000.</p>
+  <p>A game that looks like a contest of wits is settled by one line of arithmetic.</p>
+
+  <p class="credit">The winning rule is Charles Bouton’s (1901), who also gave the game its name. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
