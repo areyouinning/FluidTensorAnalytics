@@ -334,6 +334,13 @@
       for (var r = 0; r < 6; r++) for (var c = 0; c < 10; c++) { var k = r * 10 + c; o += rect(60 + c * 20, 30 + r * 20, 17, 17, k === 0 ? O : B, 3, k < 30 ? 1 : .18); }
       return o + text(160, 168, '100 kg → 50 kg', 16, S);
     },
+    coastline: function () { // a jagged coast with sea below, and a coarse divider walk across it
+      var R = 7, rnd = function () { R = (R * 16807) % 2147483647; return R / 2147483647; }, p = [[20, 80], [300, 80]];
+      for (var l = 0; l < 4; l++) { var q = [p[0]]; for (var i = 0; i + 1 < p.length; i++) { var a = p[i], b = p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], sg = rnd() < .5 ? 1 : -1, r = 1 / 3, c = .5, sn = .866 * sg, p1 = [a[0] + r * dx, a[1] + r * dy];
+        q.push(p1, [p1[0] + r * (c * dx - sn * dy), p1[1] + r * (sn * dx + c * dy)], [b[0] - r * dx, b[1] - r * dy], b); } p = q; }
+      var d = 'M' + p.map(function (t) { return t[0].toFixed(1) + ' ' + t[1].toFixed(1); }).join('L');
+      return '<path d="' + d + 'L300 170L20 170Z" fill="' + B + '" opacity=".22"/>' + line(d, I, 2) + line('M20 80L75 112L140 62L205 104L262 70L300 80', O, 4);
+    },
     zeno: function () { // shrinking stages on a track
       var o = line('M20 120H300', S, 3), x = 30, w = 160;
       [B, O, G, P, B].forEach(function (c, i) { o += rect(x, 96 - i * 4, w, 12, c, 3, .85); x += w; w /= 2.6; });

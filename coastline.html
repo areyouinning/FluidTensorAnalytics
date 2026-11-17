@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How long is a coastline? | FluidTA</title>
+<meta name="description" content="The coastline paradox: measure a coast with a shorter ruler and it gets longer, without settling down. Walk a pair of dividers along a coast and find its fractal dimension.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>How long is a coastline?</h1>
+  <p class="lede" style="margin-top:14px">Measure a coast with a 100 km ruler and you get one number. Use a 10 km ruler and you get a bigger one. A 1 km ruler gives a bigger one still. For most curves the numbers would settle down. For a coast they keep growing.</p>
+
+  <h2>Walk the dividers</h2>
+  <p>Set a pair of dividers to the ruler length, put one point on the start of the coast, and swing the other forward until it touches the coast again. Count the steps. Then shrink the ruler and do it again. Each dot on the lower plot is one ruler.</p>
+  <figure class="fig" data-diagram="coastline"><figcaption>An invented coast, about 700 km across. The orange path is the dividers’ walk; the plot shows measured length against ruler length, both on log scales. The long rulers scatter, because where their few steps land is partly luck; the green line is fitted to the shorter rulers, and its slope gives the dimension D (slope = 1 − D). Try the smooth coast: its points level off at its true length, and D comes out as 1.</figcaption></figure>
+
+  <h2>Why it never settles</h2>
+  <p>A short ruler sees bays and headlands that a long ruler steps across. On a smooth curve that stops paying off: zoom in far enough and every piece looks straight, so smaller rulers find nothing new. A coast doesn’t straighten out. Inside each bay are smaller bays, and inside those, smaller ones again. Every time the ruler shrinks, it finds new wiggles to follow.</p>
+  <p>The rugged coast above is built that way on purpose. Each straight piece is replaced by four shorter pieces with a bump, then each of those by four more, seven times over. It has the same kind of roughness at every scale. That is all it takes for the length to run away.</p>
+
+  <h2>Richardson’s straight lines</h2>
+  <p>Lewis Fry Richardson, the meteorologist who first tried to forecast the weather by arithmetic, noticed in the 1950s that neighbouring countries published different lengths for the same shared border. He measured coasts and borders from maps with dividers set to different lengths and plotted the results on log–log paper, as in the lower plot. Each coast gave a straight line, so the measured length follows a power law: L = F × ε<sup>1−D</sup>, where ε is the ruler length. His work was published in 1961, after his death.</p>
+  <p>Richardson knew roughness at every scale from fluids. In 1922 he summed up turbulence in a rhyme: “Big whirls have little whirls that feed on their velocity, and little whirls have lesser whirls and so on to viscosity.” A coast is that rhyme made of rock.</p>
+
+  <h2>Mandelbrot’s dimension</h2>
+  <p>In 1967 Benoit Mandelbrot published “How long is the coast of Britain?” in <i>Science</i>. He read Richardson’s D as a dimension between 1 (a line) and 2 (a filled-in area). From Richardson’s data, the west coast of Britain has D ≈ 1.25, the coast of Australia about 1.13, and the coast of South Africa, one of the smoothest in the atlas, about 1.02. The land border between Spain and Portugal comes out near 1.14.</p>
+  <p>D tells you how fast the length grows. Halve the ruler and the length is multiplied by 2<sup>D−1</sup>. With D = 1.25 that is 2<sup>0.25</sup> ≈ 1.19, so every halving adds about 19%. Ten halvings, from 100 km down to about 100 m, multiply the length by 2<sup>2.5</sup> ≈ 5.7. A smooth curve has D = 1 and 2<sup>0</sup> = 1: no growth at all.</p>
+  <p>The coast in the diagram is a random Koch curve. Its pieces are 1 / (2(1 + cos θ)) as long as the piece they replace, with the bump at angle θ, so its dimension is exactly D = log 4 / log(2(1 + cos θ)). The angle is set to give D = 1.25 or 1.13. The fitted value comes out within about 0.02, because a real measurement only covers a limited range of rulers.</p>
+
+  <h2>So how long is it?</h2>
+  <p>A coastline length is only meaningful with its ruler attached. The CIA World Factbook gives the coastline of the United States as 19,924 km. The World Resources Institute, measuring from a much more detailed map, gets 133,312 km, more than six times as long. Neither is wrong; they used different rulers.</p>
+  <p>Real coasts do stop somewhere. Below the size of a pebble, or a grain of sand, the roughness changes character, and the tide moves the line anyway. So a real coast has a finite length. It just depends so strongly on where you stop that the number isn’t worth much on its own. What stays put is D, and that is why Mandelbrot used it as the measure of roughness.</p>
+
+  <p class="credit">The coastline paradox follows Lewis Fry Richardson’s “The problem of contiguity” (1961) and Benoit Mandelbrot’s “How long is the coast of Britain? Statistical self-similarity and fractional dimension”, <i>Science</i> 156 (1967). Coastline figures from the CIA World Factbook and the World Resources Institute. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
