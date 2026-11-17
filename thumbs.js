@@ -312,6 +312,12 @@
       for (var k = 0; k < 16; k++) { var x = 40 + R() * 240, yy = 30 + R() * 120, a = R() * Math.PI, dx = Math.cos(a) * 20, dy = Math.sin(a) * 20, cross = Math.floor((yy - dy - 30) / 40) !== Math.floor((yy + dy - 30) / 40); o += line('M' + (x - dx).toFixed(0) + ' ' + (yy - dy).toFixed(0) + 'L' + (x + dx).toFixed(0) + ' ' + (yy + dy).toFixed(0), cross ? O : S, 3); }
       return o;
     },
+    puzzlebox: function () { // a pattern of shapes with a gap, and a star
+      var o = dot(60, 70, 22, B) + rect(100, 48, 44, 44, O, 6) + dot(182, 70, 22, B) + rect(222, 48, 44, 44, O, 6);
+      o += '<rect x="42" y="112" width="48" height="48" rx="10" fill="none" stroke="' + I + '" stroke-width="3" stroke-dasharray="6 5"/>' + text(66, 146, '?', 30, I);
+      o += '<path d="M240 108l8 17 19 2-14 13 4 19-17-10-17 10 4-19-14-13 19-2z" fill="var(--gold)" stroke="' + I + '" stroke-width="2" stroke-linejoin="round"/>';
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
