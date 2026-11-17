@@ -9,12 +9,15 @@
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
 <style>.keylink{margin:6px 0 10px}.keylink a{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;background:var(--blue);color:var(--on-accent);font-weight:600;font-size:18px;text-decoration:none;box-shadow:var(--shadow)}.keylink a:hover{filter:brightness(1.05)}
-.pond-ctl{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
-.pond-ctl button{appearance:none;border:0;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;background:var(--panel);color:var(--ink);font:600 15px/1 var(--font);box-shadow:var(--shadow);cursor:pointer}
-.pond-ctl button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:-2px}
-.pond-ctl i{width:12px;height:12px;border-radius:50%}
-.pond canvas{touch-action:pan-y;cursor:grab}
-@media (max-width:520px){.pond p{display:none}.pond-ctl{right:8px;bottom:8px;gap:4px}.pond-ctl button{min-height:30px;padding:0 9px;font-size:13px}}</style>
+.tank-ctl{position:absolute;right:10px;bottom:10px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100% - 20px)}
+.tank-ctl button{appearance:none;border:0;min-height:36px;padding:0 12px;border-radius:999px;background:var(--panel);color:var(--ink);font:600 14px/1 var(--font);box-shadow:var(--shadow);cursor:pointer}
+.tank-key{position:absolute;left:10px;top:10px;display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 10px;border-radius:999px;background:var(--panel);font-size:13px;font-weight:600;pointer-events:none}
+.tank-key span{display:inline-flex;align-items:center;gap:5px}.tank-key i{width:10px;height:10px;border-radius:50%}
+.tank canvas{height:auto;cursor:crosshair}
+.tank p{bottom:auto;top:calc(17% + 8px);left:auto;right:10px;font-size:13px}
+.hero-note{max-width:62ch;margin:10px 0 0;color:var(--ink-soft);font-size:17px;line-height:1.55}
+@media (max-width:520px){.tank p{display:none}.tank-ctl{right:8px;bottom:8px;gap:4px}.tank-ctl button{min-height:32px;padding:0 10px;font-size:13px}.tank-key{font-size:12px}}
+</style>
 </head>
 <body data-tab="home">
 <main id="main" class="wrap">
@@ -22,8 +25,10 @@
     <h1>Okay data, now let's get in formation</h1>
     <p>an exploratory explainer for the water-curious gamer</p>
   </div>
+  <p class="hero-note">Rain is falling into a tank of water below, and each drop curls into a pair of swirls. The colours split how the water moves into its spinning part and its stretching part: the two halves of a tensor. This whole site is <a href="https://github.com/areyouinning/FluidTensorAnalytics">open source</a>, and everything this demo uses is explained somewhere on it, from <a href="/tensor-analysis.html">what a tensor is</a> to <a href="/way-of-water.html">why stirring mixes</a>. Explore long enough and you can build it yourself.</p>
   <p class="keylink"><a href="/key.html" aria-label="Start here: find your way with a dichotomous key">Start Here</a></p>
-  <figure class="pond" data-diagram="pond"><p>Drag to spin it · tap to drop dye</p></figure>
+  <figure class="pond tank" data-diagram="stir"><p>Drag to stir · tap to drop rain</p></figure>
+  <p class="hero-note" style="margin-top:8px">The full version, with more ways to look at the same flow, is <a href="/navier-stokes-demo.html">What happens when you stir?</a></p>
 
   <div class="shelf-head"><h2>New</h2></div>
   <div data-new data-limit="4"></div>
