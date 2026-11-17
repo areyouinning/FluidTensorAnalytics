@@ -81,8 +81,10 @@ export const KEY = C(
                     'Dragonflies sneaking up on their prey.', '/remix-camouflage.html'),
                   'A ringing metal plate and dancing sand.', '/chladni.html'))),
             'Inside mathematics.',
-            C('What a tensor really is.', '/tensor-analysis.html',
-              'The logarithm of a picture.', '/image-log.html')))))));
+            C('A number trick or riddle with a lesson hiding inside.', '/missing-dollar.html',
+              'A serious idea to build up.',
+              C('What a tensor really is.', '/tensor-analysis.html',
+                'The logarithm of a picture.', '/image-log.html'))))))));
 
 /* number the couplets the way a printed key does: depth first, a's branch before b's */
 export function number(root) {

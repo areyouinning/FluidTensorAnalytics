@@ -224,6 +224,14 @@
     snow: function () { var o = ''; for (var k = 0; k < 3; k++) o += line('M90 40 90 140', B, 5).replace('<path', '<path transform="rotate(' + k * 60 + ' 90 90)"'); [46, 74, 58, 96, 38].forEach(function (h, k) { o += rect(166 + k * 26, 140 - h, 20, h, k === 3 ? O : B, 3); }); return o; },
     peaks: function () { return '<path d="M0 150 58 92l28 26 50-62 42 46 34-30 44 42 64 28V180H0Z" fill="' + B + '" opacity=".75"/><path d="m136 56-18 22 12-4 8 8 10-7 8 4Z" fill="' + W + '"/>' + line('M136 54V24', O, 3) + dot(136, 22, 6, O); },
     pareto: function () { var R = rng(13), o = line('M36 20V152H300', S, 2); for (var k = 0; k < 40; k++) { var x = 44 + R() * 240, f = 18 + 12000 / (x + 60), y = f + R() * 70; o += dot(x.toFixed(0), Math.min(146, y).toFixed(0), 3, L); } for (var x2 = 44; x2 < 290; x2 += 24) o += dot(x2, (18 + 12000 / (x2 + 60)).toFixed(0), 5, O); return o; },
+    dollar: function () { // three dollar coins, one of them gone missing
+      var o = text(160, 36, '$30 → $29', 20, S);
+      o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
+      o += dot(160, 100, 30, G) + text(160, 112, '$', 30, W);
+      o += '<circle cx="228" cy="100" r="30" fill="none" stroke="' + O + '" stroke-width="3" stroke-dasharray="6 6"/>';
+      o += text(228, 113, '?', 32, O);
+      return o;
+    },
     delayed: function () { // a little interferometer square with two detectors and a fringe below
       var o = line('M20 118H120M120 118V40M120 40H250M250 40V118M250 118H300', B, 4);
       o += line('M120 118H250', B, 4, .5);
