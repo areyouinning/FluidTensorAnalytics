@@ -100,7 +100,9 @@ export const KEY = C(
                   C('Stacks and piles.',
                     C('A tower of disks to shift.', '/tower-of-hanoi.html',
                       'Piles of stones, and the last one wins.', '/nim.html'),
-                    'A wolf, a goat and a cabbage to ferry.', '/river-crossing.html')),
+                    'Getting across a river or a bridge.',
+                    C('A wolf, a goat and a cabbage to ferry.', '/river-crossing.html',
+                      'Four walkers, one torch and a narrow bridge.', '/bridge-torch.html'))),
               'Numbers do the work.',
               C('Money or luck is at stake.',
                 C('A dollar that vanishes from a hotel bill.', '/missing-dollar.html',
@@ -114,15 +116,23 @@ export const KEY = C(
                   C('Two jugs and an exact measure of water.', '/water-jugs.html',
                     'Two glasses, one of wine and one of water.', '/wine-water.html'),
                   'Doors or bottles.',
-                  C('A hallway of a hundred lockers.', '/lockers.html',
+                  C('Doors and circles.',
+                    C('A hallway of a hundred lockers.', '/lockers.html',
+                      'People in a ring, every second one stepping out.', '/josephus.html'),
                     'Finding the odd one out.',
                     C('A thousand bottles, one of them poisoned.', '/poisoned-bottles.html',
                       'Twelve coins, one fake, and a balance.', '/twelve-coins.html'))))),
               'A serious idea to build up.',
               C('What a tensor really is.', '/tensor-analysis.html',
-                'Pictures and circles.',
+                'Pictures, circles or patterns.',
                 C('The logarithm of a picture.', '/image-log.html',
-                  'One circle, and everything it secretly runs.', '/circles.html')))))))));
+                  'Circles, cells, or a sum that never ends.',
+                  C('One circle, and everything it secretly runs.', '/circles.html',
+                    'Cells or sums.',
+                    C('Cells on a grid that live and die by three rules.', '/game-of-life.html',
+                      'Something that shrinks forever and still ends.',
+                      C('Achilles chasing a tortoise.', '/zeno.html',
+                        'Potatoes that dry out and halve their weight.', '/potato-paradox.html'))))))))))));
 
 /* number the couplets the way a printed key does: depth first, a's branch before b's */
 export function number(root) {
