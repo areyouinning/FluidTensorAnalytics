@@ -352,6 +352,11 @@
       o += line(d, O, 3) + dot(258, 46, 6, G) + text(64, 40, '2ⁿ', 18, I) + text(150, 86, '3-SAT', 14, O);
       return o;
     },
+    tsp: function () { // cities joined by one closed tour, a rocket's arc above
+      var pts = [[60, 120], [110, 70], [170, 96], [230, 60], [262, 124], [190, 146], [116, 150]], d = 'M' + pts.map(function (p) { return p[0] + ' ' + p[1]; }).join('L') + 'Z', o = line(d, B, 4);
+      pts.forEach(function (p) { o += dot(p[0], p[1], 8, I); });
+      return o + line('M40 44 Q160 -10 290 30', O, 3, .8) + dot(290, 30, 5, O);
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
