@@ -1,0 +1,22 @@
+name: Site check
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright outside the site folder
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm install playwright@1
+          npx playwright install --with-deps chromium
+      - name: Load every page and compare the key with the catalog
+        run: NODE_PATH="$RUNNER_TEMP/pw/node_modules" node scripts/check_site.js

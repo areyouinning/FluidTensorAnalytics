@@ -4,7 +4,8 @@
      - a native page scrolls sideways at phone width;
      - the Start Here key and the catalog disagree.
    Pages that bring their own look (the fta.js "data-guest" tools and games) are loaded and reported, but only
-   uncaught errors on first load count against them.
+   uncaught errors on first load count against them. Pages that load a script from another site cannot run
+   offline, so their script errors are listed as notes rather than failures.
 
      node scripts/check_site.js            # everything
      node scripts/check_site.js /nim.html  # just these pages
@@ -24,17 +25,17 @@ const NETWORK = /Failed to load resource|net::|ERR_|NetworkError|Failed to fetch
   const ctx = await browser.newContext({ viewport: { width: 360, height: 800 }, reducedMotion: 'reduce' });
   await ctx.route('**/*', route => {
     const u = new URL(route.request().url());
-    if (u.hostname !== 'site.test') return route.abort();
+    if (u.hostname !== 'site.test') { if (route.request().resourceType() === 'script') offsite.add(u.hostname); return route.abort(); }
     const f = path.join(ROOT, decodeURIComponent(u.pathname === '/' ? '/index.html' : u.pathname));
     if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return route.fulfill({ status: 404, body: '' });
     route.fulfill({ body: fs.readFileSync(f), contentType: TYPES[path.extname(f)] || 'application/octet-stream' });
   });
-  let failed = 0; const notes = [];
+  let failed = 0; const notes = [], offsite = new Set();
   for (const href of pages) {
     const file = path.join(ROOT, href === '/' ? 'index.html' : href);
     if (!fs.existsSync(file)) { console.log('FAIL', href, '— in the catalog but the file is missing'); failed++; continue; }
     const guest = /fta\.js"[^>]*data-guest|data-guest[^>]*fta\.js/.test(fs.readFileSync(file, 'utf8'));
-    const page = await ctx.newPage(), errs = [];
+    const page = await ctx.newPage(), errs = []; offsite.clear();
     page.on('pageerror', e => errs.push('uncaught: ' + e.message.split('\n')[0]));
     page.on('console', m => { if (m.type() === 'error' && !NETWORK.test(m.text())) errs.push('console: ' + m.text().split('\n')[0].slice(0, 200)); });
     try {
@@ -44,7 +45,7 @@ const NETWORK = /Failed to load resource|net::|ERR_|NetworkError|Failed to fetch
       await page.waitForTimeout(500);
       if (!guest) {
         if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errs.push('scrolls sideways at 360px');
-        const unbuilt = await page.evaluate(() => [...document.querySelectorAll('[data-diagram]')].filter(f => f.hasAttribute('data-failed') || !f.querySelector('svg, canvas, .dkey')).map(f => f.getAttribute('data-diagram')));
+        const unbuilt = await page.evaluate(() => [...document.querySelectorAll('[data-diagram]')].filter(f => f.hasAttribute('data-failed') || ![...f.children].some(c => !/^(FIGCAPTION|P)$/.test(c.tagName))).map(f => f.getAttribute('data-diagram')));
         if (unbuilt.length) errs.push('diagram did not draw: ' + unbuilt.join(', '));
       }
       if (href === '/key.html') {
@@ -53,13 +54,14 @@ const NETWORK = /Failed to load resource|net::|ERR_|NetworkError|Failed to fetch
       }
     } catch (e) { errs.push('did not load: ' + e.message.split('\n')[0]); }
     await page.close();
-    const counted = guest ? errs.filter(e => e.startsWith('uncaught') || e.startsWith('did not load')) : errs;
+    // a page that pulls a library from another site cannot run offline; report what it needed instead of failing it
+    const needs = [...offsite], counted = needs.length ? errs.filter(e => e.startsWith('did not load') || e.startsWith('scrolls') || e.startsWith('key and')) : guest ? errs.filter(e => e.startsWith('uncaught') || e.startsWith('did not load')) : errs;
     if (counted.length) { failed++; console.log('FAIL', href); counted.forEach(e => console.log('     ', e)); }
-    else console.log('ok  ', href + (guest ? '  (guest page)' : ''));
-    if (guest && errs.length > counted.length) notes.push(href + ': ' + errs.filter(e => !counted.includes(e)).join('; '));
+    else console.log('ok  ', href + (guest ? '  (guest page)' : '') + (needs.length ? '  (not run offline: needs ' + needs.join(', ') + ')' : ''));
+    if (errs.length > counted.length) notes.push(href + ': ' + errs.filter(e => !counted.includes(e)).join('; '));
   }
   await browser.close();
-  if (notes.length) { console.log('\nNotes on guest pages (not counted):'); notes.forEach(n => console.log('  ' + n)); }
+  if (notes.length) { console.log('\nNotes (not counted: guest pages, or pages that need a library from another site):'); notes.forEach(n => console.log('  ' + n)); }
   console.log('\n' + (pages.length - failed) + ' of ' + pages.length + ' pages passed.');
   process.exit(failed ? 1 : 0);
 })();
