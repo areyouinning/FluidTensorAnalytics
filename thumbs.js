@@ -230,6 +230,11 @@
       o += text(110, 172, '3', 18, S) + text(216, 172, '5', 18, S) + text(160, 36, '4 ?', 24, G);
       return o;
     },
+    lockers: function () { // a row of lockers; the square-numbered ones stand open
+      var o = '', sq = { 1: 1, 4: 1, 9: 1 };
+      for (var n = 1; n <= 10; n++) { var x = 14 + (n - 1) * 30; o += rect(x, 50, 24, 80, sq[n] ? B : L, 4) + text(x + 12, 152, n, 13, sq[n] ? B : S); }
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);

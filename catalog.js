@@ -12,6 +12,7 @@ window.FTA_CATALOG = [
 
   { href: '/missing-dollar.html', shelf: ['riddles', 'paradox'], topics: ['math'], thumb: 'dollar', title: 'Where did the missing dollar go?', blurb: 'Three guests, a $30 room, a $5 refund and a $2 tip — and an accounting trick that makes a dollar vanish. Follow the money and catch it.', fresh: true },
   { href: '/water-jugs.html', shelf: 'riddles', topics: ['math', 'water'], thumb: 'jugs', title: 'Can two jugs measure any amount?', blurb: 'A 3-litre jug, a 5-litre jug, and exactly 4 litres to pour. Solve it, then find out why the answer is a greatest common divisor.', fresh: true },
+  { href: '/lockers.html', shelf: 'riddles', topics: ['math'], thumb: 'lockers', title: 'Which lockers stay open?', blurb: 'A hundred lockers, a hundred students flipping doors. Run the hallway and find out why only the square numbers stay open.', fresh: true },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
   { href: '/sound-it-out.html', shelf: 'play', topics: ['kids'], thumb: 'phonics', title: 'Sound It Out', blurb: 'Tap letters to build real words and hear a real voice sound them out and blend them.', fresh: true, kids: true },
