@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Which lockers stay open? | FluidTA</title>
+<meta name="description" content="A hundred lockers and a hundred students, each flipping every k-th door. Run the hallway, see which doors end open, and find out why it is the perfect squares.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Which lockers stay open?</h1>
+  <p class="lede" style="margin-top:14px">A hallway has 100 shut lockers. Student 1 walks down and opens every one. Student 2 shuts every second locker. Student 3 flips every third: shut if open, open if shut. So it goes until student 100 flips only locker 100. Which lockers are open at the end?</p>
+
+  <h2>Run the hallway</h2>
+  <p>Guess first. Then send the students through, one at a time or all at once, and tap any locker to see who touched it.</p>
+  <figure class="fig" data-diagram="lockers"><figcaption>Blue lockers are open. Drag the slider to send students past one by one. Tap a locker to list its divisor pairs: each pair is two students who touch it.</figcaption></figure>
+
+  <h2>Why those ten</h2>
+  <p>Locker 12 is touched by students 1, 2, 3, 4, 6 and 12: exactly the numbers that divide 12. So the question is really about counting divisors. A locker touched an even number of times ends shut, and one touched an odd number of times ends open.</p>
+  <p>Divisors come in pairs. If <i>d</i> divides <i>n</i> then so does <i>n</i>/<i>d</i>: for 12 the pairs are 1×12, 2×6 and 3×4. Pairs make an even count, so most lockers end shut. The only way to get an odd count is for some divisor to be paired with itself, <i>d</i> × <i>d</i> = <i>n</i>. That happens exactly when <i>n</i> is a perfect square. Locker 36 has 1×36, 2×18, 3×12, 4×9 and then 6×6, alone.</p>
+  <p>So the open lockers are 1, 4, 9, 16, 25, 36, 49, 64, 81 and 100. A riddle about doors turns out to be a way of finding square numbers without multiplying anything.</p>
+
+  <p class="credit">A classroom classic of unknown origin. The hallway is computed exactly in your browser. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
