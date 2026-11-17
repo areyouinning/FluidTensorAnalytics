@@ -235,6 +235,18 @@
       for (var n = 1; n <= 10; n++) { var x = 14 + (n - 1) * 30; o += rect(x, 50, 24, 80, sq[n] ? B : L, 4) + text(x + 12, 152, n, 13, sq[n] ? B : S); }
       return o;
     },
+    bottles: function () { // a row of bottles, one of them red, over a line of binary
+      var o = '';
+      for (var n = 0; n < 8; n++) { var x = 36 + n * 33, c = n === 5 ? 'var(--red)' : S; o += rect(x, 70, 20, 56, c, 5, n === 5 ? 1 : .5) + rect(x + 6, 48, 8, 24, c, 2, n === 5 ? 1 : .5); }
+      o += text(160, 160, '0 1 0 1', 20, B);
+      return o;
+    },
+    campsite: function () { // a river with tents along it, and the 37% mark
+      var o = line('M10 120 C80 100 120 140 190 120 S270 100 310 120', B, 8, .6);
+      [40, 90, 150, 215, 270].forEach(function (x, i) { var y = 96 - (i % 2) * 6, c = i === 3 ? G : S; o += '<path d="M' + (x - 14) + ' ' + y + 'L' + x + ' ' + (y - 24) + 'L' + (x + 14) + ' ' + y + 'Z" fill="' + c + '"' + (i < 2 ? ' opacity=".5"' : '') + '/>'; });
+      o += line('M120 40V150', I, 2, .7) + text(120, 30, '37%', 16, I);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
