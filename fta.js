@@ -45,15 +45,20 @@
   }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   function entry() { return (window.FTA_CATALOG || []).find(function (e) { return e.href === path; }); }
+  /* an entry's shelf may be a string or a list, so a page can be cross-listed in several sections.
+     the first one is its home shelf: what the tab bar highlights and what "Next" walks through. */
+  function shelvesOf(e) { return e && e.shelf ? (Array.isArray(e.shelf) ? e.shelf : [e.shelf]) : []; }
+  function inShelf(e, name) { return shelvesOf(e).indexOf(name) >= 0; }
+  function primaryShelf(e) { return shelvesOf(e)[0] || ''; }
   function shelfOf() {
     var e = entry(), named = document.body.getAttribute('data-tab');
-    return named || (e && e.shelf) || (path === '/' ? 'home' : '');
+    return named || primaryShelf(e) || (path === '/' ? 'home' : '');
   }
 
   /* the slim bar for guests lives in a shadow root, so neither page's styles can touch the other */
   function guestBar() {
     var kids = me.getAttribute('data-guest') === 'kids', e = entry();
-    var tab = TABS.find(function (t) { return e && t.shelf === e.shelf; }) || TABS[0];
+    var tab = TABS.find(function (t) { return inShelf(e, t.shelf); }) || TABS[0];
     var host = document.createElement('div');
     host.id = 'fta-bar';
     var root = host.attachShadow({ mode: 'open' });
@@ -100,7 +105,7 @@
       var shelf = box.getAttribute('data-shelf'), topic = box.getAttribute('data-topic'), limit = +box.getAttribute('data-limit') || 999;
       var picks = (box.getAttribute('data-hrefs') || '').split(/\s+/).filter(Boolean);
       var list = picks.length ? picks.map(function (h) { return FTA_CATALOG.find(function (e) { return e.href === h; }); }).filter(Boolean)
-        : FTA_CATALOG.filter(function (e) { return (!shelf || e.shelf === shelf) && (!topic || e.topics.indexOf(topic) >= 0); });
+        : FTA_CATALOG.filter(function (e) { return (!shelf || inShelf(e, shelf)) && (!topic || e.topics.indexOf(topic) >= 0); });
       box.innerHTML = '<ul class="cards">' + list.slice(0, limit).map(card).join('') + '</ul>';
     });
   }
@@ -110,7 +115,7 @@
     if (!bar) return;
     var box = document.querySelector(bar.getAttribute('data-chips'));
     bar.innerHTML = '<a class="chip" href="#">All</a>' + Object.keys(FTA_TOPICS).filter(function (k) {
-      return FTA_CATALOG.some(function (e) { return e.shelf === 'explore' && e.topics.indexOf(k) >= 0; });
+      return FTA_CATALOG.some(function (e) { return inShelf(e, 'explore') && e.topics.indexOf(k) >= 0; });
     }).map(function (k) { return '<a class="chip" href="#' + k + '">' + esc(FTA_TOPICS[k]) + '</a>'; }).join('');
     function show() {
       var k = location.hash.slice(1);
@@ -126,7 +131,7 @@
   /* <a data-next></a> at the end of an article points to the next thing on its shelf */
   function next() {
     document.querySelectorAll('[data-next]').forEach(function (a) {
-      var e = entry(), mates = FTA_CATALOG.filter(function (x) { return e && x.shelf === e.shelf; });
+      var e = entry(), prim = primaryShelf(e), mates = prim ? FTA_CATALOG.filter(function (x) { return inShelf(x, prim); }) : [];
       var n = mates[(mates.indexOf(e) + 1) % mates.length];
       if (!n) { a.remove(); return; }
       a.className = 'next'; a.href = n.href;
