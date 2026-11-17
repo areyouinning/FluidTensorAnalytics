@@ -92,7 +92,7 @@
     while (top.lastChild) body.insertBefore(top.lastChild, body.firstChild);
     var foot = document.createElement('footer');
     foot.className = 'site';
-    foot.innerHTML = 'Made for fun in Westminster, Colorado. <a href="mailto:taylor@fluidtensoranalytics.com">Say hello</a>.';
+    foot.innerHTML = 'Made for fun in Westminster, Colorado. <a href="mailto:taylor@fluidtensoranalytics.com">Say hello</a> · <a href="/obovoid.html">Inspirations</a>.';
     body.appendChild(foot);
   }
 
