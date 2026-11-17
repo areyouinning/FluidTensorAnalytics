@@ -53,6 +53,8 @@ const GROUPS = [
     how: 'Showed that any rich enough system contains true statements it cannot prove. The Way of Incompleteness is eleven chapters of trying to make that feel as strange as it is.' },
   { name: 'Alan Turing', label: 'Turing', who: '1912–1954', hue: BLUE,
     how: 'Reduced “can this be computed?” to a tape and a rule, and found questions no machine can answer. The Way of Claude starts from his machine.' },
+  { name: 'Martin Gardner', label: 'Gardner', who: '1914–2010', hue: PURPLE,
+    how: 'For about twenty-five years from 1957, his Mathematical Games column in Scientific American made the puzzle the front door to real mathematics. It grew out of an article on hexaflexagons and went on to introduce Conway’s Game of Life to the world. When he stepped back, the column passed to Douglas Hofstadter, a few balloons over. Every riddle on this site is written in the tradition he started.' },
   { name: 'Claude Shannon', label: 'Shannon', who: '1916–2001', hue: GREEN,
     how: 'Measured surprise in bits. The prisoner who sends a message with one coin flip, and the editor split across two deliveries, are both his kind of problem.' },
   { name: 'Richard Feynman', label: 'Feynman', who: '1918–1988', hue: ORANGE,
