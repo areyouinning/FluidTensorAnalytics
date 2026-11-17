@@ -17,7 +17,6 @@ const STATES = [...Array(16).keys()].filter(safe);
 // the states one crossing away: alone, or with one thing from the farmer's own bank
 const reach = s => { const o = [[s ^ 1, -1]]; for (let i = 1; i < 4; i++) if (bit(s, i) === bit(s, 0)) o.push([s ^ 1 ^ (1 << i), i]); return o; };
 const EDGES = []; STATES.forEach(s => reach(s).forEach(([t]) => { if (t > s && safe(t)) EDGES.push([s, t]); }));
-const pop = s => bit(s, 0) + bit(s, 1) + bit(s, 2) + bit(s, 3);
 
 function solve() {   // breadth-first search from all-left to all-right; returns the list of states
   const prev = new Map([[0, null]]), q = [0];
@@ -30,23 +29,21 @@ function solve() {   // breadth-first search from all-left to all-right; returns
 }
 
 export default function (fig) {
-  const s = svg(fig, 380, 300, 'A river with a wolf, a goat and a cabbage on the left bank and a boat with the farmer, above a graph of the ten safe arrangements with your path traced through it.');
+  const s = svg(fig, 380, 296, 'A river with a wolf, a goat and a cabbage on the left bank and a boat with the farmer, above a graph of the ten safe arrangements with your path traced through it.');
   const g = el('g', {}, s);
   const box = controls(fig);
   const [crossR, statR] = readouts(fig, ['Crossings', 'Status']);
   let hist = [0], what = [], timer = 0;   // hist: states visited; what: description of each crossing
   const cur = () => hist[hist.length - 1];
 
-  // graph layout: columns by how many things are on the far bank
-  const pos = new Map(), cols = [[], [], [], [], []];
-  STATES.forEach(st => cols[pop(st)].push(st));
-  cols.forEach((c, k) => c.forEach((st, j) => pos.set(st, [38 + k * 76, 232 - (c.length - 1) * 17 + j * 34])));
-  const edgeD = (a, b) => {
-    const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b);
-    if (Math.abs(pop(a) - pop(b)) < 2) return `M${x1} ${y1}L${x2} ${y2}`;
-    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 + (y1 === y2 ? (a + b) % 2 ? -26 : 26 : 0);
-    return `M${x1} ${y1}Q${mx} ${my} ${x2} ${y2}`;
-  };
+  // graph layout: one column per crossing from the start (breadth-first depth), so the two shortest
+  // solutions show up as the two branches of one loop
+  const depth = new Map([[0, 0]]), cols = [];
+  for (let q = [0]; q.length;) { const s = q.shift(); for (const [t] of reach(s)) if (safe(t) && !depth.has(t)) { depth.set(t, depth.get(s) + 1); q.push(t); } }
+  STATES.forEach(st => (cols[depth.get(st)] = cols[depth.get(st)] || []).push(st));
+  const pos = new Map(), STEP = 47.4;
+  cols.forEach((c, k) => c.forEach((st, j) => pos.set(st, [24 + k * STEP, 224 - (c.length - 1) * 20 + j * 40])));
+  const edgeD = (a, b) => { const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b); return `M${x1} ${y1}L${x2} ${y2}`; };
 
   function glyph(parent, i, x, y) {   // x, y: centre of a 20 x 20 icon
     const f = HUE[i];
@@ -77,7 +74,8 @@ export default function (fig) {
       const c = el('g', a, g);
       el('rect', { x, y, width: 90, height: 36, rx: 9, fill: ate ? 'none' : tap ? `color-mix(in srgb, ${HUE[i]} 20%, var(--panel))` : PANEL, stroke: ate ? RED : tap ? HUE[i] : LINE, 'stroke-width': ate ? 2.5 : 1.5, 'stroke-dasharray': ate ? '4 3' : '' }, c);
       glyph(el('g', { opacity: ate ? .35 : 1 }, c), i, x + 20, y + 18);
-      label(c, x + 36, y + 23, ate ? NAMES[i] + ' (eaten)' : NAMES[i], { a: 'start', size: ate ? 10.5 : 13, w: 600, cls: ate ? 'soft' : '' });
+      label(c, x + 33, y + (ate ? 16 : 23), NAMES[i], { a: 'start', size: 12.5, w: 600, cls: ate ? 'soft' : '' });
+      if (ate) label(c, x + 33, y + 29, 'eaten', { a: 'start', size: 10.5, w: 700, fill: RED });
       if (tap) { const go = () => move(i); c.addEventListener('click', go); c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); }
     }
     // the boat, always on the farmer's bank
@@ -89,19 +87,20 @@ export default function (fig) {
     if (canMove) { boat.addEventListener('click', () => move(-1)); boat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); move(-1); } }); }
 
     // the state graph
-    label(g, 190, 172, 'All the safe arrangements, by what is on the far bank', { size: 11.5, w: 600 });
+    label(g, 190, 166, 'The ' + STATES.length + ' safe arrangements, by crossings from the start', { size: 11.5, w: 600 });
     EDGES.forEach(([a, b]) => el('path', { d: edgeD(a, b), fill: 'none', stroke: LINE, 'stroke-width': 1.8 }, g));
-    for (let k = 1; k < hist.length; k++) el('path', { d: edgeD(hist[k - 1], hist[k]), fill: 'none', stroke: INK, 'stroke-width': 3, 'stroke-linecap': 'round', opacity: .85 }, g);
+    for (let k = 1; k < hist.length; k++) if (safe(hist[k])) el('path', { d: edgeD(hist[k - 1], hist[k]), fill: 'none', stroke: INK, 'stroke-width': 3, 'stroke-linecap': 'round', opacity: .85 }, g);
     const seen = new Set(hist);
     STATES.forEach(n => {
       const [x, y] = pos.get(n), me = n === st && safe(st), goal = n === ALL;
-      el('rect', { x: x - 22, y: y - 10, width: 44, height: 20, rx: 10, fill: me ? BLUE : seen.has(n) ? `color-mix(in srgb, ${BLUE} 28%, var(--panel))` : PANEL, stroke: goal ? GREEN : me ? INK : seen.has(n) ? BLUE : SOFT, 'stroke-width': goal || me ? 2.5 : 1.5 }, g);
-      label(g, x, y + 4, [0, 1, 2, 3].filter(i => bit(n, i)).map(i => LET[i]).join('') || '–', { size: 11, w: 700, fill: me ? ONACC : INK });
+      el('rect', { x: x - 19, y: y - 10, width: 38, height: 20, rx: 10, fill: me ? BLUE : seen.has(n) ? `color-mix(in srgb, ${BLUE} 28%, var(--panel))` : PANEL, stroke: goal ? GREEN : me ? INK : seen.has(n) ? BLUE : SOFT, 'stroke-width': goal || me ? 2.5 : 1.5 }, g);
+      label(g, x, y + 4, [0, 1, 2, 3].filter(i => bit(n, i)).map(i => LET[i]).join('') || '–', { size: 10.5, w: 700, fill: me ? ONACC : INK });
     });
     const [sx, sy] = pos.get(0), [gx, gy] = pos.get(ALL);
-    label(g, sx, sy - 16, 'start', { size: 10, cls: 'soft' }); label(g, gx, gy - 16, 'goal', { size: 10, cls: 'soft' });
-    if (over) { const last = hist[hist.length - 2], [lx, ly] = pos.get(last); label(g, lx, ly + 24, '✕ unsafe next', { size: 10.5, w: 700, fill: RED }); }
-    label(g, 190, 292, 'F farmer · W wolf · G goat · C cabbage — letters on the far bank', { size: 10, cls: 'soft' });
+    label(g, sx, sy - 15, 'start', { size: 10, cls: 'soft' }); label(g, gx, gy - 15, 'goal', { size: 10, cls: 'soft' });
+    if (over) { const last = hist[hist.length - 2], [lx, ly] = pos.get(last); label(g, lx, ly - 15, '✕ unsafe next', { size: 10.5, w: 700, fill: RED }); }
+    cols.forEach((c, k) => label(g, 24 + k * STEP, 268, String(k), { size: 10, cls: 'soft' }));
+    label(g, 190, 286, 'Letters are what is on the far bank: F farmer, W wolf, G goat, C cabbage', { size: 10, cls: 'soft' });
 
     crossR.textContent = (hist.length - 1) + (won ? ' — all across' : '');
     statR.textContent = over ? (dead.length === 2 ? 'The wolf ate the goat and the goat ate the cabbage.' : dead[0] === 2 ? 'The wolf ate the goat.' : 'The goat ate the cabbage.') + ' Undo or start over.' : won ? 'Everyone is across, uneaten.' : what.length ? what[what.length - 1] : 'Everyone is on the start bank.';
