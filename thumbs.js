@@ -318,6 +318,32 @@
       o += '<path d="M240 108l8 17 19 2-14 13 4 19-17-10-17 10 4-19-14-13 19-2z" fill="var(--gold)" stroke="' + I + '" stroke-width="2" stroke-linejoin="round"/>';
       return o;
     },
+    torch: function () { // a bridge, a torch, four walkers
+      var o = rect(70, 104, 180, 10, S, 3) + rect(20, 112, 50, 50, G, 4, .3) + rect(250, 112, 50, 50, G, 4, .3);
+      [1, 2, 5, 10].forEach(function (n, i) { o += dot(30 + (i % 2) * 22, 70 + Math.floor(i / 2) * 22, 10, i < 2 ? B : O) + text(30 + (i % 2) * 22, 74 + Math.floor(i / 2) * 22, n, 10, W); });
+      o += line('M180 70v28', I, 4) + '<path d="M180 52c8 8 6 16 0 18c-6-2-8-10 0-18z" fill="var(--gold)"/>' + text(160, 40, '17', 20, I);
+      return o;
+    },
+    josephus: function () { // a ring of people, every second one faded, one left in green
+      var o = '';
+      for (var k = 0; k < 10; k++) { var a = -Math.PI / 2 + k * Math.PI / 5, x = 160 + Math.cos(a) * 62, y = 90 + Math.sin(a) * 62; o += dot(x, y, 11, k === 4 ? G : k % 2 ? S : B, k % 2 ? .35 : 1); }
+      return o + text(160, 96, '5', 22, G);
+    },
+    potato: function () { // a full grid of water, half of it gone
+      var o = '';
+      for (var r = 0; r < 6; r++) for (var c = 0; c < 10; c++) { var k = r * 10 + c; o += rect(60 + c * 20, 30 + r * 20, 17, 17, k === 0 ? O : B, 3, k < 30 ? 1 : .18); }
+      return o + text(160, 168, '100 kg → 50 kg', 16, S);
+    },
+    zeno: function () { // shrinking stages on a track
+      var o = line('M20 120H300', S, 3), x = 30, w = 160;
+      [B, O, G, P, B].forEach(function (c, i) { o += rect(x, 96 - i * 4, w, 12, c, 3, .85); x += w; w /= 2.6; });
+      return o + dot(30, 140, 8, I) + dot(286, 140, 6, G) + text(160, 52, '10 + 1 + 0.1 + …', 18, S);
+    },
+    life: function () { // a glider and a block on a grid
+      var o = '', on = { '6,2': 1, '7,3': 1, '5,4': 1, '6,4': 1, '7,4': 1, '11,5': 1, '12,5': 1, '11,6': 1, '12,6': 1 };
+      for (var r = 0; r < 9; r++) for (var c = 0; c < 16; c++) o += rect(16 + c * 18, 10 + r * 18, 16, 16, on[c + ',' + r] ? B : L, 2);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);

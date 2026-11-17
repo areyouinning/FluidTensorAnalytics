@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where should you stand in the circle? | FluidTA</title>
+<meta name="description" content="The Josephus problem: people in a circle, every second one steps out. Find the last one in, and see why the answer is a binary rotation.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Where should you stand in the circle?</h1>
+  <p class="lede" style="margin-top:14px"><i>n</i> people stand in a circle, numbered 1 to <i>n</i>. Starting with person 1, every second person steps out: 2, then 4, then 6, and on around the circle, skipping anyone already out, until one person is left. Where should you stand to be the last one in?</p>
+
+  <h2>Try it</h2>
+  <p>Press <b>Step</b> to send one person out, or <b>Play</b> to watch the whole game. Change the number of people and look at who is left.</p>
+  <figure class="fig" data-diagram="josephus"><figcaption>The orange ring marks who steps out next. When one person remains, the readout shows <i>n</i> and the survivor in binary.</figcaption></figure>
+
+  <h2>The survivors</h2>
+  <p>For <i>n</i> = 1 to 16 the last person in is 1, 1, 3, 1, 3, 5, 7, 1, 3, 5, 7, 9, 11, 13, 15, 1. The answer drops back to 1 at every power of two (1, 2, 4, 8, 16) and climbs by 2 until the next one.</p>
+
+  <h2>The rule</h2>
+  <p>Write <i>n</i> = 2<sup><i>m</i></sup> + <i>L</i>, with 0 ≤ <i>L</i> &lt; 2<sup><i>m</i></sup>. The survivor is 2<i>L</i> + 1. For <i>n</i> = 41: 41 = 32 + 9, so the survivor is 2·9 + 1 = 19.</p>
+
+  <h2>The binary trick</h2>
+  <p>Write <i>n</i> in binary and move the leading 1 to the end. 41 is 101001; moving the 1 gives 010011, which is 19.</p>
+  <p>Here is why. If <i>n</i> is a power of two, the first lap removes every second person and leaves exactly half the circle, with person 1 again first in line. So the survivor stays at 1. Otherwise, remove <i>L</i> people and the circle is down to a power of two, with the next person to step out at the start. That person was originally number 2<i>L</i> + 1. Chopping off the leading 1 leaves <i>L</i>; doubling it and adding 1 is the shift left that puts a 1 at the end.</p>
+
+  <p>I checked the formula against a direct simulation for every <i>n</i> from 1 to 1000, and the binary rotation against it for the same range. They agreed every time.</p>
+
+  <p>A process that looks as if it needs a full simulation has a one-line answer once you write the number in the right base.</p>
+
+  <p class="credit">Named after the historian Flavius Josephus, from a story in his account of the siege of Yodfat. The every-second-person version and its binary answer are standard results in recreational mathematics. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

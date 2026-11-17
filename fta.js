@@ -111,13 +111,15 @@
       box.innerHTML = '<ul class="cards">' + list.slice(0, limit).map(card).join('') + '</ul>';
     });
   }
-  /* explore.html's chips: a hash picks the topic, so a chip can be linked and Back works */
+  /* topic chips (explore.html, riddles.html): a hash picks the topic, so a chip can be linked and Back works.
+     data-chips names the shelf box; data-topics optionally limits which topics get a chip */
   function chips() {
     var bar = document.querySelector('[data-chips]');
     if (!bar) return;
     var box = document.querySelector(bar.getAttribute('data-chips'));
-    bar.innerHTML = '<a class="chip" href="#">All</a>' + Object.keys(FTA_TOPICS).filter(function (k) {
-      return FTA_CATALOG.some(function (e) { return inShelf(e, 'explore') && e.topics.indexOf(k) >= 0; });
+    var on = box.getAttribute('data-shelf') || 'explore', only = (bar.getAttribute('data-topics') || '').split(/\s+/).filter(Boolean);
+    bar.innerHTML = '<a class="chip" href="#">All</a>' + (only.length ? only : Object.keys(FTA_TOPICS)).filter(function (k) {
+      return FTA_CATALOG.some(function (e) { return inShelf(e, on) && e.topics.indexOf(k) >= 0; });
     }).map(function (k) { return '<a class="chip" href="#' + k + '">' + esc(FTA_TOPICS[k]) + '</a>'; }).join('');
     function show() {
       var k = location.hash.slice(1);

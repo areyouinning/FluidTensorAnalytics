@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How can drying potatoes halve their weight? | FluidTA</title>
+<meta name="description" content="Potatoes that are 99% water dry out to 98% water and lose half their weight. Drag the water share and watch the total shrink to scale.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>How can drying potatoes halve their weight?</h1>
+  <p class="lede" style="margin-top:14px">You have 100 kg of potatoes that are 99% water. You leave them out until they are 98% water. How much do they weigh now?</p>
+
+  <h2>The answer is 50 kg</h2>
+  <p>The dry matter is 1 kg, and drying does not change it. At 98% water, that 1 kg is the remaining 2%, so the total is 1 / 0.02 = 50 kg. Drag the slider from 99% to 98% and watch half the grid empty.</p>
+  <figure class="fig" data-diagram="potato"><figcaption>One square is 1 kg of the original 100 kg, drawn to scale. Blue is water, orange is dry matter. Drag the slider to dry the potatoes, or change the starting water share.</figcaption></figure>
+
+  <h2>Why it feels wrong</h2>
+  <p>A drop of one point in water sounds tiny. But look at what doubled: the dry share went from 1% to 2%. The dry matter did not change, so the whole pile has to halve for it to be twice as large a share. Near 100%, a small change in the water is a large change in what is left over.</p>
+
+  <h2>One rule covers it</h2>
+  <p>total = dry mass / (1 − water fraction). Check it with the picker: start at 99.9% and move the slider to 99.8%. The dry mass is 0.1 kg and the total falls from 100 kg to 0.1 / 0.002 = 50 kg. Same halving, from a different one-point-looking step. Starting at 90% water, it takes a drop all the way to 80% for the same halving: 10 / 0.2 = 50 kg.</p>
+  <p>This bites in real life wherever a figure sits near 100% or near zero: purity, survival rates, error rates. There, "one point" can mean a factor of two.</p>
+
+  <p class="credit">A puzzle of uncertain origin, often called the potato paradox. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

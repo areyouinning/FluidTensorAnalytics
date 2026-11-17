@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How much can three rules make? | FluidTA</title>
+<meta name="description" content="Conway's Game of Life, as Martin Gardner introduced it in 1970: three rules on a grid, and gliders, guns and patterns that run for a thousand generations. Paint cells and press play.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>canvas.life{display:block;width:100%;border-radius:var(--radius-sm);touch-action:none;cursor:crosshair}</style>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>How much can three rules make?</h1>
+  <p class="lede" style="margin-top:14px">A grid of cells, each alive or dead. Every tick, all of them update at once by three rules. A live cell with two or three live neighbours survives. A dead cell with exactly three live neighbours comes alive. Every other cell dies or stays dead. That is the whole game, and it never stops surprising people.</p>
+
+  <h2>Play with it</h2>
+  <p>Tap or drag on the grid to bring cells to life, then press <b>Play</b>. Or start from one of the patterns.</p>
+  <figure class="fig" data-diagram="life"><figcaption>The board starts with a glider gun. The grid is finite, so anything that reaches the outer edge falls off the world.</figcaption></figure>
+
+  <h2>Things that move, and things that never stop</h2>
+  <p>A <b>glider</b> is five cells that rebuild themselves one square over every four ticks, so it walks diagonally forever. A <b>pulsar</b> flickers through the same three shapes for ever. Neither is programmed in; they fall out of the three rules.</p>
+  <p>The <b>R-pentomino</b> is only five cells, but it churns for 1,103 generations before it settles, throwing off six gliders on the way and ending with 116 live cells. Nothing about its starting shape warns you.</p>
+  <p>When the game was new, Conway guessed that no pattern could grow forever, and offered $50 to anyone who could settle the question by the end of 1970. A group at MIT led by Bill Gosper won it with the <b>glider gun</b> you see at the start: a machine that fires a new glider every 30 generations, so its population grows without limit. Much later the game was shown to be able to compute anything a computer can, given a big enough board.</p>
+
+  <h2>Where it came from</h2>
+  <p>John Conway spent months tuning the rules by hand, looking for ones that were neither too dull nor too explosive. Martin Gardner published them in his <i>Scientific American</i> column in October 1970, and readers everywhere started running the game on graph paper and early computers. A few lines of rules, handed to a lot of curious people: that is the spirit of this whole site.</p>
+
+  <p class="credit">The Game of Life is John Conway’s; this page honours its introduction in Martin Gardner’s “Mathematical Games” column, October 1970. The R-pentomino’s 1,103 generations and 116 cells were checked here on an unbounded plane. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

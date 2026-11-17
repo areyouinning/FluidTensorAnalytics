@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can four people cross in 17 minutes? | FluidTA</title>
+<meta name="description" content="The bridge-and-torch riddle: four people, one torch, a bridge for two. Walk them across yourself, then see why the obvious plan takes 19 minutes and the best takes 17.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can four people cross in 17 minutes?</h1>
+  <p class="lede" style="margin-top:14px">Four people reach a narrow bridge at night. It holds two at a time, and they have one torch, which must go with anyone crossing. They walk at different speeds: 1, 2, 5 and 10 minutes to cross. A pair walks at the slower one’s pace. Can they all get over in 17 minutes?</p>
+
+  <h2>Try it</h2>
+  <p>Tap one or two walkers on the torch’s bank, then press <b>Cross</b>. Someone has to bring the torch back each time. When you are stuck, press <b>Show the best plan</b>.</p>
+  <figure class="fig" data-diagram="torch"><figcaption>Each walker is labelled with minutes to cross. The torch moves with every crossing, so after the first trip someone must walk it back.</figcaption></figure>
+
+  <h2>The obvious plan</h2>
+  <p>Let the fastest walker escort everyone. The 1 and the 2 go over (2 minutes), the 1 comes back (1), the 1 and the 5 go (5), the 1 comes back (1), the 1 and the 10 go (10). That is 2 + 1 + 5 + 1 + 10 = 19 minutes. Press <b>Greedy plan</b> to watch it.</p>
+
+  <h2>The trick</h2>
+  <p>Send the two slowest across together, so the 10-minute walk also covers the 5. The 1 and 2 cross (2), the 1 returns (1), the 5 and 10 cross (10), the 2 returns (2), and the 1 and 2 cross again (2). The total is 2 + 1 + 10 + 2 + 2 = 17. Sending the 2 back costs more than sending the 1 back, yet the plan wins.</p>
+
+  <h2>Why 17 is the best</h2>
+  <p>I checked every possible schedule with a shortest-path search over the states (who is on which bank, and where the torch is). For 1, 2, 5 and 10 the minimum is 17, so no plan beats it.</p>
+  <p>For four people there is a simple rule. Call the two fastest <i>x</i> ≤ <i>y</i> and the second slowest <i>s</i>. The pairing plan beats the greedy one exactly when 2<i>y</i> &lt; <i>x</i> + <i>s</i>; here 2·2 = 4 is less than 1 + 5 = 6. I tested this against the search on all 1,365 four-person sets with times up to 12. In every one, the best answer was the better of those two plans. With 1, 2, 3, 4 the two tie at 11.</p>
+  <p>The lesson: the greedy choice is locally sensible and globally worse. Good plans sometimes spend time to save more.</p>
+
+  <p class="credit">A puzzle in print since at least the 1980s, popular in job interviews. The fastest time is confirmed by searching every possible schedule. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
