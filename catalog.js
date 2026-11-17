@@ -15,11 +15,12 @@ window.FTA_CATALOG = [
   { href: '/lockers.html', shelf: 'riddles', topics: ['math'], thumb: 'lockers', title: 'Which lockers stay open?', blurb: 'A hundred lockers, a hundred students flipping doors. Run the hallway and find out why only the square numbers stay open.', fresh: true },
   { href: '/poisoned-bottles.html', shelf: 'riddles', topics: ['math'], thumb: 'bottles', title: 'Can ten tasters find one poisoned bottle?', blurb: 'A thousand bottles, one night, ten tasters. Number the bottles in binary and the sick tasters spell the answer.', fresh: true },
   { href: '/campsite.html', shelf: ['riddles', 'paradox'], topics: ['chance', 'math', 'water'], thumb: 'campsite', title: 'When should you stop looking?', blurb: 'Campsites drift by on a one-way river. Look at the first 37%, then take the next one that beats them all.', fresh: true },
+  { href: '/zebra.html', shelf: 'riddles', topics: ['math'], thumb: 'zebra', title: 'Who keeps the zebra?', blurb: 'Four people, homes, pets and colours, and eight clues. Solve the grid, then see why it is three matrices and a tiny ontology.', fresh: true },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
   { href: '/sound-it-out.html', shelf: 'play', topics: ['kids'], thumb: 'phonics', title: 'Sound It Out', blurb: 'Tap letters to build real words and hear a real voice sound them out and blend them.', fresh: true, kids: true },
   { href: '/kiddos-cloud.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Kiddo's Cloud", blurb: 'Be a rain cloud over Clear Creek. Fly to real places, play, and rain.', kids: true },
-  { href: '/truck-lab.html', shelf: 'play', topics: ['kids'], thumb: 'truck', title: "Paul's Truck Lab", blurb: 'Diggers, dumpers and a crane, with the levers that really move them.', fresh: true, kids: true },
+  { href: '/truck-lab.html', shelf: 'play', topics: ['kids'], thumb: 'truck', title: "Kiddo's Truck Lab", blurb: 'Diggers, dumpers and a crane, with the levers that really move them.', fresh: true, kids: true },
 
   { href: '/tensor-analysis.html', shelf: 'explore', topics: ['tensors'], thumb: 'tensor', title: 'What is a tensor, really?', blurb: 'Build one from three lists, then squeeze 960 numbers into 90.' },
   { href: '/climate-tensor-ops.html', shelf: 'explore', topics: ['tensors', 'water'], thumb: 'cube', title: 'Why is climate data a cube?', blurb: 'Real March 1987 weather, and the shape rules that make the sums easy.' },

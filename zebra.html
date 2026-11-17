@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who keeps the zebra? | FluidTA</title>
+<meta name="description" content="A small zebra puzzle: four people, four homes, four pets, four colours and eight clues. Solve it, and see why the grid is a set of matrices and the clues are a tiny ontology.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+.zb-clues{margin:12px 0 0;padding-left:26px;font-size:16px;line-height:1.5}
+.zb-clues li{padding:1px 0;color:var(--ink-soft)}
+.zb-clues li.ok{color:var(--green)}
+.zb-clues li.ok::after{content:" ✓"}
+.zb-clues li.bad{color:var(--red);font-weight:600}
+.zb-clues li.bad::after{content:" ✗"}
+</style>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Who keeps the zebra?</h1>
+  <p class="lede" style="margin-top:14px">Ada, Bo, Cy and Dee each live in a different home, keep a different pet and have a different favourite colour. Nobody tells you who keeps the zebra. You get eight clues, such as “the camel lives in the shack”, and the rest is deduction.</p>
+
+  <h2>Solve it</h2>
+  <p>Tap a cell to cycle through its choices. Clues turn green when they hold and red when you have broken one.</p>
+  <figure class="fig" data-diagram="zebra"><figcaption>Four people, three questions each. The small grids underneath show the same answers as matrices.</figcaption></figure>
+
+  <h2>The grid is three matrices</h2>
+  <p>Look at the small “who × home” grid once a column is filled in properly. It has exactly one dot in each row and one in each column: every person has one home, and every home has one person. A grid like that is a <b>permutation matrix</b>, and the whole puzzle is the hunt for three of them.</p>
+  <p>Now look at clue 1. “The camel lives in the shack” does not name a person at all. It links a pet to a home <em>through</em> whoever has both. That is what the fourth grid shows: line up “who × home” with “who × pet”, match them on the person, and you get “home × pet”. Matching two tables on a shared column is exactly what multiplying two matrices does. Clue 1 says one particular cell of that product holds a dot.</p>
+
+  <h2>The clues are a tiny ontology</h2>
+  <p>Before you can even read the clues you need to know what kinds of things exist and how they may relate. There are four <em>kinds</em>: people, homes, pets, colours. There are <em>relations</em> between them: lives-in, keeps, likes. And there are <em>rules</em> about the relations: each person lives in exactly one home, and no home is shared. Write those down and you have an <b>ontology</b>, which is the name for that list of kinds, relations and rules.</p>
+  <p>The ontology is what makes eight short sentences enough. Without “no home is shared”, clue 4 would tell you almost nothing. With it, ruling Dee out of the shack pushes someone else in. Databases and knowledge graphs work the same way: the facts are few, and the rules about what a fact can be do most of the deducing.</p>
+
+  <p class="credit">The zebra puzzle first appeared in <i>Life International</i> in 1962; it is often credited to Einstein, without evidence. This smaller one is mine, and a brute-force search over all 13,824 assignments confirms it has exactly one answer.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

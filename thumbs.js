@@ -247,6 +247,12 @@
       o += line('M120 40V150', I, 2, .7) + text(120, 30, '37%', 16, I);
       return o;
     },
+    zebra: function () { // a logic grid with one dot per row and column, and zebra stripes beside it
+      var o = '', at = [1, 0, 3, 2];
+      for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) o += rect(60 + c * 30, 34 + r * 30, 27, 27, L, 4) + (at[r] === c ? dot(73.5 + c * 30, 47.5 + r * 30, 8, B) : '');
+      for (var k = 0; k < 5; k++) o += line('M' + (206 + k * 14) + ' 40 l10 100', I, 6, k % 2 ? .25 : .9);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);
