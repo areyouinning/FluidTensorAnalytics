@@ -81,7 +81,9 @@ export const KEY = C(
                     'Dragonflies sneaking up on their prey.', '/remix-camouflage.html'),
                   'A ringing metal plate and dancing sand.', '/chladni.html'))),
             'Inside mathematics.',
-            C('A number trick or riddle with a lesson hiding inside.', '/missing-dollar.html',
+            C('A number trick or riddle with a lesson hiding inside.',
+              C('A dollar that vanishes from a hotel bill.', '/missing-dollar.html',
+                'Two jugs and an exact measure of water.', '/water-jugs.html'),
               'A serious idea to build up.',
               C('What a tensor really is.', '/tensor-analysis.html',
                 'The logarithm of a picture.', '/image-log.html'))))))));
