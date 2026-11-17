@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can ten tasters find one poisoned bottle? | FluidTA</title>
+<meta name="description" content="A thousand bottles, one poisoned, ten tasters and a single night. Number the bottles in binary and the sick tasters spell out the answer.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can ten tasters find one poisoned bottle?</h1>
+  <p class="lede" style="margin-top:14px">A cellar holds 1000 bottles of wine, and exactly one is poisoned. The poison is slow: anyone who tastes it falls sick by morning, however small the sip. You have ten tasters and one night. Find the bottle.</p>
+
+  <h2>Give every bottle a number the tasters can spell</h2>
+  <p>Testing bottles one at a time would take a thousand nights. The trick is to let each taster sip from many bottles at once, in a pattern. Write each bottle’s number in binary. Taster “1” sips every bottle whose last binary digit is 1, taster “2” every bottle whose next digit is 1, and so on up to taster “512”.</p>
+  <figure class="fig" data-diagram="bottles"><figcaption>Slide through the bottles to see who sips each one. Then poison one at random and read the answer off the sick tasters.</figcaption></figure>
+
+  <h2>Why it works</h2>
+  <p>Each bottle is sipped by a different set of tasters, because each number has a different binary spelling. In the morning the set of sick tasters is the spelling of the poisoned bottle: add up the numbers on their shirts. Nobody sick means bottle 0.</p>
+  <p>Each taster can end the night in two states, sick or well, so ten tasters can show 2 × 2 × … × 2 = 1024 different patterns. That is enough for 1000 bottles with 24 to spare, and nine tasters, with 512 patterns, would not be. A taster is one <b>bit</b>, and the riddle is a way of counting how many bits an answer needs.</p>
+
+  <p class="credit">A well-travelled puzzle, often told with a king and his prisoners. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

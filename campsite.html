@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When should you stop looking? | FluidTA</title>
+<meta name="description" content="Campsites drift past on a one-way river and you cannot paddle back. Look at the first 37 percent, then take the next one that beats them all.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>When should you stop looking?</h1>
+  <p class="lede" style="margin-top:14px">You are floating a river with twenty campsites along it, in no particular order of quality. You can pull over at any one, but you cannot paddle back upstream to a site you passed. Stop too early and you take a mediocre spot without knowing better. Wait too long and the best one is behind you. When do you stop?</p>
+
+  <h2>Look first, then leap</h2>
+  <p>The best rule has two parts. Drift past the first few sites <em>only looking</em>, to learn what good means on this river. After that, take the first site that beats everything you have seen. The only choice is how long to look.</p>
+  <figure class="fig" data-diagram="campsite"><figcaption>Top: one trip. Grey sites were only looked at; the coloured one is where you camped. Bottom: your chance of getting the very best site, for every length of looking.</figcaption></figure>
+
+  <h2>Thirty-seven percent, twice</h2>
+  <p>Slide the cutoff and watch the curve. Look at nothing and you take the first site: a 1-in-20 shot. Look at almost everything and the best has usually gone by. The peak is at about 37% of the sites, and the chance of success there is also about 37%.</p>
+  <p>Both numbers are 1/<i>e</i>, where <i>e</i> ≈ 2.718. For a long river, looking at a fraction <i>x</i> of the sites wins with probability −<i>x</i> ln <i>x</i>, and that is largest at <i>x</i> = 1/<i>e</i>, where it equals 1/<i>e</i>. The surprise is that the odds do not shrink as the river gets longer: with a million campsites the same rule still finds the single best one more than a third of the time.</p>
+  <p>Mathematicians call this <b>optimal stopping</b>. It was first posed in the 1950s as a problem about hiring, and the same sum applies to apartments, parking spots and anything else you must accept or pass on the spot.</p>
+
+  <p class="credit">The 1/<i>e</i> rule is classical; Lindley published a solution in 1961. The curve is the exact formula and the trips are simulated in your browser. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
