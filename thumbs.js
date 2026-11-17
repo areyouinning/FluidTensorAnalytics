@@ -277,6 +277,41 @@
       o += dot(40, 56, 11, P) + dot(40, 92, 11, O) + dot(40, 128, 11, G);
       return o;
     },
+    nim: function () { // three piles of stones
+      var o = '', piles = [3, 4, 5], col = [B, O, G];
+      piles.forEach(function (n, i) { for (var k = 0; k < n; k++) o += rect(60 + i * 76, 130 - k * 20, 52, 15, col[i], 7); });
+      o += rect(50, 150, 224, 4, L, 2);
+      return o;
+    },
+    coins12: function () { // a tilted balance with coins on each pan
+      var o = line('M160 44V140M120 144H200', S, 5) + line('M70 60L250 84', I, 5);
+      o += line('M40 118H100', B, 6) + line('M220 142H280', O, 6) + line('M70 60L40 118M70 60L100 118M250 84L220 142M250 84L280 142', S, 1.5);
+      o += dot(56, 108, 9, 'var(--gold)') + dot(84, 108, 9, 'var(--gold)') + dot(236, 132, 9, 'var(--gold)') + dot(264, 132, 9, 'var(--gold)');
+      return o;
+    },
+    guards: function () { // two doors, a yes and a no
+      var o = rect(70, 40, 60, 104, W, 6) + rect(190, 40, 60, 104, W, 6);
+      o += '<rect x="70" y="40" width="60" height="104" rx="6" fill="none" stroke="' + I + '" stroke-width="2.5"/><rect x="190" y="40" width="60" height="104" rx="6" fill="none" stroke="' + I + '" stroke-width="2.5"/>';
+      o += text(100, 100, 'yes', 20, G) + text(220, 100, 'no', 20, O) + text(160, 30, '?', 24, S);
+      return o;
+    },
+    prisoners: function () { // boxes in a loop, arrows from one to the next
+      var o = '', pts = [[90, 50], [160, 34], [230, 50], [250, 110], [160, 140], [70, 110]];
+      pts.forEach(function (p, i) { var q = pts[(i + 1) % pts.length]; o += line('M' + p[0] + ' ' + p[1] + 'L' + q[0] + ' ' + q[1], S, 2, .7); });
+      pts.forEach(function (p, i) { o += rect(p[0] - 16, p[1] - 14, 32, 28, i === 0 ? O : B, 5); });
+      return o;
+    },
+    simpson: function () { // two rising lines, the lower one's dot sitting higher
+      var o = line('M40 120L280 50', B, 4) + line('M40 140L280 76', O, 4);
+      o += dot(100, 102.5, 10, B) + dot(230, 89.3, 10, O);
+      return o;
+    },
+    buffon: function () { // needles on a lined floor
+      var o = '', R = rng(4);
+      for (var y = 30; y <= 150; y += 40) o += line('M20 ' + y + 'H300', L, 2);
+      for (var k = 0; k < 16; k++) { var x = 40 + R() * 240, yy = 30 + R() * 120, a = R() * Math.PI, dx = Math.cos(a) * 20, dy = Math.sin(a) * 20, cross = Math.floor((yy - dy - 30) / 40) !== Math.floor((yy + dy - 30) / 40); o += line('M' + (x - dx).toFixed(0) + ' ' + (yy - dy).toFixed(0) + 'L' + (x + dx).toFixed(0) + ' ' + (yy + dy).toFixed(0), cross ? O : S, 3); }
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);

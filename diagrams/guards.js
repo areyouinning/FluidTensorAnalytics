@@ -55,7 +55,7 @@ export function judge(a) {
 const WHY = [
   'A truth-teller says yes when the door is out and a liar says yes when it is not, so one answer can mean either.',
   'Both guards say no: the liar lies about being the liar. The answer reveals neither who lies nor which door.',
-  'The other guard’s answer is always wrong about your door, and your guard reports it truthfully or flips it back. Either way the answer is the opposite of the fact.',
+  'Either the liar’s false answer is passed on faithfully, or the truth-teller’s true answer is flipped. Either way the answer is the opposite of the fact.',
   'A liar lies about the lie they would tell, so two flips cancel. A truth-teller just repeats the truth. Both give the fact.'
 ];
 
