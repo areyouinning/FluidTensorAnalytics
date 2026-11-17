@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you find π by dropping needles? | FluidTA</title>
+<meta name="description" content="Drop a needle on a floor ruled with parallel lines. The chance that it lands across a line is 2L/(πd), so enough needles measure π.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>Can you find π by dropping needles?</h1>
+  <p class="lede" style="margin-top:14px">Rule a floor with parallel lines, all the same distance apart. Drop a needle no longer than that distance, at random. How often does it land across a line? The answer has π in it, so dropping enough needles measures π.</p>
+
+  <h2>The result</h2>
+  <p>For a needle of length <i>L</i> on lines <i>d</i> apart, with <i>L</i> no longer than <i>d</i>, the chance of crossing a line is 2<i>L</i> / (π<i>d</i>). With <i>L</i> = <i>d</i> that is 2/π, about 63.7%.</p>
+  <p>Turn it round and you have a way to measure π: π ≈ 2<i>L</i> × drops / (<i>d</i> × crossings).</p>
+  <figure class="fig" data-diagram="buffon"><figcaption>Orange needles cross a line; grey ones do not. Only the latest 400 are drawn, but every drop is counted.</figcaption></figure>
+
+  <h2>Where π comes from</h2>
+  <p>There is no circle in the picture, only straight lines. But a needle at angle θ to the lines reaches <i>L</i> sin θ across the gap, so it crosses with chance <i>L</i> sin θ / <i>d</i>.</p>
+  <p>Every angle is equally likely, and the average of sin θ over half a turn is 2/π. That is where π comes in: the circle is hiding in the spinning of the needle.</p>
+
+  <h2>How slowly it converges</h2>
+  <p>The error shrinks like one over the square root of the number of drops. Each extra decimal place of π therefore costs about a hundred times more needles.</p>
+  <p>In 200 runs of 10,000 drops with <i>L</i> = <i>d</i>, the estimate was typically off by about 0.015, and now and then by several times that. So 10,000 needles usually give π to one decimal place and often, but not reliably, to two. Press the 10,000 button a few times and watch how much the estimate moves.</p>
+
+  <h2>A suspiciously good result</h2>
+  <p>In 1901 Mario Lazzarini reported 3.1415929 from 3,408 drops. That is far closer than chance allows, and it is generally thought to have been arranged by choosing when to stop.</p>
+
+  <p class="credit">Posed by Georges-Louis Leclerc, Comte de Buffon, in 1733 and published in 1777. The needles are dropped by your browser and the crossing is worked out from each needle's position. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

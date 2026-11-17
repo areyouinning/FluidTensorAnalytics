@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can 100 prisoners all find their numbers? | FluidTA</title>
+<meta name="description" content="A hundred prisoners, a hundred boxes, fifty tries each, and all must succeed. Guessing gives odds below one in a nonillion. Following the slips gives 31 percent.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>Can 100 prisoners all find their numbers?</h1>
+  <p class="lede" style="margin-top:14px">A room holds 100 boxes, numbered 1 to 100. Inside each is a slip with a prisoner’s number, shuffled at random. The prisoners enter one at a time. Each may open 50 boxes, then must leave everything as it was and cannot speak to the others. If <em>every</em> prisoner finds their own number, all go free. If even one fails, none do. They may agree a plan beforehand.</p>
+
+  <h2>It looks hopeless</h2>
+  <p>Each prisoner opening 50 boxes at random succeeds half the time. All 100 succeeding is like 100 coin flips all landing heads: about one chance in a million million million million million. Yet there is a plan that frees them almost a third of the time.</p>
+
+  <h2>Follow the slips</h2>
+  <p>Start with the box that has your own number on the outside. Read the slip inside, and go to the box with that number. Keep going until you find your own number.</p>
+  <figure class="fig" data-diagram="prisoners"><figcaption>Boxes with the same colour form one loop. Tap a box to follow that prisoner’s walk: the small numbers show the order they open boxes in.</figcaption></figure>
+
+  <h2>Why it works</h2>
+  <p>Following slips from box to box always brings you back to where you began, so a shuffle breaks up into closed <b>loops</b>. Your own number is on the slip that points back at your starting box, which is the last one on your loop. So you find it in time exactly when your loop has 50 boxes or fewer.</p>
+  <p>That changes what the prisoners are betting on. Their fates are no longer 100 separate coin flips. They all win together or lose together, and they win whenever the shuffle has no loop longer than 50. A loop that long is fairly common but not usual: the chance of one of length <i>k</i> is exactly 1/<i>k</i> for any <i>k</i> over 50, so the chance of failure is 1/51 + 1/52 + … + 1/100 ≈ 68.8%, and the chance of freedom is about 31.2%.</p>
+  <p>The plan does not make any single prisoner luckier; each still succeeds half the time. It makes their luck line up.</p>
+
+  <p class="credit">Posed by Anna Gál and Peter Bro Miltersen in 2003; the loop-following strategy is credited to Sven Skyum. The shuffles are made in your browser and the loops are found exactly. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
