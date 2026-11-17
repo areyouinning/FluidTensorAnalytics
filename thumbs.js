@@ -253,6 +253,30 @@
       for (var k = 0; k < 5; k++) o += line('M' + (206 + k * 14) + ' 40 l10 100', I, 6, k % 2 ? .25 : .9);
       return o;
     },
+    monty: function () { // three doors, the middle one open on a goat-less mystery
+      var o = '';
+      [60, 130, 200].forEach(function (x, i) { o += rect(x, 40, 56, 100, i === 1 ? L : W, 6) + '<rect x="' + x + '" y="40" width="56" height="100" rx="6" fill="none" stroke="' + (i === 0 ? O : I) + '" stroke-width="' + (i === 0 ? 5 : 2.5) + '"/>' + (i === 1 ? '' : text(x + 28, 100, i + 1, 26, I) + dot(x + 46, 94, 3, I)); });
+      o += text(158, 104, '?', 34, S);
+      return o;
+    },
+    winewater: function () { // two glasses, each with a thin band of the other
+      var o = rect(74, 62, 62, 14, B, 0, .7) + rect(74, 76, 62, 74, P, 0, .7) + line('M74 40V150H136V40', I, 4);
+      o += rect(184, 62, 62, 14, P, 0, .7) + rect(184, 76, 62, 74, B, 0, .7) + line('M184 40V150H246V40', I, 4);
+      o += text(160, 100, '=', 30, G);
+      return o;
+    },
+    hanoi: function () { // three pegs, a stack mid-move
+      var o = rect(30, 146, 260, 6, L, 3);
+      [80, 160, 240].forEach(function (x) { o += rect(x - 3, 50, 6, 96, S, 3); });
+      o += rect(40, 128, 80, 16, P, 8) + rect(50, 110, 60, 16, G, 8) + rect(215, 128, 50, 16, O, 8) + rect(140, 128, 40, 16, B, 8);
+      return o;
+    },
+    rivercross: function () { // two banks, a boat mid-river, three passengers waiting
+      var o = rect(0, 0, 80, 180, G, 0, .25) + rect(240, 0, 80, 180, G, 0, .25) + rect(80, 0, 160, 180, B, 0, .2);
+      o += '<path d="M130 100h60l-10 18h-40z" fill="' + O + '"/>' + dot(160, 88, 8, I);
+      o += dot(40, 56, 11, P) + dot(40, 92, 11, O) + dot(40, 128, 11, G);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);

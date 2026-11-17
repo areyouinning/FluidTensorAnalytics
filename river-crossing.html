@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you get all three across? | FluidTA</title>
+<meta name="description" content="The wolf, the goat and the cabbage: ferry all three across a river without anything being eaten, then see the puzzle as a walk on a graph of ten safe states.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Can you get all three across?</h1>
+  <p class="lede" style="margin-top:14px">A farmer must ferry a wolf, a goat and a cabbage across a river. The boat holds the farmer and one of them. Left alone together, the wolf eats the goat, and the goat eats the cabbage. Get everything across uneaten.</p>
+
+  <h2>Try it</h2>
+  <p>Tap the wolf, the goat or the cabbage to take it across, or tap the boat to cross alone. If you leave something to be eaten, the moves stop until you undo.</p>
+  <figure class="fig" data-diagram="river"><figcaption>Top: the river. Bottom: every safe arrangement of the four, with the farmer’s crossings drawn as lines between them. Your path is the thick line.</figcaption></figure>
+
+  <h2>The goat is the troublemaker</h2>
+  <p>The goat cannot be left with either of the others, so it goes first. The wolf and the cabbage are no danger to each other, so they can wait on the same bank.</p>
+  <p>The move people miss is bringing the goat back. Once the goat and then the wolf are across, the two cannot be left together. So the farmer carries the goat back, swaps it for the cabbage, and returns for the goat.</p>
+
+  <h2>The puzzle is a small graph</h2>
+  <p>Each of the four sits on one of two banks, so there are only 16 arrangements. Six of them are unsafe, which leaves 10 safe ones. Each crossing moves the puzzle from one safe arrangement to another, so the whole riddle is a walk on that small graph, from the corner where everything is on the start bank to the corner where everything is across.</p>
+  <p>The shortest walk takes 7 crossings. There are exactly two shortest solutions, and they differ in whether the wolf or the cabbage is taken second. In the picture they are the two sides of one loop.</p>
+
+  <h2>What to take from it</h2>
+  <p>Draw every state as a dot and a riddle becomes a search for a path. A breadth-first search tries every one-crossing move, then every two-crossing move, and so on, so the first time it reaches the goal it has found a shortest route. <a href="/water-jugs.html">The water-jugs riddle</a> on this site works the same way.</p>
+
+  <p class="credit">The puzzle is at least twelve centuries old; it appears in a collection attributed to Alcuin of York. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

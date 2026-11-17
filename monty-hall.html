@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Should you switch doors? | FluidTA</title>
+<meta name="description" content="Three doors, one car, and a host who always opens a goat. Play the game, then play it a thousand times each way, and see why switching wins two times in three.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>Should you switch doors?</h1>
+  <p class="lede" style="margin-top:14px">There are three doors. Behind one is a car, and behind the other two are goats. You pick a door. The host, who knows where the car is, opens one of the other two doors and always shows a goat. Then he offers you the chance to switch to the remaining door. Should you?</p>
+
+  <h2>Play it</h2>
+  <p>Play a few rounds by hand, staying some times and switching others. Then let the computer play a thousand each way.</p>
+  <figure class="fig" data-diagram="monty"><figcaption>Tap a door to pick it, then choose Stay or Switch. The tallies keep stay rounds and switch rounds apart. Each round puts the car behind a random door.</figcaption></figure>
+
+  <h2>The answer</h2>
+  <p>Your first pick is right 1 time in 3, and nothing the host does changes that. If you stay, you win 1 time in 3.</p>
+  <p>Now look at switching. If your first pick was the car, switching loses. If your first pick was a goat, the host has to open the other goat, so the remaining door holds the car and switching wins. Switching wins exactly when your first pick was wrong, and that is 2 times in 3.</p>
+
+  <h2>Why it feels like 50/50</h2>
+  <p>Two doors are left, so it seems each should be a coin flip. But the host's choice is not random. He must avoid the car, so the door he opens tells you something about the other closed door and nothing about yours.</p>
+  <p>Try a hundred doors. You pick one. The host opens 98 of the others, all goats. Would you switch? Your door still has its original 1 in 100 chance, so the one door he left shut carries the other 99.</p>
+  <p>The 2 in 3 depends on the host knowing where the car is and always showing a goat. If he opened a door at random and merely happened to show a goat, the odds would be 50/50.</p>
+
+  <p class="credit">The problem is named for Monty Hall, host of Let's Make a Deal. Steve Selvin posed it in 1975, and Marilyn vos Savant's 1990 column made it famous. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>

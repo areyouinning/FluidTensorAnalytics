@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How many moves to move the tower? | FluidTA</title>
+<meta name="description" content="The Tower of Hanoi: move a stack of disks between three pegs, one at a time, never a larger disk on a smaller one. Play it, then see why the fewest moves is 2^n − 1.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="riddles">
+<main id="main" class="article">
+  <a class="crumb" href="/riddles.html">Riddles</a>
+  <h1>How many moves to move the tower?</h1>
+  <p class="lede" style="margin-top:14px">Three pegs. A stack of disks sits on the first, largest at the bottom. Move the whole stack to the last peg. Move one disk at a time, and never put a larger disk on a smaller one. How few moves does it take?</p>
+
+  <h2>Try it</h2>
+  <p>Tap a peg to lift its top disk, then tap another peg to set it down. Try three disks first, then add more.</p>
+  <figure class="fig" data-diagram="hanoi"><figcaption>Tap a peg to lift its top disk and another to drop it. “Solve” plays the shortest solution from the start.</figcaption></figure>
+
+  <h2>The recursive idea</h2>
+  <p>To move <i>n</i> disks, first move the top <i>n</i> − 1 out of the way to the spare peg. Move the biggest disk to the target. Then move the <i>n</i> − 1 back on top of it. Each of those smaller moves is the same puzzle with one fewer disk. The biggest disk moves exactly once.</p>
+
+  <h2>Counting the moves</h2>
+  <p>Let <i>T</i>(<i>n</i>) be the fewest moves for <i>n</i> disks. The recipe gives <i>T</i>(<i>n</i>) = 2·<i>T</i>(<i>n</i> − 1) + 1, with <i>T</i>(1) = 1. Solving it gives <i>T</i>(<i>n</i>) = 2<sup><i>n</i></sup> − 1: 7 moves for 3 disks, 15 for 4, 31 for 5.</p>
+  <p>That is the minimum, not just one way. The biggest disk cannot move until the other <i>n</i> − 1 are all on one other peg, and it cannot rest until they have moved again. So at least 2·<i>T</i>(<i>n</i> − 1) + 1 moves are needed.</p>
+
+  <h2>A pattern in binary</h2>
+  <p>Number the moves 1, 2, 3, and so on. Write the move number in binary and find its lowest 1. If that is the last digit, disk 1 moves. If it is the next digit, disk 2 moves, and so on. So the smallest disk moves on every odd move, disk 2 on every fourth move starting from move 2, and the biggest disk exactly once, in the middle.</p>
+
+  <h2>The legend</h2>
+  <p>Édouard Lucas sold the puzzle in 1883 with a story of priests moving 64 golden disks. At one move a second, 2<sup>64</sup> − 1 moves would take about 585 billion years.</p>
+
+  <p class="credit">The puzzle is Édouard Lucas’s (1883). The solver here is the standard recursion, so its answer is a shortest one. The words and diagram are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
