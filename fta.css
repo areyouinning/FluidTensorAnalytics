@@ -100,6 +100,8 @@ footer.site { max-width: 1120px; margin: 44px auto 0; padding: 16px var(--gutter
 .fig text.mono { font-family: var(--mono); }
 .fig figcaption { margin-top: 10px; font-size: 16px; line-height: 1.45; color: var(--ink-soft); }
 .ctl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 12px; }
+/* form fields never push a control row wider than the page, whatever the fallback font */
+.ctl > *, .ctl textarea, .ctl input, .ctl select { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .ctl label { display: flex; flex: 1 1 220px; align-items: center; gap: 10px; min-height: 44px; font-size: 16px; }
 .ctl input[type=range] { flex: 1; min-width: 90px; height: 44px; accent-color: var(--blue); }
 .ctl output { min-width: 3.5ch; text-align: right; font: 600 16px var(--mono); }
