@@ -1,11 +1,11 @@
 /* Everything on the site, once. Add a page here and it appears on its shelf and its topics.
-   shelf: explore | play | way | tools. thumb: a drawing in thumbs.js. Blurbs say what you get to do. */
+   shelf: explore | paradox | play | way | tools. thumb: a drawing in thumbs.js. Blurbs say what you get to do. */
 window.FTA_CATALOG = [
   { href: '/queens-tiling.html', shelf: 'play', topics: ['math'], thumb: 'tiling', title: 'Can queens make a tiling harder?', blurb: 'A math olympiad problem with one extra rule. Beat 3039 on the 2025 board.', fresh: true },
   { href: '/konigsberg.html', shelf: 'play', topics: ['math'], thumb: 'bridges', title: 'Can you cross every bridge once?', blurb: 'Walk the seven bridges of Königsberg, find out why Euler said no, then build your own.', fresh: true },
   { href: '/two-halves.html', shelf: 'play', topics: ['chance', 'math'], thumb: 'halves', title: 'Can you fix both copies at once?', blurb: 'An editor too big to ship whole, two copies to mend, and a dose that costs you cells. Beat 7.32%.', fresh: true },
   { href: '/eight-queens.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'queens', title: 'Can eight queens keep the peace?', blurb: 'Place them so that no two attack. There are 92 ways.' },
-  { href: '/impossible-escape.html', shelf: 'play', topics: ['math', 'remix'], thumb: 'coins', title: 'Can one coin flip say where the key is?', blurb: 'A prison puzzle that parity makes possible.' },
+  { href: '/impossible-escape.html', shelf: 'paradox', topics: ['math', 'remix'], thumb: 'coins', title: 'Can one coin flip say where the key is?', blurb: 'A prison puzzle that looks impossible until parity makes it possible.' },
   { href: '/connections.html', shelf: 'play', topics: ['math'], thumb: 'numbers', title: 'C0nn3ct10ns', blurb: 'Find four numbers that share a property.' },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.' },
@@ -23,7 +23,7 @@ window.FTA_CATALOG = [
   { href: '/rivers-all-the-way-down.html', shelf: 'explore', topics: ['fluids', 'water', 'math'], thumb: 'riverlog', title: 'What does a river sound like?', blurb: 'A branching network, its logarithm, and the scale step you can hear. One translation drives all four panels.', fresh: true },
   { href: '/votes-as-rain.html', shelf: 'explore', topics: ['fluids'], thumb: 'rain', title: 'What if votes fell like rain?', blurb: 'U.S. House votes land on their counties and mix as a fluid.' },
   { href: '/remix-sphere.html', shelf: 'explore', topics: ['chance', 'remix'], thumb: 'sphere', title: 'How do you pick a random point in a ball?', blurb: 'Four methods. Two are wrong, and you can see it from the right angle.' },
-  { href: '/delayed-choice.html', shelf: 'explore', topics: ['math','chance'], thumb: 'delayed', title: 'Does the future change the past?', blurb: "Flip a beamsplitter after the photon has gone through, watch the pattern obey — then see why it isn't the future reaching back.", fresh: true },
+  { href: '/delayed-choice.html', shelf: 'paradox', topics: ['math','chance'], thumb: 'delayed', title: 'Does the future change the past?', blurb: "Flip a beamsplitter after the photon has gone through, watch the pattern obey — then see why it isn't the future reaching back.", fresh: true },
   { href: '/photosynthesis-quantum.html', shelf: 'explore', topics: ['math'], thumb: 'exciton', title: 'Does photosynthesis run on quantum coherence?', blurb: 'Watch energy cross seven pigments, and find out why a little noise helps it arrive.', fresh: true },
   { href: '/hydrograph-synth.html', shelf: 'explore', topics: ['fluids', 'water'], thumb: 'hydrograph', title: 'How does rain become a flood?', blurb: 'A synth for rivers: turn a storm into a flood curve, patch soil, hillslope and channel modules, then play a water year on a keyboard or a modular rack.', fresh: true },
   { href: '/circles.html', shelf: 'explore', topics: ['math'], thumb: 'circles', title: 'What does one circle secretly run?', blurb: 'A point, a triangle, and the PID controllers, square waves and sewer maps that fall out of them.', fresh: true },
@@ -32,7 +32,7 @@ window.FTA_CATALOG = [
   { href: '/dimensionless.html', shelf: 'explore', topics: ['fluids', 'tensors', 'math'], thumb: 'units', title: 'Why do the numbers that matter have no units?', blurb: 'Build Reynolds and friends from scratch, read Einstein notation, and keep a field guide.', fresh: true },
   { href: '/vortex-shedding.html', shelf: 'explore', topics: ['fluids'], thumb: 'shedding', title: 'How often does a bird shed a vortex?', blurb: 'Watch a computed wake peel off a post and a flapping wing, then find each bird\'s rhythm.', fresh: true },
   { href: '/chladni.html', shelf: 'explore', topics: ['math'], thumb: 'chladni', title: 'Where does the sand go?', blurb: 'Ring a metal plate and its sand runs into lines. Step through the notes and watch.', fresh: true },
-  { href: '/intransitive-dice.html', shelf: 'explore', topics: ['chance', 'math'], thumb: 'dice', title: 'Is there a best die?', blurb: 'Pick any of four dice and another one beats it, two times in three. Play the page and see why.', fresh: true },
+  { href: '/intransitive-dice.html', shelf: 'paradox', topics: ['chance', 'math'], thumb: 'dice', title: 'Is there a best die?', blurb: 'Pick any of four dice and another one beats it, two times in three. Play the page and see why.', fresh: true },
   { href: '/remix-camouflage.html', shelf: 'explore', topics: ['remix'], thumb: 'stalk', title: 'How do you sneak up on something watching you?', blurb: 'Stay exactly in front of one tree. Dragonflies do something like it.' },
 
   { href: '/way-of-water.html', shelf: 'way', topics: ['fluids'], thumb: 'wayWater', title: 'The Way of Water', blurb: 'Why stirring mixes, from one stagnation point to the tangle. Eleven chapters.' },
