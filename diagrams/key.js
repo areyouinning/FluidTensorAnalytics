@@ -132,11 +132,13 @@ export const KEY = C(
                 C('The logarithm of a picture.', '/image-log.html',
                   'Circles, cells, or a sum that never ends.',
                   C('One circle, and everything it secretly runs.', '/circles.html',
-                    'Cells or sums.',
+                    'Cells, sums or coastlines.',
                     C('Cells on a grid that live and die by three rules.', '/game-of-life.html',
-                      'Something that shrinks forever and still ends.',
-                      C('Achilles chasing a tortoise.', '/zeno.html',
-                        'Potatoes that dry out and halve their weight.', '/potato-paradox.html'))))))))))));
+                      'Something that changes size the closer you look.',
+                      C('A coast that gets longer the shorter your ruler.', '/coastline.html',
+                        'Something that shrinks forever and still ends.',
+                        C('Achilles chasing a tortoise.', '/zeno.html',
+                          'Potatoes that dry out and halve their weight.', '/potato-paradox.html')))))))))))));
 
 /* number the couplets the way a printed key does: depth first, a's branch before b's */
 export function number(root) {
