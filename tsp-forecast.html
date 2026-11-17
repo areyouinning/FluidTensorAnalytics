@@ -20,6 +20,10 @@
   <p class="lede" style="margin-top:14px">In 1865 Jules Verne fired three men at the Moon from Florida, a century early. He got there by taking parts that already existed and following the arithmetic. This page tries the same thing on a smaller target: the oldest speed record in computer science.</p>
   <p class="status"><b>This is a forecast, not news.</b> Written 17 November 2026. Nothing below the heading “The forecast” has happened. The last section says how to score it.</p>
 
+  <h2>Play it first</h2>
+  <p>Tap the cities in the order you would visit them. The route closes itself when every city is used. Then see how close you came to the shortest tour.</p>
+  <figure class="fig" data-diagram="tspplay"><figcaption>The shortest tour is found exactly, by the 1962 method described below; with 12 cities that is about 600,000 steps, which a browser does instantly. Nearest-neighbour shows the greedy route: always go to the closest city you have not visited.</figcaption></figure>
+
   <h2>The record</h2>
   <p>A salesman must visit <i>n</i> cities once each and come home by the shortest route. Trying every tour takes (<i>n</i> − 1)!/2 attempts. In 1962 Michael Held and Richard Karp, and separately Richard Bellman, found a way that takes about <i>n</i>² · 2<sup><i>n</i></sup> steps. Sixty-four years on, that is still essentially the record. A 2024 paper by Mihail Stoian shaved a little off, but nobody has reached 1.99<sup><i>n</i></sup>. Whether anyone can is a famous open question.</p>
   <p>The <a href="/eth.html">claimed fall of the Exponential Time Hypothesis</a> does not settle it. That result is about a logic puzzle, and translating tours into it adds too many variables. But it shows a method, and the method travels.</p>
