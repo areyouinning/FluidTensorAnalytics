@@ -344,6 +344,14 @@
       for (var r = 0; r < 9; r++) for (var c = 0; c < 16; c++) o += rect(16 + c * 18, 10 + r * 18, 16, 16, on[c + ',' + r] ? B : L, 2);
       return o;
     },
+    eth: function () { // 2^n against the new bound, crossing far out
+      var o = line('M20 150H300M20 150V20', S, 2), d = 'M24 140', k;
+      for (k = 0; k <= 40; k++) d += 'L' + (24 + k * 7) + ' ' + (140 - 120 * Math.pow(k / 40, 2.2)).toFixed(0);
+      o += line(d, I, 3); d = 'M24 128';
+      for (k = 0; k <= 40; k++) d += 'L' + (24 + k * 7) + ' ' + (128 - 100 * Math.pow(k / 40, 1.4)).toFixed(0);
+      o += line(d, O, 3) + dot(258, 46, 6, G) + text(64, 40, '2ⁿ', 18, I) + text(150, 86, '3-SAT', 14, O);
+      return o;
+    },
     dollar: function () { // three dollar coins, one of them gone missing
       var o = text(160, 36, '$30 → $29', 20, S);
       o += dot(92, 100, 30, G) + text(92, 112, '$', 30, W);

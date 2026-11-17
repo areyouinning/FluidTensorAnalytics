@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is brute force the best you can do? | FluidTA</title>
+<meta name="description" content="In October 2026, two AI labs claimed a disproof of the Exponential Time Hypothesis: 3-SAT can be solved faster than any fixed exponential. How the algorithm counts by algebra, why it changes nothing in practice, and where the review stands.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+.sat-clauses{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 0;padding:0;list-style:none;font:600 15px/1.5 var(--mono)}
+.sat-clauses b{color:var(--ink-soft);font-weight:600;margin-right:4px}
+[data-diagram] text{font-feature-settings:"calt" 0}
+.sat-clauses li.ok{color:var(--green)} .sat-clauses li.bad{color:var(--red)}
+.status{margin:14px 0 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--sunk);border-left:4px solid var(--gold);font-size:16px}
+</style>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Is brute force the best you can do?</h1>
+  <p class="lede" style="margin-top:14px">For a quarter of a century, computer scientists assumed that some puzzles can never be solved much faster than by trying everything. In October 2026, two AI labs posted proofs that this assumption, the Exponential Time Hypothesis, is false. Here is what it said, how the new algorithm works, and why your computer will not notice.</p>
+  <p class="status"><b>Status, mid-November 2026:</b> a claimed result, not yet peer-reviewed. An independent review led by Russell Impagliazzo, Ramamohan Paturi and Ryan Williams is under way; this page will be updated when it reports.</p>
+
+  <h2>The puzzle at the bottom of it all</h2>
+  <p>A 3-SAT formula is a list of clauses like (x1 ∨ ¬x3 ∨ x4): “x1 is true, or x3 is false, or x4 is true.” You must choose true or false for every variable so that every clause holds. The <a href="/zebra.html">zebra puzzle</a> and the <a href="/river-crossing.html">river crossing</a> can both be written this way, and so, with some effort, can almost any search problem.</p>
+  <p>With <i>n</i> variables there are 2<sup><i>n</i></sup> assignments to try. Cleverer algorithms beat that, but only by shrinking the 2: the best known before 2026 ran in about 1.3<sup><i>n</i></sup> steps. The <b>Exponential Time Hypothesis</b>, stated by Impagliazzo and Paturi in 1999, said that is all anyone will ever manage: some fixed <i>c</i> &gt; 0 makes every algorithm take at least 2<sup><i>cn</i></sup> steps. A whole field of “this cannot be done faster” results was built on it.</p>
+
+  <h2>Counting by algebra</h2>
+  <p>The new algorithm does not search. It counts the solutions exactly, and a count of zero means there are none. The starting point is a classic identity: turn each clause into a polynomial that equals 1 when the clause holds and 0 when it fails. Multiply every clause’s polynomial together and the product is 1 on a solution and 0 everywhere else. Add it up over all assignments and you have the count.</p>
+  <figure class="fig" data-diagram="satcount"><figcaption>Green cells satisfy every clause. Tap any cell to see its clause factors multiply out. Both counts always agree; switch to two separate groups to see the shortcut.</figcaption></figure>
+  <p>That sum still has 2<sup><i>n</i></sup> terms. But if the clauses fell into separate groups that share no variables, you could count each group on its own and multiply, which is enormously cheaper. Try <b>Two separate groups</b> above. Real formulas are tangled, so the trick is to untangle them on purpose.</p>
+
+  <h2>Untangling with a dial</h2>
+  <p>In Shiva Kintali’s simplified version of OpenAI’s proof, every variable inside the clause polynomials is replaced by a mixture of variables controlled by a dial <i>T</i>. At <i>T</i> = 0 nothing changes, so the sum still gives the true count. At certain whole-number settings of <i>T</i> the formula falls apart into small groups, joined only through a few integer “measurements”: sums of variables with small integer weights. Fix the measurements’ values, and each group can be summed alone.</p>
+  <p>Those whole-number settings give the wrong numbers, sometimes negative or fractional, but that does not matter. The total is a polynomial in <i>T</i>, so its values and a few of its derivatives at the settings that are easy to compute pin down its value at <i>T</i> = 0, the one we want. This step is called interpolation. Before any of this, two standard steps tidy the formula: sparsification cuts it into pieces with few clauses each, and a copying trick makes every variable appear in at most three clauses. That is what lets the groups stay small.</p>
+  <p>The result, for any fixed clause width, is a deterministic algorithm that uses polynomial memory and runs in about 2<sup><i>n</i>·log log <i>n</i>/√log <i>n</i></sup> steps. The exponent grows more slowly than any <i>cn</i>, so ETH is false. So is the Strong Exponential Time Hypothesis, which implies it.</p>
+
+  <h2>Why nothing gets faster</h2>
+  <p>“Subexponential” is a statement about what happens as <i>n</i> goes to infinity. The proofs hide a constant <i>C</i> in that exponent, and nobody has pinned it down. Fabio Dias and Yvens Lima worked out where the new bound would actually beat brute force.</p>
+  <figure class="fig" data-diagram="ethrace"><figcaption>The new method’s exponent, as a multiple of brute force’s, for a chosen hidden constant <i>C</i>. It only wins where the orange curve drops below the black line.</figcaption></figure>
+  <p>With <i>C</i> = 2 the new method wins only once a formula has about 10<sup>32</sup> variables. With <i>C</i> = 10, it needs 10<sup>3517</sup>. When Dias and Lima traced the actual constants in OpenAI’s tensor-contraction proof, they found no gain over brute force for any input of bounded density that could ever be written down. Practical SAT solvers, which handle millions of variables on real problems, are untouched.</p>
+
+  <h2>What it does and does not mean</h2>
+  <p>It does mean that many results of the form “this needs exponential time, assuming ETH” lose their footing. Researchers are moving to weaker assumptions. An MIT group points out that a 1990 hypothesis of Stearns and Hunt, equivalent to a “weak ETH”, still looks safe and supports most of the same arguments.</p>
+  <p>It does not mean P = NP: 2<sup><i>n</i>/√log <i>n</i></sup> is still enormously more than any polynomial. And as Lance Fortnow notes, it gives nothing new for problems like Subset Sum or the Travelling Salesman, because turning them into 3-SAT adds too many variables.</p>
+  <p>It may be remembered for one more reason. The core argument was found by AI models, at OpenAI and, independently, at Anthropic; both labs say their models found it on 16 October. People then checked it, simplified it and stress-tested it. Both proofs were also checked in the Lean proof assistant. That check confirms the formal proof is valid, but not that the formal statement matches the paper. Human reviewers have to confirm that part.</p>
+
+  <p class="credit">Sources: OpenAI, “The Exponential Time Hypothesis is False” (October 2026); Anthropic, “A 2<sup>o(n)</sup> Time Algorithm for 3-SAT” (October 2026); Shiva Kintali, <a href="https://shivakintali.github.io/papers/ETH.pdf">“A simplified proof of ETH is false”</a>; Fabio Dias and Yvens Lima, <a href="https://arxiv.org/abs/2611.00517">“Limits and Constants of OpenAI’s Claimed ETH Refutation”</a>; MIT Hardness Group, <a href="https://arxiv.org/abs/2611.02650">“ETH is Dead, Long Live SH”</a>; Lance Fortnow, <a href="https://blog.computationalcomplexity.org/2026/10/the-exponential-time-refutation.html">“The Exponential Time Refutation”</a>. The crossover figures are recomputed here from the formula and match Dias and Lima’s. The words and diagrams are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
