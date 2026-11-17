@@ -9,7 +9,9 @@ export const KEY = C(
   'You want to play: there is a goal, a score or a win.',
   C('It is for a kid, or the kid in you.',
     C('Build words and hear them sounded out.', '/sound-it-out.html',
-      'Fly a rain cloud, roll marbles, launch things.', '/kiddos-cloud.html'),
+      'Drive or fly something.',
+      C('Diggers, dumpers and a crane, with real levers.', '/truck-lab.html',
+        'Fly a rain cloud, roll marbles, launch things.', '/kiddos-cloud.html')),
     'It is a puzzle for a grown-up brain.',
     C('Chess queens are involved.',
       C('The classic: eight queens, and no two may attack.', '/eight-queens.html',
@@ -30,7 +32,7 @@ export const KEY = C(
       C('Point your phone at the mountains.', '/peak-finder-v3.html',
         'You want a map or a classroom.',
         C('A map.',
-          C('The forecast and radar where you are.', '/weather-map.html',
+          C('The wind, forecast and radar where you are.', '/wind-twin.html',
             "Colorado's snow, drought, rivers and reservoirs.", '/water-resources-dashboard.html'),
           'You teach, and want these pages in your course.', '/lti.html')),
       'It is about planning a reservoir.',
@@ -51,7 +53,9 @@ export const KEY = C(
         C('Rivers, rain and weather.',
           C('Rivers and floods.',
             C('Rain becoming a flood curve, which you can hear.', '/hydrograph-synth.html',
-              'Why river networks branch the way they do.', '/optimal-channel-networks.html'),
+              'The shape of a river network.',
+              C('Why river networks branch the way they do.', '/optimal-channel-networks.html',
+                'A branching network, its logarithm, and the scale you can hear.', '/rivers-all-the-way-down.html')),
             'Weather and climate data.',
             C('One forecast run a hundred times.', '/ensemble-methods.html',
               'Climate data as a cube of numbers.', '/climate-tensor-ops.html')),
@@ -92,7 +96,9 @@ export const KEY = C(
                     'A thousand bottles, one of them poisoned.', '/poisoned-bottles.html'))),
               'A serious idea to build up.',
               C('What a tensor really is.', '/tensor-analysis.html',
-                'The logarithm of a picture.', '/image-log.html'))))))));
+                'Pictures and circles.',
+                C('The logarithm of a picture.', '/image-log.html',
+                  'One circle, and everything it secretly runs.', '/circles.html')))))))));
 
 /* number the couplets the way a printed key does: depth first, a's branch before b's */
 export function number(root) {
