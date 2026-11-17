@@ -224,6 +224,17 @@
     snow: function () { var o = ''; for (var k = 0; k < 3; k++) o += line('M90 40 90 140', B, 5).replace('<path', '<path transform="rotate(' + k * 60 + ' 90 90)"'); [46, 74, 58, 96, 38].forEach(function (h, k) { o += rect(166 + k * 26, 140 - h, 20, h, k === 3 ? O : B, 3); }); return o; },
     peaks: function () { return '<path d="M0 150 58 92l28 26 50-62 42 46 34-30 44 42 64 28V180H0Z" fill="' + B + '" opacity=".75"/><path d="m136 56-18 22 12-4 8 8 10-7 8 4Z" fill="' + W + '"/>' + line('M136 54V24', O, 3) + dot(136, 22, 6, O); },
     pareto: function () { var R = rng(13), o = line('M36 20V152H300', S, 2); for (var k = 0; k < 40; k++) { var x = 44 + R() * 240, f = 18 + 12000 / (x + 60), y = f + R() * 70; o += dot(x.toFixed(0), Math.min(146, y).toFixed(0), 3, L); } for (var x2 = 44; x2 < 290; x2 += 24) o += dot(x2, (18 + 12000 / (x2 + 60)).toFixed(0), 5, O); return o; },
+    delayed: function () { // a little interferometer square with two detectors and a fringe below
+      var o = line('M20 118H120M120 118V40M120 40H250M250 40V118M250 118H300', B, 4);
+      o += line('M120 118H250', B, 4, .5);
+      o += rect(112, 110, 16, 16, P, 3) + rect(242, 32, 16, 16, P, 3);   // beamsplitters
+      o += rect(240, 10, 18, 18, W, 3, undefined) + text(249, 23, 'D', 11, I);
+      o += rect(292, 110, 18, 18, W, 3) + text(301, 123, 'D', 11, I);
+      o += dot(20, 118, 5, O);
+      var d='M20 158'; for(var k=0;k<=40;k++){ var x=20+k*7, y=158-Math.sin(k/40*Math.PI*3)*10; d+='L'+x.toFixed(0)+' '+y.toFixed(0); }
+      o += line(d, O, 3);
+      return o;
+    },
     phonics: function () { // three letter tiles c a t and a little speaker: sound them out
       var o = '', L3 = ['c', 'a', 't'], cols = [B, O, G];
       L3.forEach(function (ch, i) { var x = 40 + i * 78; o += rect(x, 54, 64, 64, W, 14) + text(x + 32, 98, ch, 40, cols[i]); });
