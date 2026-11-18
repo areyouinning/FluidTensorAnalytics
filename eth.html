@@ -13,6 +13,12 @@
 .sat-clauses b{color:var(--ink-soft);font-weight:600;margin-right:4px}
 [data-diagram] text{font-feature-settings:"calt" 0}
 .sat-clauses li.ok{color:var(--green)} .sat-clauses li.bad{color:var(--red)}
+.gloss{margin:16px 0 0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel)}
+.gloss summary{cursor:pointer;padding:12px 14px;font-weight:700;min-height:44px;box-sizing:border-box}
+.gloss dl{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:10px 16px;margin:0;padding:4px 14px 16px;font-size:16px}
+.gloss dt{font:600 15px/1.5 var(--mono);color:var(--blue);overflow-wrap:anywhere}
+.gloss dd{margin:0;line-height:1.5;min-width:0}
+@media (max-width:520px){.gloss dl{grid-template-columns:minmax(0,1fr);gap:2px}.gloss dd{margin-bottom:10px}}
 .status{margin:14px 0 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--sunk);border-left:4px solid var(--gold);font-size:16px}
 </style>
 </head>
@@ -22,6 +28,35 @@
   <h1>Is brute force the best you can do?</h1>
   <p class="lede" style="margin-top:14px">For a quarter of a century, computer scientists assumed that some puzzles can never be solved much faster than by trying everything. In October 2026, two AI labs posted proofs that this assumption, the Exponential Time Hypothesis, is false. Here is what it said, how the new algorithm works, and why your computer will not notice.</p>
   <p class="status"><b>Status, mid-November 2026:</b> a claimed result, not yet peer-reviewed. An independent review led by Russell Impagliazzo, Ramamohan Paturi and Ryan Williams is under way; this page will be updated when it reports.</p>
+
+  <details class="gloss" id="symbols">
+    <summary>Symbol glossary: every symbol on this page, in the order it appears</summary>
+    <dl>
+      <dt>x1, x3, x4</dt><dd>Variables. Each one is set to true or false.</dd>
+      <dt>∨</dt><dd>“or”. (x1 ∨ x4) holds if at least one of x1, x4 is true.</dd>
+      <dt>¬</dt><dd>“not”. ¬x3 is true exactly when x3 is false.</dd>
+      <dt>( … ∨ … ∨ … )</dt><dd>A clause: terms joined by “or”. In 3-SAT each clause has at most three terms, and every clause must hold at once.</dd>
+      <dt>3-SAT</dt><dd>The question “can every clause be made true at the same time?” for formulas with at most three terms per clause. k-SAT allows k terms.</dd>
+      <dt><i>n</i></dt><dd>The number of variables.</dd>
+      <dt>2<sup><i>n</i></sup></dt><dd>The number of ways to set <i>n</i> true/false switches: each new variable doubles it. 2<sup>50</sup> is about 10<sup>15</sup>.</dd>
+      <dt>1.3<sup><i>n</i></sup></dt><dd>The best running time known before 2026. Still exponential, just with a smaller base than 2.</dd>
+      <dt><i>c</i></dt><dd>A fixed positive number, however small. 2<sup><i>cn</i></sup> means “exponential, at some fixed rate”: 1.3<sup><i>n</i></sup> is 2<sup>0.38<i>n</i></sup>.</dd>
+      <dt>ETH</dt><dd>Exponential Time Hypothesis (Impagliazzo and Paturi, 1999): there is some <i>c</i> &gt; 0 for which every 3-SAT algorithm needs at least 2<sup><i>cn</i></sup> steps on some formulas.</dd>
+      <dt>SETH</dt><dd>Strong ETH: as clauses get wider, the best possible base climbs all the way to 2. In symbols, for every ε &gt; 0 there is a width <i>k</i> where k-SAT cannot be done in 2<sup>(1−ε)<i>n</i></sup> steps. SETH implies ETH, so refuting ETH refutes SETH too.</dd>
+      <dt><i>T</i></dt><dd>The dial in Kintali’s version of the proof. <i>T</i> = 0 is the original formula; certain whole-number <i>T</i> make it fall apart into small groups.</dd>
+      <dt>polynomial in <i>T</i></dt><dd>A sum like 3 + 2<i>T</i> − 5<i>T</i><sup>2</sup>: whole powers of <i>T</i>, each times a fixed number. A few values (and derivatives) fix all the coefficients, so they also fix its value at <i>T</i> = 0. That is interpolation.</dd>
+      <dt>log <i>n</i></dt><dd>The logarithm: how many times you double 1 to reach <i>n</i>. It grows very slowly: log 1,000,000 ≈ 20.</dd>
+      <dt>log log <i>n</i></dt><dd>The logarithm taken twice, slower still: for <i>n</i> = 1,000,000 it is about 4.3.</dd>
+      <dt>√</dt><dd>Square root. √log <i>n</i> grows even more slowly than log <i>n</i>, but faster than log log <i>n</i>.</dd>
+      <dt>2<sup><i>n</i>·log log <i>n</i>/√log <i>n</i></sup></dt><dd>The new running time. The exponent is <i>n</i> divided by √log <i>n</i> / log log <i>n</i>, a factor that keeps growing, so eventually the exponent falls below <i>cn</i> for every fixed <i>c</i>.</dd>
+      <dt>2<sup>o(<i>n</i>)</sup></dt><dd>“Subexponential”. The little o means the exponent grows more slowly than any fixed fraction of <i>n</i>. This is exactly what ETH said could not happen.</dd>
+      <dt><i>C</i></dt><dd>The hidden constant multiplying the new exponent: the real bound is about 2<sup><i>C</i>·<i>n</i>·log log <i>n</i>/√log <i>n</i></sup>. Nobody knows its value, and it decides when the new method finally wins.</dd>
+      <dt>10<sup>32</sup></dt><dd>1 followed by 32 zeros. For scale, the observable universe has about 10<sup>80</sup> atoms.</dd>
+      <dt>polynomial time, polynomial memory</dt><dd>Growing like <i>n</i><sup>2</sup>, <i>n</i><sup>3</sup> or <i>n</i><sup><i>k</i></sup> for some fixed <i>k</i>: the kind of growth computers can live with.</dd>
+      <dt>P, NP</dt><dd>P: problems solvable in polynomial time. NP: problems whose answers can be <em>checked</em> in polynomial time. 3-SAT is in NP, and is as hard as anything in it. P = NP would need 3-SAT in polynomial time, far beyond this result.</dd>
+      <dt>Lean</dt><dd>A proof assistant: software that checks every step of a formal proof mechanically.</dd>
+    </dl>
+  </details>
 
   <h2>The puzzle at the bottom of it all</h2>
   <p>A 3-SAT formula is a list of clauses like (x1 ∨ ¬x3 ∨ x4): “x1 is true, or x3 is false, or x4 is true.” You must choose true or false for every variable so that every clause holds. The <a href="/zebra.html">zebra puzzle</a> and the <a href="/river-crossing.html">river crossing</a> can both be written this way, and so, with some effort, can almost any search problem.</p>
@@ -45,7 +80,7 @@
   <h2>What it does and does not mean</h2>
   <p>It does mean that many results of the form “this needs exponential time, assuming ETH” lose their footing. Researchers are moving to weaker assumptions. An MIT group points out that a 1990 hypothesis of Stearns and Hunt, equivalent to a “weak ETH”, still looks safe and supports most of the same arguments.</p>
   <p>It does not mean P = NP: 2<sup><i>n</i>/√log <i>n</i></sup> is still enormously more than any polynomial. And as Lance Fortnow notes, it gives nothing new for problems like Subset Sum or the Travelling Salesman, because turning them into 3-SAT adds too many variables.</p>
-  <p>It may be remembered for one more reason. The core argument was found by AI models, at OpenAI and, independently, at Anthropic; both labs say their models found it on 16 October. People then checked it, simplified it and stress-tested it. Both proofs were also checked in the Lean proof assistant. That check confirms the formal proof is valid, but not that the formal statement matches the paper. Human reviewers have to confirm that part.</p>
+  <p>It may be remembered for one more reason. The core argument was found by AI models, at OpenAI and, independently, at Anthropic. Anthropic’s paper describes the two results as independent and concurrent, and early reports put both discoveries on the same day, 16 October; the papers themselves are dated a little later. People then checked it, simplified it and stress-tested it. Both proofs were also checked in the Lean proof assistant. That check confirms the formal proof is valid, but not that the formal statement matches the paper. Human reviewers have to confirm that part.</p>
 
   <p class="credit">Sources: OpenAI, “The Exponential Time Hypothesis is False” (October 2026); Anthropic, “A 2<sup>o(n)</sup> Time Algorithm for 3-SAT” (October 2026); Shiva Kintali, <a href="https://shivakintali.github.io/papers/ETH.pdf">“A simplified proof of ETH is false”</a>; Fabio Dias and Yvens Lima, <a href="https://arxiv.org/abs/2611.00517">“Limits and Constants of OpenAI’s Claimed ETH Refutation”</a>; MIT Hardness Group, <a href="https://arxiv.org/abs/2611.02650">“ETH is Dead, Long Live SH”</a>; Lance Fortnow, <a href="https://blog.computationalcomplexity.org/2026/10/the-exponential-time-refutation.html">“The Exponential Time Refutation”</a>. The crossover figures are recomputed here from the formula and match Dias and Lima’s. The words and diagrams are mine.</p>
   <a data-next></a>
