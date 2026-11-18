@@ -334,6 +334,12 @@
       for (var r = 0; r < 6; r++) for (var c = 0; c < 10; c++) { var k = r * 10 + c; o += rect(60 + c * 20, 30 + r * 20, 17, 17, k === 0 ? O : B, 3, k < 30 ? 1 : .18); }
       return o + text(160, 168, '100 kg → 50 kg', 16, S);
     },
+    blueeyes: function () { // a ring of faces, four with blue eyes, and a speech bubble
+      var o = '', n = 10;
+      for (var k = 0; k < n; k++) { var a = -Math.PI / 2 + k * 2 * Math.PI / n, x = 160 + Math.cos(a) * 92, y = 92 + Math.sin(a) * 66, c = k < 4 ? B : '#8a5a33';
+        o += dot(x, y, 15, L) + dot(x - 5, y - 2, 3.5, c) + dot(x + 5, y - 2, 3.5, c); }
+      return o + text(160, 98, '“At least one…”', 15, S);
+    },
     braess: function () { // a diamond road network with a green shortcut, and the slower trip
       var St = [50, 76], A = [160, 20], Bn = [160, 132], E = [270, 76];
       var o = line('M' + St + 'L' + A + 'L' + E, S, 6) + line('M' + St + 'L' + Bn + 'L' + E, S, 6) + line('M' + A + 'L' + Bn, G, 7);

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What did the visitor tell the islanders? | FluidTA</title>
+<meta name="description" content="The blue-eyed islanders: a visitor tells an island something everyone already knows, and days later the blue-eyed islanders all leave. Step through the nights and see what common knowledge adds.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>.think{margin:12px 0 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--sunk);border-left:4px solid var(--orange);font-size:16px;line-height:1.5}</style>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>What did the visitor tell the islanders?</h1>
+  <p class="lede" style="margin-top:14px">Ten people live on an island. Some have blue eyes and the rest brown, and each can see everyone’s eyes but their own. There are no mirrors, and nobody ever mentions eye colour. Island custom says that anyone who works out their own eye colour must leave on the next dawn ferry. Everyone is a flawless logician and knows everyone else is too.</p>
+  <p>Four of them have blue eyes. One day a visitor stands up in front of everyone and says: “At least one of you has blue eyes.” Then the visitor leaves. Every islander could already see at least three blue-eyed people, so the visitor told nobody anything new. What happens?</p>
+
+  <h2>Step through the nights</h2>
+  <figure class="fig" data-diagram="islanders"><figcaption>Tap any islander to read their reasoning. Press Next dawn to move time forward. The sim tracks every pattern of eye colours the islanders cannot rule out, and each dawn removes the patterns that would have sent different people to the ferry.</figcaption></figure>
+  <p>Nothing happens for three dawns. On the fourth, all four blue-eyed islanders leave together. On the fifth, the six brown-eyed islanders leave. Try the slider: with <i>k</i> blue-eyed islanders, they leave on dawn <i>k</i>. Now press <b>Without the visitor</b>. Nobody ever leaves.</p>
+
+  <h2>Start with one</h2>
+  <p>Suppose only one islander has blue eyes. She looks around and sees no blue eyes at all. When the visitor says someone has blue eyes, it can only be her, and she leaves on the first dawn.</p>
+  <p>Now two. Each blue-eyed islander sees one other. Each thinks: “If my eyes are brown, she is the only one, and she will leave on dawn 1.” Dawn 1 comes and she is still there, so she must also see blue eyes, and they can only be mine. Both leave on dawn 2.</p>
+  <p>With three, each blue-eyed islander sees two and knows that if her own eyes were brown, those two would leave on dawn 2. When they don’t, she knows she is the third. All three leave on dawn 3. The same step works for every number: <i>k</i> blue-eyed islanders all leave on dawn <i>k</i>, each one waiting to see whether the others leave first.</p>
+  <p>The brown-eyed islanders reason the same way and watch the same dawns. Each sees four blue-eyed islanders and waits to see whether they leave on dawn 4 or dawn 5. When they leave on dawn 4, the brown-eyed islanders know their own eyes are not blue. Since everyone knows the only colours are blue and brown, they all leave on dawn 5. (In versions of the puzzle where islanders don’t know their own eyes can only be blue or brown, they stay.)</p>
+
+  <h2>So what did the visitor add?</h2>
+  <p>Everyone knew someone had blue eyes. But the induction above needs more than that. With two blue-eyed islanders, each needs to know that the <em>other</em> would leave on dawn 1 if she were the only one, which means the other must know that someone has blue eyes. With three, each needs to know that each of the others knows that each of the others knows it. With <i>k</i> blue-eyed islanders the chain is <i>k</i> levels deep, and before the visitor speaks it stops one level short.</p>
+  <figure class="fig" data-diagram="islanderlevels"><figcaption>Each level is computed from the same model as the island above. Before the visitor speaks, the tower is true up to level <i>k</i> − 1 and stops. One public sentence makes every level true at once.</figcaption></figure>
+  <p>Look at it with four blue-eyed islanders. Ann sees Bob, Cat and Dee. Ann can imagine that her own eyes are brown; then, in Ann’s imagined world, Bob sees only Cat and Dee, and could imagine that his eyes are brown too. In that world, Cat sees only Dee, and could imagine that her own eyes are brown. And in <em>that</em> world, Dee sees no blue eyes at all, and nothing tells her anyone has them. That chain of imagined worlds ends in an island with no blue eyes, so nobody can start the countdown.</p>
+  <p>The visitor rules out the world with no blue eyes for everyone, in public, all at once. It becomes <b>common knowledge</b>: everyone knows it, everyone knows that everyone knows it, and so on forever. That closes every chain, and the countdown can begin. The visitor gave no new fact. The new thing was that everybody heard it together and knew that everybody else had heard it.</p>
+
+  <h2>Where it comes from</h2>
+  <p>The puzzle goes back at least to J. E. Littlewood’s <i>A Mathematician’s Miscellany</i> (1953), where three women in a railway carriage, all with smudged faces, are each laughing at the others. Logicians later turned it into the “muddy children” puzzle, the central example in <i>Reasoning About Knowledge</i> by Ronald Fagin, Joseph Halpern, Yoram Moses and Moshe Vardi (1995). The philosopher David Lewis defined common knowledge in 1969, and the economist Robert Aumann gave it its mathematical form in 1976. Terence Tao’s blog post on the blue-eyed version, and the arguments in its comments, made it famous online.</p>
+  <p>Common knowledge matters wherever people act together. In “The Emperor’s New Clothes”, everyone can see the emperor is naked, but only after a child says it out loud does everyone know that everyone sees it, and the crowd laughs. A bank run, a strike or a standing ovation works the same way: what matters is not just what each person knows, but what each person knows the others know.</p>
+
+  <p class="credit">A classic puzzle of knowledge and logic, in the tradition of Littlewood’s smudged faces and the muddy children. The words and diagrams are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
