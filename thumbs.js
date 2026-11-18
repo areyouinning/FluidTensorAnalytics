@@ -334,6 +334,12 @@
       for (var r = 0; r < 6; r++) for (var c = 0; c < 10; c++) { var k = r * 10 + c; o += rect(60 + c * 20, 30 + r * 20, 17, 17, k === 0 ? O : B, 3, k < 30 ? 1 : .18); }
       return o + text(160, 168, '100 kg → 50 kg', 16, S);
     },
+    braess: function () { // a diamond road network with a green shortcut, and the slower trip
+      var St = [50, 76], A = [160, 20], Bn = [160, 132], E = [270, 76];
+      var o = line('M' + St + 'L' + A + 'L' + E, S, 6) + line('M' + St + 'L' + Bn + 'L' + E, S, 6) + line('M' + A + 'L' + Bn, G, 7);
+      [St, A, Bn, E].forEach(function (p) { o += dot(p[0], p[1], 11, I); });
+      return o + text(160, 168, '65 → 80 min', 17, O);
+    },
     coastline: function () { // a jagged coast with sea below, and a coarse divider walk across it
       var R = 7, rnd = function () { R = (R * 16807) % 2147483647; return R / 2147483647; }, p = [[20, 80], [300, 80]];
       for (var l = 0; l < 4; l++) { var q = [p[0]]; for (var i = 0; i + 1 < p.length; i++) { var a = p[i], b = p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], sg = rnd() < .5 ? 1 : -1, r = 1 / 3, c = .5, sn = .866 * sg, p1 = [a[0] + r * dx, a[1] + r * dy];

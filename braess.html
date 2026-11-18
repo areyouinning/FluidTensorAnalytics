@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can a new road slow everyone down? | FluidTA</title>
+<meta name="description" content="Braess’s paradox: open a free shortcut and every driver’s trip gets longer. Watch traffic settle into the slower pattern, then cut a string and watch a hanging weight rise.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+</head>
+<body data-tab="paradox">
+<main id="main" class="article">
+  <a class="crumb" href="/paradox.html">Paradox</a>
+  <h1>Can a new road slow everyone down?</h1>
+  <p class="lede" style="margin-top:14px">A city opens a free shortcut, and every driver’s trip gets longer. Not because anyone drives badly: each driver takes the fastest route available to them. That is exactly the problem.</p>
+
+  <h2>Open the shortcut</h2>
+  <p>4,000 drivers go from S to E each morning. Two roads are narrow: the more cars on them, the slower they get (cars ÷ 100 minutes). Two roads are wide but long: always 45 minutes. With no shortcut, traffic splits evenly, 2,000 each way, and everyone’s trip is 20 + 45 = 65 minutes.</p>
+  <figure class="fig" data-diagram="braess"><figcaption>Line widths show traffic, and the dots are cars. Open the shortcut and watch drivers switch, each to whichever route is fastest for them right now. The chart tracks everyone’s trip time; the dashed line is the trip before the shortcut opened.</figcaption></figure>
+  <p>Now open a free road from A to B. Look at it from one driver’s seat. The narrow road from S to A takes at most 40 minutes, even if all 4,000 cars use it; the alternative from S is 45. From A, going on through B takes at most 40 more; the alternative is 45. So the zig-zag through the shortcut is never worse, whatever everyone else does. Everyone takes it, and everyone’s trip becomes 40 + 0 + 40 = 80 minutes, 15 minutes longer than before.</p>
+  <p>Nobody can escape alone. A driver who goes back to the old top route now faces 40 minutes on the crowded first road plus 45: 85 minutes. Everyone is stuck in a pattern that is worse for everyone.</p>
+
+  <h2>Why nobody fixes it</h2>
+  <p>This is an equilibrium in the sense John Wardrop described for traffic in 1952, and John Nash for games: every route in use takes the same time, and no unused route is faster, so no driver gains by switching. But each driver who joins a narrow road also slows down everyone already on it, and nobody counts that cost when choosing a route.</p>
+  <p>A planner who could assign routes would do better. With the shortcut open, sending about 500 drivers through it and splitting the rest evenly gives an average trip of 64.7 minutes. Left to choose for themselves, drivers settle at 80. Computer scientists call the ratio between the two the price of anarchy. Tim Roughgarden and Éva Tardos proved in 2002 that when delays grow in straight lines, as they do here, selfish routing can never cost more than 4/3 of the best possible total. Here it is 80 / 64.7 ≈ 1.24.</p>
+  <p>The paradox needs the right amount of traffic. Drag the drivers slider. Below 3,000 drivers the shortcut genuinely helps: with 2,000, trips fall from 55 to 40 minutes. Between 3,000 and 9,000 it makes every trip slower. Above 9,000 the narrow roads are so crowded that nobody uses the shortcut at all.</p>
+
+  <h2>A weight that rises when you cut its support</h2>
+  <p>The same arithmetic works in springs and string. In 1991 Joel Cohen and Paul Horowitz hung a weight from two springs joined by a short string, with two longer safety strings hanging slack beside them. Cutting the short string should drop the weight. It goes up.</p>
+  <figure class="fig" data-diagram="braesssprings"><figcaption>Before the cut, each spring carries the whole weight and stretches 10 cm. After it, the weight hangs from two side-by-side paths, each a spring plus a 24 cm string. Each spring carries half the weight and stretches only 5 cm.</figcaption></figure>
+  <p>Before the cut, the springs are in series, one under the other, and both carry the full load: 20 + 2 + 20 = 42 cm from the ceiling to the weight. After the cut, each spring carries half the load: 15 + 24 = 39 cm. The short string plays the part of the shortcut. It links the two paths so that all the load has to pass through both springs, the way the shortcut puts every driver on both narrow roads. Cohen and Horowitz also built the electrical version, with resistors and diodes, where removing a wire lets more current through.</p>
+
+  <h2>In real places</h2>
+  <p>Dietrich Braess published the road version in 1968, in a German paper on traffic planning. Since then it has been cited for several real cases. When New York closed 42nd Street for Earth Day in 1990, the expected gridlock did not appear. Seoul tore down an elevated highway over the Cheonggyecheon stream in the 2000s, and traffic in the centre adapted rather than collapsing. Real cities are messier than the diagram: drivers also change when they travel, how they travel, and whether they go at all, so a road closure is never a clean experiment. But planners now take seriously the idea that some roads are worth less than nothing.</p>
+  <p>It turns up beyond roads. In 2012 Dirk Witthaut and Marc Timme showed that adding a transmission line to a power grid can make it less stable, for the same reason: a new link can push more flow onto lines that were already near their limits.</p>
+
+  <p class="credit">Following Dietrich Braess, “Über ein Paradoxon aus der Verkehrsplanung” (1968); Joel E. Cohen and Paul Horowitz, “Paradoxical behaviour of mechanical and electrical networks”, <i>Nature</i> 352 (1991); Tim Roughgarden and Éva Tardos, “How bad is selfish routing?” (2002); Dirk Witthaut and Marc Timme, “Braess’s paradox in oscillator networks, desynchronization and power outage”, <i>New Journal of Physics</i> 14 (2012). The 4,000-driver network is the standard textbook example. The words and diagrams are mine.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
