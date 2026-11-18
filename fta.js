@@ -165,7 +165,12 @@
       diagrams();
       return;
     }
-    if (guest) { load('catalog.js').then(guestBar, guestBar); return; }
+    if (guest) {   // the slim bar instead of the site frame; figures and the next link still work
+      document.documentElement.setAttribute('data-guest', '');
+      load('catalog.js').then(function () { guestBar(); next(); }, guestBar);
+      diagrams();
+      return;
+    }
     frame();
     Promise.all([load('catalog.js'), load('thumbs.js')]).then(function () {
       var cur = document.querySelector('.tabs [aria-current]');

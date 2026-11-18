@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kiddo's Monster Rally | FluidTA</title>
+<meta name="description" content="A 3D monster-truck race for kids where every power-up is earned with a math or reading question, taught the direct-instruction way: my turn, your turn.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" data-guest="kids" defer></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap">
+<style>
+  .rally{--f:Fredoka,"Atkinson Hyperlegible Next",system-ui,sans-serif;--ink:#22203F;--card:#FFF8E7;--red:#FF4D4D;--yellow:#FFD23F;--teal:#2BD4C2;--purple:#7B5CFF;--sh:0 6px 0 rgba(34,32,63,.25);
+    position:relative;height:calc(100dvh - 70px);min-height:480px;margin:10px auto 0;max-width:1200px;border-radius:22px;overflow:hidden;background:#8FD3FF;color:var(--ink);
+    font-family:Fredoka,"Atkinson Hyperlegible Next",system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;color-scheme:light}
+  .rally canvas.gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;padding:16px;text-align:center;overflow:auto;
+    background:linear-gradient(180deg,rgba(143,211,255,.92),rgba(221,243,255,.92))}
+  .rally [hidden]{display:none!important}
+  .scr>:first-child{margin-top:auto} .scr>:last-child{margin-bottom:auto}
+  .scr h1{margin:0;font-size:clamp(34px,8vw,64px);font-weight:700;line-height:1;color:var(--red);text-shadow:0 4px 0 var(--yellow)}
+  .scr h2{margin:0;font-size:clamp(22px,5vw,32px);font-weight:700}
+  .big{appearance:none;border:4px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--ink);font:700 clamp(22px,5vw,30px)/1 var(--f);padding:14px 30px;min-height:64px;box-shadow:var(--sh);cursor:pointer}
+  .big:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(34,32,63,.25)} .big.teal{background:var(--teal)} .big.small{font-size:18px;min-height:48px;padding:8px 18px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+  .stars{font:700 22px/1 var(--f);background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:8px 16px}
+  .garage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:min(900px,100%);align-items:center}
+  @media (max-width:640px){.garage{grid-template-columns:minmax(0,1fr)}}
+  .preview{position:relative;width:100%;aspect-ratio:4/3;max-height:36vh;border-radius:18px;background:radial-gradient(#FFFDF7,#DDF3FF);border:4px solid var(--ink)}
+  .preview canvas{width:100%;height:100%;display:block}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+  .opt b{width:100%;font-size:18px}
+  .sw{appearance:none;width:52px;height:52px;border-radius:14px;border:4px solid var(--ink);cursor:pointer;position:relative;font:700 15px/1 var(--f);background:var(--card);color:var(--ink);padding:0}
+  .sw.wide{width:auto;padding:0 12px}
+  .sw[aria-pressed=true]{outline:5px solid var(--purple);outline-offset:2px}
+  .sw.locked{opacity:.5} .sw.locked::after{content:"⭐" attr(data-cost);position:absolute;right:-8px;top:-10px;font-size:12px;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:2px 4px}
+  .subj{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .subj button{appearance:none;width:min(220px,40vw);aspect-ratio:1;border:5px solid var(--ink);border-radius:26px;background:var(--card);box-shadow:var(--sh);cursor:pointer;font:700 clamp(22px,5vw,30px)/1.1 var(--f);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .subj button span{font-size:clamp(48px,12vw,84px)} .subj small{font-size:15px;font-weight:500;opacity:.8}
+  .hud{position:absolute;inset:0;pointer-events:none}
+  .hud .tl{position:absolute;left:10px;top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .hchip{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:6px 12px;font:700 22px/1 var(--f);box-shadow:var(--sh)}
+  .hchip small{font-size:14px;font-weight:500}
+  .mini{position:absolute;right:10px;top:10px;width:min(120px,26vw);aspect-ratio:1;background:rgba(255,248,231,.85);border:3px solid var(--ink);border-radius:14px}
+  .item{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:96px;height:96px;border-radius:50%;border:5px solid var(--ink);background:var(--card);font-size:48px;pointer-events:auto;box-shadow:var(--sh);cursor:pointer;display:grid;place-items:center}
+  .item:disabled{opacity:.45} .item.ready{animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{50%{transform:translateX(-50%) scale(1.08)}}
+  .steer{position:absolute;bottom:16px;width:min(120px,26vw);height:min(120px,26vw);border-radius:28px;border:5px solid var(--ink);background:rgba(255,248,231,.75);font-size:54px;pointer-events:auto;cursor:pointer;display:grid;place-items:center;touch-action:none}
+  .steer.l{left:14px} .steer.r{right:14px} .steer.on{background:var(--yellow)}
+  .count{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(80px,22vw,180px)/1 var(--f);color:#FFF;text-shadow:0 6px 0 var(--ink);pointer-events:none}
+  .toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);background:var(--card);border:4px solid var(--ink);border-radius:18px;padding:8px 18px;font:700 26px/1.1 var(--f);box-shadow:var(--sh);pointer-events:none;white-space:nowrap}
+  .ask{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(34,32,63,.45);padding:12px}
+  .qcard{background:var(--card);border:5px solid var(--ink);border-radius:26px;box-shadow:var(--sh);padding:16px;width:min(560px,100%);display:flex;flex-direction:column;align-items:center;gap:12px;max-height:100%;overflow:auto}
+  .turn{font:700 22px/1 var(--f);padding:6px 14px;border-radius:999px;background:var(--purple);color:#FFF}
+  .turn.you{background:var(--teal);color:var(--ink)}
+  .show{min-height:110px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;font:700 clamp(40px,11vw,72px)/1 var(--f)}
+  .show .pic{font-size:clamp(70px,18vw,110px)} .show svg{max-width:100%}
+  .choices{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;width:100%}
+  .choices button{appearance:none;flex:0 0 auto;width:min(150px,calc((100% - 24px) / 3));aspect-ratio:1;border:5px solid var(--ink);border-radius:22px;background:#FFF;box-shadow:var(--sh);cursor:pointer;font:700 clamp(34px,9vw,56px)/1 var(--f);color:var(--ink);display:grid;place-items:center;padding:4px}
+  .choices button.pic{font-size:clamp(44px,12vw,72px)}
+  .choices button.hint{background:var(--yellow);animation:pulse2 .8s ease-in-out infinite}
+  .choices button.right{background:var(--teal)} .choices button.wrong{background:#FFC4C4}
+  @keyframes pulse2{50%{transform:scale(1.06)}}
+  .again{appearance:none;border:3px solid var(--ink);border-radius:999px;background:#FFF;font:700 18px/1 var(--f);padding:10px 16px;cursor:pointer;min-height:48px}
+  .topbtns{position:absolute;right:10px;top:10px;display:flex;gap:8px;z-index:3}
+  .round{appearance:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--card);font-size:24px;cursor:pointer;box-shadow:var(--sh)}
+  .hud .quit{position:absolute;left:10px;bottom:auto;top:62px;pointer-events:auto;width:44px;height:44px;font-size:20px}
+  .results ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font:700 22px/1.2 var(--f)}
+  .results li{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:6px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:min(320px,80vw)}
+  .results li.me{background:var(--yellow)}
+  .dot{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid var(--ink)}
+  .gu{margin-top:8px}
+  @media (prefers-reduced-motion:reduce){.item.ready,.choices button.hint{animation:none}}
+</style>
+</head>
+<body data-tab="play">
+<main id="main" class="wrap">
+  <div class="rally" id="rally">
+    <canvas class="gl" id="gl" aria-label="The race track"></canvas>
+
+    <div class="hud" id="hud" hidden>
+      <div class="tl"><span class="hchip" id="place">1<small>st</small></span><span class="hchip" id="lap">Lap 1<small>/3</small></span></div>
+      <canvas class="mini" id="mini" width="240" height="240" aria-hidden="true"></canvas>
+      <button class="round quit" id="quit" aria-label="Back to the garage">🏠</button>
+      <button class="steer l" id="left" aria-label="Steer left">⬅️</button>
+      <button class="steer r" id="right" aria-label="Steer right">➡️</button>
+      <button class="item" id="item" aria-label="Use your power-up" disabled>⭐</button>
+      <div class="count" id="count" hidden></div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+
+    <div class="ask" id="ask" hidden role="dialog" aria-modal="true" aria-labelledby="turn">
+      <div class="qcard">
+        <span class="turn" id="turn">My turn</span>
+        <div class="show" id="show"></div>
+        <div class="choices" id="choices"></div>
+        <button class="again" id="sayagain">🔊 Hear it again</button>
+      </div>
+    </div>
+
+    <section class="scr" id="garage">
+      <h1>Monster Rally</h1>
+      <div class="row"><span class="stars" id="stars">⭐ 0</span><span class="stars" id="trophies">🏆 0</span></div>
+      <div class="garage">
+        <div class="preview"><canvas id="pv" aria-label="Your monster truck"></canvas></div>
+        <div class="opts">
+          <div class="opt" id="o-paint"><b>Paint</b></div>
+          <div class="opt" id="o-wheel"><b>Wheels</b></div>
+          <div class="opt" id="o-decal"><b>Sticker</b></div>
+          <div class="opt" id="o-name"><b>Name</b></div>
+        </div>
+      </div>
+      <button class="big" id="toSubj">Let’s race! 🏁</button>
+    </section>
+
+    <section class="scr" id="subject" hidden>
+      <h2>What will you practise?</h2>
+      <div class="subj">
+        <button id="s-math"><span>➕</span>Math<small id="lv-math"></small></button>
+        <button id="s-reading"><span>🔤</span>Reading<small id="lv-reading"></small></button>
+      </div>
+      <div class="row"><span><b>Rivals:</b></span><span class="opt" id="o-speed"></span></div>
+      <button class="big small" id="back1">⬅ Garage</button>
+    </section>
+
+    <section class="scr" id="results" hidden>
+      <h1 id="r-title">You won!</h1>
+      <div class="results"><ol id="r-list"></ol></div>
+      <div class="row"><span class="stars" id="r-stars">⭐ +0</span><span class="stars" id="r-best"></span></div>
+      <div class="row"><button class="big teal" id="again">Race again</button><button class="big" id="back2">Garage</button></div>
+    </section>
+
+    <section class="scr" id="loading" hidden><h2>Getting the trucks ready…</h2></section>
+
+    <div class="topbtns" id="topbtns"><button class="round" id="mute" aria-label="Sound on or off" aria-pressed="false">🔊</button><button class="round" id="full" aria-label="Full screen">⛶</button></div>
+  </div>
+
+  <article class="article gu">
+    <h2>For grown-ups</h2>
+    <p>Kiddo’s Monster Rally is a three-lap monster-truck race against three computer drivers. The truck drives itself forward; the player steers with the big arrow buttons, the arrow keys, or A and D. Driving on the grass slows you down, and soft walls keep everyone near the track.</p>
+    <p><b>Every power-up is a question.</b> Drive through a star crate and the race stops for one math or reading question. Answer it and you get a power-up: <b>Nitro</b> (a burst of speed), a <b>Mud ball</b> (slows the truck ahead), a <b>Bubble</b> (blocks one mud ball) or a <b>Spring</b> (a big jump). Tap the round button to use it.</p>
+    <p><b>How it teaches.</b> The questions follow direct instruction, the explicit teaching method developed by Siegfried Engelmann. A new skill starts with <i>My turn</i>: the game says and shows the answer. Then <i>Your turn</i>: the child answers. A mistake is corrected at once: the game models the answer, asks the same question again straight away, and asks it once more a couple of questions later. Five right answers in a row on the first try move the child up a level; if more than half of the recent answers are wrong, the game steps back a level. About one question in four reviews a level already mastered, so old skills stay fresh.</p>
+    <p><b>Math</b> runs from counting to 5, through adding and taking away within 10 and adding within 20, to the times tables. <b>Reading</b> runs from letter sounds and first sounds, to reading short words and matching them to pictures, finding a spoken word among look-alikes, and sight words. The letter and word sounds are the same recordings as <a href="/sound-it-out.html">Sound It Out</a>; other prompts use your device’s own voice.</p>
+    <p><b>Saving.</b> Stars, the truck, unlocked paints and stickers, and each subject’s level are kept on this device only, in the browser’s storage. Stars come from first-try answers and from finishing places, and unlock new paints, stickers and wheels in the garage.</p>
+    <p><b>For older or younger players.</b> Set the rivals’ speed on the subject screen. To start a subject at a different level, or to clear everything, use these buttons.</p>
+    <div class="row" style="justify-content:flex-start"><button class="btn" id="g-up">Math level up</button><button class="btn" id="g-down">Math level down</button><button class="btn" id="g-rup">Reading level up</button><button class="btn" id="g-rdown">Reading level down</button><button class="btn" id="g-reset">Clear all progress</button></div>
+    <p id="g-levels" class="credit"></p>
+    <p class="credit">An original game, made for this site. Questions are made fresh in your browser. The words, code and pictures are mine and in the public domain.</p>
+    <a data-next></a>
+  </article>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="/rally/main.js"></script>
+</body>
+</html>

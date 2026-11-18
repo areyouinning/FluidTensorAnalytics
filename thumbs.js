@@ -334,6 +334,13 @@
       for (var r = 0; r < 6; r++) for (var c = 0; c < 10; c++) { var k = r * 10 + c; o += rect(60 + c * 20, 30 + r * 20, 17, 17, k === 0 ? O : B, 3, k < 30 ? 1 : .18); }
       return o + text(160, 168, '100 kg → 50 kg', 16, S);
     },
+    rally: function () { // a monster truck on a winding track, with a star crate
+      var o = line('M-10 170C70 130 40 90 130 86S260 60 330 40', '#D9822B', 34) + line('M-10 170C70 130 40 90 130 86S260 60 330 40', W, 2, .7);
+      o += rect(190, 40, 34, 34, '#FFD23F', 4) + text(207, 66, '★', 24, W);
+      o += rect(92, 92, 82, 34, '#FF4D4D', 8) + rect(112, 72, 40, 26, '#FF4D4D', 6) + rect(118, 77, 28, 12, '#BFE6FF', 3);
+      [[100, 136], [166, 136]].forEach(function (c) { o += dot(c[0], c[1], 21, '#2A2838') + dot(c[0], c[1], 9, '#C9C6D9'); });
+      return o + text(250, 150, '3 + 2 = ?', 20, I);
+    },
     blueeyes: function () { // a ring of faces, four with blue eyes, and a speech bubble
       var o = '', n = 10;
       for (var k = 0; k < n; k++) { var a = -Math.PI / 2 + k * 2 * Math.PI / n, x = 160 + Math.cos(a) * 92, y = 92 + Math.sin(a) * 66, c = k < 4 ? B : '#8a5a33';
