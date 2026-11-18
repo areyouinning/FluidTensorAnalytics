@@ -75,7 +75,7 @@ def patch(html, slug, title, desc, version, card=None, guest=""):
         # fails instead of falling back.
         meta.append('<meta name="twitter:card" content="summary">')
 
-    # the kit's guest bar: the way back to the rest of the site. "kids" gives Paul's pages
+    # the kit's guest bar: the way back to the rest of the site. "kids" gives the kids' pages
     # the gold bar instead of the plain one.
     meta.append('<script src="/fta.js" data-guest%s defer></script>'
                 % ('="kids"' if guest == "kids" else ""))
@@ -106,7 +106,7 @@ def main():
     ap.add_argument("--desc", required=True)
     ap.add_argument("--version", required=True)
     ap.add_argument("--card", default=None, help="share-card image path, e.g. circles-card.png")
-    ap.add_argument("--guest", default="", help="kids = the gold bar, for Paul's pages")
+    ap.add_argument("--guest", default="", help="kids = the gold bar, for the kids' pages")
     a = ap.parse_args()
 
     with open(a.src, encoding="utf-8") as f:
