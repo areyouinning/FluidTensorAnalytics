@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the phonics voice clips for Sound It Out, with ElevenLabs — in a fun-robot voice.
+"""Generate the phonics voice clips for Sound It Out, with ElevenLabs, in the River voice.
 
 We record one clip per grapheme (the building blocks) and the game stitches those into whole words,
-so any word in the family works with no per-word recording. The voice is a clear base (Bella) with a
-light "crunch" robot effect applied by ffmpeg, which suits stitched phonemes: a robot is meant to
-sound a little segmented.
+so any word in the family works with no per-word recording. ffmpeg trims the silence at each end so
+the stitched sounds sit close together.
 
   audio/phonics/sounds/<letter>.mp3   one sound per grapheme, for sounding out (c... a... t)
   audio/phonics/words/<word>.mp3      each whole word, recorded, for the smooth blended "cat!"
@@ -24,15 +23,13 @@ sends a placeholder value. Override the voice/model/effect with the env vars bel
 import json, os, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VOICE = os.environ.get("ELEVEN_VOICE", "EXAVITQu4vr4xnSDxMaL")   # Bella — bright and clear
+VOICE = os.environ.get("ELEVEN_VOICE", "SAz9YHcvj6GT2YYXdXww")   # River
 MODEL = os.environ.get("ELEVEN_MODEL", "eleven_turbo_v2_5")
 FMT = "mp3_44100_128"
-# the fun-robot effect (ffmpeg): a bit-crush for the robot timbre, a flanger for shimmer, a treble lift
-# for clarity — then leading/trailing silence trimmed tight so stitched phonemes blend. Override to taste.
+# clean River, with leading/trailing silence trimmed tight so stitched sounds blend. Override to taste.
 ROBOT = os.environ.get("PHONICS_FX",
-    "acrusher=level_in=1:level_out=1:bits=7:mode=log:aa=1,flanger=delay=3:depth=2:regen=4:speed=0.5,treble=g=3,"
-    "silenceremove=start_periods=1:start_threshold=-42dB:start_silence=0.02,areverse,"
-    "silenceremove=start_periods=1:start_threshold=-42dB:start_silence=0.05,areverse")
+    "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.02,areverse,"
+    "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.05,areverse")
 
 # The short-a word family: real CVC words, no digraphs or r-controlled vowels. Used for the game's trie;
 # the audio is just the per-letter sounds, stitched into these words in the browser.
@@ -83,7 +80,8 @@ def main(argv):
     for lt in letters_used():
         jobs.append(("sound", lt, SOUND_CUE[lt], os.path.join(ROOT, "audio/phonics/sounds", lt + ".mp3")))
     for w in WORDS:
-        jobs.append(("word", w, w, os.path.join(ROOT, "audio/phonics/words", w + ".mp3")))
+        # said as "Cat!": River clips a lone lowercase word and drops its last sound
+        jobs.append(("word", w, w.capitalize() + "!", os.path.join(ROOT, "audio/phonics/words", w + ".mp3")))
     for name, txt in PHRASES.items():
         jobs.append(("phrase", name, txt, os.path.join(ROOT, "audio/phonics/words", "_" + name + ".mp3")))
 
@@ -105,7 +103,7 @@ def main(argv):
                     print(f"  FAILED {name}: {e}", file=sys.stderr); return 1
                 time.sleep(5)
         time.sleep(0.2)
-    manifest = {"voice": VOICE, "model": MODEL, "effect": "bella-crunch-robot",
+    manifest = {"voice": VOICE, "model": MODEL, "effect": "river-clean",
                 "words": WORDS, "letters": letters_used(), "phrases": list(PHRASES)}
     json.dump(manifest, open(os.path.join(ROOT, "audio/phonics/manifest.json"), "w"), indent=0)
     print(f"made {made}, skipped {skipped}. manifest: audio/phonics/manifest.json")
