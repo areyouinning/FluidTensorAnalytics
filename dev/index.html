@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>Private page</title>
+<style>
+:root { --c-orange: #E8730C; --c-ink: #1B1D21; --c-ink-soft: #4A4F57; --c-line: #DCDFE4; --c-paper: #FCFBF9; --c-panel: #FFFFFF; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--c-paper); color: var(--c-ink); font: 16px/1.45 'Segoe UI', system-ui, -apple-system, Arial, sans-serif; }
+form { background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 10px; padding: 20px; width: min(380px, 100%); }
+h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; } p { margin: 0 0 12px; color: var(--c-ink-soft); }
+input[type=password] { width: 100%; font: inherit; padding: 10px; min-height: 44px; border: 1px solid var(--c-line); border-radius: 6px; }
+label { display: flex; gap: 8px; align-items: center; margin: 10px 0; font-size: 14px; color: var(--c-ink-soft); min-height: 28px; }
+button { width: 100%; font: inherit; font-weight: 600; min-height: 44px; border: 0; border-radius: 6px; background: var(--c-orange); color: #fff; cursor: pointer; }
+#m { min-height: 1.4em; margin: 10px 0 0; color: var(--c-ink); }
+:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+</style></head><body>
+<form id="f"><h1>FluidTA dev</h1><p>Unfinished work. Enter the dev password.</p>
+<input id="p" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Password" autofocus>
+<label><input id="s" type="checkbox"> Show the password</label>
+<label><input id="r" type="checkbox"> Remember on this device for 7 days</label>
+<button id="b">Open</button><p id="m" role="status"></p></form>
+<script>
+const SALT='g7UUqu0zoBKSBOLVIW37qg==',IV='91SudMo5YXTjGpSq',DATA='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',ROUNDS=600000,KEEP='private-page-key-fluidta-dev',ZIP=true;
+const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function unzip(buf){const s=new Blob([buf]).stream().pipeThrough(new DecompressionStream('deflate'));return new Uint8Array(await new Response(s).arrayBuffer());}
+async function open(raw){const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);let t=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(IV)},k,bytes(DATA)));if(ZIP)t=await unzip(t);document.open();document.write(new TextDecoder().decode(t));document.close();}
+async function derive(pw){const b=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:bytes(SALT),iterations:ROUNDS},b,256));}
+/* after load: document.open() during parsing would append to this page, not replace it */
+addEventListener('load',async()=>{try{const s=JSON.parse(localStorage.getItem(KEEP)||'null');if(s&&s.until>Date.now()){await open(bytes(s.key));}else if(s){localStorage.removeItem(KEEP);}}catch(e){try{localStorage.removeItem(KEEP);}catch(_){}}});
+document.getElementById('f').addEventListener('submit',async e=>{e.preventDefault();const m=document.getElementById('m'),b=document.getElementById('b');b.disabled=true;m.textContent='Checking.';
+ const keep=document.getElementById('r').checked,typed=document.getElementById('p').value;   /* read before open(), which replaces this page */
+ if(!window.crypto||!crypto.subtle){m.textContent='This browser is blocking the decryption. Open the page at https://fluidta.com/dev/ in a regular browser window.';b.disabled=false;return;}
+ if(ZIP&&!window.DecompressionStream){m.textContent='This browser cannot decompress the page. Try a current Chrome, Safari, Firefox or Edge.';b.disabled=false;return;}
+ /* phones capitalize and swap dashes: also try what was typed, reduced to letters and digits and regrouped in fives */
+ const plain=typed.toLowerCase().replace(/[^a-z0-9]/g,''),tries=[typed.trim()];if(plain.length===20){const g=plain.match(/.{5}/g).join('-');if(g!==tries[0])tries.push(g);}
+ let raw=null;try{for(const t of tries){const r=await derive(t),k=await crypto.subtle.importKey('raw',r,'AES-GCM',false,['decrypt']);try{await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(IV)},k,bytes(DATA));raw=r;break;}catch(err){if(err.name!=='OperationError')throw err;}}}
+ catch(err){m.textContent='Your browser hit a problem while decrypting ('+err.name+'), so this may not be the password. Try a current browser.';b.disabled=false;return;}
+ if(!raw){m.textContent='That password did not match. It is 20 lowercase letters and digits in four groups of five, with hyphens between. Tick Show the password to check what was entered.';b.disabled=false;return;}
+ if(keep){try{localStorage.setItem(KEEP,JSON.stringify({key:btoa(String.fromCharCode(...raw)),until:Date.now()+7*864e5}));}catch(_){}}
+ m.textContent='Opening.';try{await open(raw);}catch(err){m.textContent='The password worked, but the page could not open ('+err.name+').';b.disabled=false;}});
+document.getElementById('s').addEventListener('change',e=>{document.getElementById('p').type=e.target.checked?'text':'password';});
+</script></body></html>
