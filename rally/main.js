@@ -15,21 +15,11 @@ function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d &
 let save = load() || { stars: 0, trophies: 0, races: 0, best: null, look: { paint: PAINTS[0], wheel: 'chunky', decal: 'flames', name: 'Rocket' }, unlocked: { paint: [0, 1, 2, 3], wheel: [0], decal: [0, 1] }, tutor: newState(), speed: 0, muted: false };
 function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 
-// ---- sound: recorded clips and the device voice, played in order ----
-let muted = !!save.muted, voiceGen = 0, actx = null;
-function speakText(text) {
-  return new Promise(res => {
-    const ss = window.speechSynthesis; if (!ss) return setTimeout(res, 500 + 60 * text.length);
-    const u = new SpeechSynthesisUtterance(text); u.rate = .92; u.pitch = 1.1;
-    const t = setTimeout(res, 1200 + 90 * text.length); u.onend = u.onerror = () => { clearTimeout(t); res(); }; ss.speak(u);
-  });
-}
-function playClip(src) { return new Promise(res => { const a = new Audio(src); const t = setTimeout(res, 2500); a.onended = a.onerror = () => { clearTimeout(t); res(); }; a.play().catch(() => { clearTimeout(t); res(); }); }); }
-async function speak(segs) {
-  const me = ++voiceGen; try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
-  for (const s of segs) { if (muted || me !== voiceGen) return; if (s.clip) await playClip(s.clip); else await speakText(s.text); }
-}
-function stopVoice() { voiceGen++; try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+// ---- sound: River's recorded lines and clips, played in order (fta-voice.js) ----
+let muted = !!save.muted, actx = null;
+const V = window.FTAVoice;
+function speak(segs) { if (muted || !V) return Promise.resolve(); return V.seq(segs); }
+function stopVoice() { if (V) V.stop(); }
 function beep(f = 520, d = .12, type = 'square', vol = .06) {
   if (muted) return; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(); o.type = type; o.frequency.value = f; g.gain.value = vol; g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch (e) {}
 }

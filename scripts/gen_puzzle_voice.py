@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record the spoken prompts for Kiddo's Puzzle Box, in the same robot voice as Sound It Out.
+"""Record the spoken prompts for Kiddo's Puzzle Box, in River, the same voice as Sound It Out.
 
 Reuses the recorder in gen_phonics.py (same voice, model and ffmpeg effect; the key is injected by the
 session proxy). Clips go to audio/puzzles/<name>.mp3.
