@@ -169,7 +169,7 @@ export function createRace(canvas, opt) {
       // rubber band: computer drivers ease off when far ahead and push when far behind
       const gap = r.prog - me.prog; r.band = gap > .12 ? .86 : gap < -.12 ? 1.08 : 1;
       if (r.item && Math.random() < dt * .5) use(r);
-    } else st = steer;
+    } else st = -steer;   // the right button turns right as seen from behind (heading angle goes down)
     if (r.spin > 0) { r.spin -= dt; r.th += dt * 9; st = 0; }
     const vtop = (r.nitro > 0 ? VNITRO : onRoad ? VMAX : VGRASS) * (r.cpu ? r.skill * (r.band || 1) : 1);
     const go = (paused || countdown > 0) ? 0 : 1;

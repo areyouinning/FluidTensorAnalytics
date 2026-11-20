@@ -189,6 +189,15 @@
   .tile[aria-pressed="true"]{background:var(--yellow)}
   .go:focus-visible,.round:focus-visible,.tile:focus-visible,.start button:focus-visible{outline:4px solid var(--purple);outline-offset:3px}
 
+  .tmodes{position:absolute;left:12px;top:70px;display:flex;flex-direction:column;gap:8px;z-index:3}
+  .tmodes button{appearance:none;display:flex;align-items:center;gap:6px;border:3px solid var(--ink);background:var(--paper);border-radius:14px;padding:5px 10px 5px 7px;font-family:inherit;font-weight:700;font-size:15px;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(34,32,63,.25);touch-action:manipulation}
+  .tmodes button svg{width:24px;height:24px} .tmodes button[aria-pressed="true"]{background:var(--yellow)} .tmodes button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .tpedals .tsteer{position:absolute;left:12px;bottom:14px;display:flex;gap:12px;z-index:3}
+  .tpedals .tgas{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:3}
+  .tpedals .go{position:static} .tpedals .ttb{padding:0;display:grid;place-items:center;user-select:none;-webkit-user-select:none;touch-action:none} .tpedals .tbtn{touch-action:none;-webkit-touch-callout:none}
+  .tpedals .ttb svg{width:46px;height:46px} .tpedals .tback{width:62px;height:62px;background:var(--card)} .tpedals .tback svg{width:32px;height:32px}
+  .tpedals .ttb.pressed{transform:translateY(3px);box-shadow:0 3px 0 rgba(34,32,63,.25);background:var(--orange)} .tpedals .tback.pressed{background:var(--orange)}
+  .gems.truckhud svg{width:28px;height:28px}
   .navc{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:10px;z-index:3}
   .navc button{appearance:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 4px 0 rgba(34,32,63,.25);touch-action:manipulation}
   .navc button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(34,32,63,.25)} .navc button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
@@ -302,12 +311,13 @@
       <button class="tile" data-g="word" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD HILL</button>
       <button class="tile" data-g="gondola" aria-pressed="false"><canvas width="144" height="108"></canvas>ARGO GONDOLA</button>
       <button class="tile" data-g="rain" aria-pressed="false"><canvas width="144" height="108"></canvas>RAIN TO LAKE</button>
+      <button class="tile" data-g="truck" aria-pressed="false"><canvas width="144" height="108"></canvas>MONSTER TRUCK</button>
       <button class="tile" data-g="tiles" aria-pressed="false"><canvas width="144" height="108"></canvas>TILE TIME</button>
       <button class="tile" data-g="wordtime" aria-pressed="false"><canvas width="144" height="108"></canvas>WORD TIME</button>
     </div>
   </nav>
 
-  <section class="credit" aria-labelledby="grownups-h"><h2 id="grownups-h">For grown-ups</h2><p><b>How it fits together:</b> Rain to the Lake is home. You are the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). The two hill games are played at true size on a real ski slope: Echo Mountain's main run, where the lodge sits at the top by Squaw Pass Road and the run falls about 190 m to the north. A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops.</p><p><b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes.</p><p><b>Marble Hill:</b> press the red button, then touch where the marble should go: the finger pushes the marble sideways (up to 1.9 m/s²). At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The 58 m course lies on the top of Echo Mountain's main run and drops 15 m. Measured: the ground, on a 4 m grid (AWS Terrain Tiles, zoom 15), and where the forest stands (a 10 m Sentinel-2 photo, October 2024). Physics: the marble feels 5/7 · g · sin θ of the real slope under it (between about 10° and 20° here) and the real side slope across it, so it drifts and the player steers against that. Modeled: snow drag, chosen so the marble tops out near 3.4 m/s; the winter snow cover; the course itself.</p><p><b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots.</p><p><b>Word Hill:</b> on the same run as Marble Hill, 25 m to the east, with more snow drag (about 2.3 m/s) to leave time to read. The marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10.</p><p><b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number, so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch.</p><p><b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data) and the photo draped over it (contains modified Copernicus Sentinel data 2024: the median of four nearly cloud-free Sentinel-2 passes from late August to early October 2024, clouds masked, about 31 m per pixel). Drag the ground to move the map, drag the cloud to move the cloud, pinch to zoom, twist to turn, slide two fingers up or down to tilt; the compass turns the map back to north. Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells.</p><p><b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses.</p><p><b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</p><p><b>The voice</b> is River, from ElevenLabs, recorded ahead of time and played from this site; nothing is sent anywhere. A line with a number in it is put together from its recorded parts.</p></section>
+  <section class="credit" aria-labelledby="grownups-h"><h2 id="grownups-h">For grown-ups</h2><p><b>How it fits together:</b> Rain to the Lake is home. You are the rain cloud flying over the real Clear Creek map; holding the blue button rains, which uses the cloud's water. Each game has a land, a signpost at a real place on the map, and is played on the real terrain around that place (at 4 times the map's size, with heights drawn 0.7 times as tall, and the ground under the game levelled into a clearing). The two hill games are played at true size on a real ski slope: Echo Mountain's main run, where the lodge sits at the top by Squaw Pass Road and the run falls about 190 m to the north. A game round's score, plus the Tile Time or Word Time points after it, comes back as raindrops.</p><p><b>Marble Maze:</b> touch the board where the marble should go (or tip the phone, where the browser allows it) and the board tips that way, up to 16°. The marble speeds up at 5/7 · g · sin θ, the same rolling physics as Ramp Race, and bounces off the walls. The goal is the hole with the yellow rim and flag. The plain dark holes sit only in squares off the route to the goal; rolling into one sends the marble back one square behind the furthest point it reached on the route, not to the start. Every maze is a fresh random 8 × 8 grid with six holes.</p><p><b>Marble Hill:</b> press the red button, then touch where the marble should go: the finger pushes the marble sideways (up to 1.9 m/s²). At each of six gates one lane is blocked by a road barrier that bounces the marble back up the hill, one has some gems and one has at least two more. The 58 m course lies on the top of Echo Mountain's main run and drops 15 m. Measured: the ground, on a 4 m grid (AWS Terrain Tiles, zoom 15), and where the forest stands (a 10 m Sentinel-2 photo, October 2024). Physics: the marble feels 5/7 · g · sin θ of the real slope under it (between about 10° and 20° here) and the real side slope across it, so it drifts and the player steers against that. Modeled: snow drag, chosen so the marble tops out near 3.4 m/s; the winter snow cover; the course itself.</p><p><b>Big Launch:</b> in 3D, seen from behind the slingshot. Drag back to pull: the pull length sets the speed (up to 10.6 m/s) and pulling sideways aims the other way, up to 40° left or right; the ▲ ▼ buttons set the launch angle in 5° steps. The ball leaves the sling at bucket-rim height, so release and landing heights match and the range is v² · sin 2θ / g, longest at 45°. The buckets sit at different distances and directions; the far one needs close to full pull near 45°. The last three flight paths stay on screen as dots.</p><p><b>Word Hill:</b> on the same run as Marble Hill, 25 m to the east, with more snow drag (about 2.3 m/s) to leave time to read. The marble rolls through gates of letter blocks to spell a short sentence. Wrong letters bounce it back; an empty lane leaves that character out. Each correctly spelled word scores its letter count, and a capital first letter, every space, the period and every word right add a super bonus of 10.</p><p><b>Tile Time:</b> after a round (taking turns with Word Time) the score becomes the target; × adds a block of rows × columns and + adds one tile. Every tile sits on a 10 × 10 multiplication grid, numbered along its sides, row by row at the width of the first block, and covered squares light up; after a win the tiles slide into the best way to make the number, so 21 can be 5 × 4 + 1. Points: each × block earns a point for every tile it makes, and every addition (each + tile, and each block joined onto what is already there) costs a point, so the most points always means the least adding. After a win, an explainer lists the ways to make the number with the fewest additions, found by checking every block up to 10 × 10. Scores: gems on Marble Hill, points on Word Hill, squares on the maze route, the winning ramp's angle, and the three bucket distances added up on Big Launch.</p><p><b>Rain to the Lake:</b> real terrain from the Continental Divide and Mount Blue Sky down Clear Creek through Idaho Springs and Golden to Standley Lake, heights drawn 2.5× taller. Hold the cloud to make rain. Each drop's temperature comes from the thermometer (Golden's height) minus 6.5 °C per km of height: at 0.5 °C or colder it lands as snow, otherwise it runs downhill along computed flow paths. Warmth melts snow in proportion to temperature. Time is sped up, and the canal from Clear Creek to the lake is simplified. The flood is a simple bathtub estimate, not a hydraulic model: when more drops pass the gauge in Golden than the channel holds (170 a second, averaged over about 4 seconds), low ground beside Clear Creek near Golden fills to a stage of up to 8 m above the channel, and drains more slowly than it rises. Measured: the terrain (AWS Terrain Tiles, built from USGS 3DEP and other public elevation data) and the photo draped over it (contains modified Copernicus Sentinel data 2024: the median of four nearly cloud-free Sentinel-2 passes from late August to early October 2024, clouds masked, about 31 m per pixel). Drag the ground to move the map, drag the cloud to move the cloud, pinch to zoom, twist to turn, slide two fingers up or down to tilt; the compass turns the map back to north. Modeled: flow paths, snow line, melt, flood. Heights on a 240 × 146 grid of about 270 m cells.</p><p><b>Monster Truck:</b> drive a monster truck on the same Clear Creek map. Hold the red button (or ↑, W or Space) to drive, the arrow buttons (or ← → / A D) to turn, and the small button (or ↓ / S) to back up; touching the map also drives, turning toward the side you touch, and the phone-tip setting steers by tipping. Right always turns right as seen from behind the truck. Challenge mode: a yellow arrow points to the nearest sign not yet played, and driving into a sign plays that game; when the round is done you come back to the truck beside the sign, and the counter shows how many of the signs are done. Free drive: no games start, just driving. The truck slows going uphill and speeds up going down, using the real slope. A dirt road follows Clear Creek from Georgetown to Golden and the canal to Standley Lake. Purple pads give a short boost; holding a hard turn at speed builds sparks, and straightening out gives a boost (blue after about 1 second, orange and longer after about 2). Gift boxes give one surprise: a rocket boost, monster wheels for 7 seconds (bigger and better at climbing), or 3 raindrops saved for the cloud. Raindrops earned while driving go into the cloud the next time you visit Rain to the Lake. The map edge bounces the truck back.</p><p><b>Word Time:</b> spell the picture by tapping letter blocks in order; one word for each point from the last game, up to three. A word with no misses scores its letter count, a word with misses scores 1; after two misses on a letter, the right one pulses.</p><p><b>Ramp Race:</b> drag a ramp's knob to set its slope, tap a ball to swap big and small, press the red button. The steeper ramp always wins, and ball size makes no difference.</p><p><b>The voice</b> is River, from ElevenLabs, recorded ahead of time and played from this site; nothing is sent anywhere. A line with a number in it is put together from its recorded parts.</p></section>
   <a data-next></a>
 </main>
 
@@ -1527,7 +1537,7 @@
       speak(line);
       clearTimeout(backT); backT=setTimeout(next,16000);
     }
-    function next(){ clearTimeout(backT); ex.hidden=true; aimCamera(false); if(cur!==api) return; if(from==="rain"){ hubBank.pending+=Math.max(0,pts); hubBank.parts.push({k:"tiles",n:Math.max(0,Math.floor(pts))}); } if(from) select(from); else start(4+Math.floor(Math.random()*27),null); }
+    function next(){ clearTimeout(backT); ex.hidden=true; aimCamera(false); if(cur!==api) return; if(from==="rain"||from==="truck"){ hubBank.pending+=Math.max(0,pts); hubBank.parts.push({k:"tiles",n:Math.max(0,Math.floor(pts))}); } if(from) select(from); else start(4+Math.floor(Math.random()*27),null); }
     function start(n,back){ clearTimeout(backT); ex.hidden=true; groups.forEach(function(g){ g.meshes.forEach(function(m){ root.remove(m); }); g.labels.forEach(function(s){ root.remove(s); }); }); groups=[]; target=n; from=back; won=false; pts=START_PTS;
       bar.querySelector("#ttEq").classList.remove("win"); layout(); aimCamera(false); cam.dist=cam.distWant; paint(); gp.hidden=true; }
     btns.querySelector("#ttPlus").addEventListener("click",function(){ touchedTiles(); gp.hidden=true; add(1,1,true); });
@@ -1611,7 +1621,7 @@
       }
     }
     function finish(){ paintDots(); S.tada(); confetti(W/2,H/3); speak("You spelled "+nWords+(nWords===1?" word":" words")+"! "+pts+" points!");
-      nextT=setTimeout(function(){ if(cur!==api) return; if(from==="rain"){ hubBank.pending+=pts; hubBank.parts.push({k:"wordtime",n:pts}); } if(from) select(from); else start(3,null); },3800); }
+      nextT=setTimeout(function(){ if(cur!==api) return; if(from==="rain"||from==="truck"){ hubBank.pending+=pts; hubBank.parts.push({k:"wordtime",n:pts}); } if(from) select(from); else start(3,null); },3800); }
     function start(n,back){ clearTimeout(nextT); from=back; nWords=Math.max(1,Math.min(3,n)); wi=0; pts=0; hudN.textContent="0"; newWord(); }
     function frame(dt){ clock+=dt; slots.forEach(function(s,i){ if(s.pop>0){ s.pop=Math.max(0,s.pop-dt*3); s.g.position.y=BW/2+Math.sin(s.pop*Math.PI)*0.35; s.g.rotation.y=(1-s.pop)*Math.PI*2*(s.pop>0?1:0); } }); setRumble(0); }
     var api={
@@ -1631,9 +1641,9 @@
   })();
   // the game lands on the Clear Creek map; each game is played on the real terrain around its land
   var LANDS={maze:{lat:39.755,lon:-105.215,foot:6},ramp:{lat:39.64,lon:-105.33,foot:9},launch:{lat:39.80,lon:-105.085,foot:13},hill:{lat:39.6852,lon:-105.5199,dx:-1},word:{lat:39.6852,lon:-105.5199,dx:1},tiles:{lat:39.872,lon:-105.155,foot:7},wordtime:{lat:39.85,lon:-105.42,foot:5},gondola:{lat:39.7447,lon:-105.5131,foot:6}};   // Golden, Evergreen foothills, Arvada, Echo Mountain ski area (both hills, one signpost), Standley Lake, northern foothills
-  var hubBank={pending:0,parts:[]}, backdrop=null, backdrops={};
-  var PLACE={rain:"Home: Clear Creek",maze:"Golden",ramp:"Evergreen foothills",hill:"Echo Mountain",word:"Echo Mountain",launch:"Arvada",tiles:"Standley Lake",wordtime:"Northern foothills",gondola:"Idaho Springs"};
-  var TITLE={rain:"Rain to the Lake",maze:"Marble Maze",ramp:"Ramp Race",hill:"Marble Hill",word:"Word Hill",launch:"Big Launch",tiles:"Tile Time",wordtime:"Word Time",gondola:"Argo Gondola"};
+  var hubBank={pending:0,parts:[]}, backdrop=null, backdrops={}, hubHome="rain";   // home is the cloud or the monster truck, whichever you came from
+  var PLACE={rain:"Home: Clear Creek",truck:"All over Clear Creek",maze:"Golden",ramp:"Evergreen foothills",hill:"Echo Mountain",word:"Echo Mountain",launch:"Arvada",tiles:"Standley Lake",wordtime:"Northern foothills",gondola:"Idaho Springs"};
+  var TITLE={rain:"Rain to the Lake",truck:"Monster Truck",maze:"Marble Maze",ramp:"Ramp Race",hill:"Marble Hill",word:"Word Hill",launch:"Big Launch",tiles:"Tile Time",wordtime:"Word Time",gondola:"Argo Gondola"};
   var SAT={w:2048,h:1024,bbox:[-105.80,39.55,-105.05,39.90]};   // clear-creek-sat.jpg covers the map's box exactly
   function photoBg(el,name,size){ var L=LANDS[name]; if(!L){ el.style.backgroundSize="cover"; el.style.backgroundPosition="center"; return; }   // a crop of the satellite photo about 7 km across, centred on the place
     var b=SAT.bbox, x=(L.lon-b[0])/(b[2]-b[0])*SAT.w, y=(b[3]-L.lat)/(b[3]-b[1])*SAT.h, r=110, k=size/(2*r);
@@ -1656,7 +1666,7 @@
   function afterRound(score,from){ // after a round: Tile Time and Word Time take turns, using the score
     if(demo.active||!started||!(score>0)) return false; var go=interlude; interlude=go==="tiles"?"wordtime":"tiles";
     hubBank.pending+=score; hubBank.parts.push({k:from,n:score});   // the round's score comes back to the cloud as raindrops
-    setTimeout(function(){ if(cur!==GAMES[from]) return; select(go); seen[go]=true; GAMES[go].start(score,"rain"); },2600);
+    setTimeout(function(){ if(cur!==GAMES[from]) return; select(go); seen[go]=true; GAMES[go].start(score,hubHome); },2600);
     return true;
   }
 
@@ -1718,7 +1728,7 @@
     function loadGround(){
       if(ground||loading) return; loading=true; failed=false; msg.hidden=true;
       fetch("clear-creek-ground.json").then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(unpack)
-        .then(function(g){ ground=g; build(); loading=false; if(cur===api){ api.enter(); if(!seen.rain&&started) runDemo("intro"); } })
+        .then(function(g){ ground=g; build(); loading=false; if(cur===api){ api.enter(); if(!seen.rain&&started) runDemo("intro"); } else if(cur&&cur.onGround) cur.onGround(); })
         .catch(function(e){ loading=false; failed=true; msg.textContent="The map of Clear Creek did not load ("+e.message+"). Check the connection and pick this game again."; msg.hidden=cur!==api; });
     }
     function unpack(g){ // the map arrives compressed: row-by-row height differences (m) and flow directions
@@ -1785,6 +1795,10 @@
       // the canal is one flat ribbon (one draw call instead of one box per segment)
       var rv=[], ri=[], dir=new THREE.Vector3(B.x-A.x,0,B.z-A.z).normalize(), sx=-dir.z*0.08, sz=dir.x*0.08; for(s=0;s<=N;s++){ var q=pts[s]; rv.push(q.x-sx,q.y+0.03,q.z-sz, q.x+sx,q.y+0.03,q.z+sz); if(s<N) ri.push(2*s,2*s+1,2*s+2, 2*s+1,2*s+3,2*s+2); }
       var rg=new THREE.BufferGeometry(); rg.setAttribute("position",new THREE.Float32BufferAttribute(rv,3)); rg.setIndex(ri); root.add(new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:"#2E86E0",side:THREE.DoubleSide})));
+      // the creek road for the monster truck: Clear Creek from Georgetown down to the headgate, then beside the canal to the lake (smoothed)
+      var rc=[], gc0=cellOf(39.7061,-105.6975), guard=0; c=gc0; while(c>=0&&guard++<3000){ rc.push(wpos(c)); if(c===headgate||c%GW>=colOf(-105.19)) break; c=next(c); }
+      rc=rc.concat(canal.slice(1)); var sm=rc.map(function(q,k){ var x=0,z=0,nn=0; for(var o=-3;o<=3;o++){ var r2=rc[clamp(k+o,0,rc.length-1)]; x+=r2.x; z+=r2.z; nn++; } return {x:x/nn,z:z/nn}; });
+      road=[sm[0]]; for(var ri2=1;ri2<sm.length;ri2++){ var L0=road[road.length-1], dx=sm[ri2].x-L0.x, dz=sm[ri2].z-L0.z, dd=Math.hypot(dx,dz); for(var u=0.2;u<=dd;u+=0.2) road.push({x:L0.x+dx*u/dd,z:L0.z+dz*u/dd}); }
       root.add(waterPts); root.add(dropPts); root.add(snowPts); root.add(cloud); root.add(cshadow);
       Object.keys(LANDS).forEach(function(name){ var L=LANDS[name], c2=cellOf(L.lat,L.lon), base=wpos(c2), src=document.querySelector('.tile[data-g="'+name+'"] canvas'); if(!src) return;
         var cv=document.createElement("canvas"); cv.width=176; cv.height=140; var tex=new THREE.CanvasTexture(cv);
@@ -1793,7 +1807,9 @@
         var pad=blob(0.25); pad.scale.setScalar(0.9); pad.position.set(base.x,base.y+0.05,base.z); root.add(pad);
         markers.push({name:name,sp:sp,base:base,dx:L.dx||0}); });
     }
-    var lakeMesh=null, lakeRim=null, signs=[];
+    var lakeMesh=null, lakeRim=null, signs=[], road=[];
+    function hAt(x,z){ var fi=clamp(x/CELL+(GW-1)/2,0,GW-1.001), fj=clamp(z/CELL+(GH-1)/2,0,GH-1.001), i=Math.floor(fi), j=Math.floor(fj), fx=fi-i, fz=fj-j, c=j*GW+i, h00=Y[c], h10=Y[c+1], h01=Y[c+GW], h11=Y[c+GW+1];   // exactly on the drawn triangles
+      return fx+fz<=1?h00+(h10-h00)*fx+(h01-h00)*fz:h11+(h01-h11)*(1-fx)+(h10-h11)*(1-fz); }
     // a signpost is a place card: the satellite photo of the spot, with the game's picture in a white badge
     function rr(g,x,y,w,h,r){ g.beginPath(); if(g.roundRect) g.roundRect(x,y,w,h,r); else g.rect(x,y,w,h); }
     function drawSign(sg){ var g=sg.cv.getContext("2d"), img=satMat.uniforms.map.value.image, b=SAT.bbox, L=sg.L; g.clearRect(0,0,176,140);
@@ -1974,6 +1990,13 @@
           setTimeout(function(){ speak("You earned "+got+" raindrops! Fly over the mountains and hold the rain button."); },400); } },
       exit:function(){ raining=false; wantRain=false; fly=null; ptrs={}; gmode=null; sky.visible=false; pcard.hidden=true; reward.hidden=true; hazeU.value=FOG.color.value; nav.hidden=true; credit.hidden=true; hud.hidden=true; wx.hidden=true; wchip.hidden=true; rainBtn.hidden=true; msg.hidden=true; setRumble(0); },
       ready:function(){ return !!(ground&&mesh); }, landPoint:function(lat,lon){ return wpos(cellOf(lat,lon)); },
+      // for the monster truck, which drives on this same map
+      ensure:function(){ if(!ground) loadGround(); }, heightAt:function(x,z){ return hAt(x,z); }, half:function(){ return {w:(GW-1)/2*CELL,d:(GH-1)/2*CELL}; },
+      signs:function(){ return markers; }, road:function(){ return road; },
+      scenery:function(on){ sky.visible=on; hazeU.value=on?HAZE:FOG.color.value; credit.hidden=!(on&&ground); dropPts.visible=snowPts.visible=!on; pcard.hidden=true; },
+      ambient:function(dt){ if(!ground) return; sky.position.copy(camera.position); if(texFade){ texMix.value=Math.min(1,texMix.value+dt/0.8); if(texMix.value>=1) texFade=false; }
+        markers.forEach(function(m){ var d=camera.position.distanceTo(root.localToWorld(m.sp.position.clone())), k=clamp(d*0.085,1.1,4.2)*(m.big||1); m.sp.scale.set(k*1.265,k,1); m.sp.position.x=m.base.x+m.dx*k*0.68; });
+        colT+=dt; if(snowDirty&&colT>0.3){ colT=0; paintSnow(); } },
       // the map at true scale (metres, no height stretch) around a point, for games played on real ground; the photo is draped, winter snow up high
       makeTrueBackdrop:function(lat,lon,R,hole){ var b=ground.bbox, fi=(lon-b[0])/(b[2]-b[0])*(GW-1), fj=(b[3]-lat)/(b[3]-b[1])*(GH-1), cx=ground.cell_m[0], cz=ground.cell_m[1];
         var i0=Math.max(0,Math.floor(fi-R/cx)), i1=Math.min(GW-1,Math.ceil(fi+R/cx)), j0=Math.max(0,Math.floor(fj-R/cz)), j1=Math.min(GH-1,Math.ceil(fj+R/cz)), nw=i1-i0+1, nh=j1-j0+1;
@@ -2115,7 +2138,174 @@
     return api;
   })();
 
-  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,tiles:tilesG,wordtime:wordT,gondola:gondola}, cur=null, seen={};
+  // =====================================================================
+  // MONSTER TRUCK — drive on the real Clear Creek map. Challenge mode: drive into a game's sign to play it.
+  // Free drive: just drive. Hold a hard turn at speed to drift; letting go gives a boost (blue, then orange for longer).
+  // Purple pads boost, gift boxes give a surprise. Steering: right turns right, from behind the truck.
+  // =====================================================================
+  var truck=(function(){
+    var root=rain.root, world=new THREE.Group(); world.visible=false; root.add(world);
+    var VMAX=5.2, ACC=7, GRAV=4.2, TURN=2.3, R=0.2;
+    var st={x:0,z:0,th:-Math.PI/2,v:0,px:0,pz:0,pth:-Math.PI/2,y:0,py:0}, inp={gas:0,rev:false,steer:0}, keys={}, btn={l:false,r:false,g:false,b:false}, drag=null, auto=null;
+    var drift={t:0,dir:0}, boostT=0, bigT=0, camTh=-Math.PI/2, camE=0.42, built=false, placed=false, mode=load("pgg.truckMode","challenge"), done={}, pads=[], gifts=[], arrowTo=null, returnFrom=null, armed=true, spin=0, said={};
+    // the truck: Truck Lab's colours, toon outlines
+    var body=new THREE.Group(), chassis=new THREE.Group(); body.add(chassis); world.add(body);
+    var cab=box(0.62,0.26,0.86,C.red); cab.position.set(0,0.52,0); chassis.add(cab);
+    var top=box(0.5,0.22,0.4,C.red); top.position.set(0,0.76,-0.06); chassis.add(top);
+    var win=box(0.44,0.13,0.04,C.sky); win.position.set(0,0.76,0.15); chassis.add(win);
+    var bar=box(0.66,0.07,0.07,C.yellow); bar.position.set(0,0.42,0.46); chassis.add(bar);
+    var bar2=bar.clone(); bar2.position.z=-0.46; chassis.add(bar2);
+    var stripe=box(0.64,0.06,0.88,C.yellow); stripe.position.set(0,0.56,0); chassis.add(stripe);
+    [[-0.12,0.44],[0.12,0.44]].forEach(function(q){ var l=sphere(0.045,C.yellow,1); l.position.set(q[0],0.56,q[1]); chassis.add(l); });
+    var wheels=[]; [[-0.37,0.3],[0.37,0.3],[-0.37,-0.3],[0.37,-0.3]].forEach(function(q){ var w=new THREE.Group(), t=disk(R,0.18,C.ink), h=disk(0.09,0.2,C.paper); t.add(h); t.rotation.z=Math.PI/2; w.add(t); w.position.set(q[0],R,q[1]); body.add(w); wheels.push(w); });
+    var flames=[]; [-0.14,0.14].forEach(function(x){ var f=cone(0.07,0.3,C.orange); f.rotation.x=-Math.PI/2; f.position.set(x,0.46,-0.6); f.visible=false; chassis.add(f); flames.push(f); });
+    var sparkMat=new THREE.MeshBasicMaterial({color:"#4AA8FF"}), sparks=[]; [-0.37,0.37].forEach(function(x){ var m=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,6),sparkMat); m.position.set(x,0.08,-0.42); m.visible=false; body.add(m); sparks.push(m); });
+    var shadow=blob(0.25); shadow.scale.set(0.55,0.7,1); world.add(shadow);
+    var arrow=new THREE.Group(), ac2=cone(0.16,0.4,C.yellow); ac2.rotation.x=Math.PI/2; ac2.position.z=0.2; arrow.add(ac2); var as=box(0.1,0.06,0.3,C.yellow); as.position.z=-0.08; arrow.add(as); world.add(arrow);
+    // HUD
+    var hud=el("gems truckhud"); hud.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22V3" stroke="#22203F" stroke-width="2.4" stroke-linecap="round"/><path d="M6 4h13l-3 4 3 4H6z" fill="#FF4D4D" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg><span>0 / 7</span>'; hud.hidden=true;
+    var hudN=hud.querySelector("span");
+    var modes=document.createElement("div"); modes.className="tmodes"; modes.hidden=true; stageEl.appendChild(modes);
+    modes.innerHTML='<button id="tmChal" aria-label="Challenge mode: drive to a sign to play its game"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22V3" stroke="#22203F" stroke-width="2.4" stroke-linecap="round"/><path d="M6 4h13l-3 4 3 4H6z" fill="#FF4D4D" stroke="#22203F" stroke-width="2" stroke-linejoin="round"/></svg>CHALLENGE</button>'+
+      '<button id="tmFree" aria-label="Free drive: just drive"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#22203F" stroke-width="2.6"/><circle cx="12" cy="12" r="2.6" fill="#22203F"/><path d="M3.5 11h6M14.5 11h6M12 14.6V21" stroke="#22203F" stroke-width="2.6" stroke-linecap="round"/></svg>FREE DRIVE</button>';
+    var bChal=modes.querySelector("#tmChal"), bFree=modes.querySelector("#tmFree");
+    var pedals=document.createElement("div"); pedals.className="tpedals"; pedals.hidden=true; stageEl.appendChild(pedals);
+    var ARW=function(d){ return '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="'+(d<0?"M26 6 L10 20 L26 34 Z":"M14 6 L30 20 L14 34 Z")+'" fill="#FFFDF7" stroke="#22203F" stroke-width="3.6" stroke-linejoin="round"/></svg>'; };
+    pedals.innerHTML='<div class="tsteer"><button class="ttb tbtn" data-k="l" aria-label="Turn left">'+ARW(-1)+'</button><button class="ttb tbtn" data-k="r" aria-label="Turn right">'+ARW(1)+'</button></div>'+
+      '<div class="tgas"><button class="ttb tbtn tback" data-k="b" aria-label="Back up"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 32V10M10 20l10-10 10 10" fill="none" stroke="#22203F" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 20 20)"/></svg></button>'+
+      '<button class="go tbtn tgo" data-k="g" aria-label="Drive"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 4 L36 20 L8 36 Z" fill="#fff" stroke="#22203F" stroke-width="4" stroke-linejoin="round"/></svg></button></div>';
+    [].forEach.call(pedals.querySelectorAll(".tbtn"),function(b){ var k=b.dataset.k;
+      function on(ev){ ev.preventDefault(); if(!started) return; lastTouch=now(); cancelDemo(); btn[k]=true; b.classList.add("pressed"); try{ b.setPointerCapture(ev.pointerId); }catch(e){} }
+      function off(){ btn[k]=false; b.classList.remove("pressed"); }
+      b.addEventListener("pointerdown",on); ["pointerup","pointercancel","lostpointercapture"].forEach(function(e){ b.addEventListener(e,off); });
+      b.addEventListener("contextmenu",function(ev){ ev.preventDefault(); }); });
+    function paintMode(){ bChal.setAttribute("aria-pressed",mode==="challenge"?"true":"false"); bFree.setAttribute("aria-pressed",mode==="free"?"true":"false"); hud.hidden=mode!=="challenge"||!rain.ready(); paintDone(); }
+    function setMode(m){ if(m===mode) return; mode=m; save("pgg.truckMode",m); paintMode(); S.click(); speak(m==="free"?"Free drive! Go anywhere you like.":"Challenge! Drive to a sign to play its game."); }
+    bChal.addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setMode("challenge"); });
+    bFree.addEventListener("click",function(){ lastTouch=now(); cancelDemo(); setMode("free"); });
+    function signs(){ return rain.signs(); }
+    function spot(m){ return {x:m.base.x+(m.dx||0)*0.9,z:m.base.z}; }   // two signs can share a place (Echo Mountain): each has its own side
+    function paintDone(){ var n=signs().filter(function(m){ return done[m.name]; }).length; hudN.textContent=n+" / "+(signs().length||7); }
+    // the track furniture: the creek road, boost pads, gift boxes
+    function buildWorld(){
+      if(built||!rain.ready()) return; built=true; var road=rain.road(), H2=rain.heightAt;
+      var rv=[], ri=[], N=road.length; for(var k=0;k<N;k++){ var a=road[Math.max(0,k-1)], b=road[Math.min(N-1,k+1)], dx=b.x-a.x, dz=b.z-a.z, d=Math.hypot(dx,dz)||1, sx=-dz/d*0.3, sz=dx/d*0.3, q=road[k];
+        rv.push(q.x-sx,H2(q.x-sx,q.z-sz)+0.045,q.z-sz, q.x+sx,H2(q.x+sx,q.z+sz)+0.045,q.z+sz); if(k<N-1) ri.push(2*k,2*k+1,2*k+2, 2*k+1,2*k+3,2*k+2); }
+      var rg=new THREE.BufferGeometry(); rg.setAttribute("position",new THREE.Float32BufferAttribute(rv,3)); rg.setIndex(ri);
+      world.add(new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:"#C9A36A",side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3})));
+      var cv=document.createElement("canvas"); cv.width=cv.height=64; var g=cv.getContext("2d"); g.fillStyle=C.purple; g.fillRect(0,0,64,64); g.strokeStyle=C.yellow; g.lineWidth=9; g.lineJoin="round";
+      [10,34].forEach(function(y){ g.beginPath(); g.moveTo(14,y+22); g.lineTo(32,y); g.lineTo(50,y+22); g.stroke(); });
+      var padMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),polygonOffset:true,polygonOffsetFactor:-5});
+      for(k=40;k<N-20;k+=26){ var p0=road[k], p1=road[k+1], pg=new THREE.Mesh(new THREE.PlaneGeometry(0.56,0.56),padMat); pg.rotation.x=-Math.PI/2;
+        var holder=new THREE.Group(); holder.add(pg); holder.position.set(p0.x,H2(p0.x,p0.z)+0.06,p0.z); holder.rotation.y=Math.atan2(p1.x-p0.x,p1.z-p0.z)+Math.PI; world.add(holder); pads.push({x:p0.x,z:p0.z,t:0,m:holder}); }
+      for(k=53;k<N-20;k+=52){ var q2=road[k], q3=road[k+1], dx2=q3.x-q2.x, dz2=q3.z-q2.z, dd2=Math.hypot(dx2,dz2)||1, side=(gifts.length%2?1:-1)*0.18;
+        var gx=q2.x-dz2/dd2*side, gz=q2.z+dx2/dd2*side, gb=new THREE.Group(), cube=box(0.34,0.34,0.34,C.teal), rib=box(0.36,0.36,0.08,C.yellow), rib2=box(0.08,0.36,0.36,C.yellow), bow=sphere(0.07,C.yellow,1);
+        bow.position.y=0.2; gb.add(cube); gb.add(rib); gb.add(rib2); gb.add(bow); gb.position.set(gx,H2(gx,gz)+0.42,gz); world.add(gb); gifts.push({x:gx,z:gz,y:gb.position.y,m:gb,away:0}); }
+    }
+    function startAt(){ var s0=rain.landPoint(39.762,-105.165); st.x=st.px=s0.x; st.z=st.pz=s0.z; st.th=st.pth=camTh=-Math.PI/2; st.v=0; st.y=st.py=rain.heightAt(st.x,st.z); placed=true; }
+    function fwd(th){ return {x:Math.sin(th),z:Math.cos(th)}; }
+    function nextSign(){ var best=null, bd=1e9; signs().forEach(function(m){ if(done[m.name]) return; var q=spot(m), d=Math.hypot(q.x-st.x,q.z-st.z); if(d<bd){ bd=d; best=m; } }); return best; }
+    function readInput(){
+      if(auto){ var t=nextSign()||signs()[0]; if(!t){ inp.gas=0; inp.steer=0; return; } var tq=spot(t), want=Math.atan2(tq.x-st.x,tq.z-st.z), d=want-st.th; while(d>Math.PI) d-=Math.PI*2; while(d<-Math.PI) d+=Math.PI*2;
+        inp.gas=1; inp.rev=false; inp.steer=clamp(-d*2,-1,1); return; }   // the truck turns right when th goes down
+      var s=0, g=0, rv=false;
+      if(btn.l||keys.l) s-=1; if(btn.r||keys.r) s+=1; if(btn.g||keys.g) g=1; if(btn.b||keys.b) rv=true;
+      if(drag){ g=1; s=clamp((drag.x-W/2)/(W*0.28),-1,1); }
+      var tv=tiltVec(); if(tv&&!btn.l&&!btn.r&&!keys.l&&!keys.r&&!drag) s=clamp(tv.x*1.3,-1,1);
+      inp.gas=g; inp.rev=rv&&!g; inp.steer=s;
+    }
+    function step(){
+      if(!rain.ready()||!placed) return; readInput(); var H2=rain.heightAt, f=fwd(st.th), big=bigT>0?1:0;
+      st.px=st.x; st.pz=st.z; st.pth=st.th; st.py=st.y;
+      var slope=clamp((H2(st.x+f.x*0.35,st.z+f.z*0.35)-H2(st.x-f.x*0.35,st.z-f.z*0.35))/0.7,-1.6,1.6);
+      var vmax=VMAX*(big?1.12:1)+(boostT>0?3.6:0), a=inp.gas*ACC*(boostT>0?1.6:1)-(inp.rev?(st.v>0?9:4):0)-GRAV*slope*(big?0.6:1);
+      if(!inp.gas&&!inp.rev) a-=st.v*1.4;
+      st.v+=a*DT; if(st.v>vmax) st.v-=(st.v-vmax)*Math.min(1,4*DT); st.v=clamp(st.v,-2.2,vmax+1.5);
+      // steering: right input turns right as seen from behind (heading angle goes down)
+      var grip=clamp(Math.abs(st.v)/1.6,0,1), dr=drift.t>0.25?1.3:1;
+      st.th-=inp.steer*TURN*dr*grip*Math.sign(st.v||1)*DT;
+      // drift: a hard turn held at speed charges sparks; straightening out lets the boost go
+      if(Math.abs(inp.steer)>0.6&&st.v>3.2&&inp.gas&&(drift.dir===0||drift.dir===Math.sign(inp.steer))){ drift.dir=Math.sign(inp.steer); drift.t+=DT; }
+      else if(drift.t>0){ if(drift.t>1.8) giveBoost(1.3,"orange"); else if(drift.t>0.8) giveBoost(0.7,"blue"); drift.t=0; drift.dir=0; }
+      if(boostT>0) boostT-=DT; if(bigT>0) bigT-=DT;
+      st.x+=Math.sin(st.th)*st.v*DT; st.z+=Math.cos(st.th)*st.v*DT;
+      var hf=rain.half(), m2=0.6; if(Math.abs(st.x)>hf.w-m2||Math.abs(st.z)>hf.d-m2){ st.x=clamp(st.x,-hf.w+m2,hf.w-m2); st.z=clamp(st.z,-hf.d+m2,hf.d-m2); st.v*=-0.3; S.boing(1.2); }   // the map's edge bounces you back
+      st.y=H2(st.x,st.z);
+      pads.forEach(function(p){ if(p.t>0){ p.t-=DT; return; } if(Math.hypot(p.x-st.x,p.z-st.z)<0.5){ p.t=1; giveBoost(1.0,"pad"); } });
+      gifts.forEach(function(gf){ if(gf.away>0){ gf.away-=DT; if(gf.away<=0) gf.m.visible=true; return; } if(Math.hypot(gf.x-st.x,gf.z-st.z)<0.55){ gf.away=8; gf.m.visible=false; surprise(); } });
+      checkSigns();
+    }
+    function giveBoost(t,kind){ boostT=Math.max(boostT,t); st.v=Math.max(st.v,VMAX*0.9); S.whoop(); if(kind!=="rocket"&&!said[kind]&&!auto&&!demo.active){ said[kind]=1; speak(kind==="pad"?"Boost pad! Zoom!":"Drift boost! Zoom!"); } }
+    function surprise(){ S.pop(true); var r=Math.floor(Math.random()*3);
+      if(r===0){ giveBoost(2.0,"rocket"); speak("Rocket boost!"); }
+      else if(r===1){ bigT=7; speak("Monster wheels! Climb anything!"); }
+      else { hubBank.pending+=3; hubBank.parts.push({k:"truck",n:3}); speak("Three raindrops for the cloud!"); }
+      var q=toScreen(root.localToWorld(new THREE.Vector3(st.x,st.y+0.6,st.z))); confetti(q.x,q.y); }
+    function checkSigns(){
+      if(mode!=="challenge"||demo.active||auto||!started) return;
+      signs().forEach(function(m){ var q=spot(m), d=Math.hypot(q.x-st.x,q.z-st.z), r=m.dx?0.8:1.15;
+        if(returnFrom===m){ if(d>2.0) returnFrom=null; return; }
+        if(d<r&&armed&&!done[m.name]){ armed=false; done[m.name]=true; returnFrom=m; st.v=0; S.go(); m.big=1.3; paintDone();
+          setTimeout(function(){ m.big=1; armed=true; if(cur!==api) return; hubHome="truck"; playLand(m.name); },700); } });
+    }
+    function lerpA(a,b,t){ var d=b-a; while(d>Math.PI) d-=Math.PI*2; while(d<-Math.PI) d+=Math.PI*2; return a+d*t; }
+    var nrm=new THREE.Vector3(), fv=new THREE.Vector3(), xv=new THREE.Vector3(), mtx=new THREE.Matrix4(), clock=0;
+    function frame(dt,alpha){
+      rain.ambient(dt); if(!rain.ready()) return; if(!built) buildWorld(); if(!placed) startAt(); clock+=dt;
+      var a=alpha||0, x=st.px+(st.x-st.px)*a, z=st.pz+(st.z-st.pz)*a, th=lerpA(st.pth,st.th,a), H2=rain.heightAt, y=H2(x,z);
+      // sit on the slope: the ground's normal from four samples
+      var e=0.3; nrm.set(H2(x-e,z)-H2(x+e,z),2*e,H2(x,z-e)-H2(x,z+e)).normalize();
+      fv.set(Math.sin(th),0,Math.cos(th)); fv.addScaledVector(nrm,-fv.dot(nrm)).normalize(); xv.crossVectors(nrm,fv).normalize();
+      mtx.makeBasis(xv,nrm,fv); body.quaternion.setFromRotationMatrix(mtx);
+      var sc=bigT>0?1.45:1; body.scale.setScalar(body.scale.x+(sc-body.scale.x)*(1-Math.exp(-dt/0.2))); body.position.set(x,y,z);
+      chassis.position.y=Math.abs(Math.sin(clock*11))*0.02*clamp(Math.abs(st.v)/VMAX,0,1); chassis.rotation.y=drift.t>0.25?drift.dir*-0.28:0; chassis.rotation.z=-inp.steer*0.06*clamp(st.v/VMAX,0,1);
+      spin+=st.v*dt/R; wheels.forEach(function(w,i){ w.children[0].rotation.x=spin; w.rotation.y=i<2?-inp.steer*0.35:0; });
+      var boosting=boostT>0; flames.forEach(function(f){ f.visible=boosting; f.scale.set(1,0.8+Math.random()*0.6,1); });
+      var charge=drift.t>0.8; sparks.forEach(function(s){ s.visible=charge&&Math.random()>0.25; s.scale.setScalar(0.6+Math.random()*0.8); }); sparkMat.color.set(drift.t>1.8?C.orange:"#4AA8FF");
+      shadow.position.set(x,y+0.03,z); shadow.rotation.z=th;
+      gifts.forEach(function(gf){ gf.m.rotation.y=clock*1.6; gf.m.position.y=gf.y+Math.sin(clock*2.4+gf.x)*0.06; });
+      pads.forEach(function(p){ p.m.children[0].material.color.setScalar(p.t>0?0.7:1); });
+      // the arrow to the nearest sign not played yet
+      var t=mode==="challenge"?nextSign():null; arrow.visible=!!t; signs().forEach(function(m){ if(m.big!==1.3) m.big=(t===m)?1+0.12*Math.sin(clock*5)+0.12:1; });
+      if(t){ arrow.position.set(x,y+1.35*sc+Math.sin(clock*3)*0.08,z); var aq=spot(t); arrow.rotation.y=Math.atan2(aq.x-x,aq.z-z); }
+      // chase camera behind the truck, lifted over hills
+      camTh=lerpA(camTh,th,1-Math.exp(-dt/0.28)); var dist=3.6*(0.9+0.1*sc)+(boosting?0.5:0), el2=0.42;
+      for(var it=0;it<14;it++){ var cx=x-Math.sin(camTh)*Math.cos(el2)*dist, cz=z-Math.cos(camTh)*Math.cos(el2)*dist, cy=y+0.5+Math.sin(el2)*dist; if(cy>H2(cx,cz)+0.45) break; el2+=0.07; }
+      camE+=(el2-camE)*(1-Math.exp(-dt/0.25));
+      cam.dir.set(-Math.sin(camTh)*Math.cos(camE),Math.sin(camE),-Math.cos(camTh)*Math.cos(camE)); cam.off=0;
+      cam.target.set(x,y+0.5,z).add(root.position); cam.dist=cam.distWant=dist; cam.fogNear=10; cam.fogFar=75;
+      setRumble(0.02+0.08*clamp(Math.abs(st.v)/VMAX,0,1));
+    }
+    var api={
+      name:"truck", root:root, goVisible:false, ownScene:true,
+      fit:function(){ return [root.localToWorld(new THREE.Vector3(st.x-1,st.y,st.z-1)),root.localToWorld(new THREE.Vector3(st.x+1,st.y+1,st.z+1))]; },
+      enter:function(){ rain.ensure(); rain.scenery(true); world.visible=true; modes.hidden=false; pedals.hidden=false; paintMode(); btn={l:false,r:false,g:false,b:false}; keys={}; drag=null;
+        if(rain.ready()){ buildWorld(); if(!placed) startAt(); }
+        if(returnFrom&&rain.ready()){ var m=returnFrom, f=fwd(st.th), mq=spot(m); st.x=st.px=mq.x-f.x*2.3; st.z=st.pz=mq.z-f.z*2.3; st.th=st.pth=camTh=st.th+Math.PI; st.v=0; st.y=st.py=rain.heightAt(st.x,st.z);
+          var all=signs().every(function(s){ return done[s.name]; });
+          setTimeout(function(){ if(cur!==api) return; if(all){ S.tada(); confetti(W/2,H/3); speak("You did every challenge! Super driver! Let's go again!"); done={}; paintDone(); } else speak("Great driving! Follow the yellow arrow to the next sign."); },500); }
+        frame(0,1); },
+      exit:function(){ rain.scenery(false); world.visible=false; modes.hidden=true; pedals.hidden=true; hud.hidden=true; auto=null; drag=null; setRumble(0); signs().forEach(function(m){ m.big=1; }); },
+      onGround:function(){ if(cur===api) api.enter(); },
+      step:step, frame:frame, overlay:function(){},
+      // a finger on the map drives toward that side: left of the middle turns left, right turns right
+      down:function(p,ev){ drag={x:p.x,id:ev?ev.pointerId:0}; return true; },
+      move:function(p,ev){ if(drag&&(!ev||ev.pointerId===drag.id)) drag.x=p.x; },
+      up:function(ev){ if(drag&&(!ev||ev.pointerId===drag.id)) drag=null; },
+      key:function(code,isDown){ var k={ArrowLeft:"l",KeyA:"l",ArrowRight:"r",KeyD:"r",ArrowUp:"g",KeyW:"g",Space:"g",ArrowDown:"b",KeyS:"b"}[code]; if(!k) return false; keys[k]=isDown; if(isDown){ lastTouch=now(); cancelDemo(); } return true; },
+      idleOK:function(){ return false; },
+      cancel:function(){ auto=null; },
+      demo:function(kind,tok){
+        if(!rain.ready()){ rain.ensure(); return until(function(){ return rain.ready(); },tok).then(function(){ return wait(300,tok); }); }
+        if(kind==="intro") speak("Monster truck! Hold the red button to drive and the arrows to turn. "+(mode==="challenge"?"Drive to a sign to play its game. Follow the yellow arrow!":"Free drive: go anywhere!")+" Purple pads give you a boost.");
+        auto={}; return wait(2600,tok).then(function(){ auto=null; inp.gas=0; inp.steer=0; if(kind==="intro") speak("Your turn!",true); }); },
+      _state:function(){ return {x:st.x,z:st.z,th:st.th,v:st.v,y:st.y,mode:mode,done:done,boostT:boostT,drift:drift.t,pads:pads.length,gifts:gifts.length,road:rain.road().length}; },
+      _set:function(o){ Object.keys(o).forEach(function(k){ if(k in st) st[k]=o[k]; }); if("x" in o){ st.px=st.x; st.pz=st.z; st.pth=st.th; } if(o.mode) mode=o.mode; }
+    };
+    return api;
+  })();
+
+  var GAMES={maze:maze,ramp:ramp,hill:hill,launch:launch,word:word,rain:rain,truck:truck,tiles:tilesG,wordtime:wordT,gondola:gondola}, cur=null, seen={};
   var tiles=[].slice.call(document.querySelectorAll(".tile[data-g]"));
   function runDemo(kind){
     if(kind==="intro") seen[cur.name]=true;
@@ -2123,14 +2313,17 @@
     cur.demo(kind,tok).then(function(){ if(tok!==demo.token) return; demo.active=false; demo.target=null; finger.hidden=true; lastTouch=now(); goBtn.classList.add("pulse"); if(!started) runDemo("attract"); }).catch(function(){});
   }
   function cancelDemo(){ if(!demo.active) return; demo.token++; demo.active=false; demo.target=null; finger.hidden=true; finger.classList.remove("press"); cur.cancel(); goBtn.classList.add("pulse"); }
+  var homeBtn=document.getElementById("home"), HOME_CLOUD=homeBtn.innerHTML, gHome=null;
+  var HOME_TRUCK='<svg viewBox="0 0 32 24" aria-hidden="true"><rect x="5" y="6" width="20" height="8" rx="2" fill="#FF4D4D" stroke="#22203F" stroke-width="2"/><rect x="9" y="2.5" width="10" height="5" rx="1.5" fill="#8FD3FF" stroke="#22203F" stroke-width="2"/><circle cx="9" cy="17.5" r="4.6" fill="#22203F"/><circle cx="22" cy="17.5" r="4.6" fill="#22203F"/><circle cx="9" cy="17.5" r="1.7" fill="#FFFDF7"/><circle cx="22" cy="17.5" r="1.7" fill="#FFFDF7"/></svg>';
+  function paintHome(){ var t=hubHome==="truck"; [homeBtn,gHome].forEach(function(b){ if(!b) return; b.innerHTML=t?HOME_TRUCK:HOME_CLOUD; b.setAttribute("aria-label",t?"Back to the monster truck":"Back to the cloud"); }); }
   function select(name){
     demo.token++; demo.active=false; demo.target=null; finger.hidden=true;
     if(cur){ cur.exit(); cur.root.visible=false; }
     if(imm.on) setImmersive(false);
-    cur=GAMES[name]; cur.root.visible=true; shared.visible=!cur.ownScene; tilt.g0=null; cur.enter(); setLandscape(cur); goBtn.hidden=!cur.goVisible; homeBtn.hidden=name==="rain"; if(typeof paintGnav==="function") paintGnav(name);
+    cur=GAMES[name]; cur.root.visible=true; shared.visible=!cur.ownScene; tilt.g0=null; cur.enter(); setLandscape(cur); goBtn.hidden=!cur.goVisible; if(name==="rain"||name==="truck") hubHome=name; homeBtn.hidden=name==="rain"||name==="truck"; paintHome(); if(typeof paintGnav==="function") paintGnav(name);
     eyeBtn.hidden=!immersiveOK(); if(name==="word"&&imm.land) setImmersive(true);
     tiles.forEach(function(t){ t.setAttribute("aria-pressed",t.dataset.g===name?"true":"false"); });
-    stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",rain:"Rain to the Lake: make rain and snow over real Colorado mountains and watch the water run down Clear Creek",tiles:"Tile Time: make the target number with blocks of tiles",wordtime:"Word Time: spell the picture with letter blocks"}[name]);
+    stageEl.querySelector("#gl").setAttribute("aria-label",{maze:"Marble Maze: tip the board to roll the marble into the hole",ramp:"Ramp Race: two balls race down two ramps",hill:"Marble Hill: steer the marble down the hill to the most gems",launch:"Big Launch: pull the slingshot back and land the ball in three buckets",word:"Word Hill: roll through letter blocks to spell a sentence",rain:"Rain to the Lake: make rain and snow over real Colorado mountains and watch the water run down Clear Creek",truck:"Monster Truck: drive around the real Clear Creek map; drive to a sign to play its game, or free drive",tiles:"Tile Time: make the target number with blocks of tiles",wordtime:"Word Time: spell the picture with letter blocks"}[name]);
   }
 
   // ---------- touch ----------
@@ -2145,6 +2338,9 @@
   function up(ev){ if(dragging){ if(cur.up(ev)===true) return; dragging=false; glc.classList.remove("grabbing"); } }   // true: other fingers are still down
   glc.addEventListener("wheel",function(ev){ if(!started||!cur.wheel) return; ev.preventDefault(); touched(); cur.wheel(local(ev),ev.deltaY); },{passive:false});
   glc.addEventListener("contextmenu",function(ev){ ev.preventDefault(); });
+  function onKey(ev,isDown){ if(!started||!cur||!cur.key||ev.altKey||ev.ctrlKey||ev.metaKey) return; if(cur.key(ev.code,isDown)) ev.preventDefault(); }
+  window.addEventListener("keydown",function(ev){ onKey(ev,true); }); window.addEventListener("keyup",function(ev){ onKey(ev,false); });
+  window.addEventListener("blur",function(){ if(cur&&cur.key) ["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].forEach(function(k){ cur.key(k,false); }); });
   glc.addEventListener("pointerup",up); glc.addEventListener("pointercancel",up);
   goBtn.addEventListener("pointerdown",function(ev){ ev.preventDefault(); if(!started||!cur.go) return; touched(); cur.go(); });
   goBtn.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&started&&cur.go){ ev.preventDefault(); touched(); cur.go(); } });
@@ -2152,7 +2348,7 @@
   document.getElementById("startBtn").addEventListener("click",function(){
     started=true; ac(); startRumble(); S.click(); document.getElementById("start").hidden=true; demo.token++; demo.active=false; cur.cancel(); runDemo("intro");
   });
-  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",tiles:"Tile time!",wordtime:"Word time!",gondola:"Argo gondola!"};
+  var NAMES={maze:"Marble maze!",ramp:"Ramp race!",hill:"Marble hill!",launch:"Big launch!",word:"Word hill!",rain:"Rain to the lake!",truck:"Monster truck!",tiles:"Tile time!",wordtime:"Word time!",gondola:"Argo gondola!"};
   tiles.forEach(function(t){ t.addEventListener("click",function(){ var g=t.dataset.g; S.click(); select(g); if(!started) runDemo("attract"); else if(!seen[g]) runDemo("intro"); else { lastTouch=now(); speak(NAMES[g]); } }); });
 
   // tile icons
@@ -2203,6 +2399,13 @@
     rn.fillStyle=C.white; rn.beginPath(); rn.moveTo(74,45); rn.lineTo(84,30); rn.lineTo(95,46); rn.closePath(); rn.fill();
     rn.fillStyle="#4AA8FF"; rn.beginPath(); rn.ellipse(116,94,22,8,0,0,Math.PI*2); rn.fill(); rn.stroke();
     rn.fillStyle=C.white; [[22,16,11],[36,12,13],[50,17,10]].forEach(function(c){ rn.beginPath(); rn.arc(c[0],c[1],c[2],0,Math.PI*2); rn.fill(); rn.stroke(); });
+    var tk=document.querySelector('.tile[data-g="truck"] canvas').getContext("2d"); tk.lineJoin="round"; tk.strokeStyle=C.ink; tk.lineWidth=5;
+    tk.fillStyle="#3F9446"; tk.beginPath(); tk.moveTo(0,96); tk.lineTo(48,46); tk.lineTo(76,70); tk.lineTo(104,40); tk.lineTo(144,80); tk.lineTo(144,108); tk.lineTo(0,108); tk.closePath(); tk.fill();
+    tk.fillStyle="#C9A36A"; tk.fillRect(0,92,144,16);
+    tk.fillStyle=C.red; tk.beginPath(); tk.rect(26,48,92,24); tk.fill(); tk.stroke(); tk.fillStyle=C.yellow; tk.fillRect(28,58,88,5);
+    tk.fillStyle=C.red; tk.beginPath(); tk.rect(46,30,44,20); tk.fill(); tk.stroke(); tk.fillStyle=C.sky; tk.fillRect(53,35,30,10); tk.strokeRect(53,35,30,10);
+    [44,100].forEach(function(x){ tk.fillStyle=C.ink; tk.beginPath(); tk.arc(x,80,18,0,Math.PI*2); tk.fill(); tk.fillStyle=C.paper; tk.beginPath(); tk.arc(x,80,7,0,Math.PI*2); tk.fill(); tk.stroke(); });
+    tk.fillStyle=C.purple; tk.beginPath(); tk.moveTo(124,18); tk.lineTo(134,30); tk.lineTo(114,30); tk.closePath(); tk.fill(); tk.stroke();
     rn.strokeStyle="#4AA8FF"; rn.lineWidth=3; [[26,30],[38,34],[48,30]].forEach(function(d){ rn.beginPath(); rn.moveTo(d[0],d[1]); rn.lineTo(d[0]-3,d[1]+8); rn.stroke(); });
   })();
 
@@ -2247,10 +2450,10 @@
   function sayLearn(){ var L=learnPaint(); if(L){ lastSay=L.say; speak(L.say,true); } }
   lbtn.addEventListener("click",function(){ learnOn=!learnOn; lbtn.setAttribute("aria-pressed",learnOn?"true":"false"); S.click(); if(learnOn&&started) sayLearn(); else learnPaint(); });
   lpPic.addEventListener("click",sayLearn);
-  var homeBtn=document.getElementById("home"); homeBtn.addEventListener("click",function(){ S.click(); select("rain"); });
+  homeBtn.addEventListener("click",function(){ S.click(); select(hubHome); });
   var gnav=document.createElement("div"); gnav.className="gnav"; gnav.hidden=true; stageEl.appendChild(gnav);
   gnav.innerHTML='<div class="gplace"><span class="thumb" aria-hidden="true"></span><span class="t"><b></b><i></i></span></div>';
-  var gHome=homeBtn.cloneNode(true); gHome.removeAttribute("id"); gHome.hidden=false; gnav.appendChild(gHome); gHome.addEventListener("click",function(){ S.click(); select("rain"); });
+  gHome=homeBtn.cloneNode(true); gHome.removeAttribute("id"); gHome.hidden=false; gnav.appendChild(gHome); gHome.addEventListener("click",function(){ S.click(); select(hubHome); }); paintHome();
   function paintGnav(name){ var on=!!LANDS[name]&&name!=="tiles"&&name!=="wordtime"; gnav.hidden=!on; if(!on) return;
     gnav.querySelector("b").textContent=TITLE[name]; gnav.querySelector("i").textContent=PLACE[name]; photoBg(gnav.querySelector(".thumb"),name,40); }
   // the game list: each game at its real place, a photo of the spot with the game's picture on it

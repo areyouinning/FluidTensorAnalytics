@@ -126,7 +126,7 @@ let miniTrack = null;
 function drawMini(racers) {
   const c = $('mini'), g = c.getContext('2d'), W = c.width;
   if (!miniTrack) { miniTrack = buildTrackPath(160).S; }
-  const X = x => W / 2 + x / 190 * (W / 2 - 14), Z = z => W / 2 - z / 190 * (W / 2 - 14);
+  const X = x => W / 2 + x / 190 * (W / 2 - 14), Z = z => W / 2 + z / 190 * (W / 2 - 14);   // top view, not mirrored
   g.clearRect(0, 0, W, W); g.lineWidth = 16; g.strokeStyle = '#D9822B'; g.lineJoin = 'round'; g.beginPath(); miniTrack.forEach((s, i) => i ? g.lineTo(X(s.x), Z(s.z)) : g.moveTo(X(s.x), Z(s.z))); g.closePath(); g.stroke();
   racers.slice().sort((a, b) => a.me - b.me).forEach(r => { g.beginPath(); g.arc(X(r.x), Z(r.z), r.me ? 13 : 9, 0, 7); g.fillStyle = r.paint; g.fill(); g.lineWidth = r.me ? 5 : 3; g.strokeStyle = '#22203F'; g.stroke(); });
 }
