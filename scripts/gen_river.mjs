@@ -69,6 +69,13 @@ whole.push(
   'No misses!', '1 point.', 'Super bonus! A whole sentence, with a capital, spaces and a period!',
   "That's the fewest adds!", 'No adding at all!', 'With less adding:',
 );
+// Monster truck: driving the Clear Creek map, the game signs as challenges, free drive
+whole.push('Monster truck!', 'Monster truck! Hold the red button to drive and the arrows to turn. Drive to a sign to play its game. Follow the yellow arrow! Purple pads give you a boost.',
+  'Monster truck! Hold the red button to drive and the arrows to turn. Free drive: go anywhere! Purple pads give you a boost.',
+  'Free drive! Go anywhere you like.', 'Challenge! Drive to a sign to play its game.', 'Boost pad! Zoom!', 'Drift boost! Zoom!',
+  'Rocket boost!', 'Monster wheels! Climb anything!', 'Three raindrops for the cloud!',
+  'Great driving! Follow the yellow arrow to the next sign.', "You did every challenge! Super driver! Let's go again!",
+);
 // Word hill: the sentence, each word, each letter as the marble rolls through it
 const SENTS = ['I see a cat.', 'The dog can run.', 'I can hop.', 'The sun is hot.', 'A bug is red.', 'We go up.', 'A kid has a cap.', 'I see a big pig.', 'The cat sat.', 'My dog is fun.'];
 SENTS.forEach(s => { whole.push(s.replace('.', '')); s.replace('.', '').split(' ').forEach(w => { const k = w.toLowerCase(); whole.push(k); if (k.length > 1) spoken[V.key(k)] = k[0].toUpperCase() + k.slice(1) + '!'; }); });

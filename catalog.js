@@ -42,7 +42,7 @@ window.FTA_CATALOG = [
   { href: '/rally.html', shelf: 'play', topics: ['kids'], thumb: 'rally', title: "Kiddo's Monster Rally", blurb: 'A 3D monster-truck race where every power-up is a math or reading question: my turn, your turn.', fresh: true, kids: true, added: '2026-11-18T20:00' },
   { href: '/kiddo-puzzles.html', shelf: 'play', topics: ['kids'], thumb: 'puzzlebox', title: "Kiddo's Puzzle Box", blurb: 'Four tap-and-listen puzzles for a pre-reader: patterns, odd one out, a shape grid and a balance scale.', fresh: true, kids: true, added: '2026-11-17T06:40' },
   { href: '/sound-it-out.html', shelf: 'play', topics: ['kids'], thumb: 'phonics', title: 'Sound It Out', blurb: 'Tap letters to build real words and hear a real voice sound them out and blend them.', fresh: true, kids: true, added: '2026-11-08T18:14' },
-  { href: '/kiddos-cloud.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Kiddo's Cloud", blurb: 'Be a rain cloud over Clear Creek. Fly to real places, play, and rain.', kids: true, added: '2026-11-08T05:24' },
+  { href: '/kiddos-cloud.html', shelf: 'play', topics: ['kids'], thumb: 'garage', title: "Kiddo's Cloud", blurb: 'Be a rain cloud or drive a monster truck over Clear Creek. Visit real places, play, and rain.', kids: true, added: '2026-11-08T05:24' },
   { href: '/truck-lab.html', shelf: 'play', topics: ['kids'], thumb: 'truck', title: "Kiddo's Truck Lab", blurb: 'Diggers, dumpers and a crane, with the levers that really move them.', fresh: true, kids: true, added: '2026-11-12T18:12' },
 
   { href: '/tensor-analysis.html', shelf: 'explore', topics: ['tensors'], thumb: 'tensor', title: 'What is a tensor, really?', blurb: 'Build one from three lists, then squeeze 960 numbers into 90.', added: '2026-01-09T21:47' },
