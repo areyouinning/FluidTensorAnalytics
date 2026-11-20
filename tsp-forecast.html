@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Will the travelling salesman fall next? | FluidTA</title>
-<meta name="description" content="A dated forecast, in the spirit of Jules Verne: the 1962 speed record for the travelling salesman problem falls by the end of 2028, by counting tours with cancellation, temperature and splitting. Written to be scored.">
+<title>Will the traveling salesman fall next? | FluidTA</title>
+<meta name="description" content="A dated forecast, in the spirit of Jules Verne: the 1962 speed record for the traveling salesman problem falls by the end of 2028, by counting tours with cancellation, temperature and splitting. Written to be scored.">
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
 <style>
@@ -16,20 +16,20 @@
 <body data-tab="explore">
 <main id="main" class="article">
   <a class="crumb" href="/explore.html">Explore</a>
-  <h1>Will the travelling salesman fall next?</h1>
+  <h1>Will the traveling salesman fall next?</h1>
   <p class="lede" style="margin-top:14px">In 1865 Jules Verne fired three men at the Moon from Florida, a century early. He got there by taking parts that already existed and following the arithmetic. This page tries the same thing on a smaller target: the oldest speed record in computer science.</p>
   <p class="status"><b>This is a forecast, not news.</b> Written 17 November 2026. Nothing below the heading “The forecast” has happened. The last section says how to score it.</p>
 
   <h2>Play it first</h2>
   <p>Tap the cities in the order you would visit them. The route closes itself when every city is used. Then see how close you came to the shortest tour, and press Unroll to lay your tour, the shortest tour and the greedy tour end to end on one ruler.</p>
-  <figure class="fig" data-diagram="tspplay"><figcaption>The shortest tour is found exactly, by the 1962 method described below; with 12 cities that is about 600,000 steps, which a browser does instantly. Nearest-neighbour shows the greedy route: always go to the closest city you have not visited. Every map here is picked so that greedy misses the shortest tour by at least 3%, whichever city it starts from; the route shown is its best try.</figcaption></figure>
+  <figure class="fig" data-diagram="tspplay"><figcaption>The shortest tour is found exactly, by the 1962 method described below; with 12 cities that is about 600,000 steps, which a browser does instantly. Nearest-neighbor shows the greedy route: always go to the closest city you have not visited. Every map here is picked so that greedy misses the shortest tour by at least 3%, whichever city it starts from; the route shown is its best try.</figcaption></figure>
 
   <h2>The record</h2>
   <p>A salesman must visit <i>n</i> cities once each and come home by the shortest route. Trying every tour takes (<i>n</i> − 1)!/2 attempts. In 1962 Michael Held and Richard Karp, and separately Richard Bellman, found a way that takes about <i>n</i>² · 2<sup><i>n</i></sup> steps. Sixty-four years on, that is still essentially the record. A 2024 paper by Mihail Stoian shaved a little off, but nobody has reached 1.99<sup><i>n</i></sup>. Whether anyone can is a famous open question.</p>
   <p>The <a href="/eth.html">claimed fall of the Exponential Time Hypothesis</a> does not settle it. That result is about a logic puzzle, and translating tours into it adds too many variables. But it shows a method, and the method travels.</p>
 
   <h2>Part one, which exists: cancellation</h2>
-  <p><a href="/konigsberg.html">Euler’s bridges</a> are easy because crossing every <em>bridge</em> once comes down to counting odd corners. Visiting every <em>city</em> once has no such shortcut. In 2010 Andreas Björklund found the next best thing for maps with no distances, where the only question is whether a tour exists. He added up all closed walks, good and bad, in such a way that every walk that revisits a city is cancelled by a partner. Only true tours survive. That takes about 1.657<sup><i>n</i></sup> steps, well under 2<sup><i>n</i></sup>. Distances are what break it.</p>
+  <p><a href="/konigsberg.html">Euler’s bridges</a> are easy because crossing every <em>bridge</em> once comes down to counting odd corners. Visiting every <em>city</em> once has no such shortcut. In 2010 Andreas Björklund found the next best thing for maps with no distances, where the only question is whether a tour exists. He added up all closed walks, good and bad, in such a way that every walk that revisits a city is canceled by a partner. Only true tours survive. That takes about 1.657<sup><i>n</i></sup> steps, well under 2<sup><i>n</i></sup>. Distances are what break it.</p>
 
   <h2>Part two, the missing piece: temperature</h2>
   <p>Here is an old physicist’s trick for putting distances back. Give each tour of length <i>L</i> the weight <i>e</i><sup>−<i>L</i>/<i>T</i></sup>, where <i>T</i> is a temperature, and add up the weights of all tours. Call the total <i>Z</i>. When <i>T</i> is high, every tour counts about the same. As <i>T</i> falls, long tours fade, and in the cold limit −<i>T</i> · ln <i>Z</i> is exactly the length of the shortest tour.</p>
@@ -48,14 +48,14 @@
 
   <h2>How to score it</h2>
   <ol class="score">
-    <li><b>The record falls.</b> By 31 December 2028, a paper gives an algorithm for the travelling salesman problem with arbitrary distances that runs in <i>c</i><sup><i>n</i></sup> steps for some <i>c</i> below 2, and experts accept it.</li>
+    <li><b>The record falls.</b> By 31 December 2028, a paper gives an algorithm for the traveling salesman problem with arbitrary distances that runs in <i>c</i><sup><i>n</i></sup> steps for some <i>c</i> below 2, and experts accept it.</li>
     <li><b>The method.</b> It counts tours algebraically with cancellation, and reaches the shortest tour through a deformation or interpolation, not by search.</li>
     <li><b>The second step.</b> Within a year of the first paper, the base drops below 1.8.</li>
     <li><b>The authorship.</b> An AI model is credited with the core argument, and a machine-checked proof accompanies it.</li>
   </ol>
   <p>This page will stay up, with the date on it, whichever way it goes.</p>
 
-  <p class="credit">Held and Karp, and Bellman, published the dynamic programme in 1962. Björklund’s result is “Determinant sums for undirected Hamiltonicity” (2010). The 2024 improvement is Stoian, <a href="https://arxiv.org/abs/2405.03018">“TSP Escapes the O(2<sup>n</sup>n<sup>2</sup>) Curse”</a>. Verne’s launch is in <i>From the Earth to the Moon</i> (1865). The tour sums in the first figure are exact: every tour is listed. Everything in “The forecast” is my own guess. The words and diagrams are mine.</p>
+  <p class="credit">Held and Karp, and Bellman, published the dynamic program in 1962. Björklund’s result is “Determinant sums for undirected Hamiltonicity” (2010). The 2024 improvement is Stoian, <a href="https://arxiv.org/abs/2405.03018">“TSP Escapes the O(2<sup>n</sup>n<sup>2</sup>) Curse”</a>. Verne’s launch is in <i>From the Earth to the Moon</i> (1865). The tour sums in the first figure are exact: every tour is listed. Everything in “The forecast” is my own guess. The words and diagrams are mine.</p>
   <a data-next></a>
 </main>
 </body>
