@@ -2,6 +2,7 @@
    shelf: explore | paradox | play | way | tools — or a list to cross-list in several sections
    (the first is the home shelf: the tab the bar highlights and the one "Next" walks through).
    added: when the page first went up; the home page's New shelf shows the latest (leave it off and the page counts as newest).
+   updated: when a page was last reworked; the New shelf goes by whichever of added and updated is later.
    thumb: a drawing in thumbs.js. Blurbs say what you get to do. */
 window.FTA_CATALOG = [
   { href: '/queens-tiling.html', shelf: 'play', topics: ['math'], thumb: 'tiling', title: 'Can queens make a tiling harder?', blurb: 'A math olympiad problem with one extra rule. Beat 3039 on the 2025 board.', fresh: true, added: '2026-11-06T09:13' },
@@ -34,8 +35,8 @@ window.FTA_CATALOG = [
   { href: '/potato-paradox.html', shelf: 'paradox', topics: ['math'], thumb: 'potato', title: 'How can drying potatoes halve their weight?', blurb: '100 kg of potatoes at 99% water dry to 98%. Slide the water down and watch half the pile vanish.', fresh: true, added: '2026-11-17T09:20' },
   { href: '/zeno.html', shelf: 'paradox', topics: ['math'], thumb: 'zeno', title: 'Can Achilles catch the tortoise?', blurb: 'Infinitely many stages, each shorter than the last. Step through them, then let time run and watch him pass.', fresh: true, added: '2026-11-17T09:20' },
   { href: '/game-of-life.html', shelf: 'explore', topics: ['math'], thumb: 'life', title: 'How much can three rules make?', blurb: 'Conway’s Game of Life, as Martin Gardner introduced it in 1970. Paint some cells, press play, and meet gliders and guns.', fresh: true, added: '2026-11-17T09:21' },
-  { href: '/eth.html', shelf: 'explore', topics: ['math'], thumb: 'eth', title: 'Is brute force the best you can do?', blurb: 'In October 2026 two AI labs claimed a disproof of the Exponential Time Hypothesis. Count a puzzle’s solutions by algebra, and see why your computer won’t notice.', fresh: true, added: '2026-11-17T10:30' },
-  { href: '/tsp-forecast.html', shelf: 'explore', topics: ['math'], thumb: 'tsp', title: 'Will the traveling salesman fall next?', blurb: 'A dated forecast, Jules Verne style: the 1962 record for the shortest tour falls by 2028. Cool a sum over every tour and watch the best one appear.', fresh: true, added: '2026-11-17T12:00' },
+  { href: '/eth.html', shelf: 'explore', topics: ['math'], thumb: 'eth', title: 'Is brute force the best you can do?', blurb: 'In October 2026 two AI labs claimed a disproof of the Exponential Time Hypothesis. Count a puzzle’s solutions by algebra, and see why your computer won’t notice.', fresh: true, added: '2026-11-17T10:30', updated: '2026-11-20T18:00' },
+  { href: '/tsp-forecast.html', shelf: 'explore', topics: ['math'], thumb: 'tsp', title: 'Will the traveling salesman fall next?', blurb: 'A dated forecast, Jules Verne style: the 1962 record for the shortest tour falls by 2028. Cool a sum over every tour and watch the best one appear.', fresh: true, added: '2026-11-17T12:00', updated: '2026-11-20T18:01' },
   { href: '/buffons-needle.html', shelf: ['paradox', 'explore'], topics: ['chance', 'math'], thumb: 'buffon', title: 'Can you find π by dropping needles?', blurb: 'Drop needles on a lined floor and count the ones that cross. The fraction has π in it.', fresh: true, added: '2026-11-16T23:05' },
   { href: '/math-scramble.html', shelf: 'play', topics: ['math'], thumb: 'scramble', title: 'Math Scramble', blurb: 'Build crossing equations from a pile of pieces.', added: '2026-01-09T21:47' },
   { href: '/math-scramble-3d.html', shelf: 'play', topics: ['math'], thumb: 'scramble3d', title: 'Math Scramble 3D', blurb: 'The same pieces, with one more dimension to get lost in.', added: '2026-01-09T21:47' },
