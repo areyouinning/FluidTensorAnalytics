@@ -378,6 +378,11 @@
       o += line(d, O, 3) + dot(258, 46, 6, G) + text(64, 40, '2ⁿ', 18, I) + text(150, 86, '3-SAT', 14, O);
       return o;
     },
+    riemann: function () { // the critical strip, its zeros all on the middle line
+      var o = rect(110, 14, 100, 152, L, 4) + line('M160 14V166', S, 2), z = [150, 120, 103, 80, 70, 50, 34];
+      z.forEach(function (y) { o += dot(160, y, 7, I); });
+      return o + text(160, 178, '½', 14, S) + text(64, 96, 'ζ(s) = 0', 18, B) + text(256, 96, 'primes', 16, O);
+    },
     tsp: function () { // cities joined by one closed tour, a rocket's arc above
       var pts = [[60, 120], [110, 70], [170, 96], [230, 60], [262, 124], [190, 146], [116, 150]], d = 'M' + pts.map(function (p) { return p[0] + ' ' + p[1]; }).join('L') + 'Z', o = line(d, B, 4);
       pts.forEach(function (p) { o += dot(p[0], p[1], 8, I); });
