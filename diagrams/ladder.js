@@ -27,7 +27,7 @@ export default function (fig) {
       el('path', { d: `M${p1[0]} ${p1[1]}L${p1[0]} ${p1[1] - 30}`, stroke: C.ink, 'stroke-width': 3 }, g);
       el('path', { d: `M${p2[0]} ${p2[1]}l${Math.cos(t2) * 30} ${Math.sin(t2) * 30}`, stroke: C.ink, 'stroke-width': 3 }, g);
       label(g, p1[0], p1[1] - 36, 'Syene: no shadow', { size: 12 }); label(g, p2[0] + 50, p2[1] - 30, 'Alexandria: ' + a.toFixed(1) + '°', { size: 12, a: 'start' });
-      label(g, 120, 128, a.toFixed(1) + '° at the centre', { size: 12, cls: 'soft' });
+      label(g, 120, 128, a.toFixed(1) + '° at the center', { size: 12, cls: 'soft' });
       label(g, 300, 120, 'sunlight arrives', { size: 12, cls: 'soft' }); label(g, 300, 136, 'in parallel rays', { size: 12, cls: 'soft' });
       cR.textContent = km(r.C) + ' (' + off(r.C, 40075) + ')'; rR.textContent = km(r.R) + ' (' + off(r.R, R_EARTH) + ')'; };
     slider(box, 'Shadow angle at Alexandria, ° ', 5, 10, .1, a, v => v.toFixed(1), v => { a = v; draw(); });

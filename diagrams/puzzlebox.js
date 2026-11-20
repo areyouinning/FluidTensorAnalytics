@@ -1,6 +1,6 @@
 /* Kiddo's Puzzle Box: four tap-only thinking puzzles for someone who cannot read yet.
      next    — a repeating pattern of shapes; pick what comes next
-     odd     — four shapes; tap the one that is different (colour, then shape, then size)
+     odd     — four shapes; tap the one that is different (color, then shape, then size)
      grid    — a 3 x 3 square where every row and column has one of each; fill the gaps
      balance — blocks on a scale; pick how many more make it level
    A right answer earns a star; every three right answers a puzzle gets a little harder. The prompts are

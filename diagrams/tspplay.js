@@ -1,7 +1,7 @@
-/* Play the travelling salesman. Tap the cities in the order you want to visit them; the tour closes itself
+/* Play the traveling salesman. Tap the cities in the order you want to visit them; the tour closes itself
    when every city is used. Your length is compared with the true shortest tour, found by Held–Karp (1962)
    dynamic programming over subsets: n² · 2ⁿ steps, which for 12 cities is about 600,000, instant in a browser.
-   Every map is chosen so that the greedy nearest-neighbour rule misses the shortest tour from EVERY starting
+   Every map is chosen so that the greedy nearest-neighbor rule misses the shortest tour from EVERY starting
    city. "Unroll" peels each tour off the map one road at a time and lays the roads end to end on one ruler. */
 import { svg, el, clear, label, controls, button, picker, readouts, rng, calm } from './kit.js';
 
@@ -21,7 +21,7 @@ export function heldKarp(D) {   // returns { len, tour } for the shortest closed
   tour.push(0); tour.reverse(); return { len: best, tour };
 }
 const tourLen = (D, t) => t.reduce((s, c, i) => s + D[c][t[(i + 1) % t.length]], 0);
-export function greedy(D) {     // nearest-neighbour from every start city; returns the shortest of those tours
+export function greedy(D) {     // nearest-neighbor from every start city; returns the shortest of those tours
   const n = D.length; let best = null;
   for (let s0 = 0; s0 < n; s0++) {
     const t = [s0], used = new Set(t);
@@ -35,7 +35,7 @@ export default function (fig) {
   const s = svg(fig, W, H, 'Cities on a map with a ruler beneath. Tap the cities in order to build a closed tour, compare it with the shortest and the greedy tours, and unroll all of them onto the ruler.');
   const g = el('g', {}, s), u = el('g', {}, s);
   const box = controls(fig), box2 = controls(fig);
-  const [youR, bestR, nnR, verdictR] = readouts(fig, ['Your tour', 'Shortest possible', 'Nearest-neighbour', 'Verdict']);
+  const [youR, bestR, nnR, verdictR] = readouts(fig, ['Your tour', 'Shortest possible', 'Nearest-neighbor', 'Verdict']);
   let n = 8, seed = 1, P = [], D = [], path = [], showBest = false, showNN = false, opt = null, nn = null, wins = 0, scored = false, ur = null, raf = 0;
   try { wins = +localStorage.getItem('fta-tsp-wins') || 0; } catch (e) {}
   const unrollBtn = () => box2.querySelector('[data-unroll]');
@@ -76,7 +76,7 @@ export default function (fig) {
     const revealed = done() || showBest || ur;
     youR.textContent = done() ? you.toFixed(1) + ' km' : path.length ? you.toFixed(1) + ' km so far (' + path.length + ' of ' + n + ')' : '—';
     bestR.textContent = revealed ? opt.len.toFixed(1) + ' km' : 'press Show the best';
-    nnR.textContent = showNN || ur ? nn.len.toFixed(1) + ' km, ' + nnOver.toFixed(1) + '% over' : 'press Nearest-neighbour';
+    nnR.textContent = showNN || ur ? nn.len.toFixed(1) + ' km, ' + nnOver.toFixed(1) + '% over' : 'press Nearest-neighbor';
     verdictR.textContent = !done() ? 'wins so far: ' + wins : over < .05 ? 'Shortest! Wins: ' + wins : over.toFixed(1) + '% longer than the best' + (you < nn.len - 1e-9 ? ', but you beat greedy' : '');
     const b = unrollBtn(); if (b) b.textContent = ur ? 'Roll back up' : 'Unroll';
     if (typeof bBest !== 'undefined') { bBest.setAttribute('aria-pressed', showBest); bNN.setAttribute('aria-pressed', showNN); }
@@ -87,7 +87,7 @@ export default function (fig) {
 
   // ---- unrolling: each road flies from the map to its place on the ruler, keeping its order along the tour
   function rows() {
-    const r = [{ name: 'Shortest', col: GREEN, tour: opt.tour, len: opt.len }, { name: 'Nearest-neighbour', col: ORANGE, tour: nn.tour, len: nn.len, dash: true }];
+    const r = [{ name: 'Shortest', col: GREEN, tour: opt.tour, len: opt.len }, { name: 'Nearest-neighbor', col: ORANGE, tour: nn.tour, len: nn.len, dash: true }];
     if (done()) r.unshift({ name: 'Yours', col: BLUE, tour: path.slice(), len: pathLen() });
     return r;
   }
@@ -124,7 +124,7 @@ export default function (fig) {
   picker(box, SIZES.map(k => k + ' cities'), SIZES.indexOf(n), k => { n = SIZES[k]; make(); });
   button(box2, 'Undo', () => { path.pop(); stop(); draw(); });
   const bBest = button(box2, 'Show the best', () => { showBest = !showBest; draw(); });
-  const bNN = button(box2, 'Nearest-neighbour', () => { showNN = !showNN; draw(); });
+  const bNN = button(box2, 'Nearest-neighbor', () => { showNN = !showNN; draw(); });
   button(box2, 'Unroll', () => { if (ur) { stop(); draw(); } else start(); }).dataset.unroll = '1';
   button(box2, 'New map', () => { seed++; make(); }, 'go');
   make();

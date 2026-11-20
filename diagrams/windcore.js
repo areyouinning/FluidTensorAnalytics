@@ -3,11 +3,11 @@
 
    The method, in one line: start from the forecast wind draped over the terrain, then change
    it as little as possible while making it conserve mass. That "as little as possible subject
-   to conservation" is a constrained minimisation, and its Euler-Lagrange equations collapse to
+   to conservation" is a constrained minimization, and its Euler-Lagrange equations collapse to
    one Poisson equation for a multiplier. It is the same projection step that makes a fluid
    simulation incompressible, run once, over a weather forecast.
 
-   Minimise  integral of  ah^2((u-u0)^2 + (v-v0)^2) + av^2(w-w0)^2   subject to  div u = 0.
+   Minimize  integral of  ah^2((u-u0)^2 + (v-v0)^2) + av^2(w-w0)^2   subject to  div u = 0.
    Stationarity gives  u = u0 + dL/dx,  v = v0 + dL/dy,  w = w0 + R dL/dz,  with R = (ah/av)^2
    after folding 2ah^2 into L. Continuity then gives
 
@@ -18,7 +18,7 @@
    to atmospheric stability; here it is a slider.
 
    The mesh follows the terrain, as WindNinja's does. Every column starts at its own ground
-   and ends at the same flat lid, so the metre-scale levels are a metre above the surface
+   and ends at the same flat lid, so the meter-scale levels are a meter above the surface
    wherever you stand — on the valley floor and on the summit alike. There are no masked
    cells and no rock: the ground is a boundary, not a hole in the grid.
 
@@ -39,7 +39,7 @@
 export const KARMAN = 0.41;
 
 /* ---------- terrain ----------
-   Terrarium PNG tiles on AWS: elevation = R*256 + G + B/256 - 32768 metres.
+   Terrarium PNG tiles on AWS: elevation = R*256 + G + B/256 - 32768 meters.
    Same source aerostat.html already uses (USGS 3DEP, SRTM, GMTED). */
 const TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium';
 
@@ -48,7 +48,7 @@ export const lat2y = (lat, z) => {
   const r = lat * Math.PI / 180;
   return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z);
 };
-/* metres per degree, locally */
+/* meters per degree, locally */
 export const mPerDegLat = 111132.9;
 export const mPerDegLon = lat => 111320 * Math.cos(lat * Math.PI / 180);
 
@@ -78,7 +78,7 @@ export function pickZoom(lat, spanM, n) {
   return 10;
 }
 
-/* A square DEM of n x n samples, spanM metres on a side, centred on lat/lon. */
+/* A square DEM of n x n samples, spanM meters on a side, centered on lat/lon. */
 export async function fetchDEM(lat, lon, spanM = 9000, n = 96, onNote) {
   const z = pickZoom(lat, spanM, n);
   const halfLat = spanM / 2 / mPerDegLat, halfLon = spanM / 2 / mPerDegLon(lat);
@@ -133,17 +133,17 @@ export function dirToVec(deg) {
 }
 
 /* Where the levels sit in the computational coordinate s. Fine at the bottom, because that
-   is where the answer is wanted and where the profile bends hardest: every metre to 10,
+   is where the answer is wanted and where the profile bends hardest: every meter to 10,
    every ten to 100, then stretching geometrically up to the lid.
 
    Near the ground the mesh has B = 1, so s IS height above that column's own ground, and
    these spacings mean what they say for every column in the square — the valley floor and
-   the summit get the same metre-scale levels at their own feet. Higher up, where the mesh
+   the summit get the same meter-scale levels at their own feet. Higher up, where the mesh
    blends to a flat lid, a level's height above ground shrinks over high ground, which is
    just the statement that a summit has less air above it. */
 export function levels(top) {
   const zf = [];
-  for (let z = 0; z <= 10; z++) zf.push(z);                  // every metre
+  for (let z = 0; z <= 10; z++) zf.push(z);                  // every meter
   for (let z = 20; z <= 100; z += 10) zf.push(z);            // every ten
   let step = 14;
   while (zf[zf.length - 1] < top) {
@@ -168,13 +168,13 @@ export function levels(top) {
    vector (J dy ds, 0, 0) — purely x, because x is untouched by the transform — and the
    s-face has area vector dx dy (-dz/dx, -dz/dy, 1), whose dot with the velocity is exactly
    dx dy omega. So the net volume flux out of a cell is a plain six-term difference, and the
-   minimisation done on those fluxes gives an operator and a correction that agree term for
+   minimization done on those fluxes gives an operator and a correction that agree term for
    term. The terrain's slope enters through the initial omega and through J, not through
    cross-derivatives bolted onto a Laplacian. */
 export function buildField(dem, opt = {}) {
   const nx = opt.nx || 64, ny = opt.ny || 64;
   const z0 = opt.z0 ?? 0.2, Uref = opt.U ?? 5, zRef = opt.zRef ?? 10, dirDeg = opt.dir ?? 270;
-  /* Depth of the computational domain, in metres above the lowest ground. The lid has to
+  /* Depth of the computational domain, in meters above the lowest ground. The lid has to
      clear the terrain by a good margin or it absorbs the flow instead of squeezing it:
      measured on a 400 m ridge, a lid at 2.3x the relief gave a crest SLOWDOWN of 0.55x.
 
@@ -193,7 +193,7 @@ export function buildField(dem, opt = {}) {
      whose ramp ends at `want` keeps going past the bottom of its cosine, which turns the
      stretch back upwards and leaves the lid tilted by most of the relief. */
   const top = zf[nz];
-  /* zc: centre of each level in s. ds: its thickness. dsf: gap between centres across
+  /* zc: center of each level in s. ds: its thickness. dsf: gap between centers across
      face k, with the half-cells at the ground and the lid. */
   const zc = new Float64Array(nz), ds = new Float64Array(nz), dsf = new Float64Array(nz + 1);
   for (let k = 0; k < nz; k++) { zc[k] = (zf[k] + zf[k + 1]) / 2; ds[k] = zf[k + 1] - zf[k]; }
@@ -263,7 +263,7 @@ export function buildField(dem, opt = {}) {
     ter, grel, gx, gy, Bc, dBc, Bf, dBf, u, v, om, w,
     cid, uid, vid, wid, dem, R: opt.R ?? 1, z0, Uref, zRef, dirDeg
   };
-  /* Physical w starts at zero, exactly as WindNinja initialises it. In this coordinate that
+  /* Physical w starts at zero, exactly as WindNinja initializes it. In this coordinate that
      is NOT omega = 0: air moving horizontally across a slope is crossing the s-surfaces, and
      omega records that. Setting omega to zero instead would be asserting a perfect drape and
      quietly doing the solver's job for it. */
@@ -277,7 +277,7 @@ export function buildField(dem, opt = {}) {
   return F;
 }
 
-/* u and v interpolated to the centre of s-face k: average across the face in the horizontal,
+/* u and v interpolated to the center of s-face k: average across the face in the horizontal,
    and across the two levels the face separates. */
 function faceUV(F, i, j, k) {
   const { nx, ny, nz, uid, vid, u, v } = F;
@@ -292,11 +292,11 @@ function faceUV(F, i, j, k) {
   return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 }
 
-/* The vertical stretch J = dz/ds of a column, at a cell centre and at an s-face. 1 near the
+/* The vertical stretch J = dz/ds of a column, at a cell center and at an s-face. 1 near the
    ground, smaller aloft over high ground. */
 export const Jc = (F, i, j, k) => 1 + F.grel[j * F.nx + i] * F.dBc[k];
 export const Jf = (F, i, j, k) => 1 + F.grel[j * F.nx + i] * F.dBf[k];
-/* absolute height of a cell centre / an s-face in this column */
+/* absolute height of a cell center / an s-face in this column */
 export const zAtC = (F, i, j, k) => F.base + F.zc[k] + F.grel[j * F.nx + i] * F.Bc[k];
 export const zAtF = (F, i, j, k) => F.base + F.zf[k] + F.grel[j * F.nx + i] * F.Bf[k];
 /* height above this column's own ground — the number the whole mesh exists to get right */
@@ -336,11 +336,11 @@ export function divergence(F) {
   return { d, peak, rms: Math.sqrt(sum / Math.max(1, cells)), cells };
 }
 
-/* Minimise the change to the draped wind subject to zero net flux per cell, then correct
+/* Minimize the change to the draped wind subject to zero net flux per cell, then correct
    the faces.
 
-   The minimisation is done on the FLUXES, not on the velocity components, and that is what
-   keeps this tractable on a terrain-following mesh. Penalise each face's flux change with
+   The minimization is done on the FLUXES, not on the velocity components, and that is what
+   keeps this tractable on a terrain-following mesh. Penalize each face's flux change with
    the weight that reproduces the physical cost over that face's own control volume, and the
    stationarity conditions give one unknown per cell against a seven-point stencil, with no
    cross-derivatives. Operator and correction then agree by construction — which matters
@@ -348,7 +348,7 @@ export function divergence(F) {
    dropping divergence by 1.4x instead of five orders of magnitude.
 
    What is approximated, stated plainly: the horizontal adjustment and the through-surface
-   adjustment are penalised separately, so the cost of tilting the flow along a slope is not
+   adjustment are penalized separately, so the cost of tilting the flow along a slope is not
    cross-coupled between them. On gentle terrain that coupling is small; on a cliff it is
    not, and this will under-charge for vertical motion there.
 
@@ -383,7 +383,7 @@ export function project(F, iters = 400, omega = 1.8, onStep) {
     const ju = half(jm, j < ny - 1 ? Jc(F, i, j + 1, k) : jm);
     cxL[c] = ixx * jl / jm; cxR[c] = ixx * jr / jm;
     cyD[c] = iyy * jd / jm; cyU[c] = iyy * ju / jm;
-    /* the s-faces: the cell's own thickness times the gap to the neighbour's centre,
+    /* the s-faces: the cell's own thickness times the gap to the neighbor's center,
        with the face's stretch in the denominator because a squeezed column has less
        distance to push the air through */
     czD[c] = k > 0 ? R / (jm * Jf(F, i, j, k) * ds[k] * dsf[k]) : 0;   // k === 0 is the ground: wall
@@ -393,7 +393,7 @@ export function project(F, iters = 400, omega = 1.8, onStep) {
 
   /* Solve a whole vertical column at a time, not a point at a time.
 
-     The levels are 1 m apart near the ground while the columns are hundreds of metres wide,
+     The levels are 1 m apart near the ground while the columns are hundreds of meters wide,
      so the vertical couplings outweigh the horizontal ones by about 10^5. Point relaxation
      cannot carry information along a stiff direction like that: with omega near 1.8 it does
      not merely crawl, it diverges — measured, the residual grew 5.6x instead of falling.
@@ -490,9 +490,9 @@ export function diagnoseW(F) {
 
    This used to be the hardest function in the file, and the mesh has made it ordinary. On a
    masked Cartesian grid a column's lowest unburied cell landed wherever the mask happened
-   to cut it — anywhere from a centimetre to most of a cell up — so every column was read at
+   to cut it — anywhere from a centimeter to most of a cell up — so every column was read at
    a different height and then stretched to a common one by a log factor, and the crest
-   reading moved when the lid moved by three metres. Here the level at 10 m above ground is
+   reading moved when the lid moved by three meters. Here the level at 10 m above ground is
    the level at 10 m above ground, in every column, by construction. */
 export function surfaceSlice(F, zAGL = 10, out = 96) {
   const { nx, ny, nz, uid, vid, u, v, z0 } = F;
@@ -508,7 +508,7 @@ export function surfaceSlice(F, zAGL = 10, out = 96) {
     const z1 = aglC(F, i, j, k), z2 = aglC(F, i, j, k + 1);
     const c1 = cen(k), c2 = cen(k + 1);
     /* interpolate between the two levels in log height, the shape the profile actually has
-       near the ground; below the first centre (half a metre up) the same log carries it down */
+       near the ground; below the first center (half a meter up) the same log carries it down */
     const t = (lg(zAGL) - lg(z1)) / Math.max(1e-9, lg(z2) - lg(z1));
     const o = b * out + a;
     U[o] = c1[0] + (c2[0] - c1[0]) * t;
@@ -543,12 +543,12 @@ export function levelAt(F, zAboveBase) {
 }
 
 /* The wind at a point in the world, for anything that has to move through the field rather
-   than be drawn on it. Coordinates are metres from the centre of the square: +x east,
-   +y north, z absolute (metres above sea level, the same datum as the terrain).
+   than be drawn on it. Coordinates are meters from the center of the square: +x east,
+   +y north, z absolute (meters above sea level, the same datum as the terrain).
 
    Bilinear across the columns, and each column read at its OWN level for that height — which
    is the point of the mesh. Nearest in the vertical is honest here because the levels are a
-   metre apart where a thrown or falling thing spends its time; interpolating between a 1 m
+   meter apart where a thrown or falling thing spends its time; interpolating between a 1 m
    and a 2 m level would be false precision over a field this coarse sideways.
 
    The old version took one level index for all four corners, from the height above the
@@ -576,10 +576,10 @@ export function windAt(F, xE, yN, zAbs) {
   return out;
 }
 
-/* The wind a column carries below its first cell centre — the half metre of air between the
+/* The wind a column carries below its first cell center — the half meter of air between the
    grass and zc[0]. The mesh means this is now the only gap left: a summit's surface air is
    real cells carrying real flow, not the blocked cells that used to make a disc thrown from
-   a ridge fly through dead air. Below the first centre the neutral log profile carries the
+   a ridge fly through dead air. Below the first center the neutral log profile carries the
    value down, the same shape the solver started from. */
 export function windColumn(F, xE, yN, zAbs) {
   const { nx, ny, dx, dy, ter, uid, vid, u, v, z0 } = F;
@@ -594,7 +594,7 @@ export function windColumn(F, xE, yN, zAbs) {
 }
 
 /* What a thrown thing should feel: the solved field above the first level, the column's own
-   log profile in the half metre below it. */
+   log profile in the half meter below it. */
 export function windForFlight(F, xE, yN, zAbs) {
   const { nx, ny, dx, dy, ter } = F;
   const i = Math.max(0, Math.min(nx - 1, Math.floor(xE / dx + nx / 2)));
@@ -606,8 +606,8 @@ export function windForFlight(F, xE, yN, zAbs) {
 /* The ground height at a point, same coordinates: what a thrown thing lands on.
 
    Bilinear, deliberately. Nearest-cell made the ground a staircase of 250 m blocks, and a
-   flight path does not survive that: the centre of the square sits exactly on a rounding
-   boundary, so a disc drifting a millimetre sideways crossed into the next cell and the
+   flight path does not survive that: the center of the square sits exactly on a rounding
+   boundary, so a disc drifting a millimeter sideways crossed into the next cell and the
    ground stepped up 3.7 m into it, ending the flight on the first frame. A continuous
    surface has no edges to trip over. */
 export function groundAt(F, xE, yN) {

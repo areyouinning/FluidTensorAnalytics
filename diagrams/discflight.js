@@ -52,7 +52,7 @@ const A = Math.PI * (DISC.d / 2) * (DISC.d / 2);
 
 /* opts: speed m/s, angle deg (up), hyzer deg, nose deg, spin rpm, stability -3..3,
    rhbh bool, z0 release height above the ground, ground(x,y) -> terrain height,
-   startZ absolute release height. Returns the path in world metres. */
+   startZ absolute release height. Returns the path in world meters. */
 export function fly(opts = {}, windAt = null) {
   const v0 = opts.speed ?? 20;
   const theta = (opts.angle ?? 5) * Math.PI / 180;
@@ -129,7 +129,7 @@ export function fly(opts = {}, windAt = null) {
     const speedFrac = vMag / v0;
     const magnus = spinDir * DISC.kMagnus * r * vMag * DISC.rho * A / DISC.m;
     /* Positive `lateral` pushes to the LEFT of travel. For a right-handed backhand that
-       makes the two signature behaviours:
+       makes the two signature behaviors:
          turn, early and fast  — an UNDERSTABLE disc (stability < 0) goes RIGHT
          fade, late and slow   — EVERY disc goes LEFT, the more so the more overstable
        The simulator this came from had the turn term as -stability, which sent an overstable

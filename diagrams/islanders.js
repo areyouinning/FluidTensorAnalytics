@@ -1,4 +1,4 @@
-/* The blue-eyed islanders, simulated exactly. A "world" is a pattern of eye colours: a bitmask, bit i set when
+/* The blue-eyed islanders, simulated exactly. A "world" is a pattern of eye colors: a bitmask, bit i set when
    islander i has blue eyes. Islander i cannot tell world v from v with bit i flipped (they see everyone else).
    S is the set of worlds still possible as common knowledge. The visitor's announcement removes the world with
    no blue eyes. Each dawn, i leaves in world v if v ^ (1 << i) is no longer in S. Everyone sees who left, so S
@@ -23,7 +23,7 @@ export function sim(n, actual, visitor, days) {
 const pop = m => { let c = 0; while (m) { c += m & 1; m >>= 1; } return c; };
 
 export default function (fig) {
-  const s = svg(fig, W, H, 'Ten islanders around an island, some with blue eyes. Step through the nights after the visitor speaks and see who works out their own eye colour.');
+  const s = svg(fig, W, H, 'Ten islanders around an island, some with blue eyes. Step through the nights after the visitor speaks and see who works out their own eye color.');
   const g = el('g', {}, s);
   const box = controls(fig), box2 = controls(fig);
   const [dayR, goneR, statusR] = readouts(fig, ['Dawn', 'Gone so far', 'What happened']);
@@ -67,7 +67,7 @@ export default function (fig) {
   function explain() {
     const i = pick, b = k - (blue(i) ? 1 : 0), d = dawnOf(i), G = goneBy(day);
     let t = `Islander ${i + 1} can see ${b} blue-eyed islander${b === 1 ? '' : 's'}. `;
-    if (!visitor) t += b === 0 ? 'Without the visitor, nothing rules out that nobody here has blue eyes, so they cannot tell their own colour. They never will.'
+    if (!visitor) t += b === 0 ? 'Without the visitor, nothing rules out that nobody here has blue eyes, so they cannot tell their own color. They never will.'
       : `If their own eyes are brown, those ${b} would be reasoning about a smaller group, and at the bottom of that chain is a world with no blue eyes at all, which nothing rules out. So no dawn is ever special, and nobody leaves.`;
     else if (b === 0) t += 'But the visitor saw blue eyes. They can only be their own, so they leave on the first dawn.';
     else {

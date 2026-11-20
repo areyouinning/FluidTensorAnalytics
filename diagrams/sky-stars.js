@@ -1,11 +1,11 @@
-/* Bright stars and the stick figures people actually recognise.
+/* Bright stars and the stick figures people actually recognize.
 
    Source: the HYG database (astronexus/HYG-Database), which merges Hipparcos, Yale Bright
    Star and Gliese. Cut to magnitude 5 â€” about what a good dark sky gives the unaided
    eye â€” which is 1639 stars. Positions are J2000 right ascension in HOURS and
    declination in degrees; sky-bodies.js precesses them to the date before drawing.
 
-   The constellation lines are not from the catalogue. They were written out by Bayer letter
+   The constellation lines are not from the catalog. They were written out by Bayer letter
    and then checked at build time: every designation had to resolve to a real star in this
    cut, and every segment had to be shorter than 28 degrees, on the grounds that no
    stick figure joins two stars further apart than that. All of them passed.

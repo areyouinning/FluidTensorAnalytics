@@ -4,7 +4,7 @@ Everything in this repository that its authors made — the code, the pages, the
 the puzzles, the generated audio and images — is dedicated to the public domain under
 **[CC0 1.0 Universal](LICENSE)**. You may copy it, change it, sell it, teach with it or build on it,
 for any purpose, without asking and without giving credit. Where a country does not allow a work to be
-placed in the public domain, CC0 grants the widest licence the law allows instead.
+placed in the public domain, CC0 grants the widest license the law allows instead.
 
 Credit is never required, but if you use something, a link back to fluidta.com is a kind thing to do.
 
@@ -20,7 +20,7 @@ CC0 covers only rights the authors hold. These parts came from elsewhere and kee
 | `clear-creek-ground.json` | AWS Terrain Tiles, built from USGS 3DEP and other public elevation data | Public-domain US government data for this area; see the Terrain Tiles attribution list. |
 | `merra2_data.json` | NASA MERRA-2 reanalysis | NASA data, free and without restriction. |
 | Election counts in `votes-as-rain.html` | Official state results | Facts, not copyrightable. |
-| Libraries loaded from CDNs at run time (Three.js, Leaflet, Plotly and others) | Their own projects | Their own open-source licences; they are not stored here. |
+| Libraries loaded from CDNs at run time (Three.js, Leaflet, Plotly and others) | Their own projects | Their own open-source licenses; they are not stored here. |
 | Map tiles and live data fetched by the tools (Esri, OpenStreetMap, NOAA and others) | Their providers | The providers' terms, shown on the pages that use them. |
 | Quotations of other people | Their authors | Quoted for commentary. |
 

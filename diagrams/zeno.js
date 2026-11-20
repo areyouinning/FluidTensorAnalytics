@@ -1,5 +1,5 @@
 /* Achilles and the tortoise. Each "Zeno step" ends when Achilles reaches the spot where the tortoise
-   was at the start of that stage. Stage k covers d·r^(k-1) metres (r = v_T / v_A) and takes
+   was at the start of that stage. Stage k covers d·r^(k-1) meters (r = v_T / v_A) and takes
    d·r^(k-1) / v_A seconds, so the stage times are a geometric series with a finite sum, d / (v_A − v_T). */
 import { svg, el, clear, label, controls, slider, button, readouts, calm } from './kit.js';
 

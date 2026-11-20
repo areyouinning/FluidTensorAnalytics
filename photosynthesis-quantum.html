@@ -5,7 +5,7 @@
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Does photosynthesis run on quantum coherence? | FluidTA</title>
-<meta name="description" content="A small light-harvesting network computed exactly: how quantum coherence, and the noise that destroys it, decide how much sunlight reaches the reaction centre.">
+<meta name="description" content="A small light-harvesting network computed exactly: how quantum coherence, and the noise that destroys it, decide how much sunlight reaches the reaction center.">
 <link rel="stylesheet" href="/fta.css">
 <script src="/fta.js" defer></script>
 </head>
@@ -13,20 +13,20 @@
 <main id="main" class="article">
   <a class="crumb" href="/explore.html">Explore</a>
   <h1>Does photosynthesis run on quantum coherence?</h1>
-  <p class="lede" style="margin-top:14px">When a leaf catches a photon, the energy lands on one of hundreds of pigment molecules and has to find its way to a reaction centre, where it is turned into chemistry. It almost never gets lost on the way. In 2007, experiments seemed to show it travelling as a quantum wave, trying many paths at once. The real story turned out to be stranger, and it involves noise.</p>
+  <p class="lede" style="margin-top:14px">When a leaf catches a photon, the energy lands on one of hundreds of pigment molecules and has to find its way to a reaction center, where it is turned into chemistry. It almost never gets lost on the way. In 2007, experiments seemed to show it traveling as a quantum wave, trying many paths at once. The real story turned out to be stranger, and it involves noise.</p>
 
   <h2>The 2007 surprise, and what came after</h2>
   <p>Gregory Engel, Graham Fleming and colleagues fired ultrashort laser pulses at a bacterial light-harvesting protein called FMO, cooled to 77 kelvin. In the signal they saw beats: oscillations that lasted more than half a picosecond. Beats like that are the signature of <b>quantum coherence</b>, an excitation spread over several pigments at once with definite phase between them. The suggestion was that the energy searched for the exit the way a quantum computer searches a list.</p>
   <p>Over the following decade, that picture got pulled apart. Most of the long-lived beats turned out to come from vibrations of the molecules, not from the electronic state that carries the energy. Measured at room temperature, the electronic coherence itself fades within tens of femtoseconds, far shorter than the time the energy takes to arrive. Few researchers now think that photosynthesis relies on long-lived electronic coherence.</p>
-  <p>What survived is subtler. Quantum mechanics still sets the rules: the excitation spreads over neighbouring pigments, and its phases matter in its first moments. And the jiggling protein around the pigments, which destroys that coherence, turns out to help the energy get through.</p>
+  <p>What survived is subtler. Quantum mechanics still sets the rules: the excitation spreads over neighboring pigments, and its phases matter in its first moments. And the jiggling protein around the pigments, which destroys that coherence, turns out to help the energy get through.</p>
 
   <h2>A network you can watch</h2>
-  <p>Here are seven pigments, joined where they are close enough to pass energy. Pigment 1 catches the light. Pigment 3 hands it to the <span class="t-green">reaction centre</span>. Each pigment has its own energy, and the couplings that join them are weak by comparison, as in FMO.</p>
+  <p>Here are seven pigments, joined where they are close enough to pass energy. Pigment 1 catches the light. Pigment 3 hands it to the <span class="t-green">reaction center</span>. Each pigment has its own energy, and the couplings that join them are weak by comparison, as in FMO.</p>
   <figure class="fig" data-diagram="exciton" data-view="net"><figcaption>The orange disc on each pigment shows how much of the excitation sits there. <b>Dephasing γ</b> is how fast the surroundings scramble the quantum phases. At 0 the excitation sloshes back and forth in waves. Turn it up and the sloshing gives way to hopping. Coherence is the total size of the off-diagonal terms of the density matrix, the part that holds the phases.</figcaption></figure>
   <p>With no dephasing, look at pigment 3. The wave washes over it and away again, and much of the energy settles into shapes that barely touch the exit. Those shapes only drain slowly.</p>
 
   <h2>Why a little noise helps</h2>
-  <p>Below is the share of the energy that reaches the reaction centre for every amount of dephasing. It is solved exactly, not simulated. Nothing is sampled.</p>
+  <p>Below is the share of the energy that reaches the reaction center for every amount of dephasing. It is solved exactly, not simulated. Nothing is sampled.</p>
   <figure class="fig" data-diagram="exciton" data-view="sweep"><figcaption>The same network and the same slider as above. Energy that doesn't arrive is lost: a 1 ns lifetime is assumed everywhere, while the exit takes energy at 1 per picosecond.</figcaption></figure>
   <ul>
     <li><b>No noise:</b> 87% arrives, with an average trip of 56 ps. The pigments' energies don't line up, so the wave mostly bounces back. Some of the energy gets stuck in states that hardly overlap the exit.</li>

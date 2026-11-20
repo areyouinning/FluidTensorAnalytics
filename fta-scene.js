@@ -144,7 +144,7 @@ window.FTA = (() => {
   let nextDrop = 0, phase = 0, rnd = 12345; const R = () => { rnd = (Math.imul(rnd, 1664525) + 1013904223) >>> 0; return rnd / 4294967296; };
   function kick() { if (!calm || !VP) return; for (let i = 0; i < 12; i++) step(); render(); }
   function raindrop() { drop((R() - .5) * SPAN * .7, (R() - .5) * SPAN * .7, .02 + R() * .03, 1.6 + R() * 1.8); }
-  /* the fluid page's moving source: a small push travelling on a circle, slower than the waves it makes */
+  /* the fluid page's moving source: a small push traveling on a circle, slower than the waves it makes */
   function paddle() { phase += .018; drop(Math.cos(phase) * .55, Math.sin(phase) * .55, .02, 2.4); }
   function advance() { if (CFG.paddle) paddle(); for (let i = 0; i < SUB; i++) step(); }
   function frame(t) { requestAnimationFrame(frame); if (document.hidden || calm) return; if (t > nextDrop) { raindrop(); nextDrop = t + CFG.rain[0] + R() * CFG.rain[1]; } advance(); render(); }

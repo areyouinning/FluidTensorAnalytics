@@ -1,5 +1,5 @@
 /* Conway's Game of Life. Every cell is alive or dead; at each tick, a live cell with two or three live
-   neighbours stays alive, a dead cell with exactly three comes alive, and everything else dies or stays
+   neighbors stays alive, a dead cell with exactly three comes alive, and everything else dies or stays
    dead (rule B3/S23). The real plane is infinite; this board is not, so cells that reach the outer edge fall
    off the world each tick. That keeps a glider gun's stream from wrapping round and wrecking the gun. */
 import { controls, button, readouts, calm } from './kit.js';
@@ -22,8 +22,8 @@ export default function (fig) {
   let a = new Uint8Array(NX * NY), b = new Uint8Array(NX * NY), gen = 0, run = false, raf = 0, lastT = 0, W = 0, H = 0, cs = 0, dpr = 1;
   const probe = document.createElement('i'); probe.style.display = 'none'; fig.appendChild(probe);
   const css = v => { probe.style.color = `var(${v})`; return getComputedStyle(probe).color; };
-  let C = {}; const colours = () => { C = { bg: css('--sunk'), live: css('--blue'), grid: css('--line') }; };
-  colours(); addEventListener('fta-theme', () => { colours(); draw(); });
+  let C = {}; const colors = () => { C = { bg: css('--sunk'), live: css('--blue'), grid: css('--line') }; };
+  colors(); addEventListener('fta-theme', () => { colors(); draw(); });
 
   function tick() {
     for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {

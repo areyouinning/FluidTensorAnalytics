@@ -15,7 +15,7 @@ function solveAt(R) {
   project(F, 120, 1.8);
   const NZ = F.nz;
   const j = NY >> 1;
-  /* centre-of-cell velocities on the slice, plus how much air is leaving it sideways */
+  /* center-of-cell velocities on the slice, plus how much air is leaving it sideways */
   const u = new Float32Array(NX * NZ), w = new Float32Array(NX * NZ), out = new Float32Array(NX * NZ);
   let side = 0, vert = 0, n = 0, crest = 0, upwind = 0;
   /* The mesh follows the terrain, so every cell in the slice is air and none of it is rock;
@@ -28,7 +28,7 @@ function solveAt(R) {
     out[o] = Math.abs(vv);
     side += vv * vv; vert += w[o] * w[o]; n++;
   }
-  /* speed just above the ground, upwind shoulder against the crest. Level 0 is half a metre
+  /* speed just above the ground, upwind shoulder against the crest. Level 0 is half a meter
      above the surface in every column now, so the two readings are taken at the same height
      above their own ground and the comparison means something. */
   const col = (i) => Math.hypot(u[i], w[i]);

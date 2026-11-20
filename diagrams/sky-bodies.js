@@ -15,7 +15,7 @@
    in Meeus chapter 47 — the full theory has hundreds more terms. Planets: a few arcminutes
    for the inner ones and up to about a tenth of a degree for Saturn, from JPL's own
    low-precision Keplerian elements, which are fitted for 1800-2050 and should not be used
-   outside it. Stars: catalogue positions precessed to date, so sub-arcminute.
+   outside it. Stars: catalog positions precessed to date, so sub-arcminute.
 
    Every one of those is far below the error in a phone compass, which is the real limit on
    anything drawn over a camera. */
@@ -241,7 +241,7 @@ export function planetPositions(jd) {
     const cosA = (r * r + delta * delta - rE * rE) / (2 * r * delta);
     const alpha = Math.acos(Math.max(-1, Math.min(1, cosA))) / D;
     /* JPL's elements are in the J2000 frame, so this position is for the J2000 equinox and
-       has to be carried forward like a catalogue star. Skipping it leaves every planet about
+       has to be carried forward like a catalog star. Skipping it leaves every planet about
        0.36 degrees adrift in right ascension by 2026 — a systematic error, identical for all
        five, which is exactly what made it visible against Horizons: the sun (worked out in
        the ecliptic of date) matched to a thousandth of a degree while every planet was off
@@ -255,14 +255,14 @@ export function planetPositions(jd) {
     else if (name === 'Mars') mag = base + 0.016 * alpha;
     else if (name === 'Jupiter') mag = base + 0.005 * alpha;
     /* Saturn's rings swing its brightness by about a magnitude over fifteen years and are
-       not modelled here, so its number is the ringless one and can be a magnitude dim */
+       not modeled here, so its number is the ringless one and can be a magnitude dim */
     out.push({ name, ra: q.ra, dec: q.dec, mag, distAU: delta, rAU: r, phaseAngle: alpha });
   }
   return out;
 }
 
 /* ---------- precession (Meeus 21) ----------
-   Catalogue positions are for J2000. The sky has turned since: about 0.36 degrees by 2026,
+   Catalog positions are for J2000. The sky has turned since: about 0.36 degrees by 2026,
    which is most of a moon's width and plainly visible if you skip it. */
 export function precess(ra0, dec0, T) {
   const z1 = (2306.2181 * T + 0.30188 * T * T + 0.017998 * T ** 3) / 3600;
@@ -274,8 +274,8 @@ export function precess(ra0, dec0, T) {
   return { ra: norm(Math.atan2(A, B) / D + z2), dec: Math.asin(Math.max(-1, Math.min(1, C))) / D };
 }
 
-/* ---------- from the centre of the earth to where you are standing ----------
-   Everything above is geocentric: computed as if you were at the centre of the earth. For
+/* ---------- from the center of the earth to where you are standing ----------
+   Everything above is geocentric: computed as if you were at the center of the earth. For
    anything far away that is the same answer, but the moon is only sixty earth radii off, so
    standing on the surface moves it by up to a degree — twice its own width. Checked against
    JPL Horizons this is the single largest error in the file if you skip it: the moon came
@@ -324,7 +324,7 @@ export function skyAt(lat, lon, date = new Date(), opt = {}) {
 
   const sun = sunPosition(jd);
   const moon = moonPosition(jd);
-  /* the phase is geometry between three centres, so it uses the geocentric moon */
+  /* the phase is geometry between three centers, so it uses the geocentric moon */
   const phase = moonPhase(sun, moon);
   /* everything else is seen from a spot on the surface. For the sun and the planets the
      shift is seconds of arc; for the moon it is most of a degree. */
@@ -336,7 +336,7 @@ export function skyAt(lat, lon, date = new Date(), opt = {}) {
 
   const sunAt = place(sun, sun.distKm), moonAt = place(moon, moon.distKm);
   /* How dark it is, which decides whether any of this is worth drawing over a camera.
-     The usual twilight steps: the sun's centre at -6 is civil, -12 nautical, -18 astronomical. */
+     The usual twilight steps: the sun's center at -6 is civil, -12 nautical, -18 astronomical. */
   const s = sunAt.rawAlt;
   const twilight = s > -0.833 ? 'day' : s > -6 ? 'civil' : s > -12 ? 'nautical' : s > -18 ? 'astronomical' : 'night';
 

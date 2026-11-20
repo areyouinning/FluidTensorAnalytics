@@ -133,7 +133,7 @@ export const KEY = C(
                 C('What a tensor really is.', '/tensor-analysis.html',
                   'How fast a computer can solve a puzzle.',
                   C('Whether brute force is the best a computer can do.', '/eth.html',
-                    'A forecast: the travelling salesman falls next.', '/tsp-forecast.html')),
+                    'A forecast: the traveling salesman falls next.', '/tsp-forecast.html')),
                 'Pictures, circles or patterns.',
                 C('The logarithm of a picture.', '/image-log.html',
                   'Circles, cells, or a sum that never ends.',

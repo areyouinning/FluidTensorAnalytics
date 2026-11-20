@@ -11,7 +11,7 @@ const GROUND = [
 const UREF = 6, ZREF = 10, HMAX = 120;
 
 export default function (fig) {
-  const s = svg(fig, 360, 280, 'Wind speed against height above ground, for four kinds of ground cover, all passing through the forecast value at ten metres.');
+  const s = svg(fig, 360, 280, 'Wind speed against height above ground, for four kinds of ground cover, all passing through the forecast value at ten meters.');
   const g = el('g', {}, s), box = controls(fig);
   const [face, up] = readouts(fig, ['At head height (2 m)', 'At 80 m']);
   const X = v => 42 + v / 11 * 300, Y = h => 232 - Math.sqrt(h / HMAX) * 206;

@@ -46,7 +46,7 @@ function bright(fig) {
       img.data[k * 4] = q; img.data[k * 4 + 1] = q; img.data[k * 4 + 2] = Math.min(255, q + 8); img.data[k * 4 + 3] = 255; if (q >= 8) seen++;
     }
     g.putImageData(img, 0, 0);
-    read.textContent = (s <= 0 ? 'Linear: ' : 'Logarithmic: ') + (100 * seen / (W * H)).toFixed(1) + '% of pixels are bright enough to see (above 3% grey). The brightest pixel is ' + Math.round(mx).toLocaleString('en-US') + ' times the darkest sky.';
+    read.textContent = (s <= 0 ? 'Linear: ' : 'Logarithmic: ') + (100 * seen / (W * H)).toFixed(1) + '% of pixels are bright enough to see (above 3% gray). The brightest pixel is ' + Math.round(mx).toLocaleString('en-US') + ' times the darkest sky.';
   }
   slider(box, 'From linear to logarithmic ', 0, 6, .1, s, v => v <= 0 ? 'linear' : 'a = 10^' + v.toFixed(1), v => { s = v; draw(); });
   draw();

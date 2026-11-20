@@ -2,7 +2,7 @@
    must find their own number. Strategy: start at the box with your own number and follow the slips.
    You are walking the loop (cycle) of the shuffle that contains your number, and you find it exactly
    when that loop is no longer than 50. So everyone succeeds iff the longest loop is <= 50, which has
-   probability 1 - (1/51 + ... + 1/100) = 31.18%. Cells are coloured by loop; tap one to walk it. */
+   probability 1 - (1/51 + ... + 1/100) = 31.18%. Cells are colored by loop; tap one to walk it. */
 import { svg, el, clear, label, controls, button, readouts, rng } from './kit.js';
 
 const BLUE = 'var(--blue)', GREEN = 'var(--green)', RED = 'var(--red)', ORANGE = 'var(--orange)', PURPLE = 'var(--purple)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', SUNK = 'var(--sunk)', LINE = 'var(--line)';
@@ -17,7 +17,7 @@ function loops(p) {   // every loop of the shuffle, longest first; also which lo
 }
 
 export default function (fig) {
-  const s = svg(fig, 380, 340, 'A ten by ten grid of numbered boxes coloured by which loop of the shuffle they belong to.');
+  const s = svg(fig, 380, 340, 'A ten by ten grid of numbered boxes colored by which loop of the shuffle they belong to.');
   const g = el('g', {}, s);
   const box = controls(fig);
   const [loopR, roomR, runR] = readouts(fig, ['Longest loop', 'This room', 'Rooms so far']);

@@ -1,8 +1,8 @@
-/* Energy moving through a small light-harvesting network: seven pigments, one exit to the reaction centre.
+/* Energy moving through a small light-harvesting network: seven pigments, one exit to the reaction center.
    The excitation is a quantum state (a 7×7 density matrix ρ). Its motion follows a master equation:
      dρ/dt = −(i/ħ)[H, ρ]  − γ·(off-diagonal ρ)  − κ{P_exit, ρ}  − 2Γρ
    H holds the pigment energies and couplings (cm⁻¹). γ is dephasing: the jiggling protein around the pigments washes out the phases.
-   κ = 1 ps⁻¹ hands energy to the reaction centre at the exit; Γ = 1 ns⁻¹ loses it as light or heat anywhere.
+   κ = 1 ps⁻¹ hands energy to the reaction center at the exit; Γ = 1 ns⁻¹ loses it as light or heat anywhere.
    This network is made up for this page, with energy scales like the FMO protein's; it is not a fit to FMO.
    data-view="net": the network over time.  data-view="sweep": delivery against dephasing, solved exactly (no time-stepping). */
 import { svg, el, clear, label, controls, button, slider, readouts, calm, C } from './kit.js';
@@ -82,7 +82,7 @@ const POS = [[70, 60], [160, 40], [250, 110], [180, 150], [100, 180], [40, 130],
 
 export default function (fig) {
   if (fig.getAttribute('data-view') === 'sweep') return sweep(fig);
-  const s = svg(fig, 380, 300, 'Seven pigments joined by couplings, each circle sized by how much of the excitation sits on it, with an exit to the reaction centre.');
+  const s = svg(fig, 380, 300, 'Seven pigments joined by couplings, each circle sized by how much of the excitation sits on it, with an exit to the reaction center.');
   const g = el('g', {}, s), box = controls(fig);
   const [tR, gotR, cohR] = readouts(fig, ['Time', 'Delivered so far', 'Coherence, Σ|ρᵢⱼ|']);
   gSlider(box);
@@ -96,7 +96,7 @@ export default function (fig) {
     J.forEach(([a, b, v]) => el('path', { d: `M${POS[a][0]} ${POS[a][1]}L${POS[b][0]} ${POS[b][1]}`, stroke: C.line, 'stroke-width': Math.max(1, Math.abs(v) / 14), fill: 'none' }, g));
     el('path', { d: `M${POS[EXIT][0]} ${POS[EXIT][1]}L${POS[EXIT][0] + 70} ${POS[EXIT][1]}`, stroke: C.green, 'stroke-width': 4, 'stroke-dasharray': '6 4', fill: 'none' }, g);
     el('rect', { x: POS[EXIT][0] + 70, y: POS[EXIT][1] - 24, width: 52, height: 48, rx: 8, fill: C.green, opacity: .2 + .8 * S.got }, g);
-    label(g, POS[EXIT][0] + 96, POS[EXIT][1] + 44, 'reaction', { size: 12, cls: 'soft' }); label(g, POS[EXIT][0] + 96, POS[EXIT][1] + 58, 'centre', { size: 12, cls: 'soft' });
+    label(g, POS[EXIT][0] + 96, POS[EXIT][1] + 44, 'reaction', { size: 12, cls: 'soft' }); label(g, POS[EXIT][0] + 96, POS[EXIT][1] + 58, 'center', { size: 12, cls: 'soft' });
     for (let i = 0; i < N; i++) { const pop = Math.max(0, S.re[i * N + i]);
       el('circle', { cx: POS[i][0], cy: POS[i][1], r: 13, fill: C.sunk }, g);
       el('circle', { cx: POS[i][0], cy: POS[i][1], r: 4 + 22 * Math.sqrt(pop), fill: C.orange, opacity: .85 }, g);
@@ -119,7 +119,7 @@ export default function (fig) {
 }
 
 function sweep(fig) {
-  const s = svg(fig, 380, 250, 'The share of the energy delivered to the reaction centre, against how strongly the surroundings dephase the pigments.');
+  const s = svg(fig, 380, 250, 'The share of the energy delivered to the reaction center, against how strongly the surroundings dephase the pigments.');
   const g = el('g', {}, s), box = controls(fig);
   const [etaR, tR, lifeR] = readouts(fig, ['Delivered', 'Average time to the exit', 'Coherence lifetime, 1/γ']);
   gSlider(box);
