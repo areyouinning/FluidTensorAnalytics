@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Has the Riemann hypothesis fallen? | FluidTA</title>
+<meta name="description" content="On 20 November 2026, Anthropic mathematician Levent Alpöge said he and Claude had proved the Riemann hypothesis, with a proof written in the Lean proof checker. What Riemann guessed in 1859, what it says about the primes, what a Lean check can and cannot tell us, and where the claim stands.">
+<link rel="stylesheet" href="/fta.css">
+<script src="/fta.js" defer></script>
+<style>
+[data-diagram] text{font-feature-settings:"calt" 0}
+.gloss{margin:16px 0 0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel)}
+.gloss summary{cursor:pointer;padding:12px 14px;font-weight:700;min-height:44px;box-sizing:border-box}
+.gloss dl{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:10px 16px;margin:0;padding:4px 14px 16px;font-size:16px}
+.gloss dt{font:600 15px/1.5 var(--mono);color:var(--blue);overflow-wrap:anywhere}
+.gloss dd{margin:0;line-height:1.5;min-width:0}
+@media (max-width:520px){.gloss dl{grid-template-columns:minmax(0,1fr);gap:2px}.gloss dd{margin-bottom:10px}}
+.status{margin:14px 0 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--sunk);border-left:4px solid var(--gold);font-size:16px}
+.lean{margin:12px 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--sunk);font:500 14px/1.6 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body data-tab="explore">
+<main id="main" class="article">
+  <a class="crumb" href="/explore.html">Explore</a>
+  <h1>Has the Riemann hypothesis fallen?</h1>
+  <p class="lede" style="margin-top:14px">In 1859 Bernhard Riemann guessed where the zeros of one function lie, and with them how evenly the prime numbers are spread out. For 167 years nobody could prove it. On 20 November 2026, Levent Alpöge, a mathematician at Anthropic, posted a four-page note saying that he and Claude had. The proof is not a paper but computer code, written for a program that checks every step.</p>
+  <p class="status"><b>Status, evening of 20 November 2026:</b> a claim made today, not yet reviewed. Other researchers are checking the code, and there is no paper written for people yet. This page will be updated as the checks report.</p>
+
+  <details class="gloss" id="symbols">
+    <summary>Symbol glossary: every symbol on this page, in the order it appears</summary>
+    <dl>
+      <dt><i>s</i> = σ + <i>i</i><i>t</i></dt><dd>A complex number: σ (sigma) is how far right it sits, <i>t</i> is how far up. <i>i</i> is the square root of −1.</dd>
+      <dt>ζ(<i>s</i>)</dt><dd>The Riemann zeta function. For σ &gt; 1 it is the sum 1 + 1/2<sup><i>s</i></sup> + 1/3<sup><i>s</i></sup> + 1/4<sup><i>s</i></sup> + …; everywhere else it is the unique smooth way to continue that function.</dd>
+      <dt>|ζ|</dt><dd>The size of ζ, how far its value is from 0. A zero is a point where |ζ| = 0.</dd>
+      <dt>σ = ½</dt><dd>The critical line, halfway across the strip 0 &lt; σ &lt; 1 where the interesting zeros live.</dd>
+      <dt>π(<i>x</i>)</dt><dd>The number of primes up to <i>x</i>. π(100) = 25. (Here π is a name, not 3.14159…)</dd>
+      <dt>ln <i>x</i></dt><dd>The natural logarithm: about 2.3 times the number of digits of <i>x</i>.</dd>
+      <dt>li(<i>x</i>)</dt><dd>The logarithmic integral, the area under 1/ln <i>t</i> from 0 to <i>x</i>. Gauss’s and Riemann’s smooth estimate of π(<i>x</i>).</dd>
+      <dt>√<i>x</i> · ln <i>x</i> / 8π</dt><dd>The largest gap between π(<i>x</i>) and li(<i>x</i>) that the Riemann hypothesis allows, for <i>x</i> ≥ 2657. Here π is 3.14159…</dd>
+      <dt>RH, GRH</dt><dd>The Riemann hypothesis, and the generalized Riemann hypothesis: the same claim for a whole family of related functions (Dirichlet <i>L</i>-functions).</dd>
+      <dt>Lean, Mathlib</dt><dd>Lean is a proof assistant: software that checks every step of a formal proof. Mathlib is its shared library of formalized mathematics, including the definition of ζ.</dd>
+    </dl>
+  </details>
+
+  <h2>Riemann’s guess</h2>
+  <p>Primes thin out. A quarter of the numbers up to 100 are prime, but only about 7.8 percent of those up to a million. Gauss noticed that near <i>x</i> roughly one number in ln <i>x</i> is prime, which gives the smooth estimate li(<i>x</i>). The question is how far the real count can wander from it.</p>
+  <p>Riemann’s answer ran through Euler’s zeta function, ζ(<i>s</i>) = 1 + 1/2<sup><i>s</i></sup> + 1/3<sup><i>s</i></sup> + …, which Euler had shown is secretly a product over all the primes. Riemann let <i>s</i> be a complex number and found an exact formula for the primes in which every zero of ζ contributes a wave. Apart from the easy zeros at −2, −4, −6 and so on, all the zeros lie in the strip where σ is between 0 and 1. Riemann guessed that they all lie exactly on its center line, σ = ½. That is the Riemann hypothesis.</p>
+  <figure class="fig" data-diagram="zetamap"><figcaption>The size of ζ over the strip, for heights up to 60. Dark is small; the dots are its 13 zeros there, all on the dashed critical line. Slide σ off ½ and the dips in the lower chart stop reaching zero.</figcaption></figure>
+  <p>Every zero ever computed sits on the line. In 1914 Hardy proved that infinitely many do; by 1989 Conrey had shown that more than two fifths do. In 2021 Platt and Trudgian confirmed that every zero up to height 3 × 10<sup>12</sup> lies on the line. None of that is a proof that all of them do.</p>
+
+  <h2>What it says about the primes</h2>
+  <p>A zero off the line would make its wave grow faster than the others and push the prime count further from li(<i>x</i>). On the line, every wave is as quiet as it can be. Von Koch showed in 1901 that the hypothesis is the same as saying the gap never grows much faster than √<i>x</i>. Schoenfeld made it exact in 1976: the Riemann hypothesis is true exactly when |π(<i>x</i>) − li(<i>x</i>)| &lt; √<i>x</i> · ln <i>x</i> / 8π for every <i>x</i> from 2657 on.</p>
+  <figure class="fig" data-diagram="primerace"><figcaption>The real gap between the prime count and li(<i>x</i>), counted exactly up to ten million, against the band the Riemann hypothesis allows. Move <i>x</i> to read off the numbers.</figcaption></figure>
+  <p>Checking numbers can never settle it: the band has to hold for every <i>x</i>, forever. The gap shown is negative all the way, yet Littlewood proved in 1914 that it changes sign infinitely often, first somewhere far beyond any number anyone has counted to. That is why mathematicians wanted a proof.</p>
+  <p>Thousands of theorems begin “assuming the Riemann hypothesis” or its generalization. One practical example: if the generalized hypothesis holds, Bach showed in 1990 that testing whether <i>n</i> is prime needs only the bases below 2(ln <i>n</i>)<sup>2</sup> in the Miller–Rabin test, which gives a fast primality test with no randomness. If the new proof stands, results like that stop being conditional.</p>
+
+  <h2>The claim</h2>
+  <p>Alpöge’s note, posted on his personal website, links to the proof as code in Lean. The note says the same method also proves the generalized Riemann hypothesis. “This time, Claude far outpaced me near the finish line,” Alpöge said, as quoted by <i>The New York Times</i>. By other reports, the formal proof is enormous, running past 250,000 pages if it were written out for people.</p>
+  <p>Reactions on Friday, as reported by <i>The New York Times</i>:</p>
+  <ul>
+    <li>James Maynard (Oxford): “I think it’s likely to be correct. I’d be 98 or 99 percent certain.”</li>
+    <li>Steven Strogatz (Cornell) said Alpöge appeared to have steered Claude toward which ideas to explore: “a very skillful jockey riding a really fast horse.”</li>
+    <li>Alex Kontorovich (Rutgers): “I’m absolutely, absolutely shocked.”</li>
+    <li>Brian Conrad (Stanford) called it “frankly completely outrageous” to release a proof its author does not fully understand.</li>
+  </ul>
+
+  <h2>What Lean can and cannot check</h2>
+  <p>Lean checks every logical step against a small, trusted core. If the code compiles, the theorem it states follows from the axioms and the definitions it uses; no step can be waved through. That is far stronger than a referee reading 250,000 pages. Three things still need people:</p>
+  <ul>
+    <li><b>Is it the right theorem?</b> Maynard: “You have to be a little bit careful about making sure that a Lean verification is proving the thing that you want it to be proving.” Mathlib states the hypothesis like this:
+      <div class="lean">def RiemannHypothesis : Prop :=
+  ∀ (s : ℂ) (_ : riemannZeta s = 0)
+    (_ : ¬∃ n : ℕ, s = -2 * (n + 1)) (_ : s ≠ 1),
+    s.re = 1 / 2</div>
+      In words: every zero of ζ other than −2, −4, −6, … has real part ½. Checkers have to confirm that the proved statement implies this one, and that its definitions mean what they say.</li>
+    <li><b>Nothing assumed along the way.</b> A Lean proof can quietly add an axiom or leave a step marked <code>sorry</code>. Lean lists every axiom a theorem depends on, so this is quick to check once the build finishes.</li>
+    <li><b>Why it is true.</b> A machine check says the statement holds, not why. “Basically, no one doubted that the Riemann hypothesis was true,” Maynard said. “We really wanted to know why it was true.” That understanding has to be extracted from the code, by people or with AI help.</li>
+  </ul>
+  <p>The Clay Mathematics Institute’s $1 million prize, one of its seven Millennium Prizes, has its own rules: publication in a recognized outlet and two years of general acceptance. Code on a website does not yet meet them.</p>
+
+  <h2>Two proofs in one day</h2>
+  <p>Also on Friday, Alessandro Masullo, an independent mathematician in Rome, released a draft proof he says he has worked on for years, by a completely different route and without AI. His former thesis adviser, Brian Conrad, called the draft credible, without major gaps, with ideas fully worked out and the writing still being fixed. It echoes the <a href="/eth.html">Exponential Time Hypothesis</a> last month, which two AI labs claimed to refute independently at about the same time.</p>
+  <p>It also follows a quick run of AI results. In October OpenAI published a proof of the weaker quasi-Riemann hypothesis, which turned out to need only known tools. Also on Friday, Alpöge and Tristan Buckmaster (NYU) claimed that the Navier–Stokes equations can <a href="/blowup.html">blow up to infinite speed</a> even with no outside force driving the fluid. Navier–Stokes is another Millennium Prize problem.</p>
+
+  <p class="credit">Sources: Kenneth Chang and Siobhan Roberts, “Anthropic Mathematician Claims to Have Solved Math’s Most Famous Problem,” <i>The New York Times</i>, 20 November 2026; further reporting in <i>Scientific American</i> and elsewhere, 20 November 2026; B. Riemann, “Ueber die Anzahl der Primzahlen unter einer gegebenen Grösse” (1859); L. Schoenfeld, “Sharper bounds for the Chebyshev functions θ(<i>x</i>) and ψ(<i>x</i>) II,” <i>Math. Comp.</i> (1976); D. Platt and T. Trudgian, “The Riemann hypothesis is true up to 3·10<sup>12</sup>,” <i>Bull. LMS</i> (2021); J. B. Conrey, “More than two fifths of the zeros of the Riemann zeta function are on the critical line” (1989); E. Bach, “Explicit bounds for primality testing and related problems,” <i>Math. Comp.</i> (1990); Mathlib’s <code>RiemannHypothesis</code>. The figures compute ζ and count primes live in your browser. Words, code and pictures on this page are mine and in the public domain.</p>
+  <a data-next></a>
+</main>
+</body>
+</html>
