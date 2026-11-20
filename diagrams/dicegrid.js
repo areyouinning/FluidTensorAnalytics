@@ -24,7 +24,7 @@ export default function (fig) {
     for (let n = 0; n < 4; n++) { const w = (n + 3) % 4; arrow(w, n, (w === i && n === j) || (w === j && n === i)); }
     EFRON.forEach((d, n) => { el('circle', { cx: P[n][0], cy: P[n][1], r: 18, fill: d.c, opacity: n === i || n === j ? 1 : .55 }, g); label(g, P[n][0], P[n][1] + 6, d.k, { size: 17, w: 600, fill: 'var(--on-accent)' }); });
     label(g, 84, 222, 'each arrow wins 2/3', { size: 13, cls: 'soft' });
-    /* the grid: rows are the first die's faces, columns the second's; each cell is coloured by who wins it */
+    /* the grid: rows are the first die's faces, columns the second's; each cell is colored by who wins it */
     const x0 = 208, y0 = 36, c = 26;
     label(g, x0 + 3 * c, 18, A.k + ' down, ' + B.k + ' across', { size: 14, w: 600 });
     for (let a = 0; a < 6; a++) {

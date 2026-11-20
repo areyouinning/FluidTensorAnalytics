@@ -44,7 +44,7 @@ function starRadius(mag) {
   return Math.max(0.45, 2.9 - 0.46 * mag);
 }
 /* bluish-white for hot stars down to a warm tint for the bright red ones is a nicety this
-   catalogue cut does not carry colour for, so everything is the same warm white */
+   catalog cut does not carry color for, so everything is the same warm white */
 const STAR_INK = 'rgba(255,252,244,';
 
 /* great-circle bearing from one alt-az point to another, measured from the zenith direction
@@ -328,7 +328,7 @@ export function mountSky(host, getData) {
   };
 
   /* ---------- projection ----------
-     A pinhole camera: screen position from how far a point sits off the centre of view. */
+     A pinhole camera: screen position from how far a point sits off the center of view. */
   function project(az, elev, W, H) {
     const fy = (H / 2) / Math.tan(S.fovY / 2 * RAD);
     let dAz = ((az - S.yaw + 540) % 360) - 180;
@@ -375,7 +375,7 @@ export function mountSky(host, getData) {
     const lit = b.phase ? `, ${Math.round(b.phase.illum * 100)}% lit` : '';
     return `${b.name}${lit} — ${up}° up, ${dir}`;
   }
-  /* A crescent's bright part is not centred on the disc, so aim for the middle of the whole
+  /* A crescent's bright part is not centered on the disc, so aim for the middle of the whole
      circle rather than the middle of the light. At half a degree across, being a touch off
      costs a fraction of a degree against the tens this is correcting, so it hardly matters —
      but it is the difference between a careful tap and a lucky one. */
@@ -397,18 +397,18 @@ export function mountSky(host, getData) {
 
   /* ---------- where your face is ----------
      Height above the GROUND is what the forecast reports, but the geometry here is about
-     height above the EYE, and once the profile carries levels below ten metres the two stop
-     being interchangeable. A plane 50 cm off the grass is a metre BELOW your face: you look
+     height above the EYE, and once the profile carries levels below ten meters the two stop
+     being interchangeable. A plane 50 cm off the grass is a meter BELOW your face: you look
      down at it, it meets the ground in front of your boots, and drawing it overhead would be
      a straightforward lie about which way to look. So every plane is placed by its offset
      from the eye, which also lets that offset be negative. */
   const EYE = 1.6;
   const offset = L => L.agl - EYE;
   /* the one length in the geometry: how far the plane sits from the eye. Floored, because a
-     plane that passes within centimetres of your face has no useful scatter radius. */
+     plane that passes within centimeters of your face has no useful scatter radius. */
   const scatterRef = L => Math.max(1.2, Math.abs(offset(L)));
 
-  /* With the first ten metres resolved there are twenty-odd layers rather than a dozen, so
+  /* With the first ten meters resolved there are twenty-odd layers rather than a dozen, so
      the count is a budget split between them instead of a fixed number each. */
   const PART_BUDGET = 3200;
   const TRAIL_S = 0.55;              // seconds of drift drawn behind each bubble
@@ -417,14 +417,14 @@ export function mountSky(host, getData) {
   function seedParts(layers) {
     S.parts = [];
     if (!layers.length) return;
-    /* The first ten metres get a double share. Those planes are close enough that the band
+    /* The first ten meters get a double share. Those planes are close enough that the band
        of sky they occupy is thin — a couple of degrees around the horizon until you tilt
        down at the grass — and an even split spreads them too thin to read as a layer. */
     const wt = L => (L.derived ? 2 : 1);
     const total = layers.reduce((s, L) => s + wt(L), 0);
     const share = L => Math.max(70, Math.min(400, Math.round(PART_BUDGET * wt(L) / total)));
     /* seeded highest first, so the near-ground air ends up last in the array and therefore
-       draws over the air a kilometre up, which is the order you are actually looking through */
+       draws over the air a kilometer up, which is the order you are actually looking through */
     const byHeight = layers.map((L, i) => i).sort((a, b) => layers[b].agl - layers[a].agl);
     for (const li of byHeight) {
       const n = share(layers[li]);
@@ -451,7 +451,7 @@ export function mountSky(host, getData) {
      and dies at the rim sits, on average, downwind — and facing INTO the wind showed four
      bubbles where it should have shown forty.
      So a replacement enters on the upwind rim and crosses. The impact parameter is how far
-     off centre its line passes; biasing it inward keeps enough traffic through the high
+     off center its line passes; biasing it inward keeps enough traffic through the high
      elevations overhead, which uniform crossings would leave bare. A bubble now lives
      exactly as long as it takes to cross what you can see, which is the longest a bubble
      can honestly last. */
@@ -476,10 +476,10 @@ export function mountSky(host, getData) {
 
   /* ---------- a puff, released at your feet ----------
 
-     Tap and a ball of marked air a couple of metres across appears where you are standing,
+     Tap and a ball of marked air a couple of meters across appears where you are standing,
      with a parcel of it in every layer at once. Then it comes apart, because every layer is
-     a different wind: the half-metre parcel barely leaves, the ten-metre one walks off, the
-     kilometre one is gone before you can follow it, and often in another direction entirely.
+     a different wind: the half-meter parcel barely leaves, the ten-meter one walks off, the
+     kilometer one is gone before you can follow it, and often in another direction entirely.
 
      That coming-apart IS the shear. The ambient tracers show it too, but they are a steady
      state — nothing in them marks a moment, so there is no "then" to compare a "now" against.
@@ -490,7 +490,7 @@ export function mountSky(host, getData) {
      WHERE IT IS RELEASED is the whole trick, and the obvious answer is wrong. Dropping it at
      your feet is the honest picture of a smoke candle, and it is useless: parcels at the same
      spot on the ground but in different layers are at wildly different elevations — the four
-     kilometre one is at the zenith, the half metre one is at your boots — so the puff is
+     kilometer one is at the zenith, the half meter one is at your boots — so the puff is
      never all in frame and you cannot watch it do the one thing it exists to do.
      Put each parcel instead where your LINE OF SIGHT crosses its own layer. Every point on
      that ray projects to the same place on the screen, so all of them start as a single dot
@@ -616,7 +616,7 @@ export function mountSky(host, getData) {
       const dist = Math.hypot(p.e, p.n);
       /* Out at the rim a plane is some six degrees off the horizon and nearly spent, so that
          is where a bubble turns around and comes back in from upwind. The age cap is only a
-         backstop for the layers five kilometres up, whose rim is far enough away that a
+         backstop for the layers five kilometers up, whose rim is far enough away that a
          crossing would take a quarter of an hour. */
       if (p.age > LIFE || dist > ref * 9.4) { Object.assign(p, newPart(p.li, L)); continue; }
       /* negative when the plane is below your face, which is most of the new low levels */
@@ -626,7 +626,7 @@ export function mountSky(host, getData) {
       if (!q) continue;
       /* Nearness, as the sine of how far off the horizon the plane sits: one straight
          overhead (or straight down at the grass), near zero where a layer flattens into the
-         skyline and the same air is kilometres away. It drives size and alpha together, so a
+         skyline and the same air is kilometers away. It drives size and alpha together, so a
          bubble dims as the perspective shrinks it instead of dimming on its own schedule. */
       const t = Math.min(1, Math.abs(Math.sin(elev * RAD)));
       /* half a second of fading in, so a replacement arriving mid-view does not pop */
@@ -638,7 +638,7 @@ export function mountSky(host, getData) {
          A bubble alone tells you where air is, not that it is moving; two frames of a
          thirty-frame second is not something an eye integrates. So each one carries the
          half-second of drift it just finished.
-         That segment is a straight line in the WORLD, travelled at constant speed, so it
+         That segment is a straight line in the WORLD, traveled at constant speed, so it
          needs no stored history: take the position half a second back, project it, done.
          Projecting rather than smearing the canvas is the point — a screen-space trail
          would drag sideways across the frame the instant you turn the phone, and read as
@@ -843,7 +843,7 @@ export function mountSky(host, getData) {
         if (q) drawMoon(ctx, q, mo, sky.sun, H);
       }
 
-      /* what are you pointing at? the brightest named thing within ten degrees of centre */
+      /* what are you pointing at? the brightest named thing within ten degrees of center */
       const cand = [];
       if (mo.alt > 0) cand.push({ name: 'the Moon', az: mo.az, alt: mo.alt, mag: -12.7, extra: `${Math.round(mo.phase.illum * 100)}% lit, ${mo.phase.name}` });
       if (sky.sun.alt > 0) cand.push({ name: 'the Sun', az: sky.sun.az, alt: sky.sun.alt, mag: -26.7, extra: '' });
@@ -944,9 +944,9 @@ export function mountSky(host, getData) {
        These used to be hung in the sky itself, spread up the view in height order: the lowest
        layer near the horizon, the highest near the zenith. It was a tempting way to put the
        label near its air, and it was a lie about the vertical scale — the worse the more
-       honest the rest of the view got. Once the profile resolved the first ten metres, half
+       honest the rest of the view got. Once the profile resolved the first ten meters, half
        the labels were sub-10 m levels, so the ladder read 0.5 m, 1 m, 2 m, 4 m, 7 m marching
-       up thirty degrees of sky with the remaining four kilometres of atmosphere squeezed in
+       up thirty degrees of sky with the remaining four kilometers of atmosphere squeezed in
        above the top of the frame. Anyone reading that as a height axis — which is exactly
        what evenly spaced height labels are — would conclude the view was stretched.
 
@@ -967,7 +967,7 @@ export function mountSky(host, getData) {
       const boxW = wide + pad * 2 + rowH * 0.9;
       const capH = 15 * sc;                                  // room for the caption line
       const boxH = rows.length * rowH + pad * 2 + capH;
-      /* centred, but never under the sliders: in landscape the frame is short and the caption
+      /* centered, but never under the sliders: in landscape the frame is short and the caption
        was being clipped by the Tracers row (seen at Valmont, 2026-11-15) */
     const x0 = pad, y0 = Math.max(pad, Math.min(H * 0.5 - boxH / 2, H * 0.80 - boxH));
       ctx.globalAlpha = 0.82;
@@ -1093,7 +1093,7 @@ export function mountSky(host, getData) {
     S.horizon = skyline(d.dem, 1.6);
 
     /* The summits, if this is a place that has any in the list. Eye height is the twin's own
-       ground at the centre plus a person, which matters: the same peak sits a tenth of a
+       ground at the center plus a person, which matters: the same peak sits a tenth of a
        degree lower seen from the plains than from a foothills driveway. */
     const eye = (Number.isFinite(d.groundM) ? d.groundM : 1600) + 1.6;
     S.lat = d.lat; S.lon = d.lon; S.elevM = Number.isFinite(d.groundM) ? d.groundM : 0;
@@ -1141,12 +1141,12 @@ export function moonShape(ctx, R, cosI) {
 
 export const dirVec = deg => { const r = (deg + 180) * RAD; return { e: Math.sin(r), n: Math.cos(r) }; };
 export const compass = deg => ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
-/* sub-metre heights are real now that the profile resolves the first ten metres, and
+/* sub-meter heights are real now that the profile resolves the first ten meters, and
    "0.5 m" rounded to "1 m" would have hidden a level underneath another one */
 export const fmtH = m => m >= 1000 ? (m / 1000).toFixed(1) + ' km'
   : m < 9.95 ? m.toFixed(1) + ' m' : Math.round(m) + ' m';
 
-/* What this is not: the levels below ten metres are the neutral log profile computed down
+/* What this is not: the levels below ten meters are the neutral log profile computed down
    from the 10 m forecast, not forecast values, and neutral is the assumption carrying them —
    a clear night steepens the real profile, a sunny afternoon flattens it.
 

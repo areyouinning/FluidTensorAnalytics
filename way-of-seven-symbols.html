@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Martian+Mono:wght@300;400&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&family=Caveat:wght@400;500;600&display=swap">
 <style>
 /* Layout: one chapter at a time, verse beside a square living plate; plate first on phones.
-   Pale water-grey paper, ink, and two dyes that mean the same thing on every plate:
+   Pale water-gray paper, ink, and two dyes that mean the same thing on every plate:
    vermilion for water leaving a saddle (unstable), blue for water arriving (stable). */
 :root{
   --paper:#f4f4f2; --ink:#111111; --muted:#6b6b6b; --rule:#d9d9d6; --wash:#ebebe8;
@@ -249,7 +249,7 @@ const CH = [
    ["One is the thing you can count","before you know","that counting is a thing."],
    ["The 1 in this line came the long way:","from Brahmi strokes, through Baghdad,","to a monastery in Spain and a merchant in Pisa."]],
   notes:`<p>Single marks for one appear wherever people counted: a vertical wedge in Babylon, a stroke in Egypt, a horizontal stroke in Brahmi, a vertical rod or 一 in China, I in Rome, a dot among the Maya, alpha in Greek alphabetic numerals.</p><p>The glyph written here descends from <b>Brahmi</b> numerals (3rd century BCE) through Gupta and Nagari forms to Arabic, described by <b>al-Khwārizmī</b> in Baghdad around 825. The <i>Codex Vigilanus</i>, copied at Albelda in northern Spain in 976, shows the digits 1 to 9 in a Latin book. <b>Fibonacci</b>'s <i>Liber Abaci</i> (Pisa, 1202) brought the full system, zero included, to European merchants.</p><p>In the identity, 1 is where every turn starts: <code>e^(i·0) = 1</code>.</p>`,
-  caption:"Where the 1 was written, and how this one travelled (height: log of years ago). Tap for ones from different traditions, laid on a logarithmic spiral." },
+  caption:"Where the 1 was written, and how this one traveled (height: log of years ago). Tap for ones from different traditions, laid on a logarithmic spiral." },
 
 { n:"IV", id:"plus", title:"Plus", art:"plus",
   verse:[
@@ -296,7 +296,7 @@ const CH = [
    ["The smallest symbol in the line","is a position:","a number lifted up and to the right."],
    ["Descartes raised his exponents in 1637.","Euler raised e to an imaginary power","and got a turn of the circle."],
    ["Add the series one term at a time.","The sum spirals inward","and comes to rest at minus one."]],
-  notes:`<p>Raised exponents are from <b>Descartes</b>' <i>La Géométrie</i> (Leiden, 1637), though he still wrote xx for x². <b>Cotes</b> (1714) wrote <code>ix = ln(cos x + i sin x)</code>; <b>Euler</b> (1748) wrote <code>e^(ix) = cos x + i sin x</code>.</p><p>The plate adds <code>e^(iπ) = Σ (iπ)ⁿ/n!</code> term by term. Each term turns a quarter more than the last, so the partial sums spiral, and they converge to −1.</p><p>The word <b>sine</b> travelled too. Āryabhaṭa's <i>jyā</i>, a bowstring or half-chord, became Arabic <i>jība</i>; written without vowels it was read as <i>jayb</i>, a fold or pocket, and Robert of Chester (Segovia, 1145) translated that as Latin <i>sinus</i>.</p>`,
+  notes:`<p>Raised exponents are from <b>Descartes</b>' <i>La Géométrie</i> (Leiden, 1637), though he still wrote xx for x². <b>Cotes</b> (1714) wrote <code>ix = ln(cos x + i sin x)</code>; <b>Euler</b> (1748) wrote <code>e^(ix) = cos x + i sin x</code>.</p><p>The plate adds <code>e^(iπ) = Σ (iπ)ⁿ/n!</code> term by term. Each term turns a quarter more than the last, so the partial sums spiral, and they converge to −1.</p><p>The word <b>sine</b> traveled too. Āryabhaṭa's <i>jyā</i>, a bowstring or half-chord, became Arabic <i>jība</i>; written without vowels it was read as <i>jayb</i>, a fold or pocket, and Robert of Chester (Segovia, 1145) translated that as Latin <i>sinus</i>.</p>`,
   caption:"Partial sums of the series for e^(iπ), spiralling into −1, with the error on a log scale. Tap for where the exponent and the sine came from." },
 
 { n:"X", id:"circles-that-add-up", title:"Circles That Add Up", art:"fourier",
@@ -337,8 +337,8 @@ const CH = [
    ["Gödel built a sentence that talks about itself.","Escher drew a picture that contains itself.","Bach wrote a canon that rises and returns."],
    ["Hofstadter braided the three","and called the shape a strange loop:","climbing, and arriving where you began."],
    ["So does this line.","Turn half a circle, add one, reach nothing,","and the helix goes on above you."]],
-  notes:`<p>Douglas Hofstadter's <i>Gödel, Escher, Bach: an Eternal Golden Braid</i> (1979) braids three self-referring things into what he called a <b>strange loop</b>.</p><p><b>Escher</b>'s <i>Print Gallery</i> (1956) shows a picture that contains itself. De Smit and Lenstra (<i>Notices of the AMS</i>, 2003) showed its structure is a conformal map made from the complex logarithm and exponential. In log coordinates, an image that repeats when scaled by S is periodic on a lattice; multiplying by <code>(2πi + ln S)/(2πi)</code> twists the lattice so that one turn around the centre is one level of zoom. The plate applies that map to this book's own equation, not to Escher's picture.</p><p><b>Bach</b>'s <i>Canon per tonos</i>, in the <i>Musical Offering</i> (Potsdam, 1747), climbs a whole tone each time through; after six rounds it is back in C, an octave higher. On a pitch helix, with angle for pitch class and height for the logarithm of frequency, that is one full turn. <b>Gödel</b> (1931) turned formulas into numbers: each symbol gets a code, and a formula of codes c₁, c₂, … becomes 2<sup>c₁</sup>·3<sup>c₂</sup>·5<sup>c₃</sup>…. The plate uses the codes from Nagel and Newman's <i>Gödel's Proof</i> (1958), where 0 is 6, = is 5 and s (successor) is 7, so <code>0 = 0</code> is 2⁶·3⁵·5⁶ = 243,000,000. Taking the logarithm turns that product into a sum of code × log prime. Gödel's sentence has its own book: <a href="/way-of-incompleteness.html">The Way of Incompleteness</a>.</p><p>The four came from Austria-Hungary, the Netherlands, Saxony and the United States: four more strands in the braid.</p>`,
-  caption:"The equation, drawn into itself through the complex logarithm: one turn around the centre is one level of zoom. Tap for Bach's rising canon on a pitch helix (height: log of frequency), and again for Gödel's numbers, whose logarithms are sums." }
+  notes:`<p>Douglas Hofstadter's <i>Gödel, Escher, Bach: an Eternal Golden Braid</i> (1979) braids three self-referring things into what he called a <b>strange loop</b>.</p><p><b>Escher</b>'s <i>Print Gallery</i> (1956) shows a picture that contains itself. De Smit and Lenstra (<i>Notices of the AMS</i>, 2003) showed its structure is a conformal map made from the complex logarithm and exponential. In log coordinates, an image that repeats when scaled by S is periodic on a lattice; multiplying by <code>(2πi + ln S)/(2πi)</code> twists the lattice so that one turn around the center is one level of zoom. The plate applies that map to this book's own equation, not to Escher's picture.</p><p><b>Bach</b>'s <i>Canon per tonos</i>, in the <i>Musical Offering</i> (Potsdam, 1747), climbs a whole tone each time through; after six rounds it is back in C, an octave higher. On a pitch helix, with angle for pitch class and height for the logarithm of frequency, that is one full turn. <b>Gödel</b> (1931) turned formulas into numbers: each symbol gets a code, and a formula of codes c₁, c₂, … becomes 2<sup>c₁</sup>·3<sup>c₂</sup>·5<sup>c₃</sup>…. The plate uses the codes from Nagel and Newman's <i>Gödel's Proof</i> (1958), where 0 is 6, = is 5 and s (successor) is 7, so <code>0 = 0</code> is 2⁶·3⁵·5⁶ = 243,000,000. Taking the logarithm turns that product into a sum of code × log prime. Gödel's sentence has its own book: <a href="/way-of-incompleteness.html">The Way of Incompleteness</a>.</p><p>The four came from Austria-Hungary, the Netherlands, Saxony and the United States: four more strands in the braid.</p>`,
+  caption:"The equation, drawn into itself through the complex logarithm: one turn around the center is one level of zoom. Tap for Bach's rising canon on a pitch helix (height: log of frequency), and again for Gödel's numbers, whose logarithms are sums." }
 ];
 /* Narration and on-frame equations for the explainer end of the slider. */
 const TALK = {
@@ -383,7 +383,7 @@ const TALK = {
  "So a sound that rings and dies, <i>e</i><sup>(−σ+<i>i</i>ω)<i>t</i></sup>, shows up as two bright points. How far left they sit tells you how fast it dies; how high, how fast it rings. Since |<i>F</i>| shoots to infinity there, we shade the logarithm. Try the sliders."]},
 "a-strange-loop":{ q:"Can an equation contain itself?", eq:"w ↦ w · (2πi + ln S) / 2πi", talk:[
  "For the finale, three loops. Gödel wrote a sentence that talks about itself. Escher drew a gallery that contains itself. Bach wrote a canon that climbs a whole tone each time through and, after six rounds, lands back where it started, an octave up.",
- "The same tool explains the picture: take the complex logarithm, and zooming in becomes sliding, turning becomes sliding the other way. Twist that grid so one turn equals one zoom, map back with the exponential, and you get an image that contains itself. That's this book's equation, folded into its own centre. Tap for Bach."]}
+ "The same tool explains the picture: take the complex logarithm, and zooming in becomes sliding, turning becomes sliding the other way. Twist that grid so one turn equals one zoom, map back with the exponential, and you get an image that contains itself. That's this book's equation, folded into its own center. Tap for Bach."]}
 };
 /* ---------- 3D: a turntable camera ---------- */
 function camera(W,H,cx,cy,sc,rot,tilt){ const c=Math.cos(rot), sn=Math.sin(rot), ct=Math.cos(tilt), st=Math.sin(tilt);
@@ -901,7 +901,7 @@ ARTS.loop = { init(s,W,H){ s.view=0; LOOPM.init(s); }, tap(s){ s.view=(s.view+1)
     label(ctx,["tap: Bach","tap: Gödel","tap: Escher"][s.view],W*0.96,H*0.97,"right"); } };
 /* ---------- the style slider: zen (0), a 3Blue1Brown-style explainer (1), and pen on graph paper in the manner of Welch Labs (2) ---------- */
 const PALS = {
-  // the zen end: ink on paper, nothing but greys
+  // the zen end: ink on paper, nothing but grays
   wayL:{ paper:"#f4f4f2", ink:"#111111", muted:"#6b6b6b", rule:"#d9d9d6", wash:"#ebebe8", u:"#111111", s:"#7d7d7d", o:"#b5b5b2" },
   wayD:{ paper:"#101010", ink:"#ececec", muted:"#8f8f8f", rule:"#2e2e2e", wash:"#1b1b1b", u:"#ececec", s:"#8a8a8a", o:"#5a5a5a" },
   b3:  { paper:"#0e0e10", ink:"#ffffff", muted:"#a8a8a8", rule:"#2c2c30", wash:"#1a1a1e", u:"#fc6255", s:"#58c4dd", o:"#f7d96f" },
@@ -920,10 +920,10 @@ function applyMix(v){
   const paper=mixHex(base.paper, PALS.b3.paper, e), darkGround=lum(paper)<0.42;
   for(const k of Object.keys(base)){
     let v=mixHex(base[k], PALS.b3[k], e);
-    // text never fades through grey on grey: on a light ground it stays dark, on a dark ground it is light
+    // text never fades through gray on gray: on a light ground it stays dark, on a dark ground it is light
     if((k==="ink"||k==="muted") && !isDark()) v = darkGround ? mixHex(PALS.wayD[k], PALS.b3[k], e) : base[k];
     if(w>0){ v=mixHex(v, PALS.wl[k], ew);
-      // past the middle the ground turns from night to paper; text flips with it rather than passing through grey
+      // past the middle the ground turns from night to paper; text flips with it rather than passing through gray
       if(k==="ink"||k==="muted") v = lum(mixHex(paper, PALS.wl.paper, ew))<0.5 ? PALS.b3[k] : PALS.wl[k]; }
     root.setProperty("--"+k, v); }
   root.setProperty("--wel", ew.toFixed(3));

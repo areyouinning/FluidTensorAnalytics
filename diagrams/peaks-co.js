@@ -3,7 +3,7 @@
    Three numbers turn a summit on a map into a mark in your camera: how far away it is, which
    way it lies, and how high above level it sits. The first two are plain spherical geometry.
    The third is the one worth stating, because it is where a flat-earth calculation goes wrong
-   by hundreds of metres.
+   by hundreds of meters.
 
    THE DROP. Over 100 km the Earth's surface falls about 780 m away from your line of sight.
    A peak that far off is therefore lower in your view than its elevation suggests — and air
@@ -28,12 +28,12 @@
    summits are within 600 m of each other, which drops the near-coincident entries OSM carries
    (East Crestone Peak sits 40 m from Crestone Peak at the same height) while keeping the
    twins that are genuinely two mountains to look at: Meeker beside Longs, Torreys beside
-   Grays, both about a kilometre apart and both unmistakable from the plains. A wider rule
+   Grays, both about a kilometer apart and both unmistakable from the plains. A wider rule
    ate them, which is why it is this narrow. That leaves 409 peaks. Their heights agree with published
    summit elevations where those are well known — Elbert 4401, Longs 4346, Pikes 4302, Grays
    4352 — which the hand list did not: it had James Peak 14 km from where James Peak is.
 
-   Elevations are OSM's, in metres. They are good to a few metres for the famous summits and
+   Elevations are OSM's, in meters. They are good to a few meters for the famous summits and
    are not survey marks. Regenerate with the script in this repository's scratch notes rather
    than editing entries by hand. */
 

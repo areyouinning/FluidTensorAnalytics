@@ -72,7 +72,7 @@ export default function (fig) {
       else if (ups.length >= 4) { const T = (ups[ups.length - 1] - ups[1]) / (ups.length - 2), St = D / (T * U0); stR.textContent = St.toFixed(3); tR.textContent = (2 * NX / U0 / T).toFixed(1); }
       else { stR.textContent = 'settling…'; tR.textContent = '…'; } };
     slider(box, 'Reynolds number ', 30, 160, 10, Re, v => String(v), v => { Re = v; make(); });
-    c.setAttribute('aria-label', 'Flow from the left past a cylinder, coloured by spin: blue one way, orange the other.');
+    c.setAttribute('aria-label', 'Flow from the left past a cylinder, colored by spin: blue one way, orange the other.');
     make();
   } else {
     const CH = 24, TH = 4, X0 = 60, H = 8, YC = NY / 2, UF = .08, RE = 100;   // chord, thickness, position, heave amplitude (peak-to-peak 16 cells), stream speed, Reynolds number on the chord
@@ -90,7 +90,7 @@ export default function (fig) {
       wakeR.textContent = '× ' + m.toFixed(2) + (m < .97 ? ', slower: a drag wake' : m > 1.03 ? ', faster: a jet' : ', about even'); };
     stIn = slider(box, 'Strouhal number ', .05, .5, .01, St, v => v.toFixed(2), v => { St = v; make(); });
     window.addEventListener('fta:st', ev => { St = Math.max(.05, Math.min(.5, +ev.detail)); stIn.value = St; stIn.dispatchEvent(new Event('input')); fig.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'center' }); });
-    c.setAttribute('aria-label', 'A wing section heaving up and down in a stream from the left, with its wake coloured by spin.');
+    c.setAttribute('aria-label', 'A wing section heaving up and down in a stream from the left, with its wake colored by spin.');
     make();
   }
   const pause = button(box, S.run ? 'Pause' : 'Play', () => { S.run = !S.run; pause.textContent = S.run ? 'Pause' : 'Play'; });

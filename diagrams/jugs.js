@@ -1,5 +1,5 @@
 /* Two jugs, a tap and a drain. Fill, empty and pour to measure an exact amount. On the right, every
-   state (litres in A, litres in B) is a dot, and your moves trace a path between them — pours run along
+   state (liters in A, liters in B) is a dot, and your moves trace a path between them — pours run along
    the diagonals, like a billiard ball. A target is reachable exactly when it is a multiple of
    gcd(A, B) (Bezout), and "Solve" finds the shortest way by breadth-first search over the dots. */
 import { svg, el, clear, label, controls, slider, button, readouts, calm } from './kit.js';
@@ -53,8 +53,8 @@ export default function (fig) {
     }
     if (path.length > 1) el('path', { d: 'M' + path.map(p => px(p[0]).toFixed(1) + ' ' + py(p[1]).toFixed(1)).join('L'), fill: 'none', stroke: INK, 'stroke-width': 2, 'stroke-linejoin': 'round', opacity: .8 }, g);
     el('circle', { cx: px(x), cy: py(y), r: 6, fill: done(x, y) ? GREEN : PANEL, stroke: INK, 'stroke-width': 2 }, g);
-    label(g, px(A / 2), oy + 16, 'litres in A →', { size: 11, cls: 'soft' });
-    el('text', { x: ox - 10, y: py(B / 2), 'text-anchor': 'middle', 'font-size': 11, class: 'soft', transform: `rotate(-90 ${ox - 10} ${py(B / 2)})` }, g, 'litres in B →');
+    label(g, px(A / 2), oy + 16, 'liters in A →', { size: 11, cls: 'soft' });
+    el('text', { x: ox - 10, y: py(B / 2), 'text-anchor': 'middle', 'font-size': 11, class: 'soft', transform: `rotate(-90 ${ox - 10} ${py(B / 2)})` }, g, 'liters in B →');
     const d = gcd(A, B), ok = T % d === 0 && T <= Math.max(A, B);
     movesR.textContent = (path.length - 1) + (done(x, y) ? ' — got it!' : '');
     gcdR.textContent = String(d);

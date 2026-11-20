@@ -634,11 +634,11 @@
           </div>
           <div class="field">
             <label for="sex">Gender</label>
-            <select id="sex" aria-label="Gender — sets default height, weight and centre-of-mass height"><option value="none">— sets defaults —</option><option value="m">Male</option><option value="f">Female</option></select>
+            <select id="sex" aria-label="Gender — sets default height, weight and center-of-mass height"><option value="none">— sets defaults —</option><option value="m">Male</option><option value="f">Female</option></select>
           </div>
           <div class="slider"><label><span>Height</span><span class="val" id="val-hgt">175 cm</span></label><input type="range" id="hgt" min="140" max="210" step="1" value="175" aria-label="Height in centimeters"></div>
           <div class="slider"><label><span>Weight</span><span class="val" id="val-wgt">70 kg</span></label><input type="range" id="wgt" min="40" max="130" step="1" value="70" aria-label="Weight in kilograms"></div>
-          <div class="slider"><label><span>Centre-of-mass height<span class="tag">where gender goes</span></span><span class="val" id="val-hcf">57% of height</span></label><input type="range" id="hcf" min="0.52" max="0.61" step="0.005" value="0.57" aria-label="Centre-of-mass height as a fraction of stature"></div>
+          <div class="slider"><label><span>Center-of-mass height<span class="tag">where gender goes</span></span><span class="val" id="val-hcf">57% of height</span></label><input type="range" id="hcf" min="0.52" max="0.61" step="0.005" value="0.57" aria-label="Center-of-mass height as a fraction of stature"></div>
           <div class="slider"><label><span>Headwind<span class="tag">− is tailwind</span></span><span class="val" id="val-wind">0.0 m/s</span></label><input type="range" id="wind" min="-5" max="10" step="0.5" value="0" aria-label="Headwind in meters per second"></div>
           <div class="slider"><label><span>Acceleration<span class="tag">0 = steady pace</span></span><span class="val" id="val-acc">0.0 m/s²</span></label><input type="range" id="acc" min="0" max="5" step="0.1" value="0" aria-label="Forward acceleration in meters per second squared"></div>
           <div class="slider"><label><span>Your fastest leg swing<span class="tag">legs catching up</span></span><span class="val" id="val-swmin">0.42 s</span></label><input type="range" id="swmin" min="0.30" max="0.55" step="0.01" value="0.42" aria-label="Minimum swing time in seconds"></div>
@@ -656,7 +656,7 @@
           <tr><td class="k" style="color:var(--tanc)">trunk inclination worth having</td><td class="v">5 – 10°</td></tr>
           <tr><td class="k" style="color:var(--sin)">stance “falling angle” at toe-off</td><td class="v" id="o-toe">—</td></tr>
           <tr><td class="k">&nbsp;&nbsp;leg angle at touchdown</td><td class="v" id="o-td">—</td></tr>
-          <tr><td class="k">centre of mass above ground</td><td class="v" id="o-hc">—</td></tr>
+          <tr><td class="k">center of mass above ground</td><td class="v" id="o-hc">—</td></tr>
           <tr><td class="k">speed</td><td class="v" id="o-speed">—</td></tr>
         </table></div>
       </div>
@@ -685,8 +685,8 @@
       <p>This part is not a metaphor either. Each leg gets one swing time — from its toe-off to its next touchdown — to get back around in front of you, and that time shrinks as pace rises. Weyand and colleagues (2000, 2010) found the fastest humans reposition a limb in about 0.35 s and that this floor, together with how much force you can hit the ground with in an ever-shorter contact, is what caps top speed. Not lean. The “fastest leg swing” slider is yours to set; the calculator solves for the speed at which your swing time would run out, which is the mechanical ceiling your legs — not your posture — impose. Above it, no angle helps. You would simply be falling with style.</p>
 
       <h3>Where gender goes</h3>
-      <p>Not into the lean, and for a clean reason: centre-of-mass height cancels out of the torque balance, because drag and gravity both act at the centre of mass, so <span class="m">tan θ = F_drag / (m·g)</span> contains no length at all. But mass distribution is real, and it enters two other places. First, the stance falling angle is <span class="m">atan(x / h_CoM)</span>, and on population averages women carry the centre of mass about two percent of stature lower (≈ 0.55 H against 0.57 H), which is worth roughly a degree at toe-off — that is the slider above, and the selector sets its default. Second, the rotational momentum: the swinging legs carry angular momentum about the vertical axis and the arms swing to cancel it (Hinrichs, 1987). That momentum scales with the lower-body share of mass, which also differs by sex on average, so it changes how much arm and trunk counter-rotation a run costs — a quantifiable distinction, but one that lives perpendicular to lean. Drag needs a frontal area (Du Bois, 1916; scaled to running posture after Pugh, 1971) and stance needs a leg length; neither has a gender term. The selector fills in typical height, weight, and centre-of-mass height, and then steps aside.</p>
-      <p class="mut">Model notes: contact length and cadence are empirical fits to treadmill data across 3–10 m/s (contact time ≈ 0.25 s at 5:00/km, ≈ 0.11 s at 10 m/s; cadence 175 → 245 spm), scaled by leg length. Frontal area ≈ 0.24 × BSA, C<sub>d</sub> ≈ 0.9, sea-level air. Drag’s share of running cost uses ~4 J·kg⁻¹·m⁻¹ and 25% muscular efficiency, which reduces neatly to F<sub>drag</sub>/m. Touchdown and toe-off angles are the foot-to-centre-of-mass line measured from vertical, splitting the contact length 40/60 — landing a little ahead of the hips, leaving well behind them. Everything here is a population-average model; your own stance and swing are yours to measure.</p>
+      <p>Not into the lean, and for a clean reason: center-of-mass height cancels out of the torque balance, because drag and gravity both act at the center of mass, so <span class="m">tan θ = F_drag / (m·g)</span> contains no length at all. But mass distribution is real, and it enters two other places. First, the stance falling angle is <span class="m">atan(x / h_CoM)</span>, and on population averages women carry the center of mass about two percent of stature lower (≈ 0.55 H against 0.57 H), which is worth roughly a degree at toe-off — that is the slider above, and the selector sets its default. Second, the rotational momentum: the swinging legs carry angular momentum about the vertical axis and the arms swing to cancel it (Hinrichs, 1987). That momentum scales with the lower-body share of mass, which also differs by sex on average, so it changes how much arm and trunk counter-rotation a run costs — a quantifiable distinction, but one that lives perpendicular to lean. Drag needs a frontal area (Du Bois, 1916; scaled to running posture after Pugh, 1971) and stance needs a leg length; neither has a gender term. The selector fills in typical height, weight, and center-of-mass height, and then steps aside.</p>
+      <p class="mut">Model notes: contact length and cadence are empirical fits to treadmill data across 3–10 m/s (contact time ≈ 0.25 s at 5:00/km, ≈ 0.11 s at 10 m/s; cadence 175 → 245 spm), scaled by leg length. Frontal area ≈ 0.24 × BSA, C<sub>d</sub> ≈ 0.9, sea-level air. Drag’s share of running cost uses ~4 J·kg⁻¹·m⁻¹ and 25% muscular efficiency, which reduces neatly to F<sub>drag</sub>/m. Touchdown and toe-off angles are the foot-to-center-of-mass line measured from vertical, splitting the contact length 40/60 — landing a little ahead of the hips, leaving well behind them. Everything here is a population-average model; your own stance and swing are yours to measure.</p>
     </div>
   </section>
 
@@ -708,8 +708,8 @@
             <button class="btn" data-bmode="swing" aria-pressed="false">How to swing</button>
           </div>
           <div id="bank-ctls">
-            <div class="slider"><label><span>Distance from the rim</span><span class="val" id="val-bd">4.0 m</span></label><input type="range" id="bd" min="1.5" max="7" step="0.1" value="4" aria-label="Shooter distance from the rim, metres"></div>
-            <div class="slider"><label><span>Angle off the lane<span class="tag">0 = straight on</span></span><span class="val" id="val-ba">35°</span></label><input type="range" id="ba" min="-70" max="70" step="1" value="35" aria-label="Shooter angle from the lane centreline, degrees"></div>
+            <div class="slider"><label><span>Distance from the rim</span><span class="val" id="val-bd">4.0 m</span></label><input type="range" id="bd" min="1.5" max="7" step="0.1" value="4" aria-label="Shooter distance from the rim, meters"></div>
+            <div class="slider"><label><span>Angle off the lane<span class="tag">0 = straight on</span></span><span class="val" id="val-ba">35°</span></label><input type="range" id="ba" min="-70" max="70" step="1" value="35" aria-label="Shooter angle from the lane centerline, degrees"></div>
             <div class="field"><label for="bh">Release</label><select id="bh" aria-label="Release height"><option value="1.829">6 ft</option><option value="2.134" selected>7 ft</option><option value="2.438">8 ft</option></select><span class="sep">·</span><span style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--muted)">3 Hz backspin</span></div>
             <table class="readout" style="margin-top:12px">
               <tr><td class="k" style="color:var(--cos)">bank shot, chance</td><td class="v" id="ro-pbank">—</td></tr>
@@ -781,7 +781,7 @@
             <div class="btnrow"><button class="btn" id="y-pulse">Pulse it</button></div>
           </div>
           <div id="vortex-ctls" hidden>
-            <div class="slider"><label><span>Airspeed U</span><span class="val" id="val-yu">6.0 m/s</span></label><input type="range" id="yu" min="2" max="15" step="0.5" value="6" aria-label="Airspeed in metres per second"></div>
+            <div class="slider"><label><span>Airspeed U</span><span class="val" id="val-yu">6.0 m/s</span></label><input type="range" id="yu" min="2" max="15" step="0.5" value="6" aria-label="Airspeed in meters per second"></div>
             <div class="slider"><label><span>Angle of attack</span><span class="val" id="val-yal">12°</span></label><input type="range" id="yal" min="2" max="45" step="1" value="12" aria-label="Angle of attack in degrees"></div>
             <div class="slider"><label><span>Perch<span class="tag">flare + fold into the M</span></span><span class="val" id="val-yp">0%</span></label><input type="range" id="yp" min="0" max="100" step="1" value="0" aria-label="Perching morph, percent"></div>
             <table class="readout" style="margin-top:12px">
@@ -821,7 +821,7 @@
           </div>
           <div id="hose-ctls">
             <div class="slider"><label><span>Thumb over the end</span><span class="val" id="val-thumb">0%</span></label><input type="range" id="thumb" min="0" max="92" step="1" value="0" aria-label="Fraction of the hose outlet covered by the thumb"></div>
-            <div class="slider"><label><span>Hose length<span class="tag">friction</span></span><span class="val" id="val-hlen">25 m</span></label><input type="range" id="hlen" min="0" max="60" step="1" value="25" aria-label="Hose length in metres"></div>
+            <div class="slider"><label><span>Hose length<span class="tag">friction</span></span><span class="val" id="val-hlen">25 m</span></label><input type="range" id="hlen" min="0" max="60" step="1" value="25" aria-label="Hose length in meters"></div>
             <table class="readout" style="margin-top:12px">
               <tr><td class="k" style="color:var(--cos)">flow rate Q</td><td class="v" id="ro-Q">—</td></tr>
               <tr><td class="k" style="color:var(--sin)">jet velocity</td><td class="v" id="ro-vj">—</td></tr>
@@ -857,7 +857,7 @@
     <div class="stage">
       <div class="panel">
         <div class="panel-head">
-          <div><h2>Roseanna and the sewer map</h2><p class="sub">Eight subdivisions, a few sampling points downstream, a signal in the wastewater. Which neighbourhood has the outbreak? Run the plume backwards.</p></div>
+          <div><h2>Roseanna and the sewer map</h2><p class="sub">Eight subdivisions, a few sampling points downstream, a signal in the wastewater. Which neighborhood has the outbreak? Run the plume backwards.</p></div>
         </div>
         <canvas id="cv-adj" aria-label="Comic panel: a stick-figure professor beside a sewer network map; monitored sites show concentration time series and each subdivision is shaded by its backward probability of being the source"></canvas>
         <div class="verdict" id="adj-alt" style="font-style:italic"></div>
@@ -890,7 +890,7 @@
     <div class="prose">
       <h3>Running the plume backwards</h3>
       <p>The forward problem is the easy one: put a pulse into subdivision 5, let advection carry it down the laterals and trunks while dispersion smears it out, and predict what each monitor sees, when. Roseanna Neupauer’s question was the inverse: you have the monitors’ time series and you want the source. You could run the forward model once per suspect and compare — eight subdivisions, eight runs, and a thousand if it were a city. The adjoint method turns that around. The same advection–dispersion equation, run <em>backward in time from the monitor</em> with the sensor as its source, gives the probability that a particle detected there came from any location upstream — every candidate at once, one run per sensor. Neupauer and Wilson first wrote it for aquifers; the same reciprocity makes it work in pipes, and it was extended to distribution networks with imperfect sensors and non-detects.</p>
-      <p>The panel reframes her classroom example for wastewater epidemiology. Each subdivision sheds into a lateral; laterals join trunks; trunks pass sampling manholes and reach the plant. A hidden neighbourhood has an outbreak and sends a pulse. As the hours of samples accumulate, the backward probability — shaded on the map — tightens on the source. Watch what matters: a monitor that sees <em>nothing</em> is evidence too, and the timing of the peak, not just its height, is what separates a near source from a far one. That is dispersion doing the fingerprinting.</p>
+      <p>The panel reframes her classroom example for wastewater epidemiology. Each subdivision sheds into a lateral; laterals join trunks; trunks pass sampling manholes and reach the plant. A hidden neighborhood has an outbreak and sends a pulse. As the hours of samples accumulate, the backward probability — shaded on the map — tightens on the source. Watch what matters: a monitor that sees <em>nothing</em> is evidence too, and the timing of the peak, not just its height, is what separates a near source from a far one. That is dispersion doing the fingerprinting.</p>
       <p class="mut">The transport here is a one-dimensional advection–dispersion travel-time distribution per path (inverse-Gaussian, mean Σ L/u, variance Σ 2DL/u³), the sensors are Gaussian-noisy, the unknown mass is fitted by least squares, and the prior over subdivisions is flat. Real networks have transients, incomplete mixing at junctions, and decaying signals; the shape of the argument survives all of them.</p>
     </div>
   </section>
@@ -986,8 +986,8 @@
               <option value="mercury">Mercury (ρ 13500, μ 1.5e-3)</option>
               <option value="lava">Basalt lava (ρ 2700, μ 1000)</option>
             </select></div>
-          <div class="slider"><label><span>Length scale L</span><span class="val" id="val-hL">1000 m</span></label><input type="range" id="hL" min="-4" max="4" step="0.05" value="3" aria-label="Length scale, log10 metres"></div>
-          <div class="slider"><label><span>Velocity U</span><span class="val" id="val-hU">0.05 m/s</span></label><input type="range" id="hU" min="-6" max="2" step="0.05" value="-1.3" aria-label="Velocity, log10 metres per second"></div>
+          <div class="slider"><label><span>Length scale L</span><span class="val" id="val-hL">1000 m</span></label><input type="range" id="hL" min="-4" max="4" step="0.05" value="3" aria-label="Length scale, log10 meters"></div>
+          <div class="slider"><label><span>Velocity U</span><span class="val" id="val-hU">0.05 m/s</span></label><input type="range" id="hU" min="-6" max="2" step="0.05" value="-1.3" aria-label="Velocity, log10 meters per second"></div>
           <div class="field"><label for="h-q">Question</label>
             <select id="h-q" aria-label="Question for Hari" style="flex:1">
               <option value="cross">Which terms can I cross out?</option>
@@ -1013,7 +1013,7 @@
 
     <div class="prose">
       <h3>Everything comes from the cube</h3>
-      <p>The trick, as Hari taught it, is to refuse to memorize the Navier-Stokes equations and instead memorize one picture: a small box of fluid with sides <span class="m">dx dy dz</span>. Count what crosses its faces and you have conservation of mass. Add up the pushes on its faces — pressure normal to them, viscous drag along them — and gravity through its middle, set that equal to mass times acceleration, and you have conservation of momentum. That is the whole of Navier-Stokes: Newton’s second law, per cubic metre, for something that flows. The equation looks fearsome only because the acceleration of a parcel of fluid has two parts — it can speed up in place (<span class="m">∂u/∂t</span>) or be carried into a place where the flow is faster (<span class="m">u·∇u</span>) — and the second part is nonlinear, which is where all the trouble and all the weather lives.</p>
+      <p>The trick, as Hari taught it, is to refuse to memorize the Navier-Stokes equations and instead memorize one picture: a small box of fluid with sides <span class="m">dx dy dz</span>. Count what crosses its faces and you have conservation of mass. Add up the pushes on its faces — pressure normal to them, viscous drag along them — and gravity through its middle, set that equal to mass times acceleration, and you have conservation of momentum. That is the whole of Navier-Stokes: Newton’s second law, per cubic meter, for something that flows. The equation looks fearsome only because the acceleration of a parcel of fluid has two parts — it can speed up in place (<span class="m">∂u/∂t</span>) or be carried into a place where the flow is faster (<span class="m">u·∇u</span>) — and the second part is nonlinear, which is where all the trouble and all the weather lives.</p>
       <p>The second trick is that you almost never solve the whole thing. You put your numbers in — a length, a speed, a fluid — and ask which terms are big. Inertia goes like <span class="m">ρU²/L</span>, viscosity like <span class="m">μU/L²</span>; their ratio is the Reynolds number, and it tells you which term to cross out. Gravity against inertia is the Froude number and tells you whether the free surface can stay flat. Hari would cross out terms on the board with real satisfaction, and what remained was usually something you could solve before lunch: Stokes flow in a pore, which averages up into Darcy’s law; the Euler equations in the middle of a reservoir; hydrostatics almost everywhere. The equation you actually use is the one the cube leaves behind.</p>
       <p class="mut">For Harihar Rajaram, who drew the cube from memory and made the rest of us believe we could too.</p>
     </div>
@@ -1934,7 +1934,7 @@
     var Lc=(0.65+0.05*v)*(L/0.9275);                 // contact length, m (fit to Weyand et al.)
     var tc=Lc/v;
     var f=(2.35+0.14*v+0.004*v*v)*Math.sqrt(1.75/H); // step frequency, Hz
-    var hc=(hcFrac||0.57)*H;                          // centre-of-mass height
+    var hc=(hcFrac||0.57)*H;                          // center-of-mass height
     var td=Math.atan(0.4*Lc/hc), to=Math.atan(0.6*Lc/hc); // foot-to-CoM line from vertical, landing 40% ahead / leaving 60% behind
     return {L:L,Lc:Lc,tc:tc,f:f,ta:1/f-tc,sw:2/f-tc,step:v/f,S:td+to,td:td,to:to};
   }
@@ -2000,7 +2000,7 @@
     var vmax=vmaxForSwing(H,lean.swmin);
     var f=fit(cvRun,0.62), ctx=f.ctx, w=f.w, h=f.h;
     ctx.clearRect(0,0,w,h);
-    var ground=h-34, sc=(h-80)/H;               // px per metre
+    var ground=h-34, sc=(h-80)/H;               // px per meter
     ctx.strokeStyle=css.line; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(0,ground); ctx.lineTo(w,ground); ctx.stroke();
     // ---- stance figure at toe-off ----
     var fx=w*0.30, Lpx=M.L*sc;
@@ -2144,7 +2144,7 @@
     var q=hari.q, s=hari.step;
     if(s===0) return "Draw a cube. Sides dx, dy, dz. Don’t tell me it’s small — tell me it’s a cube. Small is a limit we take later, when it’s convenient.";
     if(s===1) return "Mass. What flows in through the left face minus what flows out the right, and the same for the other four faces, is what piles up inside. "+(M.fluid==="air"?"Air can pile up, a little. ":"Water does not pile up. ")+"So the divergence of the velocity is zero. Half the equation, and we haven’t used Newton yet.";
-    if(s===2) return "Newton, per cubic metre. Pressure pushes on the faces — only the difference across the cube survives, so it’s a gradient. Viscosity drags along the faces: that’s the ∇²u. Gravity pulls through the middle. Set it equal to mass times acceleration, and remember a parcel accelerates two ways: in place, and by being carried somewhere faster.";
+    if(s===2) return "Newton, per cubic meter. Pressure pushes on the faces — only the difference across the cube survives, so it’s a gradient. Viscosity drags along the faces: that’s the ∇²u. Gravity pulls through the middle. Set it equal to mass times acceleration, and remember a parcel accelerates two ways: in place, and by being carried somewhere faster.";
     if(s===3) return "Now your numbers. "+M.fluid+", L = "+fmtLen(M.L)+", U = "+fmtSci(M.U)+" m/s. Inertia goes like ρU²/L, viscosity like μU/L². Their ratio is Re = "+fmtSci(M.Re)+". Gravity against inertia: Fr = "+fmtSci(M.Fr)+". Every term on the board now has a size. Look at the bars, not the symbols.";
     // step 4: the answer
     if(q==="why") return "Because a cube has six faces and I can name them. Because “in minus out equals accumulation” works for mass, momentum, heat, salt, and grant money. Because if you can draw it you can derive it, and if you can derive it you never have to remember it. Also, a sphere is harder to draw.";
@@ -2471,7 +2471,7 @@
       }
     }
     if(best){ best.p=makeProb(s.x,s.y,h0,best.L,300); best.path=fly(s.x,s.y,h0,best.L.vx,best.L.vy,best.L.vz,true).path; best.hit=best.r.hit; }
-    // direct: aim just past the rim centre, pick the elevation that maximises the make probability (coarse)
+    // direct: aim just past the rim center, pick the elevation that maximizes the make probability (coarse)
     var bd=null;
     for(var a2=44;a2<=58;a2+=2){
       var L2=launchFor(s.x,s.y,h0,0,0.03,RIM_Z,a2*Math.PI/180); if(!L2) continue;
@@ -2601,7 +2601,7 @@
     if(bank.best&&bank.direct){
       document.getElementById("ro-pbank").textContent=bank.best.hit?fmtPct(bank.best.p):"no glass from here";
       document.getElementById("ro-pdir").textContent=fmtPct(bank.direct.p);
-      document.getElementById("ro-aim").textContent=bank.best.hit?((bank.best.hit.z-RIM_Z)*39.37).toFixed(1)+" in above rim, "+(Math.abs(bank.best.hit.x)*39.37).toFixed(1)+" in off centre":"—";
+      document.getElementById("ro-aim").textContent=bank.best.hit?((bank.best.hit.z-RIM_Z)*39.37).toFixed(1)+" in above rim, "+(Math.abs(bank.best.hit.x)*39.37).toFixed(1)+" in off center":"—";
       document.getElementById("ro-launch").textContent=bank.best.hit?(bank.best.L.alpha*180/Math.PI).toFixed(0)+"° at "+bank.best.L.v.toFixed(1)+" m/s":"—";
     }
     document.getElementById("bank-alt").textContent=BALT[Math.floor(bank.t/9)%3];
@@ -2977,7 +2977,7 @@
   // ================= TAB 12 : FG YUAN — MFC patch, NiTiNOL wire, shedding & perching =================
   var cvWg=document.getElementById("cv-wing");
   var yuan={mode:"mfc",V:0,ac:false,f:2,t:0,ph:0,tipDyn:0,tipVel:0,sma:{I:0,T:25,xi:1,Tprev:25,trace:[]},U:6,alpha:12,perch:0,vort:[],shedT:0,shedSign:1};
-  // MFC unimorph: 0.3 mm piezo layer (E 30 GPa) on 0.5 mm aluminium (70 GPa), 85 mm patch on a 200 mm cantilever
+  // MFC unimorph: 0.3 mm piezo layer (E 30 GPa) on 0.5 mm aluminum (70 GPa), 85 mm patch on a 200 mm cantilever
   var MFC={Ep:30e9,tp:0.3e-3,Es:70e9,ts:0.5e-3,Lp:0.085,L:0.2,d:1.2e-6,zeta:0.1};
   MFC.f1=(1.875*1.875/TAU)*Math.sqrt(MFC.Es*MFC.ts*MFC.ts/(12*2700))/(MFC.L*MFC.L);
   function mfcKappa(V){ var Lam=MFC.d*V, Ep=MFC.Ep,tp=MFC.tp,Es=MFC.Es,ts=MFC.ts;
@@ -2997,7 +2997,7 @@
         if(Math.abs(r-1)<0.08) return "There — "+yuan.f.toFixed(1)+" Hz, right on the first bending mode. The patch is small but the beam does the work now: "+amp.toFixed(0)+"× the static deflection. This is how a few grams of fibers flap a wing.";
         return "Sweep toward "+MFC.f1.toFixed(1)+" Hz. Below resonance the beam just follows the voltage; above it, it can’t keep up. At the mode itself, everything you put in stays in — that’s the flapping frequency you want."; }
       if(Math.abs(yuan.V)<20) return "Piezo ceramic is brittle. NASA Langley cut it into fibers and set them in epoxy with interdigitated electrodes — the macro fiber composite. Now it bends instead of shattering. Put a voltage on it.";
-      return (yuan.V>0?"+":"")+yuan.V+" V: the fibers strain "+(MFC.d*yuan.V*1e6).toFixed(0)+" parts per million, the patch tries to stretch, the aluminium underneath refuses, and the disagreement is curvature — "+Math.abs(k).toFixed(2)+" per metre under the patch, "+Math.abs(tip).toFixed(1)+" mm at the tip. No hinge. No motor. A wing that moves itself.";
+      return (yuan.V>0?"+":"")+yuan.V+" V: the fibers strain "+(MFC.d*yuan.V*1e6).toFixed(0)+" parts per million, the patch tries to stretch, the aluminum underneath refuses, and the disagreement is curvature — "+Math.abs(k).toFixed(2)+" per meter under the patch, "+Math.abs(tip).toFixed(1)+" mm at the tip. No hinge. No motor. A wing that moves itself.";
     }
     if(yuan.mode==="sma"){ var S=yuan.sma;
       if(S.I<0.05&&S.T<40) return "Nickel–titanium remembers a shape. Cold it is martensite and stretches like a lazy spring; heat it past about 70 °C and it becomes austenite and pulls back four percent, hard. Give it current.";
@@ -3023,11 +3023,11 @@
       var k=mfcKappa(V), r=yuan.f/MFC.f1, amp= yuan.ac ? 1/Math.sqrt((1-r*r)*(1-r*r)+(2*MFC.zeta*r)*(2*MFC.zeta*r)) : 1;
       var lag= yuan.ac ? Math.atan2(2*MFC.zeta*r,1-r*r) : 0;
       if(yuan.ac){ var Vl=yuan.V*Math.sin(yuan.ph-lag); k=mfcKappa(Vl)*Math.min(amp,3); }
-      var sx=R.x+R.w*0.08, sy=R.y+R.h*0.5, sc=R.w*0.8/MFC.L;   // px per metre, deflection exaggerated ×3 for legibility
+      var sx=R.x+R.w*0.08, sy=R.y+R.h*0.5, sc=R.w*0.8/MFC.L;   // px per meter, deflection exaggerated ×3 for legibility
       ctx.fillStyle="#ddd"; ctx.fillRect(sx-14,sy-R.h*0.3,14,R.h*0.6); ctx.strokeStyle=CINK; ctx.lineWidth=2; xk(ctx,[[sx-14,sy-R.h*0.3],[sx-14,sy+R.h*0.3]]);
       var pts=[], ex=1;
       for(i=0;i<=40;i++){ var x=MFC.L*i/40, y; if(x<=MFC.Lp) y=k*x*x/2; else y=k*MFC.Lp*MFC.Lp/2+k*MFC.Lp*(x-MFC.Lp); pts.push([sx+x*sc, sy-y*sc*ex]); }
-      ctx.strokeStyle="#9AA5AD"; ctx.lineWidth=6; xk(ctx,pts,0.4);                        // aluminium
+      ctx.strokeStyle="#9AA5AD"; ctx.lineWidth=6; xk(ctx,pts,0.4);                        // aluminum
       ctx.strokeStyle= V>=0?"#E56E8B":"#2A6FB5"; ctx.lineWidth=5; xk(ctx,pts.slice(0,Math.round(40*MFC.Lp/MFC.L)+1).map(function(p){return [p[0],p[1]-6];}),0.4);   // the patch, on top
       ctx.strokeStyle=CINK; ctx.lineWidth=1; for(i=0;i<8;i++){ var px=sx+MFC.Lp*sc*(i+0.5)/8, py=pts[Math.round(40*MFC.Lp/MFC.L*(i+0.5)/8)][1]-6; xk(ctx,[[px,py-5],[px,py+5]],0.3); }   // interdigitated electrodes
       xkText(ctx,"MFC patch",sx+MFC.Lp*sc/2,pts[0][1]-22,Math.max(10,h*0.024),V>=0?"#E56E8B":"#2A6FB5","center");
@@ -3075,7 +3075,7 @@
     // ---- shedding & perching ----
     var R3=comic(ctx,w,h,{names:["DR. YUAN"],say:yuanSays(),t:yuan.t,caption:"vortex shedding · perching"});
     var c2=0.3, al=(yuan.alpha+30*yuan.perch)*Math.PI/180, D=c2*Math.sin(al)*(1+0.6*yuan.perch), fs=0.2*yuan.U/D;
-    var msc=R3.w*0.92/2.4, ox=R3.x+R3.w*0.14, oy=R3.y+R3.h*0.5;   // px per metre; wing quarter-chord at (ox,oy)
+    var msc=R3.w*0.92/2.4, ox=R3.x+R3.w*0.14, oy=R3.y+R3.h*0.5;   // px per meter; wing quarter-chord at (ox,oy)
     yuan.shedT+=dt; while(yuan.shedT>1/fs){ yuan.shedT-=1/fs; yuan.shedSign=-yuan.shedSign; yuan.vort.push({x:c2*0.55*Math.cos(al),y:(yuan.shedSign>0?-1:1)*D/2,s:yuan.shedSign,age:0}); }
     for(i=yuan.vort.length-1;i>=0;i--){ var vv=yuan.vort[i]; vv.x+=0.3*yuan.U*dt; vv.age+=dt; if(vv.x>2.1) yuan.vort.splice(i,1); }   // wake drawn at 0.3U (real ≈ 0.8U) so the street is legible
     // streamlines hint

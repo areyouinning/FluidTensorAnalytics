@@ -9,7 +9,7 @@ import { svg, el, clear, label, controls, slider, button, picker, readouts, rng,
 
 const BLUE = 'var(--blue)', ORANGE = 'var(--orange)', GREEN = 'var(--green)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', LINE = 'var(--line)', SUNK = 'var(--sunk)';
 const W = 380, CH = 196, PY0 = 226, PY1 = 352, PX0 = 46, PX1 = W - 14, H = 380;
-const KM = 2;                         // kilometres per drawing unit
+const KM = 2;                         // kilometers per drawing unit
 const EMAX = 160, EMIN = 3;           // ruler range, km
 const SHAPES = [
   { name: 'Rugged, D = 1.25', D: 1.25, note: 'as rough as the west coast of Britain' },

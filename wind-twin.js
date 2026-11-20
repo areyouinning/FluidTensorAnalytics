@@ -1,6 +1,6 @@
 /* The local wind twin: fetch the ground under you, fetch the forecast over you, make the two
    agree, then draw the result the way nullschool draws wind — particles carried by the field,
-   leaving fading trails, coloured by speed. The physics lives in diagrams/windcore.js. */
+   leaving fading trails, colored by speed. The physics lives in diagrams/windcore.js. */
 import { fetchDEM, buildField, project, surfaceSlice, sampleBilinear, syntheticHill, logSpeed } from './diagrams/windcore.js';
 import { mountSky, compass, fmtH } from './wind-sky.js';
 import { windForFlight, groundAt, lon2x, lat2y, mPerDegLat, mPerDegLon } from './diagrams/windcore.js';
@@ -36,7 +36,7 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 
    The fallbacks are not equals. NWS is US-only and carries no winds aloft, so the sky view
    loses its upper layers on that path. A cached forecast is yesterday's weather. Both are
-   labelled on the page rather than passed off as live.
+   labeled on the page rather than passed off as live.
 
    AND A TIMEOUT ON EVERY ONE OF THEM, which is the part this got wrong the first time.
    A fallback chain written as try/catch only moves on when a request FAILS. Open-Meteo went
@@ -122,7 +122,7 @@ async function weatherNWS(lat, lon) {
   const S10 = fill(spd), D10 = fill(dir);
 
   /* The plain-weather fields too, so the forecast section still has something to draw on
-     this path. NWS reports these in Celsius, millimetres and percent, which is what
+     this path. NWS reports these in Celsius, millimeters and percent, which is what
      Open-Meteo gives as well, so the two line up without conversion. */
   const gust = expandNWS(P.windGust && P.windGust.values, stamps)
     .map(v => v == null ? null : (P.windGust && /km_h/.test(P.windGust.uom || '') ? v / 3.6 : v));
@@ -199,14 +199,14 @@ function profileAt(h) {
     lvl(80, 'wind_speed_80m', 'wind_direction_80m'),
     lvl(120, 'wind_speed_120m', 'wind_direction_120m')
   ].filter(Boolean);
-  /* ---------- the first ten metres ----------
+  /* ---------- the first ten meters ----------
      The forecast's lowest level is 10 m, and nearly everything a person actually feels
      happens underneath it: a 5 m/s wind at 10 m is about 1.6 m/s at ankle height over
      short grass. Those levels are not measured and not forecast. They are the neutral
      logarithmic surface profile — the same law the solver starts its own field from —
      anchored on the 10 m value and run downward with the roughness length the slider is
      set to. Flagged derived, because they are.
-     Direction is held at the 10 m direction. Turning across the first ten metres is well
+     Direction is held at the 10 m direction. Turning across the first ten meters is well
      under a degree, which is finer than the forecast resolves in the first place, so
      inventing a twist here would be inventing precision. */
   const ten = near.find(L => L.agl === 10);
@@ -272,9 +272,9 @@ const P = { pts: [], n: 900, maxAge: 120 };
 function seed(k) {
   return { x: Math.random(), y: Math.random(), px: 0, py: 0, age: Math.random() * P.maxAge | 0 };
 }
-/* Colour against a reference tied to the forecast rather than to this map's own maximum.
-   Normalising by the maximum makes an ordinary 3 m/s day look like a gale, because whatever
-   is fastest is always painted the hottest colour. */
+/* Color against a reference tied to the forecast rather than to this map's own maximum.
+   Normalizing by the maximum makes an ordinary 3 m/s day look like a gale, because whatever
+   is fastest is always painted the hottest color. */
 function ramp(s, top) {
   const t = Math.max(0, Math.min(1, s / Math.max(2, top)));
   const stops = [[70, 120, 190], [90, 180, 170], [220, 190, 90], [230, 120, 60], [240, 240, 245]];
@@ -300,7 +300,7 @@ function animate() {
 
   /* Trail length is scaled so a typical wind is legible, the way nullschool scales its own.
      A 3 m/s day moves a particle about a pixel per frame at true scale, which reads as a
-     field of dots rather than as air going somewhere. Speed is carried by colour instead,
+     field of dots rather than as air going somewhere. Speed is carried by color instead,
      which stays on an absolute scale and does not lie. */
   const n = S.slice.n, step = S.step || 0.0015;
   for (const p of P.pts) {
@@ -351,7 +351,7 @@ function solve() {
   let mx = 0, sum = 0;
   for (let i = 0; i < S.slice.S.length; i++) { mx = Math.max(mx, S.slice.S[i]); sum += S.slice.S[i]; }
   S.sliceMax = mx;
-  /* the colour reference: a touch above the forecast, so the warm end means "faster than
+  /* the color reference: a touch above the forecast, so the warm end means "faster than
      the forecast said" rather than merely "the fastest thing on screen" */
   S.ref = Math.max(3, U * 1.9);
   const mean = sum / S.slice.S.length;
@@ -367,7 +367,7 @@ function solve() {
   renderProfile();
   throwDisc();
   const fine = S.F.zf.filter(z => z <= 100).length - 1;
-  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} terrain-following grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid, which is flat ${Math.round(S.F.top)} m above the lowest ground. Every column starts at its own ground, so that first metre is a metre above the surface wherever you point — valley floor or summit. Mean speed ${mean.toFixed(1)} m/s.`);
+  note(`Solved on a ${S.F.nx}×${S.F.ny}×${S.F.nz} terrain-following grid in ${ms} ms. Cells are ${Math.round(S.F.dx)} m across; the levels are ${S.F.ds[0]} m apart at the bottom, ${fine} of them inside the first 100 m, stretching to ${Math.round(S.F.ds[S.F.nz - 1])} m by the lid, which is flat ${Math.round(S.F.top)} m above the lowest ground. Every column starts at its own ground, so that first meter is a meter above the surface wherever you point — valley floor or summit. Mean speed ${mean.toFixed(1)} m/s.`);
   startFlow();
 }
 
@@ -453,7 +453,7 @@ function drawDisc() {
   ctx.clearRect(0, 0, side, side);
   if (!S.shots) return;
 
-  /* A throw is about a hundred metres and the map is twelve kilometres, so on the map's own
+  /* A throw is about a hundred meters and the map is twelve kilometers, so on the map's own
      scale the whole flight is three pixels wide. This panel zooms to the throw. */
   const reach = Math.max(S.shots.live.distance, S.shots.calm.distance, 60);
   const span = Math.max(150, reach * 2.4);
@@ -778,7 +778,7 @@ function pickTileZoom(lat, spanM, wantPx, maxTiles = 20) {
 /* Satellite imagery and a topographic map, both keyless and CORS-clean.
 
    Two sources were tried and dropped. CARTO's basemaps answer every request with a valid
-   200 and a PNG that reads "API KEY REQUIRED" in grey across the tile — which pastes a
+   200 and a PNG that reads "API KEY REQUIRED" in gray across the tile — which pastes a
    watermark over your map and calls it cartography. OpenStreetMap's own tile servers do
    work keyless, and are deliberately not used: their tile usage policy asks applications to
    run their own cache rather than lean on the volunteer ones. */
@@ -846,7 +846,7 @@ async function drawBasemap() {
   ctx.clearRect(0, 0, side, side);
   ctx.drawImage(mos.canvas, mos.sx, mos.sy, mos.sw, mos.sh, 0, 0, side, side);
   /* The flow is drawn in pale blues and whites and vanishes over bright ground. Knock the
-     basemap back rather than brightening the particles, because the particle colour IS the
+     basemap back rather than brightening the particles, because the particle color IS the
      speed scale and repainting it would break the legend. */
   ctx.fillStyle = want === 'sat' ? 'rgba(10,14,22,0.30)' : 'rgba(255,255,255,0.26)';
   ctx.fillRect(0, 0, side, side);
@@ -860,7 +860,7 @@ async function drawBasemap() {
 /* ---------- live radar, over your own ground ----------
    RainViewer publishes the composite as ordinary web-map tiles, which is exactly the tile
    scheme the terrain already uses — so the radar lands on the same square with the same
-   maths, no map library involved. The free feed's `nowcast` array is empty these days, so
+   math, no map library involved. The free feed's `nowcast` array is empty these days, so
    this takes the newest `past` frame and says so rather than reading [0] of nothing. */
 async function loadRadar() {
   const dem = S.dem;
@@ -870,11 +870,11 @@ async function loadRadar() {
   if (!past.length) throw new Error('the radar feed has no frames right now');
   const frame = past[past.length - 1];
 
-  /* The free feed serves real composite tiles up to zoom 7 and, above that, a grey card
+  /* The free feed serves real composite tiles up to zoom 7 and, above that, a gray card
      reading "Zoom in" — which loads with status 200 and draws like weather. Asking for the
      terrain's own zoom therefore pastes a placeholder over the map and calls it radar. So
      the request is pinned to 7, and the tiles are checked below in case that ceiling moves.
-     Zoom 7 is about a kilometre per pixel at this latitude, which is close to the real
+     Zoom 7 is about a kilometer per pixel at this latitude, which is close to the real
      resolution of a national composite anyway: there is no detail above it to lose. */
   const z = 7;
   const host = j.host || 'https://tilecache.rainviewer.com';
@@ -882,9 +882,9 @@ async function loadRadar() {
   const side = $('flow').width || 512;
   const mos = await tileMosaic({
     dem, z, side,
-    /* colour scheme 4, smoothed, no snow mask: legible over a hillshade or imagery */
+    /* color scheme 4, smoothed, no snow mask: legible over a hillshade or imagery */
     url: (zz, x, y) => `${host}${frame.path}/256/${zz}/${x}/${y}/4/1_0.png`,
-    /* A placeholder card is flat grey wherever it is opaque; real echo never is. Reject any
+    /* A placeholder card is flat gray wherever it is opaque; real echo never is. Reject any
        tile that looks like one, so a change at the far end shows up as missing radar rather
        than as a wash of fake weather. */
     reject: im => {
@@ -892,14 +892,14 @@ async function loadRadar() {
       t.width = t.height = 256;
       const tx = t.getContext('2d', { willReadFrequently: true });
       tx.drawImage(im, 0, 0);
-      let opaque = 0, grey = 0;
+      let opaque = 0, gray = 0;
       const d = tx.getImageData(0, 0, 256, 256).data;
       for (let i = 0; i < d.length; i += 4) {
         if (d[i + 3] === 0) continue;
         opaque++;
-        if (Math.abs(d[i] - d[i + 1]) < 8 && Math.abs(d[i + 1] - d[i + 2]) < 8) grey++;
+        if (Math.abs(d[i] - d[i + 1]) < 8 && Math.abs(d[i + 1] - d[i + 2]) < 8) gray++;
       }
-      return opaque > 2000 && grey / opaque > 0.95;
+      return opaque > 2000 && gray / opaque > 0.95;
     }
   });
   if (mos.loadedAny && !mos.keptAny) {
@@ -911,14 +911,14 @@ async function loadRadar() {
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, side, side);
   ctx.globalAlpha = 0.72;
-  /* no smoothing: a radar pixel is a kilometre wide and should look like one, not be
+  /* no smoothing: a radar pixel is a kilometer wide and should look like one, not be
      airbrushed into a soft cloud that implies detail the composite does not have */
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(mos.canvas, mos.sx, mos.sy, mos.sw, mos.sh, 0, 0, side, side);
   ctx.globalAlpha = 1;
 
   const age = Math.round((Date.now() / 1000 - frame.time) / 60);
-  const res = 156543.03392 * Math.cos(dem.lat * Math.PI / 180) / Math.pow(2, z);   // metres per radar pixel
+  const res = 156543.03392 * Math.cos(dem.lat * Math.PI / 180) / Math.pow(2, z);   // meters per radar pixel
   const across = Math.max(1, Math.round(dem.spanM / res));
   return `Radar composite from ${age} minute${age === 1 ? '' : 's'} ago. A radar pixel is about ${Math.round(res)} m, so this ${(dem.spanM / 1000).toFixed(0)} km square is ${across} of them across` +
     (dem.spanM < 29000 ? ' — widen "Across" for a picture you can read.' : ', which is as much radar as this view can hold.');

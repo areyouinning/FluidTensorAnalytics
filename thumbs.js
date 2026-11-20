@@ -188,10 +188,10 @@
       for (k = 0; k <= 60; k++) { var t = k / 60 * 3.2, q = Math.pow(t * Math.exp(1 - t), 3.7); d += 'L' + (24 + k * 4.6).toFixed(1) + ' ' + (150 - 8 - 90 * q).toFixed(1); }
       return o + line('M24 150H300', L, 2) + line(d, O, 4);
     },
-    units: function () { // Re = ρUL/μ, and the four base dimensions cancelling
+    units: function () { // Re = ρUL/μ, and the four base dimensions canceling
       return text(160, 74, 'Re = ρUL/μ', 34, I) + text(160, 120, 'M·L⁻³ · L·T⁻¹ · L', 17, S) + text(160, 146, 'M·L⁻¹·T⁻¹', 17, S) + line('M84 128H236', S, 2) + text(270, 138, '= 1', 22, B);
     },
-    shedding: function () { // a post and its Kármán street: whirlpools alternating above and below the centre line
+    shedding: function () { // a post and its Kármán street: whirlpools alternating above and below the center line
       var o = dot(58, 90, 16, I), k;
       for (k = 0; k < 6; k++) { var x = 100 + k * 38, up = k % 2 === 0, y = up ? 72 : 108, r = 12 - k;
         o += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="none" stroke="' + (up ? B : O) + '" stroke-width="5" opacity="' + (1 - k * .12).toFixed(2) + '"/>' + dot(x, y, 3, up ? B : O); }

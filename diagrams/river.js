@@ -45,7 +45,7 @@ export default function (fig) {
   cols.forEach((c, k) => c.forEach((st, j) => pos.set(st, [24 + k * STEP, 224 - (c.length - 1) * 20 + j * 40])));
   const edgeD = (a, b) => { const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b); return `M${x1} ${y1}L${x2} ${y2}`; };
 
-  function glyph(parent, i, x, y) {   // x, y: centre of a 20 x 20 icon
+  function glyph(parent, i, x, y) {   // x, y: center of a 20 x 20 icon
     const f = HUE[i];
     if (i === 0) { el('circle', { cx: x, cy: y - 5, r: 5, fill: f }, parent); el('path', { d: `M${x - 8} ${y + 9}Q${x} ${y - 3} ${x + 8} ${y + 9}Z`, fill: f }, parent); }
     else if (i === 1) el('path', { d: `M${x - 9} ${y + 8}L${x - 8} ${y - 8}L${x - 3} ${y - 3}L${x + 3} ${y - 3}L${x + 8} ${y - 8}L${x + 9} ${y + 8}Z`, fill: f }, parent);
