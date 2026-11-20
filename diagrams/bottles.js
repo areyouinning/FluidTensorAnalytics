@@ -6,7 +6,7 @@ import { svg, el, clear, label, controls, slider, button, readouts } from './kit
 const BLUE = 'var(--blue)', RED = 'var(--red)', GREEN = 'var(--green)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', SUNK = 'var(--sunk)', LINE = 'var(--line)';
 
 export default function (fig) {
-  const s = svg(fig, 380, 206, 'A row of tasters, each labelled with a power of two, lit when they sip from the chosen bottle or fall sick.');
+  const s = svg(fig, 380, 206, 'A row of tasters, each labeled with a power of two, lit when they sip from the chosen bottle or fall sick.');
   const g = el('g', {}, s);
   const box = controls(fig), box2 = controls(fig);
   const [covR, sipR, verR] = readouts(fig, ['Bottles covered', 'This bottle', 'Morning']);

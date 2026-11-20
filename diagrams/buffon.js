@@ -1,5 +1,5 @@
 /* Buffon's needle. A floor ruled with parallel lines d apart. A needle of length L <= d is dropped with its
-   centre uniform on the floor and its angle uniform in [0, pi). It crosses a line when its vertical extent
+   center uniform on the floor and its angle uniform in [0, pi). It crosses a line when its vertical extent
    spans a line position; that is worked out from the geometry. The chance is 2L/(pi d), so
    pi is about 2 L n / (d crossings). Only the latest 400 needles are drawn; the counts are exact. */
 import { svg, el, clear, controls, slider, button, readouts } from './kit.js';

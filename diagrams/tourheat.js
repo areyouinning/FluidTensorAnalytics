@@ -32,14 +32,14 @@ export default function (fig) {
     for (const key in use) { const [a, b] = key.split('-').map(Number), p = use[key]; if (p > .004) el('line', { x1: P[a][0], y1: P[a][1], x2: P[b][0], y2: P[b][1], stroke: p > .98 ? GREEN : BLUE, 'stroke-width': .6 + 5 * p, 'stroke-linecap': 'round', opacity: .25 + .75 * p }, g); }
     P.forEach(p => el('circle', { cx: p[0], cy: p[1], r: 5, fill: INK }, g));
     label(g, 90, 200, T < .03 ? 'cold: one tour is left' : T > 1 ? 'hot: every tour counts' : 'cooling', { size: 11, cls: 'soft' });
-    // tours as bars, shortest at the left: grey = length, orange = share of the weight
+    // tours as bars, shortest at the left: gray = length, orange = share of the weight
     const x0 = 206, x1 = 372, y0 = 176, N = tours.length, bw = (x1 - x0) / N, Lmax = tours[N - 1].L, wmax = w[0] / Zs;
     let dl = '', dw = '';
     tours.forEach((t, k) => { const x = x0 + k * bw; dl += `M${x.toFixed(2)} ${y0}V${(y0 - 60 * t.L / Lmax).toFixed(1)}h${bw.toFixed(2)}V${y0}Z`; const h = 150 * (w[k] / Zs) / Math.max(wmax, 1e-9) * Math.min(1, wmax * 4 + .25); if (h > .3) dw += `M${x.toFixed(2)} ${y0}V${(y0 - h).toFixed(1)}h${Math.max(bw, .8).toFixed(2)}V${y0}Z`; });
     el('path', { d: dl, fill: SOFT, opacity: .35 }, g); el('path', { d: dw, fill: ORANGE, opacity: .9 }, g);
     el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: INK }, g);
     label(g, (x0 + x1) / 2, y0 + 14, 'all ' + N.toLocaleString() + ' tours, shortest first →', { size: 10, cls: 'soft' });
-    label(g, (x0 + x1) / 2, 14, 'grey: length · orange: weight', { size: 10, cls: 'soft' });
+    label(g, (x0 + x1) / 2, 14, 'gray: length · orange: weight', { size: 10, cls: 'soft' });
     zR.textContent = free.toFixed(3) + (Math.abs(free - Lmin) < .0005 ? ' — matches' : '');
     minR.textContent = Lmin.toFixed(3);
     shareR.textContent = (100 * w[0] / Zs).toFixed(w[0] / Zs > .999 ? 2 : 1) + '%';

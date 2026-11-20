@@ -4,7 +4,7 @@
 const T = () => window.THREE;
 
 // ---- terrain and track -------------------------------------------------------------------------
-export function height(x, z) {   // gentle rolling hills, in metres
+export function height(x, z) {   // gentle rolling hills, in meters
   return 3.2 * Math.sin(x * .021) * Math.cos(z * .017) + 1.6 * Math.sin((x + z) * .037) + .8 * Math.cos(x * .061 - z * .043);
 }
 const CTRL = [[0, -150], [95, -135], [165, -70], [150, 20], [175, 105], [95, 160], [5, 115], [-60, 160], [-150, 120], [-165, 25], [-110, -40], [-145, -115], [-70, -160]];

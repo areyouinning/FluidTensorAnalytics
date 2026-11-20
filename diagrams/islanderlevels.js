@@ -1,7 +1,7 @@
 /* What did the visitor add? "Someone here has blue eyes" (call it φ), and the tower above it:
    everyone knows φ, everyone knows that everyone knows φ, and so on. Each level is computed from the same model
    of possible worlds as the island diagram: E(X) holds in world w when X holds in w and in every world some islander
-   cannot tell apart from w (w with one islander's own eye colour flipped). With k blue-eyed islanders, level j
+   cannot tell apart from w (w with one islander's own eye color flipped). With k blue-eyed islanders, level j
    holds before the visitor speaks exactly when j < k. The announcement makes every level true at once. */
 import { svg, el, clear, label, controls, slider, button } from './kit.js';
 

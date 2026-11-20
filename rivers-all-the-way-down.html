@@ -136,7 +136,7 @@ footer code{ font-family:var(--mono); font-size:11.5px; color:var(--flow) }
       <div class="ctl"><label for="rate">Rate</label><span class="val" id="ratev">+0.14</span>
         <input type="range" id="rate" min="-0.6" max="0.6" step="0.005" value="0.14">
         <span class="note">Scale steps per second. Zero freezes the zoom and the glide together.</span></div>
-      <div class="ctl"><label for="f0">Centre pitch</label><span class="val" id="f0v">220 Hz</span>
+      <div class="ctl"><label for="f0">Center pitch</label><span class="val" id="f0v">220 Hz</span>
         <input type="range" id="f0" min="60" max="660" step="1" value="220"></div>
       <div class="ctl"><label for="np">Partials</label><span class="val" id="npv">9</span>
         <input type="range" id="np" min="4" max="13" step="1" value="9">
@@ -187,7 +187,7 @@ footer code{ font-family:var(--mono); font-size:11.5px; color:var(--flow) }
 <footer>
   <p>A network whose branches shrink by <code>R_L</code> and turn by <code>&theta;</code> is carried onto itself by one complex multiplication, <code>a = e^(i&theta;)/R_L</code>, about the fixed point <code>z*</code>. Take the logarithm and that multiplication becomes a translation by <code>(&minus;ln R_L, &theta;)</code>. <b>Every panel here is that same translation.</b> Panel 1 slides the camera one scale step into the network; panel 2 slides the pattern along the lattice vector; panel 3 slides the flood wave along log time, because a basin R<sub>L</sub> times longer responds R<sub>L</sub> times slower; panel 4 slides a comb of partials along log frequency, which is a Shepard&ndash;Risset tone. Set the rate to zero and all four stop on the same frame.</p>
   <p>The spacing is <b>R<sub>L</sub>, not an octave</b>. At R<sub>L</sub> = 2 the tone is the familiar one. At Horton's measured 2.2 the interval is a stretched octave of about 1365 cents, and the illusion still works: you are hearing the basin's own ratio. Defaults are Buck Creek, California (R<sub>b</sub> = 3.67, R<sub>L</sub> = 2.2) as reported by Tarboton.</p>
-  <p>The network here is exactly self-similar, which real ones are not: Horton's ratios hold on average over a finite range of scales, channel velocity is only roughly scale-invariant, and measured streamflow spectra are broadly power-law rather than exactly log-periodic. The idealisation is what makes the four panels line up to the pixel.</p>
+  <p>The network here is exactly self-similar, which real ones are not: Horton's ratios hold on average over a finite range of scales, channel velocity is only roughly scale-invariant, and measured streamflow spectra are broadly power-law rather than exactly log-periodic. The idealization is what makes the four panels line up to the pixel.</p>
   <p class="refs">Horton 1945 &middot; Strahler 1952 &middot; Nash 1957, the cascade &middot; Shepard 1964 &middot; Risset 1969 &middot; Tarboton 1996, fractal river networks &middot; de Smit &amp; Lenstra 2003, the Droste map</p>
 </footer>
 </div>
@@ -382,7 +382,7 @@ function drawHyd(){
 function partials(){
   const c=(P.NP-1)/2, sg=P.NP/4, out=[];
   for(let k=0;k<P.NP;k++){
-    const d=k-c+phase;                                        // position in scale steps from the centre
+    const d=k-c+phase;                                        // position in scale steps from the center
     const f=P.F0*Math.pow(P.RL,d), g=Math.exp(-(d*d)/(2*sg*sg));
     out.push({d,f,g});
   }
@@ -408,7 +408,7 @@ function drawSpec(){
       x.fillText(q.f<1000?Math.round(q.f)+"":( (q.f/1000).toFixed(1)+"k"), X(q.d), Y(q.g)-8); }
   }
   x.globalAlpha=1;
-  // the step between neighbouring partials
+  // the step between neighboring partials
   const q=partials(), mid=q[Math.round(c)];
   if(mid && mid.d+1<=D){ const ay=T+8, a1=X(mid.d), a2=X(mid.d+1);
     x.strokeStyle=COL.scale; x.lineWidth=1.6; x.beginPath(); x.moveTo(a1,ay); x.lineTo(a2,ay); x.stroke();

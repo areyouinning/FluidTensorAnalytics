@@ -1,4 +1,4 @@
-/* The home page's tank: rain falling into still water, coloured by the velocity-gradient tensor.
+/* The home page's tank: rain falling into still water, colored by the velocity-gradient tensor.
    A tank of water seen side-on. Each raindrop that lands pushes a small patch of water downward; a downward
    jet in still water rolls up into a vortex ring, and a ring seen in cross-section is a pair of opposite
    swirls, which you can watch sink and spread. Drag to stir it yourself.
@@ -6,12 +6,12 @@
    /navier-stokes-demo.html: add forces, carry the velocity along itself (semi-Lagrangian), and project it to
    be incompressible with a Jacobi solve for the pressure. Walls on all four sides; the top edge stands in for
    the water's surface. A gentle damping lets the tank settle when the rain stops.
-   Colour comes from splitting the velocity gradient ∇u into its two parts,
+   Color comes from splitting the velocity gradient ∇u into its two parts,
      S = ½(∇u + ∇uᵀ)  the strain rate: stretching and squeezing (green)
      Ω = ½(∇u − ∇uᵀ)  the rotation rate: spinning; blue clockwise, orange anticlockwise as seen on screen
    Both are scaled by the same number (then a gentle gamma, so weak swirls still show), so a green patch and a
    blue one of equal strength mean equal rates.
-   Still water has ∇u = 0, so an undisturbed tank is one flat colour. */
+   Still water has ∇u = 0, so an undisturbed tank is one flat color. */
 import { calm } from './kit.js';
 
 const NX = 128, NY = 76, AIR = .17;          // grid, and the share of the picture that is air above the water
@@ -27,8 +27,8 @@ export default function (fig) {
   const octx = off.getContext('2d'), img = octx.createImageData(NX, NY);
   const probe = document.createElement('i'); probe.style.display = 'none'; fig.appendChild(probe);
   const rgb = v => { probe.style.color = `var(${v})`; return getComputedStyle(probe).color.match(/[\d.]+/g).slice(0, 3).map(Number); };
-  let C = {}; const colours = () => { C = { base: rgb('--sunk'), cw: rgb('--blue'), ccw: rgb('--orange'), st: rgb('--green'), ink: rgb('--ink'), soft: rgb('--ink-soft'), line: rgb('--line'), panel: rgb('--panel') }; };
-  colours();
+  let C = {}; const colors = () => { C = { base: rgb('--sunk'), cw: rgb('--blue'), ccw: rgb('--orange'), st: rgb('--green'), ink: rgb('--ink'), soft: rgb('--ink-soft'), line: rgb('--line'), panel: rgb('--panel') }; };
+  colors();
 
   /* ---- the fluid ---- */
   const size = W2 * (NY + 2), IX = (i, j) => i + W2 * j;
@@ -90,7 +90,7 @@ export default function (fig) {
       for (let c = 0; c < 3; c++) { const tgt = r + s > 0 ? (r * spin[c] + s * C.st[c]) / (r + s) : C.base[c]; out[q + c] = C.base[c] + (tgt - C.base[c]) * tot; }
       out[q + 3] = 255;
     }
-    scale = Math.max(FLOOR, scale * .97, peak * .55);   // follows the flow down slowly, so a settling tank fades to one colour
+    scale = Math.max(FLOOR, scale * .97, peak * .55);   // follows the flow down slowly, so a settling tank fades to one color
     octx.putImageData(img, 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const sy = surface(), col = (a, o = 1) => `rgba(${a[0]},${a[1]},${a[2]},${o})`;
@@ -128,7 +128,7 @@ export default function (fig) {
     if (calm()) still(); else draw();
   }
   new ResizeObserver(resize).observe(fig);
-  addEventListener('fta-theme', () => { colours(); draw(); });
+  addEventListener('fta-theme', () => { colors(); draw(); });
 
   /* ---- hands ---- */
   let down = null;

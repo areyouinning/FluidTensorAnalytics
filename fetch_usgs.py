@@ -63,7 +63,7 @@ def from_ogc(site, wy, fetch=get):
 
 def parse_rdb(text):
     """NWIS RDB: tab-separated, '#' comments, a header row, a column-format row, then data.
-    The discharge column is the one ending in _00060_00003; its neighbour ending in _cd holds quality codes."""
+    The discharge column is the one ending in _00060_00003; its neighbor ending in _cd holds quality codes."""
     lines = [l for l in text.splitlines() if l and not l.startswith("#")]
     if len(lines) < 3:
         return {}

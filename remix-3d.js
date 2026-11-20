@@ -1,4 +1,4 @@
-/* The DataGenetics remixes, in raw WebGL2. One small renderer (coloured points and lines, a drag-to-orbit camera) and one experiment per page, chosen by body[data-remix].
+/* The DataGenetics remixes, in raw WebGL2. One small renderer (colored points and lines, a drag-to-orbit camera) and one experiment per page, chosen by body[data-remix].
    Everything shown is computed: the sphere's readouts count the points on screen, the chase steps the sight-line geometry directly. */
 'use strict';
 window.REMIX = (() => {
@@ -62,11 +62,11 @@ window.REMIX = (() => {
     const N = narrow ? 3500 : 8000, S = { m: 'discard', slice: 1, pts: new Float32Array(N * 3), miss: [], stats: null };
     function fill() { const o = [0, 0, 0]; o.miss = S.m === 'discard' ? [] : null; for (let i = 0; i < N; i++) { METHODS[S.m].gen(o); S.pts[i * 3] = o[0]; S.pts[i * 3 + 1] = o[1]; S.pts[i * 3 + 2] = o[2]; } S.miss = o.miss || []; S.stats = measure(S.pts); dirty = true; hud(); }
     function hud() { const st = S.stats, [W, H] = chartStart(), m = 8, top = 22, bot = H - 18, bw = (W - 2 * m) / 10, y = v => bot - Math.min(v, 5) / 5 * (bot - top);
-      g2.fillStyle = css(INK.ice); g2.textAlign = 'left'; g2.fillText('Points per shell, ten shells of equal volume, centre at left', m, 11);
+      g2.fillStyle = css(INK.ice); g2.textAlign = 'left'; g2.fillText('Points per shell, ten shells of equal volume, center at left', m, 11);
       st.shell.forEach((v, i) => { g2.fillStyle = css(v > 1.25 ? INK.coral : INK.cyan); g2.beginPath(); g2.roundRect(m + i * bw + 1, y(v), bw - 2, bot - y(v), [3, 3, 0, 0]); g2.fill(); });
       g2.strokeStyle = css(INK.white); g2.setLineDash([4, 3]); g2.beginPath(); g2.moveTo(m, y(1)); g2.lineTo(W - m, y(1)); g2.stroke(); g2.setLineDash([]); g2.fillStyle = css(INK.white); g2.textAlign = 'right'; g2.fillText('even', W - m, y(1) - 8);
-      g2.textAlign = 'left'; g2.fillStyle = css(INK.ice); g2.fillText('centre', m, H - 8); g2.textAlign = 'right'; g2.fillText('skin', W - m, H - 8);
-      read(METHODS[S.m].name, [['Random numbers per point', METHODS[S.m].draws.toFixed(1)], ['Thrown away', S.m === 'discard' ? (S.miss.length / 3 / (S.miss.length / 3 + N) * 100).toFixed(1) + '%' : '0%'], ['Centre crowding', '×' + st.shell[0].toFixed(2)], ['Pole crowding', '×' + st.pole.toFixed(2)], ['Corners over faces', '×' + st.corner.toFixed(2)]]); }
+      g2.textAlign = 'left'; g2.fillStyle = css(INK.ice); g2.fillText('center', m, H - 8); g2.textAlign = 'right'; g2.fillText('skin', W - m, H - 8);
+      read(METHODS[S.m].name, [['Random numbers per point', METHODS[S.m].draws.toFixed(1)], ['Thrown away', S.m === 'discard' ? (S.miss.length / 3 / (S.miss.length / 3 + N) * 100).toFixed(1) + '%' : '0%'], ['Center crowding', '×' + st.shell[0].toFixed(2)], ['Pole crowding', '×' + st.pole.toFixed(2)], ['Corners over faces', '×' + st.corner.toFixed(2)]]); }
     group(Object.entries(METHODS).map(([k, v]) => [k, v.name]), k => { S.m = k; fill(); }, 'discard');
     slider('Slice', .04, 1, .01, 1, v => v >= 1 ? 'all' : v.toFixed(2), v => { S.slice = v; dirty = true; });
     button('New points', fill);

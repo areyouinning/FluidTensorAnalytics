@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Martian+Mono:wght@300;400&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
 /* Layout: one chapter at a time, verse beside a square living plate; plate first on phones.
-   Pale water-grey paper, ink, and two dyes that mean the same thing on every plate:
+   Pale water-gray paper, ink, and two dyes that mean the same thing on every plate:
    vermilion for water leaving a saddle (unstable), blue for water arriving (stable). */
 :root{
   --paper:#f2f5f5; --ink:#101c22; --muted:#5d6c73; --rule:#d0d9db; --wash:#e3eaeb;
@@ -200,8 +200,8 @@ body.frameonly .frame{ width:min(100vw - 32px, (100vh - 32px) * var(--ar,1)); ma
     </dl>
     <h2>Stirring and mixing</h2>
     <dl>
-      <div class="row"><dt>σ, τ</dt><dd><span class="nm">Finite-time Lyapunov exponent</span><span class="ds">σ is how fast neighbours separate over a window of length τ, on a log scale, per unit time.</span></dd></div>
-      <div class="row"><dt>Γ</dt><dd><span class="nm">Circulation</span><span class="ds">The strength of a stirrer, modelled as a point vortex.</span></dd></div>
+      <div class="row"><dt>σ, τ</dt><dd><span class="nm">Finite-time Lyapunov exponent</span><span class="ds">σ is how fast neighbors separate over a window of length τ, on a log scale, per unit time.</span></dd></div>
+      <div class="row"><dt>Γ</dt><dd><span class="nm">Circulation</span><span class="ds">The strength of a stirrer, modeled as a point vortex.</span></dd></div>
       <div class="row"><dt>a</dt><dd><span class="nm">Cup radius</span><span class="ds">Lengths in the cup chapters are in units of a.</span></dd></div>
       <div class="row"><dt>κ</dt><dd><span class="nm">Diffusivity</span><span class="ds">How fast molecules spread a dissolved substance on their own. Sugar in water: about 5 × 10⁻¹⁰ m²/s.</span></dd></div>
       <div class="row"><dt>Pe</dt><dd><span class="nm">Péclet number</span><span class="ds">Stirring speed times size, divided by κ. Large when stirring beats diffusion.</span></dd></div>
@@ -257,8 +257,8 @@ const CH = [
    ["Draw the edge of the eddy","with a piece of each curve:","out along one to a crossing, home along the other."],
    ["Every sway, one lobe of outside water","turns into the eddy,","and one lobe of eddy water turns out."],
    ["Equal areas, in and out.","The eddy keeps its shape","and slowly loses its water."]],
-  notes:`<p><b>Lobe dynamics</b> (MacKay, Meiss & Percival 1984; Rom-Kedar, Leonard & Wiggins 1990). Make a boundary from Wᵘ, running from the saddle to a crossing, and Wˢ from that crossing back. One period later the boundary has moved only by two lobes: one carries water in, one carries the same area out. That is a <b>turnstile</b>.</p><p>To first order the lobe area is <code>ε∫|M(t₀)|dt₀</code> between successive zeros of M, here <code>4πε sech(πω/2)/ω</code>, with one turnstile on each side of the eye.</p><p>The plate colours every point by where its water was k periods earlier: in the eye, in the stream above, or in the stream below. The fingers are lobes, and their edges trace the manifolds. The percentage is measured across the fixed dashed oval rather than a lobe boundary, so it shows exchange, not lobe area.</p>`,
-  caption:"Each point coloured by where its water was k periods ago: blue in the eye, vermilion in the stream above, ochre in the stream below. ε = 0.2." },
+  notes:`<p><b>Lobe dynamics</b> (MacKay, Meiss & Percival 1984; Rom-Kedar, Leonard & Wiggins 1990). Make a boundary from Wᵘ, running from the saddle to a crossing, and Wˢ from that crossing back. One period later the boundary has moved only by two lobes: one carries water in, one carries the same area out. That is a <b>turnstile</b>.</p><p>To first order the lobe area is <code>ε∫|M(t₀)|dt₀</code> between successive zeros of M, here <code>4πε sech(πω/2)/ω</code>, with one turnstile on each side of the eye.</p><p>The plate colors every point by where its water was k periods earlier: in the eye, in the stream above, or in the stream below. The fingers are lobes, and their edges trace the manifolds. The percentage is measured across the fixed dashed oval rather than a lobe boundary, so it shows exchange, not lobe area.</p>`,
+  caption:"Each point colored by where its water was k periods ago: blue in the eye, vermilion in the stream above, ochre in the stream below. ε = 0.2." },
 
 { n:"VII", id:"the-horseshoe", title:"The Horseshoe", art:"horseshoe",
   verse:[
@@ -290,16 +290,16 @@ const CH = [
   verse:[
    ["Real water does not repeat itself,","and there is no saddle to start from."],
    ["So start everywhere.","Set two drops down side by side","and see how far apart they end up."],
-   ["Where neighbours part fastest, a ridge appears.","Run time backward for the other set.","The tangle shows itself without being solved for."]],
+   ["Where neighbors part fastest, a ridge appears.","Run time backward for the other set.","The tangle shows itself without being solved for."]],
   notes:`<p>The <b>finite-time Lyapunov exponent</b>: run the flow for a time τ, take the gradient of the map from start to finish, and measure its largest stretching. <code>σ = (1/|τ|) ln √λmax(C)</code>, where <code>C = (∇Φ)ᵀ∇Φ</code>.</p><p>Ridges of forward-time σ approximate repelling material lines, which play the part of stable manifolds. Backward-time ridges approximate attracting lines, the unstable manifolds. Together they draw the tangle (Haller 2001; Shadden, Lekien & Marsden 2005).</p><p>Nothing here needs a fixed point or a periodic flow, only velocities over a window of time. Oceanographers compute the same field from HF-radar surface currents and model output to find the lines that spills and larvae will not cross.</p>`,
   caption:"Lyapunov exponents over two periods of the swaying eddy at ε = 0.2. Blue ridges repel, vermilion ridges attract. Compare chapter V." },
 
 { n:"XI", id:"the-last-step", title:"The Last Step", art:"batch",
   verse:[
    ["Stirring never mixes anything.","It only makes the boundary long","and the layers thin."],
-   ["Molecules do the rest.","Alone, sugar takes a day or two","to spread across a centimetre of still tea."],
+   ["Molecules do the rest.","Alone, sugar takes a day or two","to spread across a centimeter of still tea."],
    ["Fold the layers thin enough","and the day becomes a second.","The tangle builds the surface. Diffusion finishes it."]],
-  notes:`<p>Stirring stretches the interface between two waters and thins the layers, but only molecular diffusion makes them one. Diffusing a distance L takes about <code>L²/κ</code>. For sugar, <code>κ ≈ 5 × 10⁻¹⁰ m²/s</code>: about two days for a centimetre, about two seconds for thirty microns.</p><p><b>Batchelor</b> (1959): stretching at rate λ thins layers until diffusion across them keeps pace, at a thickness near <code>ℓ_B ≈ √(κ/λ)</code>. From then on the unmixedness decays exponentially. With chaotic stirring, the time to mix grows only like <code>(1/λ) ln Pe</code>, not like Pe as it would for diffusion alone.</p><p>The plate carries a dye field through the cup of chapter IX on a 180 × 180 grid. Interpolating on a grid adds diffusion of its own, so even the lowest κ setting is not zero. The inset is the variance of concentration on a log scale.</p>`,
+  notes:`<p>Stirring stretches the interface between two waters and thins the layers, but only molecular diffusion makes them one. Diffusing a distance L takes about <code>L²/κ</code>. For sugar, <code>κ ≈ 5 × 10⁻¹⁰ m²/s</code>: about two days for a centimeter, about two seconds for thirty microns.</p><p><b>Batchelor</b> (1959): stretching at rate λ thins layers until diffusion across them keeps pace, at a thickness near <code>ℓ_B ≈ √(κ/λ)</code>. From then on the unmixedness decays exponentially. With chaotic stirring, the time to mix grows only like <code>(1/λ) ln Pe</code>, not like Pe as it would for diffusion alone.</p><p>The plate carries a dye field through the cup of chapter IX on a 180 × 180 grid. Interpolating on a grid adds diffusion of its own, so even the lowest κ setting is not zero. The inset is the variance of concentration on a log scale.</p>`,
   caption:"Two waters in a cup, stirred. Inset: how unmixed the cup is, log variance of concentration, period by period. Tap to start again.",
   ctl:[{k:"mu",label:"stirring",min:0.1,max:1.2,step:0.05,def:0.6},{k:"lk",label:"log₁₀ κ",min:-4.5,max:-2.5,step:0.1,def:-3.5}] }
 ];
@@ -760,7 +760,7 @@ function applyMix(m){
   const paper=mixHex(base.paper, PALS.b3.paper, e), darkGround=lum(paper)<0.42;
   for(const k of Object.keys(base)){
     let v=mixHex(base[k], PALS.b3[k], e);
-    // text never fades through grey on grey: on a light ground it stays dark, on a dark ground it is light
+    // text never fades through gray on gray: on a light ground it stays dark, on a dark ground it is light
     if((k==="ink"||k==="muted") && !isDark()) v = darkGround ? mixHex(PALS.wayD[k], PALS.b3[k], e) : base[k];
     root.setProperty("--"+k, v); }
   root.setProperty("color-scheme", (m>=0.5||isDark())?"dark":"light");

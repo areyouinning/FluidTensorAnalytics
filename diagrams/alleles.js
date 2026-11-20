@@ -31,7 +31,7 @@ export default function (fig) {
       if (m === 'CC') el('rect', { x: x - .5, y: y - .5, width: S - 2, height: S - 2, rx: 5, fill: 'none', stroke: C.green, 'stroke-width': 2 }, g);
     }
     label(g, 12, 176, 'green corrected, orange scarred', { a: 'start', size: 13, cls: 'soft' });
-    label(g, 348, 176, 'grey still untouched', { a: 'end', size: 13, cls: 'soft' });
+    label(g, 348, 176, 'gray still untouched', { a: 'end', size: 13, cls: 'soft' });
 
     el('path', { d: 'M16 280H348', stroke: C.line, fill: 'none' }, g);
     el('path', { d: `M16 ${Y(CEIL).toFixed(1)}H348`, stroke: C.green, 'stroke-dasharray': '5 4', fill: 'none' }, g);

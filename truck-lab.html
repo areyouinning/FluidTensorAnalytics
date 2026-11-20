@@ -188,7 +188,7 @@
     ctx.fillStyle=C.dirt2;
     for(var j=0;j<w;j+=34){ var off=((j-(camX||0)*px)%34+34)%34; ctx.beginPath(); ctx.arc(j+off,groundY+22+(j%3)*9,3,0,TAU); ctx.fill(); }
   }
-  // truck drawn with its rear-axle centre at (x,y); s = px per metre; wheel radius 0.85 m; body lift in metres
+  // truck drawn with its rear-axle center at (x,y); s = px per meter; wheel radius 0.85 m; body lift in meters
   function truck(ctx,x,y,s,angle,lift,color,rot,squash){
     ctx.save(); ctx.translate(x,y); ctx.rotate(rot||0);
     var R=0.85*s, wb=2.6*s, L=lift*s;
@@ -377,15 +377,15 @@
   // SQUASH — heavier truck, flatter cars (each car is a spring)
   gadgets.squash={
     label:"SQUASH", mass:4, x:-8, flats:[0,0,0,0,0], running:false, done:false,
-    html:'<div class="ctl"><label><span>Truck weight</span><span id="sm">4 tonnes</span></label><input type="range" id="smr" min="1" max="9" step="0.5" value="4" aria-label="Truck mass in tonnes"></div>'+
+    html:'<div class="ctl"><label><span>Truck weight</span><span id="sm">4 metric tons</span></label><input type="range" id="smr" min="1" max="9" step="0.5" value="4" aria-label="Truck mass in metric tons"></div>'+
          '<button class="big" id="sgo">DRIVE!</button><button class="big alt" id="snew">NEW CARS</button>',
     init:function(){ var g=this; this.reset();
-      document.getElementById("smr").addEventListener("input",function(){ g.mass=+this.value; document.getElementById("sm").textContent=g.mass+" tonnes"; S.tick(); });
+      document.getElementById("smr").addEventListener("input",function(){ g.mass=+this.value; document.getElementById("sm").textContent=g.mass+" metric tons"; S.tick(); });
       document.getElementById("sgo").addEventListener("click",function(){ if(!g.running){ g.x=-8; g.running=true; g.done=false; S.vroom(); } });
       document.getElementById("snew").addEventListener("click",function(){ g.reset(); S.click(); }); },
     reset:function(){ this.x=-8; this.flats=[0,0,0,0,0]; this.running=false; this.done=false; },
     carX:function(i){ return 2+i*4.6; },
-    kcar:46000, // N/m per axle-load — a family car goes 85% flat under 8 tonnes
+    kcar:46000, // N/m per axle-load — a family car goes 85% flat under 8 metric tons
     step:function(dt){
       if(!this.running) return; this.x+=4.5*dt;
       var Fw=this.mass*1000*G/2; // weight per axle

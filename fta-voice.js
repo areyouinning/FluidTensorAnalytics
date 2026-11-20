@@ -1,6 +1,6 @@
 /* The kids' games' voice: River, from ElevenLabs, pre-recorded.
    Every line a game can say is recorded ahead of time (scripts/gen_river.mjs) and listed in
-   /audio/river/index.json, keyed by the normalised sentence. A line is played sentence by sentence;
+   /audio/river/index.json, keyed by the normalized sentence. A line is played sentence by sentence;
    a sentence that was not recorded whole is pieced together from recorded parts around its numbers
    ("You got" · 12 · "gems, kiddo!"). Only if a piece is still missing does the whole line fall back
    to the device's own voice, so one line is never said in two voices.

@@ -1,4 +1,4 @@
-/* A small zebra puzzle. Four people; each has one home, one pet and one favourite colour, and no two
+/* A small zebra puzzle. Four people; each has one home, one pet and one favorite color, and no two
    share any of them. Tap a cell to cycle its value. Each column, once filled without repeats, is a
    permutation matrix (who x value): exactly one dot in every row and column. Clues such as "the camel
    lives in the shack" never mention a person; they are statements about the PRODUCT of two of those
@@ -9,7 +9,7 @@ import { svg, el, clear, label, put, controls, button, readouts } from './kit.js
 const BLUE = 'var(--blue)', ORANGE = 'var(--orange)', GREEN = 'var(--green)', RED = 'var(--red)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', LINE = 'var(--line)', SUNK = 'var(--sunk)', PANEL = 'var(--panel)';
 const WHO = ['Ada', 'Bo', 'Cy', 'Dee'];
 const VALS = [['shack', 'yurt', 'houseboat', 'treehouse'], ['camel', 'zebra', 'owl', 'newt'], ['red', 'blue', 'green', 'gold']];
-const HEAD = ['Home', 'Pet', 'Colour'], HUE = [BLUE, ORANGE, GREEN];
+const HEAD = ['Home', 'Pet', 'Color'], HUE = [BLUE, ORANGE, GREEN];
 const SOLUTION = [[1, 0, 2, 3], [2, 0, 3, 1], [1, 3, 2, 0]];
 // a clue returns true (holds), false (broken) or null (cannot tell yet)
 const link = (A, a, B, b, want = true) => s => {
@@ -31,7 +31,7 @@ const CLUES = [
 ];
 
 export default function (fig) {
-  const s = svg(fig, 380, 286, 'A table of four people with a home, pet and colour each, above four small grids showing the same choices as matrices.');
+  const s = svg(fig, 380, 286, 'A table of four people with a home, pet and color each, above four small grids showing the same choices as matrices.');
   const g = el('g', {}, s);
   const list = document.createElement('ol'); list.className = 'zb-clues'; put(fig, list);
   const box = controls(fig);
@@ -56,7 +56,7 @@ export default function (fig) {
       }
     });
     // the same choices as matrices: who x value, and the product home x pet
-    const C = 13, Y = 196, mats = [[28, 'who × home', 0], [118, 'who × pet', 1], [208, 'who × colour', 2]];
+    const C = 13, Y = 196, mats = [[28, 'who × home', 0], [118, 'who × pet', 1], [208, 'who × color', 2]];
     const grid = (x, title, on, hue, rows, cols) => {
       label(g, x + 2 * C, Y - 22, title, { size: 10.5, w: 600, fill: hue });
       for (let c = 0; c < 4; c++) label(g, x + c * C + C / 2, Y - 6, cols[c], { size: 8, cls: 'soft' });
