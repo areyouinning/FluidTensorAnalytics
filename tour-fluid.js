@@ -9,6 +9,9 @@
    gradient ∇u into its two parts, on one shared scale:
      Ω = ½(∇u − ∇uᵀ)  rotation: blue clockwise, orange anticlockwise
      S = ½(∇u + ∇uᵀ)  strain, stretching and squeezing: green
+   The box view fills its panel (the camera comes in until the picture's corners all land on the water). The log z
+   button unrolls the same surface by w = log z around the box's centre, conformally, so it fills the panel too:
+   up is log radius from .15 to .985 of the half-width (where the music stirs), across is a window of the angle that turns.
    tour.js calls FTA_FLUID.load(tour) for a new track, .time(t, playing) every frame, and .mode(k) at each stop. */
 (function () {
   'use strict';
@@ -116,6 +119,7 @@
   }
 
   var gl = cv.getContext('webgl2', { antialias: true }), ctx2 = gl ? null : cv.getContext('2d'), w = 0, h = 0, dpr = 1, yaw = -.6, prog, buf, ibuf, nIdx, VB, uM, uL;
+  var lprog = null, lvao, tex, TX, uS, uP;
   var NV = N * N + 8 * N;   // the surface, then four walls of N columns, top and bottom
   if (gl) {
     var sh = function (type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
@@ -134,7 +138,47 @@
     for (s = 0; s < 4; s++) for (i = 0; i < N - 1; i++) { a = N * N + s * 2 * N + i; idx.push(a, a + N, a + 1, a + 1, a + N, a + N + 1); }
     nIdx = idx.length; ibuf = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
     gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+    /* the log view: the water as a texture, unrolled by w = log z (the log-image lab's map). Across is the angle round
+       the box's centre, up is log distance from it, at the same scale both ways, so the map stays conformal: small
+       swirls keep their shape, and every ring of the box gets the same height. */
+    lprog = gl.createProgram();
+    gl.attachShader(lprog, sh(gl.VERTEX_SHADER, '#version 300 es\nin vec2 q;out vec2 uv;void main(){uv=q;gl_Position=vec4(q*2.-1.,0.,1.);}'));
+    gl.attachShader(lprog, sh(gl.FRAGMENT_SHADER, '#version 300 es\nprecision highp float;in vec2 uv;uniform sampler2D T;uniform float S;uniform float P;out vec4 o;void main(){float th=(uv.x-.5)*S+P;float r=exp(mix(-1.897,-.0151,uv.y));vec2 z=r*vec2(cos(th),sin(th));o=vec4(texture(T,z*.5+.5).rgb,1.);}'));
+    gl.linkProgram(lprog);
+    if (gl.getProgramParameter(lprog, gl.LINK_STATUS)) {
+      uS = gl.getUniformLocation(lprog, 'S'); uP = gl.getUniformLocation(lprog, 'P');
+      lvao = gl.createVertexArray(); gl.bindVertexArray(lvao);   // one big triangle over the whole panel, as a real vertex array
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 2, 0, 0, 2]), gl.STATIC_DRAW);
+      var lq = gl.getAttribLocation(lprog, 'q'); gl.enableVertexAttribArray(lq); gl.vertexAttribPointer(lq, 2, gl.FLOAT, false, 0, 0);
+      gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, buf); tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, N, N, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      TX = new Uint8Array(N * N * 4);
+    } else lprog = null;
   }
+  var logView = false;
+  try { logView = !!lprog && localStorage.getItem('fta.tour.logview') === '1'; } catch (e) {}
+  function renderLog() {   // the surface's colors, shaded by its height, unrolled
+    for (var q = 0; q < N * N; q++) { var s = .8 + .25 * H[q]; for (var c = 0; c < 3; c++) TX[q * 4 + c] = Math.min(255, COL[q * 3 + c] * 255 * s); TX[q * 4 + 3] = 255; }
+    gl.bindTexture(gl.TEXTURE_2D, tex); gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, N, gl.RGBA, gl.UNSIGNED_BYTE, TX);
+    gl.viewport(0, 0, cv.width, cv.height); gl.disable(gl.DEPTH_TEST); gl.useProgram(lprog); gl.bindVertexArray(lvao);
+    gl.uniform1f(uS, 1.882 * w / h); gl.uniform1f(uP, -3 * yaw);   // up: radius .15 to .985 of the half-width; across: the same scale, so a window of the angle
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindVertexArray(null); gl.enable(gl.DEPTH_TEST);
+  }
+  /* the box view fills the frame: the camera comes in until all four corners of the picture land on the water */
+  function covers(R, a, f, pit) {
+    var eye = [R * Math.cos(pit) * Math.sin(yaw), R * Math.sin(pit), R * Math.cos(pit) * Math.cos(yaw)];
+    var z = norm(eye), x = norm(cross([0, 1, 0], z)), y = cross(z, x), sx, sy, d, t;
+    for (sx = -1; sx <= 1; sx += 2) for (sy = -1; sy <= 1; sy += 2) {
+      d = [-z[0] + x[0] * sx * a / f + y[0] * sy / f, -z[1] + x[1] * sx * a / f + y[1] * sy / f, -z[2] + x[2] * sx * a / f + y[2] * sy / f];
+      if (d[1] >= 0) return false; t = -eye[1] / d[1];
+      if (Math.abs(eye[0] + t * d[0]) > .97 || Math.abs(eye[2] + t * d[2]) > .97) return false;
+    }
+    return true;
+  }
+  function fitR(a, f, pit) { var lo = .9, hi = 8, m; for (var n = 0; n < 16; n++) { m = (lo + hi) / 2; if (covers(m, a, f, pit)) lo = m; else hi = m; } return lo; }
   function wx(i) { return i / (N - 1) * 2 - 1; }
   function put(o, x, y, z, nx, ny, nz, c) { VB[o] = x; VB[o + 1] = y; VB[o + 2] = z; VB[o + 3] = nx; VB[o + 4] = ny; VB[o + 5] = nz; VB[o + 6] = c[0]; VB[o + 7] = c[1]; VB[o + 8] = c[2]; }
   function mul(a, b) { var o = new Array(16).fill(0), c, r, k; for (c = 0; c < 4; c++) for (r = 0; r < 4; r++) for (k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; }
@@ -143,6 +187,7 @@
   function render() {
     if (!w) return;
     if (!gl) { render2d(); return; }
+    if (logView && lprog) { renderLog(); return; }
     var i, j, q, o = 0, d = 2 / (N - 1), hy = function (i, j) { return H[Math.max(0, Math.min(N - 1, j)) * N + Math.max(0, Math.min(N - 1, i))] * HS; };
     for (j = 0; j < N; j++) for (i = 0; i < N; i++) {
       q = j * N + i; var nn = norm([-(hy(i + 1, j) - hy(i - 1, j)) / (2 * d), 1, -(hy(i, j + 1) - hy(i, j - 1)) / (2 * d)]);
@@ -157,7 +202,7 @@
     });
     gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, VB);
     var a = w / h, f = 1 / Math.tan(.38), ne = .1, fa = 20, P = [f / a, 0, 0, 0, 0, f, 0, 0, 0, 0, (fa + ne) / (ne - fa), -1, 0, 0, 2 * fa * ne / (ne - fa), 0];
-    var R = a < 1.2 ? 3.6 : 3.1, pit = .78, eye = [R * Math.cos(pit) * Math.sin(yaw), R * Math.sin(pit), R * Math.cos(pit) * Math.cos(yaw)], tg = [0, -.12, 0];
+    var pit = .92, R = fitR(a, f, pit), eye = [R * Math.cos(pit) * Math.sin(yaw), R * Math.sin(pit), R * Math.cos(pit) * Math.cos(yaw)], tg = [0, 0, 0];
     var z = norm([eye[0] - tg[0], eye[1] - tg[1], eye[2] - tg[2]]), x = norm(cross([0, 1, 0], z)), y = cross(z, x);
     var V = [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -(x[0] * eye[0] + x[1] * eye[1] + x[2] * eye[2]), -(y[0] * eye[0] + y[1] * eye[1] + y[2] * eye[2]), -(z[0] * eye[0] + z[1] * eye[1] + z[2] * eye[2]), 1];
     gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(.043, .063, .086, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -171,7 +216,7 @@
     for (var q = 0; q < N * N; q++) { var sh = .85 + .15 * H[q]; for (var c = 0; c < 3; c++) img2.data[q * 4 + c] = Math.min(255, COL[q * 3 + c] * 255 * sh); img2.data[q * 4 + 3] = 255; }
     off2.getContext('2d').putImageData(img2, 0, 0);
     ctx2.fillStyle = '#0B1016'; ctx2.fillRect(0, 0, cv.width, cv.height);
-    var s = Math.min(cv.width, cv.height) * .92; ctx2.imageSmoothingEnabled = true; ctx2.drawImage(off2, (cv.width - s) / 2, (cv.height - s) / 2, s, s);
+    var s = Math.max(cv.width, cv.height); ctx2.imageSmoothingEnabled = true; ctx2.drawImage(off2, (cv.width - s) / 2, (cv.height - s) / 2, s, s);
   }
   function size() {
     var b = host.getBoundingClientRect(); w = b.width; h = b.height; dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -180,8 +225,18 @@
   function setKey() {
     var m = MODES.filter(function (x) { return x[0] === mode; })[0];
     key.innerHTML = (mode & 1 ? '<span><i style="background:var(--blue)"></i>spin ↻</span><span><i style="background:var(--orange)"></i>spin ↺</span>' : '') +
-      (mode & 2 ? '<span><i style="background:var(--green)"></i>stretch</span>' : '') + '<em>' + m[1] + '</em>';
+      (mode & 2 ? '<span><i style="background:var(--green)"></i>stretch</span>' : '') + '<em>' + m[1] + (logView ? ', unrolled by log' : '') + '</em>';
   }
+  var vbtn = document.createElement('button'); vbtn.className = 'fl-view'; vbtn.type = 'button';
+  vbtn.title = 'Unroll the box around its centre: angle runs across, distance from the centre runs up on a log scale';
+  function setView(on) {
+    logView = on; vbtn.setAttribute('aria-pressed', on ? 'true' : 'false'); vbtn.textContent = on ? 'log z: on' : 'log z';
+    cv.setAttribute('aria-label', on ? 'The box of water unrolled by a logarithm: angle round the centre runs left to right, distance from the centre runs up on a log scale. Colors as in the box: blue and orange are spin, green is stretch.' : boxLabel);
+    try { localStorage.setItem('fta.tour.logview', on ? '1' : '0'); } catch (e) {}
+    setKey(); fields(); render();
+  }
+  var boxLabel = cv.getAttribute('aria-label');
+  if (lprog) { host.appendChild(vbtn); vbtn.addEventListener('click', function () { setView(!logView); }); setView(logView); }
 
   /* ---------- time: the audio clock drives everything ---------- */
   var raf = 0, playing = false, lastT = 0, seen = true, idle = 0;

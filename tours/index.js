@@ -99,11 +99,29 @@ window.FTA_TOURS = [
 "group": "influences"
 },
 {
-"slug": "outersect-moth-lantern",
-"title": "Moth Lantern",
+"slug": "outersect-single-breath",
+"title": "Single Breath",
 "artist": "Outersect",
+"bpm": 75,
+"key": "D Dorian",
+"seconds": 59.6,
+"group": "influences"
+},
+{
+"slug": "ott-hilbert-drift",
+"title": "Hilbert Drift",
+"artist": "Ott",
 "bpm": 96,
-"key": "D Phrygian",
+"key": "A minor",
+"seconds": 62.0,
+"group": "influences"
+},
+{
+"slug": "drtoast-sunrise-epicycles",
+"title": "Sunrise Epicycles",
+"artist": "Dr. Toast",
+"bpm": 96,
+"key": "D Lydian",
 "seconds": 62.0,
 "group": "influences"
 },
@@ -171,21 +189,21 @@ window.FTA_TOURS = [
 "group": "influences"
 },
 {
-"slug": "eskmo-moss-machine",
-"title": "Moss Machine",
-"artist": "Eskmo / Welder",
-"bpm": 100,
-"key": "G minor",
-"seconds": 59.6,
+"slug": "welder-violet-hour",
+"title": "Violet Hour",
+"artist": "Welder",
+"bpm": 80,
+"key": "F minor",
+"seconds": 62.0,
 "group": "influences"
 },
 {
-"slug": "sts9-orbit-room",
-"title": "Orbit Room",
+"slug": "sts9-relic-signal",
+"title": "Relic Signal",
 "artist": "STS9",
-"bpm": 125,
-"key": "E Dorian",
-"seconds": 63.44,
+"bpm": 100,
+"key": "D minor",
+"seconds": 64.4,
 "group": "influences"
 },
 {
@@ -212,15 +230,6 @@ window.FTA_TOURS = [
 "artist": "Koresma",
 "bpm": 100,
 "key": "C major",
-"seconds": 59.6,
-"group": "influences"
-},
-{
-"slug": "vandelux-walls-of-light",
-"title": "Walls of Light",
-"artist": "Vandelux (unverified)",
-"bpm": 100,
-"key": "B minor",
 "seconds": 59.6,
 "group": "influences"
 },
