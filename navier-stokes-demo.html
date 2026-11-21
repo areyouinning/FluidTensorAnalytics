@@ -419,13 +419,13 @@
         <div class="main-content">
             <div class="simulation-panel">
                 <div class="visualization-modes">
-                    <button class="mode-btn active" data-mode="velocity" title="Streamlines traced through the velocity field using RK4 integration. Color indicates flow speed (blue=slow, red=fast). Arrows show flow direction.">Streamlines</button>
+                    <button class="mode-btn" data-mode="velocity" title="Streamlines traced through the velocity field using RK4 integration. Color indicates flow speed (blue=slow, red=fast). Arrows show flow direction.">Streamlines</button>
                     <button class="mode-btn" data-mode="pressure" title="Pressure field from solving ∇²p = ∇·u, the projection step. Enforces incompressibility via Helmholtz-Hodge decomposition.">Pressure</button>
                     <button class="mode-btn" data-mode="vorticity" title="Vorticity ω = ∇×u measures local fluid rotation. y runs down the screen, so Cyan (positive) turns clockwise as you see it and Magenta (negative) turns counterclockwise.">Vorticity (∇×u)</button>
                     <button class="mode-btn" data-mode="divergence" title="Divergence ∇·u measures expansion/compression. Should be ~0 for incompressible flow (mass conservation). Color is stretched to the largest value, so read Max |∇·u| rather than the brightness.">Divergence (∇·u)</button>
                     <button class="mode-btn" data-mode="strain" title="Strain rate tensor S_ij = ½(∂u_i/∂x_j + ∂u_j/∂x_i) shows pure deformation without rotation. Color indicates principal strain direction.">Strain Rate Tensor</button>
                     <button class="mode-btn" data-mode="rotation" title="Rotation rate tensor Ω_ij = ½(∂u_i/∂x_j - ∂u_j/∂x_i) isolates pure rotation without deformation.">Rotation Rate Tensor</button>
-                    <button class="mode-btn" data-mode="decomposition" title="RGB decomposition: R = counterclockwise rotation on screen (Ω < 0), G = strain magnitude, B = clockwise rotation on screen (Ω > 0). Shows how velocity gradient tensor ∇u splits into symmetric (strain) + antisymmetric (rotation) parts.">Tensor Decomposition</button>
+                    <button class="mode-btn active" data-mode="decomposition" title="RGB decomposition: R = counterclockwise rotation on screen (Ω < 0), G = strain magnitude, B = clockwise rotation on screen (Ω > 0). Shows how velocity gradient tensor ∇u splits into symmetric (strain) + antisymmetric (rotation) parts.">Tensor Decomposition</button>
                     <button class="mode-btn" data-mode="particles" title="Lagrangian particle tracers advected by the velocity field. Visualizes flow pathlines and mixing.">Particle Tracers</button>
                 </div>
                 <div class="canvas-container">
@@ -934,7 +934,7 @@
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
                 this.fluid = fluid;
-                this.mode = 'velocity';
+                this.mode = 'decomposition';   // open on the tensor decomposition: strain and rotation, the two halves of ∇u
                 
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
