@@ -22,6 +22,21 @@
   }
 
   window.FTA_THUMBS = {
+    tours: function () {
+      /* a transform as note blocks (time across, pitch up), section lines, and the playhead mid-tour */
+      var o = '', r = rng(7), cols = [B, P, O, G];
+      for (var x = 20; x < 300; x += 14) {
+        for (var k = 0; k < 3; k++) {
+          if (r() < .55) continue;
+          var y = 150 - Math.floor(r() * 8) * 14 - k * 4;
+          o += rect(x, y, 10 + Math.floor(r() * 2) * 14, 8, cols[(x / 14 + k) % 4 | 0], 3, .85);
+        }
+      }
+      [20, 104, 188, 244].forEach(function (x) { o += line('M' + x + ' 30V160', S, 1.5, .5); });
+      o += line('M148 22V168', 'var(--gold)', 4);
+      o += dot(148, 22, 6, 'var(--gold)');
+      return o;
+    },
     truck: function () {
       /* a digger in side view: boom, stick, bucket, and the ground it bites */
       var o = rect(0, 140, 320, 40, L);
