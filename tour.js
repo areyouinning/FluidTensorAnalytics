@@ -1,4 +1,4 @@
-/* The tours: one page, 27 tracks. The audio clock is the only state; everything drawn reads it.
+/* The tours: one page, 27 tracks. The 3D water above the transform is tour-fluid.js. The audio clock is the only state; everything drawn reads it.
    Each track's data (tours/<slug>.js) sets window.FTA_TOUR; its transform is bytes, one row per
    semitone from C1, ten columns a second. */
 (function () {
@@ -84,7 +84,7 @@
       }
     });
     ctx.fillStyle = 'rgba(238,241,244,.55)';
-    for (var oct = 2; oct <= 6; oct++) { var y = H - (oct - 1) * 12 / 72 * H; ctx.fillText('C' + oct, 4 * d, y - 14 * d); }
+    if (H > 150 * d) for (var oct = 2; oct <= 6; oct++) { var y = H - (oct - 1) * 12 / 72 * H; ctx.fillText('C' + oct, 4 * d, y - 14 * d); }
     var px = t / T * W;
     ctx.fillStyle = 'rgba(11,16,22,.35)'; ctx.fillRect(0, 0, px, H);
     ctx.fillStyle = '#FFC21A'; ctx.fillRect(Math.round(px) - d, 0, 2 * d, H);
@@ -95,8 +95,9 @@
   function tick() {
     var t = audio.currentTime || 0, k = stopAt(t);
     $('clock').textContent = fmt(t) + ' / ' + fmt(tour.seconds);
+    if (window.FTA_FLUID) FTA_FLUID.time(t, !audio.paused);
     if (k !== curStop) {
-      curStop = k;
+      curStop = k; if (window.FTA_FLUID) FTA_FLUID.mode(k);
       Array.prototype.forEach.call($('stops').children, function (li, i) { li.setAttribute('aria-current', i === k ? 'true' : 'false'); });
     }
     draw();
@@ -105,7 +106,9 @@
   function kick() { if (!raf) raf = requestAnimationFrame(tick); }
 
   /* ---- load a tour: its data script, its audio, its words */
+  var RENAMED = { 'heyoka-log-time': 'andreilien-log-time' };   // old links keep working
   function load(slug, at, userInitiated) {
+    slug = RENAMED[slug] || slug;
     if (!tracks.some(function (t) { return t.slug === slug; })) slug = tracks[0].slug;
     audio.pause();
     Array.prototype.forEach.call($('list').querySelectorAll('button'), function (b) { b.setAttribute('aria-current', b.dataset.slug === slug ? 'true' : 'false'); });
@@ -115,6 +118,7 @@
     s.src = 'tours/' + slug + '.js';
     s.onload = function () {
       tour = window.FTA_TOUR; img = decode(tour.gram); curStop = -1;
+      if (window.FTA_FLUID) { FTA_FLUID.clock = function () { return audio.currentTime || 0; }; FTA_FLUID.load(tour, at || 0); }
       $('title').textContent = tour.title;
       $('meta').textContent = 'after ' + tour.artist + ' · ' + tour.bpm + ' BPM' + (tour.key ? ' · ' + tour.key : '') + ' · ' + fmt(tour.seconds);
       $('how').textContent = tour.how;
@@ -133,7 +137,7 @@
         (tour.group === 'bach' ? ' Bach’s notes come from the Mutopia Project’s public-domain edition of BWV 846.' : '') + ' Mastered to ' + tour.checks.lufs +
         ' LUFS, true peak ' + tour.checks.tp + ' dBTP, ' + tour.checks.clicks + ' stray clicks. Fingerprint ' + tour.checks.sha + '.';
       audio.src = 'tours/' + slug + '.mp3';
-      audio.currentTime = at || 0;
+      if (at) audio.addEventListener('loadedmetadata', function () { audio.currentTime = at; tick(); }, { once: true });   // a time set before the audio loads is lost
       history.replaceState(null, '', '?t=' + slug + (at ? '&s=' + at.toFixed(1) : ''));
       document.title = tour.title + ' | How do you build a sound? | FluidTA';
       $('play').textContent = 'Play'; $('play').setAttribute('aria-label', 'Play');
