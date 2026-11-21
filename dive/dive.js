@@ -9,6 +9,7 @@
    surface at r = min over the 32 face planes of d / (n · N). Sliding the 20 icosahedron planes out while the 12
    dodecahedron planes slide in passes through the truncated and rectified shapes in between. The fragment
    shader finds the face under each pixel the same way, so faces and edges stay crisp. */
+import { LINKS } from './links.js';
 const THREE = window.THREE;
 const CAT = (window.FTA_CATALOG || []).filter(e => e && e.href), TOPICS = window.FTA_TOPICS || {}, THUMBS = window.FTA_THUMBS || {};
 const SHELF = { explore: ['Explore', 0x4C8DF6], paradox: ['Paradox', 0x9B6BFF], riddles: ['Riddles', 0xF2B233], play: ['Play', 0x3DBE7A], way: ['Way Of', 0x2BC4B4], tools: ['Tools', 0xF07A2B] };
@@ -30,6 +31,11 @@ const PAGES = CAT.map((e, i) => {
 });
 function sim(a, b) { let n = 0; a.tok.forEach(t => { if (b.tok.has(t)) n++; }); const u = a.tok.size + b.tok.size - n; return u ? n / u : 0; }
 const S = PAGES.map(a => PAGES.map(b => a === b ? 0 : sim(a, b)));
+// connections: [page, page, what they share]; connected pages also pull together in the layout
+const byName = {}; PAGES.forEach(p => { byName[p.e.href.replace(/^\/|\.html$/g, '')] = p; });
+const EDGES = LINKS.map(([a, b, label, linked]) => ({ a: byName[a], b: byName[b], label, linked: !!linked })).filter(e => e.a && e.b);
+const CONN = PAGES.map(() => new Set()); EDGES.forEach(e => { CONN[e.a.i].add(e.b.i); CONN[e.b.i].add(e.a.i); });
+const edgesOf = p => EDGES.filter(e => e.a === p || e.b === p);
 
 // ---------- the layout: alike pages attract, everything repels ----------
 (function layout() {
@@ -41,7 +47,7 @@ const S = PAGES.map(a => PAGES.map(b => a === b ? 0 : sim(a, b)));
     const step = .9 * (1 - it / 420) + .05;
     F.forEach(f => f.set(0, 0, 0));
     for (let i = 0; i < PAGES.length; i++) for (let j = i + 1; j < PAGES.length; j++) {
-      d.subVectors(PAGES[j].pos, PAGES[i].pos); const L = Math.max(.5, d.length()), s = S[i][j];
+      d.subVectors(PAGES[j].pos, PAGES[i].pos); const L = Math.max(.5, d.length()), s = Math.min(1, S[i][j] + (CONN[i].has(j) ? .55 : 0));
       let f = -160 / (L * L);                               // everyone keeps their distance
       if (s > 0) f += .05 * s * (L - (5 + 14 * (1 - s)));   // alike pages want to sit close
       d.multiplyScalar(f / L); F[i].add(d); F[j].sub(d);
@@ -137,6 +143,19 @@ function updateMeshes(hiOf) {
 }
 const morphU = (t, ph) => .5 - .5 * Math.cos(t * .45 * uniforms.uMotion.value + ph);
 
+// ---------- connections: faint lines for all, bright ones (with labels) for the page in focus ----------
+function lineGeo(list, dim) {
+  const pos = new Float32Array(list.length * 6), col = new Float32Array(list.length * 6);
+  list.forEach((e, k) => { e.a.pos.toArray(pos, k * 6); e.b.pos.toArray(pos, k * 6 + 3); e.a.colA.clone().multiplyScalar(dim).toArray(col, k * 6); e.b.colA.clone().multiplyScalar(dim).toArray(col, k * 6 + 3); });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+}
+const allLines = new THREE.LineSegments(lineGeo(EDGES, 1), new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .32, depthWrite: false }));
+scene.add(allLines);
+const focusLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .95, depthWrite: false }));
+scene.add(focusLines);
+let focusOf = null;
+function setFocus(p) { if (p === focusOf) return; focusOf = p; focusLines.geometry.dispose(); focusLines.geometry = lineGeo(p ? edgesOf(p) : [], 1.35); }
+
 // ---------- words in the sky ----------
 function wrap(g, s, w, maxLines) { const words = String(s).split(/\s+/), out = []; let line = ''; for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); if (out.length > maxLines) { out.length = maxLines; out[maxLines - 1] = out[maxLines - 1].replace(/\s*\S*$/, '') + '…'; } return out; }
 function textSprite(s, { w = 512, h = 128, size = 40, weight = 700, color = '#fff', lines = 2, scale = 6.4 } = {}) {
@@ -148,6 +167,20 @@ function textSprite(s, { w = 512, h = 128, size = 40, weight = 700, color = '#ff
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
   sp.scale.set(scale, scale * h / w, 1); return sp;
 }
+function pillSprite(s) {
+  const w = 800, h = 72, cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d');
+  g.font = '600 30px Inter, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let t = s; while (g.measureText(t).width > w - 48 && t.length > 4) t = t.slice(0, -2); if (t !== s) t = t.replace(/\s*\S*$/, '') + '…';
+  const tw = g.measureText(t).width + 36, x0 = (w - tw) / 2;
+  g.fillStyle = 'rgba(14,20,36,.88)'; g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(x0 + 30, 6); g.arcTo(x0 + tw, 6, x0 + tw, h - 6, 30); g.arcTo(x0 + tw, h - 6, x0, h - 6, 30); g.arcTo(x0, h - 6, x0, 6, 30); g.arcTo(x0, 6, x0 + tw, 6, 30); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#f3f6ff'; g.fillText(t, w / 2, h / 2 + 1);
+  const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
+  sp.scale.set(7.2, 7.2 * h / w, 1); sp.renderOrder = 5; return sp;
+}
+EDGES.forEach(e => { e.mid = e.a.pos.clone().add(e.b.pos).multiplyScalar(.5); });
+function edgeLabel(e) { if (!e.sprite) { e.sprite = pillSprite(e.label); e.sprite.position.copy(e.mid); scene.add(e.sprite); } return e.sprite; }
 PAGES.forEach(p => { p.title = textSprite(p.e.title); p.title.position.copy(p.pos).add(new THREE.Vector3(0, ORB + 1.3, 0)); scene.add(p.title); });
 function blurbFor(p) { if (!p.blurb) { p.blurb = textSprite(p.e.blurb || '', { size: 30, weight: 500, lines: 3, color: '#e9eefc', h: 150, scale: 6.8 }); p.blurb.position.copy(p.pos).add(new THREE.Vector3(0, -ORB - 1.5, 0)); scene.add(p.blurb); } return p.blurb; }
 // section names, floating over their clusters
@@ -217,7 +250,7 @@ function hover(ev) { const p = pick(ev.clientX, ev.clientY); if (p !== hovered) 
 // ---------- the panel ----------
 let chosen = null;
 const panel = $('panel');
-function neighbors(p, k = 3) { return PAGES.filter(q => q !== p).map(q => [S[p.i][q.i] - q.pos.distanceTo(p.pos) * .002, q]).sort((a, b) => b[0] - a[0]).slice(0, k).map(x => x[1]); }
+function neighbors(p, k = 5) { return PAGES.filter(q => q !== p).map(q => [S[p.i][q.i] - q.pos.distanceTo(p.pos) * .002, q]).sort((a, b) => b[0] - a[0]).slice(0, k).map(x => x[1]); }
 function select(p) {
   chosen = p; panel.hidden = !p; if (!p) return;
   const e = p.e, hex = c => '#' + c.getHexString(), shelfName = SHELF[p.main][0];
@@ -226,7 +259,8 @@ function select(p) {
     '<p class="shape ico" style="--c:' + hex(p.colA) + '"><span class="lbl"><i></i>Icosahedron · the question · ' + esc(shelfName) + '</span><b>' + esc(e.title) + '</b></p>' +
     '<p class="shape dod" style="--c:' + hex(p.colB) + '"><span class="lbl"><i></i>Dodecahedron · what you do' + (p.tops.length ? ' · ' + esc(p.tops.map(t => TOPIC_NAME[t] || t).join(', ')) : '') + '</span>' + esc(e.blurb || '') + '</p>' +
     '<a class="go" href="' + esc(e.href) + '">Open the page</a>' +
-    '<p class="near">Close by:</p><div class="nbrs">' + neighbors(p).map(q => '<button type="button" data-i="' + q.i + '">' + esc(q.e.title) + '</button>').join('') + '</div>';
+    (edgesOf(p).length ? '<p class="near">Connected to:</p><div class="nbrs">' + edgesOf(p).map(ed => { const q = ed.a === p ? ed.b : ed.a; return '<button type="button" data-i="' + q.i + '"><b>' + esc(q.e.title) + '</b><span>' + esc(ed.label) + '</span></button>'; }).join('') + '</div>' : '') +
+    '<p class="near">Close by:</p><div class="nbrs">' + neighbors(p).filter(q => !CONN[p.i].has(q.i)).slice(0, 2).map(q => '<button type="button" data-i="' + q.i + '">' + esc(q.e.title) + '</button>').join('') + '</div>';
   panel.querySelector('.x').onclick = () => select(null);
   panel.querySelectorAll('.nbrs button').forEach(b => { b.onclick = () => visit(PAGES[+b.dataset.i]); });
   $('live').textContent = e.title + '. ' + (e.blurb || '');
@@ -264,6 +298,16 @@ function frame(now) {
     else if (p.blurb) p.blurb.visible = false;
   });
   updateMeshes(p => (p === hovered ? .6 : 0) + (p === chosen ? 1 : 0));
+  const focus = chosen || hovered; setFocus(focus);
+  EDGES.forEach(e => {   // a connection's label shows for the orb in focus, or when you float close to the line's middle
+    const on = focus && (e.a === focus || e.b === focus), d = camera.position.distanceTo(e.mid);
+    const op = on ? 1 : Math.max(0, Math.min(1, (20 - d) / 6)) * .9;
+    if (op > .01) {
+      const s = edgeLabel(e); s.visible = true; s.material.opacity = op;
+      if (on) { const o = e.a === focus ? e.b : e.a; tmp.subVectors(o.pos, focus.pos); const L = tmp.length(); s.position.copy(focus.pos).addScaledVector(tmp, Math.min(.5, 6.5 / L)); }   // spokes around the orb in focus
+      else s.position.copy(e.mid);
+    } else if (e.sprite) e.sprite.visible = false;
+  });
   if (chosen) { const u = morphU(t, chosen.phase); panel.style.setProperty('--u', u.toFixed(3)); }
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
