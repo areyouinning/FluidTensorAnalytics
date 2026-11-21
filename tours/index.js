@@ -108,9 +108,9 @@ window.FTA_TOURS = [
 "group": "influences"
 },
 {
-"slug": "heyoka-log-time",
+"slug": "andreilien-log-time",
 "title": "Log Time",
-"artist": "Heyoka",
+"artist": "Andreilien",
 "bpm": 80,
 "key": "E minor",
 "seconds": 62.0,

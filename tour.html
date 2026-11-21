@@ -27,7 +27,12 @@
   .meta { color: var(--ink-soft); margin: 4px 0 12px; font-size: 15px; }
   .how { margin: 0 0 16px; max-width: var(--measure); }
   .gramwrap { position: relative; border-radius: var(--radius-sm); overflow: hidden; background: #0B1016; }
-  canvas { display: block; width: 100%; height: 220px; cursor: pointer; touch-action: pan-y; }
+  canvas { display: block; width: 100%; height: 84px; cursor: pointer; touch-action: pan-y; }
+  .gramwrap { margin-top: 10px; }
+  .fluid { position: relative; height: 340px; border-radius: var(--radius-sm); overflow: hidden; background: #0B1016; }
+  .fluid canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: default; }
+  .fl-key { position: absolute; left: 10px; top: 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 4px 10px; border-radius: 999px; background: rgba(11,16,22,.72); color: #EEF1F4; font-size: 13px; font-weight: 600; pointer-events: none; }
+  .fl-key span { display: inline-flex; align-items: center; gap: 5px; } .fl-key i { width: 10px; height: 10px; border-radius: 50%; } .fl-key em { font-style: normal; font-weight: 400; opacity: .8; }
   .transport { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 4px; }
   .transport button { font: 600 15px var(--font); min-height: 44px; padding: 0 18px; border-radius: 22px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
   .transport button.play { background: var(--orange); border-color: var(--orange); color: var(--on-accent); min-width: 100px; }
@@ -50,7 +55,8 @@
     .wrap { grid-template-columns: 1fr; }
     nav.list { display: none; }
     #pick { display: block; }
-    canvas { height: 170px; }
+    canvas { height: 72px; }
+    .fluid { height: 280px; }
     .card { padding: 16px; }
     .stops li { grid-template-columns: 64px 1fr; }
   }
@@ -69,8 +75,10 @@
       <h2 id="title">Loading…</h2>
       <div class="meta" id="meta"></div>
       <p class="how" id="how"></p>
+      <div class="fluid" id="fluid"></div>
+      <p class="axis">The water is stirred by the track: low notes kick up pairs of swirls, held middle notes stir it round, and high notes poke it. Spin lifts the surface; color splits the motion into spin and stretch, and each stop in the tour changes which is shown.</p>
       <div class="gramwrap"><canvas id="gram" role="img" aria-label="The track drawn as its own transform: time left to right, pitch bottom to top, brightness is loudness. A line marks where you are."></canvas></div>
-      <p class="axis">Time runs left to right, pitch runs up from C1 to C7, and brighter means louder. Tap anywhere to jump.</p>
+      <p class="axis">The strip is the track drawn as its own transform: time runs left to right, pitch runs up from C1 to C7, and brighter means louder. Tap anywhere to jump.</p>
       <div class="transport">
         <button class="play" id="play" aria-label="Play">Play</button>
         <span class="clock" id="clock">0:00 / 0:00</span>
@@ -85,6 +93,7 @@
 <div id="toast" role="status"></div>
 <audio id="audio" preload="metadata"></audio>
 <script src="tours/index.js"></script>
+<script src="tour-fluid.js"></script>
 <script src="tour.js"></script>
 </body>
 </html>
