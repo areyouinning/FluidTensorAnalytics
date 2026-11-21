@@ -275,7 +275,7 @@ function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000;
   uniforms.uTime.value = t;
   if (view.fly) {
-    const f = view.fly, k = Math.min(1, (now - f.t0) / f.ms), e = ease(k);
+    const f = view.fly, k = Math.min(1, (performance.now() - f.t0) / f.ms), e = ease(k);   // same clock as flyTo
     camera.position.lerpVectors(f.p0, f.p1, e); view.yaw = f.y0 + (f.y1 - f.y0) * e; view.pitch = f.p0p + (f.p1p - f.p0p) * e; if (k >= 1) view.fly = null;
   } else {
     camera.getWorldDirection(fwd); right.crossVectors(fwd, UP).normalize();
@@ -313,4 +313,4 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__dive = { PAGES, camera, visit, select, S };
+window.__dive = { PAGES, camera, visit, select, flyTo, S };

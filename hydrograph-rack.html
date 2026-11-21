@@ -492,7 +492,7 @@ function buildMiniKeys(m){ const k=document.createElement("div"); k.className="m
 function paintKnob(m,id){ const k=m.knobs[id]; if(!k) return; const it=k._it, n=toN(it,m.vals[id]); k.firstChild.style.transform=`rotate(${-135+270*n}deg)`;
   k.setAttribute("aria-valuetext",it.fmt?it.fmt(m.vals[id],m):String(m.vals[id])); }
 function paintBtn(m,id){ const b=m.btns[id]; if(b&&b.querySelector(".led")&&!/^r\d$/.test(id)) b.setAttribute("aria-pressed",m.vals[id]?"true":"false"); }
-function setVal(m,id,v){ m.vals[id]=v; paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&m.outs&&Object.keys(m.outs).length) m.T.apply(m,id);
+function setVal(m,id,v){ m.vals[id]=v; paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&m.built) m.T.apply(m,id);
   if(m.type==="seq"&&id==="scale") for(let i=0;i<8;i++) paintKnob(m,"s"+i); if(m.type==="nash") drawNash(m); save(); }
 
 /* knobs */
@@ -582,12 +582,12 @@ async function loadWorklet(){
 async function powerOn(){
   AC=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
   WORKLET=AC.audioWorklet?await loadWorklet():false;
-  for(const m of Object.values(M)){ m.outs={}; m.ins={}; m.T.build&&m.T.build(m); }
+  for(const m of Object.values(M)){ m.outs={}; m.ins={}; m.T.build&&m.T.build(m); m.built=true; }   // built: its audio nodes exist, so knobs can reach them (the output module has no jacks out)
   for(const c of cables) linkAudio(c);
   tickTimer=setInterval(()=>{ if(!AC) return; const now=AC.currentTime; for(const m of Object.values(M)) m.T.tick&&m.T.tick(m,now); },25);
   $("power").setAttribute("aria-pressed","true"); $("powerT").textContent="Power off";
   say(`Running at ${(AC.sampleRate/1000).toFixed(1)} kHz. Filter: ${WORKLET?"Chamberlin SVF in an AudioWorklet":"biquad fallback (AudioWorklet unavailable here)"}.`, !WORKLET); }
-async function powerOff(){ clearInterval(tickTimer); tickTimer=null; const ac=AC; AC=null; for(const m of Object.values(M)){ m.outs={}; m.ins={}; } try{ await ac.close(); }catch(e){}
+async function powerOff(){ clearInterval(tickTimer); tickTimer=null; const ac=AC; AC=null; for(const m of Object.values(M)){ m.outs={}; m.ins={}; m.built=false; } try{ await ac.close(); }catch(e){}
   $("power").setAttribute("aria-pressed","false"); $("powerT").textContent="Power on"; say("Powered off."); }
 $("power").onclick=()=>AC?powerOff():powerOn();
 
@@ -610,7 +610,7 @@ const PRESETS={
  empty:{ label:"Empty", vals:{}, cables:[] }
 };
 function defaults(m){ const v={...(m.T.extra||{})}; for(const r of m.T.rows) for(const it of r) if(it.def!==undefined) v[it.id]=it.def; return v; }
-function applyAll(m){ for(const id of Object.keys(m.vals)){ paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&Object.keys(m.outs).length) m.T.apply(m,id); } }
+function applyAll(m){ for(const id of Object.keys(m.vals)){ paintKnob(m,id); paintBtn(m,id); if(AC&&m.T.apply&&m.built) m.T.apply(m,id); } }
 function loadPatch(vals,cabs){
   for(const c of cables) unlinkAudio(c); cables=[]; colorIx=0;
   for(const m of Object.values(M)){ m.vals=Object.assign(defaults(m),vals[m.id]||{}); applyAll(m); }
