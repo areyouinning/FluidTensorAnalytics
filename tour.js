@@ -1,4 +1,4 @@
-/* The tours: one page, 27 tracks. The 3D water above the transform is tour-fluid.js. The audio clock is the only state; everything drawn reads it.
+/* The tours: one page, 28 tracks. The 3D water above the transform is tour-fluid.js. The audio clock is the only state; everything drawn reads it.
    Each track's data (tours/<slug>.js) sets window.FTA_TOUR; its transform is bytes, one row per
    semitone from C1, ten columns a second. */
 (function () {
@@ -92,12 +92,44 @@
 
   function stopAt(t) { var k = 0; tour.stops.forEach(function (s, i) { if (t >= s.t - .05) k = i; }); return k; }
 
+  /* ---- the FluidTA page in motion beside the music: one muted clip per stop, playing while the music plays */
+  var clipv = $('clipv'), still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function showClip(k) {
+    var v = tour && tour.videos && tour.videos[k];
+    $('clip').hidden = !v;
+    if (!v) { clipv.removeAttribute('src'); return; }
+    if (clipv.getAttribute('src') !== 'tours/' + v.clip) { clipv.setAttribute('src', 'tours/' + v.clip); clipv.load(); }
+    var cap = $('clipcap'); cap.textContent = '';
+    cap.appendChild(document.createTextNode('From FluidTA: '));
+    if (v.page) { var a = document.createElement('a'); a.href = v.page; a.textContent = v.label; cap.appendChild(a); }
+    else cap.appendChild(document.createTextNode(v.label));
+    syncClip();
+  }
+  function syncClip() {
+    if ($('clip').hidden || !clipv.getAttribute('src')) return;
+    if (!audio.paused && !still) clipv.play().catch(function () {}); else clipv.pause();
+  }
+
+  /* ---- autoplay: when a track ends, the next one starts (remembered per browser; ?autoplay=1 turns it on) */
+  var autoOn = false;
+  try { autoOn = localStorage.getItem('fta.tour.autoplay') === '1'; } catch (e) {}
+  if (new URLSearchParams(location.search).get('autoplay') === '1') autoOn = true;
+  function setAuto(on) {
+    autoOn = on; $('auto').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('auto').textContent = on ? 'Autoplay on' : 'Autoplay';
+    try { localStorage.setItem('fta.tour.autoplay', on ? '1' : '0'); } catch (e) {}
+  }
+  function nextSlug() {
+    var i = tracks.findIndex(function (t) { return t.slug === tour.slug; });
+    return tracks[(i + 1) % tracks.length].slug;
+  }
+
   function tick() {
     var t = audio.currentTime || 0, k = stopAt(t);
     $('clock').textContent = fmt(t) + ' / ' + fmt(tour.seconds);
     if (window.FTA_FLUID) FTA_FLUID.time(t, !audio.paused);
     if (k !== curStop) {
-      curStop = k; if (window.FTA_FLUID) FTA_FLUID.mode(k);
+      curStop = k; if (window.FTA_FLUID) FTA_FLUID.mode(k); showClip(k);
       Array.prototype.forEach.call($('stops').children, function (li, i) { li.setAttribute('aria-current', i === k ? 'true' : 'false'); });
     }
     draw();
@@ -106,8 +138,9 @@
   function kick() { if (!raf) raf = requestAnimationFrame(tick); }
 
   /* ---- load a tour: its data script, its audio, its words */
-  var RENAMED = { 'heyoka-log-time': 'andreilien-log-time' };   // old links keep working
-  function load(slug, at, userInitiated) {
+  var RENAMED = { 'heyoka-log-time': 'andreilien-log-time', 'sts9-orbit-room': 'sts9-relic-signal',
+                  'eskmo-moss-machine': 'welder-violet-hour', 'outersect-moth-lantern': 'outersect-single-breath' };   // old links keep working
+  function load(slug, at, userInitiated, startPlaying) {
     slug = RENAMED[slug] || slug;
     if (!tracks.some(function (t) { return t.slug === slug; })) slug = tracks[0].slug;
     audio.pause();
@@ -142,6 +175,7 @@
       document.title = tour.title + ' | How do you build a sound? | FluidTA';
       $('play').textContent = 'Play'; $('play').setAttribute('aria-label', 'Play');
       size(); tick();
+      if (startPlaying) audio.play().catch(function () { toast('Tap Play to keep going'); });
       if (userInitiated && window.innerWidth <= 820) $('card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     s.onerror = function () { $('title').textContent = 'This tour could not load.'; };
@@ -159,9 +193,11 @@
     if (!tour) return;
     if (audio.paused) audio.play().catch(function () { toast('Tap again to start the audio'); }); else audio.pause();
   });
-  audio.addEventListener('play', function () { $('play').textContent = 'Pause'; $('play').setAttribute('aria-label', 'Pause'); kick(); });
-  audio.addEventListener('pause', function () { $('play').textContent = 'Play'; $('play').setAttribute('aria-label', 'Play'); tick(); });
-  audio.addEventListener('ended', function () { tick(); });
+  audio.addEventListener('play', function () { $('play').textContent = 'Pause'; $('play').setAttribute('aria-label', 'Pause'); kick(); syncClip(); });
+  audio.addEventListener('pause', function () { $('play').textContent = 'Play'; $('play').setAttribute('aria-label', 'Play'); tick(); syncClip(); });
+  audio.addEventListener('ended', function () { tick(); if (autoOn && tour) { toast('Next: ' + (tracks.find(function (t) { return t.slug === nextSlug(); }) || {}).title); load(nextSlug(), 0, false, true); } });
+  $('auto').addEventListener('click', function () { setAuto(!autoOn); toast(autoOn ? 'Autoplay on: tracks play one after another' : 'Autoplay off'); });
+  setAuto(autoOn);
   audio.addEventListener('seeked', function () { tick(); });
   function fromEvent(e) { var r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * tour.seconds; }
   cv.addEventListener('click', function (e) { if (tour) seek(fromEvent(e), true); });

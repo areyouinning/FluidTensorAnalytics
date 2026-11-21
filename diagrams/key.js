@@ -95,7 +95,7 @@ export const KEY = C(
                     'Dragonflies sneaking up on their prey.', '/remix-camouflage.html'),
                   'Sound: a ringing plate, or music taken apart.',
                   C('A ringing metal plate and dancing sand.', '/chladni.html',
-                    'Twenty-seven tracks built from code, with a tour of what to listen for.', '/tour.html'))))),
+                    'Twenty-eight tracks built from code, with a tour of what to listen for.', '/tour.html'))))),
             'Inside mathematics.',
             C('A number trick or riddle with a lesson hiding inside.',
               C('Pure deduction, with no arithmetic.',
