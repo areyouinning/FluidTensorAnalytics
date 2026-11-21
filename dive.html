@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("fta-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dive In | FluidTA</title>
+<meta name="description" content="Float through every page of FluidTA in 3D. Each page is an orb breathing between an icosahedron, which asks its question, and a dodecahedron, which says what you get to do. Similar pages drift together.">
+<link rel="stylesheet" href="/fta.css">
+<style>
+html,body{height:100%;margin:0;background:#070b14;overflow:hidden;overscroll-behavior:none}
+#sky{position:fixed;inset:0;touch-action:none}
+#sky canvas{display:block;width:100%;height:100%;cursor:grab}
+.top{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));right:12px;display:flex;align-items:center;gap:10px;pointer-events:none;color:#e9eefc}
+.top a,.top button{pointer-events:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;background:rgba(18,26,44,.82);border:1px solid rgba(255,255,255,.14);color:#e9eefc;font:600 15px/1 var(--font);text-decoration:none;backdrop-filter:blur(6px)}
+.top h1{margin:0;font-size:17px;font-weight:700;text-shadow:0 1px 6px #000}
+.help{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));max-width:min(440px,calc(100% - 150px));margin:0;padding:10px 14px;border-radius:14px;background:rgba(18,26,44,.78);color:#c9d3ea;font-size:14px;line-height:1.45;pointer-events:none}
+.help b{color:#fff}
+.go-btns{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.go-btns button{width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(18,26,44,.85);color:#fff;font-size:22px;touch-action:none;cursor:pointer}
+#panel{position:fixed;right:max(12px,env(safe-area-inset-right));top:72px;width:min(360px,calc(100% - 24px));max-height:calc(100% - 160px);overflow:auto;padding:14px 16px 16px;border-radius:18px;background:rgba(14,20,36,.92);border:1px solid rgba(255,255,255,.14);color:#e9eefc;box-shadow:0 10px 40px rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+#panel[hidden]{display:none}
+#panel .x{position:absolute;right:8px;top:8px;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#c9d3ea;font-size:26px;cursor:pointer}
+#panel .thumb{display:block;width:100%;height:auto;border-radius:10px;background:#0b1222;margin:0 0 10px}
+#panel .shape{margin:0 0 10px;padding:8px 10px;border-radius:10px;border-left:4px solid var(--c);background:rgba(255,255,255,.04);transition:background .2s}
+#panel .shape .lbl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--c);margin-bottom:3px}
+#panel .shape .lbl i{width:10px;height:10px;border-radius:2px;background:var(--c)}
+#panel .shape b{font-size:18px;line-height:1.3}
+#panel .ico{background:rgba(255,255,255,calc(.03 + .1 * (1 - var(--u,0))))}
+#panel .dod{background:rgba(255,255,255,calc(.03 + .1 * var(--u,0)))}
+#panel .go{display:flex;justify-content:center;align-items:center;min-height:48px;margin:6px 0 4px;border-radius:999px;background:var(--blue,#4C8DF6);color:#fff;font-weight:700;text-decoration:none}
+#panel .near{margin:12px 0 6px;font-size:13px;color:#9fb0d0}
+#panel .nbrs{display:flex;flex-direction:column;gap:6px}
+#panel .nbrs button{min-height:44px;padding:6px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:transparent;color:#e9eefc;font:500 15px/1.3 var(--font);text-align:left;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.nogl{position:fixed;inset:0;display:grid;place-items:center;padding:24px;color:#e9eefc;text-align:center}
+@media (max-width:640px){
+  #panel{top:auto;bottom:max(12px,env(safe-area-inset-bottom));right:12px;left:12px;width:auto;max-height:52%}
+  .help{display:none}
+  #panel:not([hidden]) ~ .go-btns{display:none}
+  #panel .thumb{display:none}
+  #panel{max-height:46%;display:flex;flex-direction:column}
+  #panel:not([hidden]){display:flex}
+  #panel .go{order:-1;margin:0 48px 10px 0}
+  #panel .shape,#panel .near,#panel .nbrs{flex:none}
+}
+</style>
+</head>
+<body>
+<div id="sky" aria-label="A 3D sky of every page on the site. Drag to look around; tap an orb to visit it." role="application"></div>
+<div class="top">
+  <a class="pill" href="/" aria-label="Back to the site">← FluidTA</a>
+  <h1>Dive In</h1>
+</div>
+<p class="help"><b>Drag</b> to look, <b>W A S D</b> or the arrows to float, scroll to glide, <b>click an orb</b> to visit. Each orb breathes between an <b>icosahedron</b>, colored by section, that asks the page’s question, and a <b>dodecahedron</b>, colored by topic, that says what you get to do there.</p>
+<aside id="panel" hidden aria-label="The page you picked"></aside>
+<div class="go-btns"><button type="button" data-go="1" aria-label="Float forward">▲</button><button type="button" data-go="-1" aria-label="Float back">▼</button></div>
+<p id="live" class="sr" aria-live="polite"></p>
+<nav class="sr" aria-label="Every page, as a list" id="list"></nav>
+<script src="/catalog.js"></script>
+<script src="/thumbs.js"></script>
+<script>
+  (function(){ var l=document.getElementById('list'); (window.FTA_CATALOG||[]).forEach(function(e){ var a=document.createElement('a'); a.href=e.href; a.textContent=e.title+': '+(e.blurb||''); l.appendChild(a); }); })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  (function(){ var ok=false; try{ var c=document.createElement('canvas'); ok=!!(window.WebGLRenderingContext&&(c.getContext('webgl2')||c.getContext('webgl'))); }catch(e){}
+    if(!ok||!window.THREE){ document.getElementById('sky').innerHTML='<div class="nogl"><p>This 3D view needs WebGL, which this browser does not offer.<br><a class="pill" href="/" style="margin-top:12px">Back to the site</a></p></div>'; return; }
+    var s=document.createElement('script'); s.type='module'; s.src='/dive/dive.js'; document.body.appendChild(s); })();
+</script>
+</body>
+</html>

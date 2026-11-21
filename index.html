@@ -15,8 +15,10 @@
 .tank-key span{display:inline-flex;align-items:center;gap:5px}.tank-key i{width:10px;height:10px;border-radius:50%}
 .tank canvas{height:auto;cursor:crosshair}
 .tank p{bottom:auto;top:calc(17% + 8px);left:auto;right:10px;font-size:13px}
+.tank .dive{position:absolute;left:10px;bottom:10px;z-index:2;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:999px;background:var(--blue);color:var(--on-accent);font:700 15px/1 var(--font);text-decoration:none;box-shadow:var(--shadow)}
+.tank .dive:hover{filter:brightness(1.08)}
 .hero-note{max-width:62ch;margin:10px 0 0;color:var(--ink-soft);font-size:17px;line-height:1.55}
-@media (max-width:520px){.tank p{display:none}.tank-ctl{right:8px;bottom:8px;gap:4px}.tank-ctl button{min-height:32px;padding:0 10px;font-size:13px}.tank-key{font-size:12px}}
+@media (max-width:520px){.tank .dive{left:auto;right:8px;bottom:auto;top:8px;min-height:36px;padding:0 14px;font-size:14px}.tank p{display:none}.tank-ctl{right:8px;bottom:8px;gap:4px}.tank-ctl button{min-height:32px;padding:0 10px;font-size:13px}.tank-key{font-size:12px}}
 </style>
 </head>
 <body data-tab="home">
@@ -27,7 +29,7 @@
   </div>
   <p class="hero-note">Rain is falling into a tank of water below, and each drop curls into a pair of swirls. The colors split how the water moves into its spinning part and its stretching part: the two halves of a tensor. This whole site is <a href="https://github.com/areyouinning/FluidTensorAnalytics">open source</a> and <a href="https://github.com/areyouinning/FluidTensorAnalytics/blob/main/NOTICE.md">in the public domain</a>: take any of it, for anything. Everything this demo uses is explained somewhere on it, from <a href="/tensor-analysis.html">what a tensor is</a> to <a href="/way-of-water.html">why stirring mixes</a>. Explore long enough and you can build it yourself.</p>
   <p class="keylink"><a href="/key.html" aria-label="Start here: find your way with a dichotomous key">Start Here</a></p>
-  <figure class="pond tank" data-diagram="stir"><p>Drag to stir · tap to drop rain</p></figure>
+  <figure class="pond tank" data-diagram="stir"><p>Drag to stir · tap to drop rain</p><a class="dive" href="/dive.html" aria-label="Dive in: float through every page in 3D">Dive in</a></figure>
   <p class="hero-note" style="margin-top:8px">The full version, with more ways to look at the same flow, is <a href="/navier-stokes-demo.html">What happens when you stir?</a></p>
 
   <div class="shelf-head"><h2>New</h2></div>
