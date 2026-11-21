@@ -6,8 +6,8 @@
    by breadth-first search. */
 import { svg, el, clear, label, controls, button, readouts, calm } from './kit.js';
 
-const BLUE = 'var(--blue)', ORANGE = 'var(--orange)', GREEN = 'var(--green)', RED = 'var(--red)', PURPLE = 'var(--purple)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', LINE = 'var(--line)', SUNK = 'var(--sunk)', PANEL = 'var(--panel)', ONACC = 'var(--on-accent)';
-const NAMES = ['Farmer', 'Wolf', 'Goat', 'Cabbage'], LET = ['F', 'W', 'G', 'C'], HUE = [BLUE, PURPLE, ORANGE, GREEN];
+const BLUE = 'var(--blue)', ORANGE = 'var(--orange)', GREEN = 'var(--green)', RED = 'var(--red)', PURPLE = 'var(--purple)', INK = 'var(--ink)', SOFT = 'var(--ink-soft)', LINE = 'var(--line)', SUNK = 'var(--sunk)', PANEL = 'var(--panel)';
+const NAMES = ['Farmer', 'Wolf', 'Goat', 'Cabbage'], HUE = [BLUE, PURPLE, ORANGE, GREEN];
 const bit = (s, i) => (s >> i) & 1;
 const ALL = 15;
 // what is eaten on the bank the farmer is not on
@@ -33,7 +33,7 @@ export default function (fig) {
   const g = el('g', {}, s);
   const box = controls(fig);
   const [crossR, statR] = readouts(fig, ['Crossings', 'Status']);
-  let hist = [0], what = [], timer = 0;   // hist: states visited; what: description of each crossing
+  let hist = [0], what = [], timer = 0, ride = null, raf = 0;   // hist: states visited; what: each crossing; ride: the crossing being rowed
   const cur = () => hist[hist.length - 1];
 
   // graph layout: one column per crossing from the start (breadth-first depth), so the two shortest
@@ -66,7 +66,9 @@ export default function (fig) {
     label(g, 332, 148, 'Far bank', { size: 11, cls: 'soft' });
     const canMove = !over && !won;
     // the three passengers
+    const rowing = ride && performance.now() - ride.t0 < ride.ms, f = rowing ? Math.min(1, (performance.now() - ride.t0) / ride.ms) : 1;
     for (let i = 1; i < 4; i++) {
+      if (rowing && ride.who === i) continue;
       const right = bit(st, i) === 1, x = right ? 287 : 3, y = 6 + (i - 1) * 42, ate = dead.includes(i);
       const here = bit(st, i) === bit(st, 0), tap = canMove && here;
       const a = { 'data-k': 'p' + i };
@@ -78,12 +80,15 @@ export default function (fig) {
       if (ate) label(c, x + 33, y + 29, 'eaten', { a: 'start', size: 10.5, w: 700, fill: RED });
       if (tap) { const go = () => move(i); c.addEventListener('click', go); c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); }
     }
-    // the boat, always on the farmer's bank
-    const bx = bit(st, 0) ? 198 : 106, boat = el('g', Object.assign({ 'data-k': 'boat' }, canMove ? { role: 'button', tabindex: '0', 'aria-label': 'Cross alone', style: 'cursor:pointer' } : {}), g);
+    // the boat: moored against the farmer's bank, or rowing across with its passenger
+    const L = 98, R = 204, e = f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+    const bx = rowing ? (ride.from ? R + (L - R) * e : L + (R - L) * e) : (bit(st, 0) ? R : L), boat = el('g', Object.assign({ 'data-k': 'boat' }, canMove ? { role: 'button', tabindex: '0', 'aria-label': 'Cross alone', style: 'cursor:pointer' } : {}), g);
     el('rect', { x: bx - 4, y: 38, width: 86, height: 62, fill: 'transparent' }, boat);
     el('path', { d: `M${bx} 72H${bx + 78}L${bx + 66} 90H${bx + 12}Z`, fill: `color-mix(in srgb, ${ORANGE} 35%, var(--panel))`, stroke: INK, 'stroke-width': 2, 'stroke-linejoin': 'round' }, boat);
-    glyph(boat, 0, bx + 39, 58);
-    label(boat, bx + 39, 109, canMove ? 'tap: cross alone' : 'boat', { size: 10.5, cls: 'soft' });
+    if (!rowing) el('path', { d: bit(st, 0) ? `M${bx + 78} 76q6 -2 6 -10` : `M${bx} 76q-6 -2 -6 -10`, fill: 'none', stroke: INK, 'stroke-width': 1.5 }, boat);   // mooring line
+    glyph(boat, 0, bx + (rowing && ride.who > 0 ? 26 : 39), 58);
+    if (rowing && ride.who > 0) glyph(boat, ride.who, bx + 54, 60);
+    label(boat, bx + 39, 109, rowing ? 'crossing…' : canMove ? 'tap: cross alone' : 'boat', { size: 10.5, cls: 'soft' });
     if (canMove) { boat.addEventListener('click', () => move(-1)); boat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); move(-1); } }); }
 
     // the state graph
@@ -93,38 +98,45 @@ export default function (fig) {
     const seen = new Set(hist);
     STATES.forEach(n => {
       const [x, y] = pos.get(n), me = n === st && safe(st), goal = n === ALL;
-      el('rect', { x: x - 19, y: y - 10, width: 38, height: 20, rx: 10, fill: me ? BLUE : seen.has(n) ? `color-mix(in srgb, ${BLUE} 28%, var(--panel))` : PANEL, stroke: goal ? GREEN : me ? INK : seen.has(n) ? BLUE : SOFT, 'stroke-width': goal || me ? 2.5 : 1.5 }, g);
-      label(g, x, y + 4, [0, 1, 2, 3].filter(i => bit(n, i)).map(i => LET[i]).join('') || '–', { size: 10.5, w: 700, fill: me ? ONACC : INK });
+      el('rect', { x: x - 21, y: y - 11, width: 42, height: 22, rx: 8, fill: me ? `color-mix(in srgb, ${BLUE} 45%, var(--panel))` : seen.has(n) ? `color-mix(in srgb, ${BLUE} 18%, var(--panel))` : PANEL, stroke: goal ? GREEN : me ? INK : seen.has(n) ? BLUE : SOFT, 'stroke-width': goal || me ? 2.5 : 1.5 }, g);
+      el('line', { x1: x, y1: y - 8, x2: x, y2: y + 8, stroke: BLUE, 'stroke-width': 2, opacity: .7 }, g);   // the river
+      for (let i = 0; i < 4; i++) el('circle', { cx: x + (bit(n, i) ? 4.5 + i * 4.6 : -18.3 + i * 4.6), cy: y + (i % 2 ? 3 : -3), r: 2.7, fill: HUE[i], stroke: INK, 'stroke-width': .6 }, g);
     });
     const [sx, sy] = pos.get(0), [gx, gy] = pos.get(ALL);
     label(g, sx, sy - 15, 'start', { size: 10, cls: 'soft' }); label(g, gx, gy - 15, 'goal', { size: 10, cls: 'soft' });
     if (over) { const last = hist[hist.length - 2], [lx, ly] = pos.get(last); label(g, lx, ly - 15, '✕ unsafe next', { size: 10.5, w: 700, fill: RED }); }
     cols.forEach((c, k) => label(g, 24 + k * STEP, 268, String(k), { size: 10, cls: 'soft' }));
-    label(g, 190, 286, 'Letters are what is on the far bank: F farmer, W wolf, G goat, C cabbage', { size: 10, cls: 'soft' });
+    label(g, 190, 286, 'Boxes show both banks; dots are farmer, wolf, goat, cabbage.', { size: 10, cls: 'soft' });
 
     crossR.textContent = (hist.length - 1) + (won ? ' — all across' : '');
     statR.textContent = over ? (dead.length === 2 ? 'The wolf ate the goat and the goat ate the cabbage.' : dead[0] === 2 ? 'The wolf ate the goat.' : 'The goat ate the cabbage.') + ' Undo or start over.' : won ? 'Everyone is across, uneaten.' : what.length ? what[what.length - 1] : 'Everyone is on the start bank.';
     undoB.disabled = hist.length < 2; aloneB.disabled = !canMove;
-    if (fk) { const again = g.querySelector('[data-k="' + fk + '"][role=button]') || g.querySelector('[role=button]'); if (again) again.focus({ preventScroll: true }); }
+    if (fk && !rowing) { const again = g.querySelector('[data-k="' + fk + '"][role=button]') || g.querySelector('[role=button]'); if (again) again.focus({ preventScroll: true }); }
   }
 
   function stop() { clearInterval(timer); timer = 0; }
+  function row(from, who, ms = 650) {   // animate the boat from one bank to the other, then settle
+    cancelAnimationFrame(raf); if (calm()) { ride = null; draw(); return; }
+    ride = { from, who, t0: performance.now(), ms };
+    const tick = () => { draw(); if (performance.now() - ride.t0 < ride.ms) raf = requestAnimationFrame(tick); else { ride = null; draw(); } };
+    tick();
+  }
   function move(i) {
     stop();
     const st = cur(); if (!canGo(st)) return;
     const t = st ^ 1 ^ (i > 0 ? 1 << i : 0);
     hist.push(t); what.push(i > 0 ? 'The farmer took the ' + NAMES[i].toLowerCase() + ' across.' : 'The farmer crossed alone.');
-    draw();
+    row(bit(st, 0), i);
   }
   const canGo = st => safe(st) && st !== ALL;
   function undo() { stop(); if (hist.length > 1) { hist.pop(); what.pop(); draw(); } }
   function reset() { stop(); hist = [0]; what = []; draw(); }
   function play() {
     const sol = solve(); stop(); hist = [0]; what = [];
-    const step = k => { const a = sol[k - 1], b = sol[k], d = a ^ b ^ 1; hist.push(b); what.push(d ? 'The farmer took the ' + NAMES[Math.log2(d)].toLowerCase() + ' across.' : 'The farmer crossed alone.'); };
+    const step = (k, anim) => { const a = sol[k - 1], b = sol[k], d = a ^ b ^ 1; hist.push(b); what.push(d ? 'The farmer took the ' + NAMES[Math.log2(d)].toLowerCase() + ' across.' : 'The farmer crossed alone.'); if (anim) row(bit(a, 0), d ? Math.log2(d) : -1, 520); };
     if (calm()) { for (let k = 1; k < sol.length; k++) step(k); draw(); return; }
     let k = 1; draw();
-    timer = setInterval(() => { if (k >= sol.length) { stop(); return; } step(k++); draw(); }, 600);
+    timer = setInterval(() => { if (k >= sol.length) { stop(); return; } step(k++, true); }, 760);
   }
 
   const aloneB = button(box, 'Cross alone', () => move(-1));
