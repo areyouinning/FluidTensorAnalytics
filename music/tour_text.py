@@ -3,6 +3,58 @@ each study's report.json (same count). `how` is the producer's method as the stu
 `trick` is the one idea worth taking away. Everything here is about a style, never a copied tune."""
 
 TOURS = {
+ 'odyssey-in-seven': dict(
+  artist='seven producers', key='',
+  meta='seven producers in story order · seven tempos and keys',
+  fine="Synthesized from code on a beat-semitone grid, with no samples. Each chapter is written from what is known of its producer's method (Splatinum, Koresma, Shpongle, Clams Casino, Jon Hopkins, Brian Eno and Fred again..), not copied from a recording, and the sirens sing a song of their own. Homer's story is three thousand years out of copyright.",
+  how="Homer's Odyssey in seven chapters, told in story order by seven producers' methods and joined into one track by the sea. One theme belongs to Odysseus and goes the whole way: it starts on the home note, leaps up to the fifth, steps down, then climbs back up to the octave, the long way home. Each chapter re-keys it into its own scale and gives it to that producer's lead.",
+  trick="Every chapter runs at its own tempo, so they can't be cut together on a beat. Instead each one enters over the second half of the last one's fade, while a bed of wave-shaped noise (the wine-dark sea) swells under every crossing. Each chapter is levelled by measured loudness, Calypso deliberately quieter, and the whole voyage is mastered once.",
+  stops=[
+   # I. The Cyclops, after Splatinum: 150 half-time, G minor
+   "Odysseus's theme on golden-ratio FM bells, echoing in the cave: up from the home note to the fifth, down by steps, back up to the octave. Listen for that shape all the way to Ithaca.",
+   'The giant walking: a slow, heavy kick, two steps a bar, under the bells.',
+   'A snare roll speeds up from quarters to 16ths, then the low end drains away into a vacuum.',
+   'A voice sings three falling notes, "No-bo-dy": the name Odysseus gave the Cyclops.',
+   'The blinding is the drop: talking womps whose wobble changes rate beat by beat (1, ½, ⅓, ¼ of a beat), with octave stabs that dive.',
+   'Riddim: triplet womps and a harder growl, the rocks the blind giant throws after the ship.',
+   'Out of range. The theme returns on bells, and the last stone falls short on a diving sub.',
+   # II. Aeolus, after Koresma: 100 BPM, C major
+   'The sea carries the ship into picked guitar arpeggios in C major. The winds are tied up in a bag and only whisper.',
+   'A swung kick and snare, a round sine bass and shakers: sailing for home.',
+   'The theme on glass bells, in a major key now. Ithaca is in sight.',
+   'A sailor opens the bag of winds. A gust hits, and the wind roars up through the mix as band noise.',
+   'The gale blows them back, and the theme returns in C minor.',
+   # III. Circe, after Shpongle: 128 BPM, E Phrygian dominant
+   "Circe's hall: tabla, phasing pads and long dub echoes, in E Phrygian dominant.",
+   'The theme on a breathy flute. In this scale its step down to the second is only a half step, which gives it a desert sound.',
+   "Circe's drink: a rolling psy bass and a four-on-the-floor kick take hold.",
+   'The crew turn into swine: low sung grunts that slide down, answering the flute.',
+   'Hermes brings the herb moly, and an FM sitar line breaks the spell.',
+   'The roll stops. Tabla and pads carry the crew, men again, back to the ship.',
+   # IV. The Underworld, after Clams Casino: 75 BPM, Bb minor
+   'The dead are a wordless choir drowned in a long hall, everything wobbling like old tape.',
+   'Tiresias is the theme as a pitched-down hook, formants lowered so it sounds slowed. The 808 is kick and bass at once, sliding between notes, and reversed reverb breathes in before each phrase.',
+   "The drums leave and the hats are filtered. Odysseus meets his mother's shade and cannot hold her.",
+   'The beat returns, with hat rolls in 16th-triplets and 32nds: the line of the dead.',
+   'A tape stop: the whole mix winds down like a turntable losing power. The living leave.',
+   'Only the choir and the hook remain in the haze.',
+   # V. The Sirens, after Jon Hopkins: 125 BPM, Ab major
+   'The oars are a crunching kick. A 16th-note bass rows underneath, and glitches spray off on Euclidean rhythms.',
+   "Three voices slide in close harmony, singing a song of their own (not the theme). The crew have wax in their ears, so everything else goes dark: the drums, glitches and bass are low-passed until the voices pass.",
+   'The beat stops. Odysseus, bound to the mast, answers the sirens with his theme on piano.',
+   'The release: the kick crunches harder and the whole mix breathes around it, while the sirens and the theme sound together.',
+   'The beat stops and the filter closes. They are past.',
+   # VI. Calypso, after Brian Eno: no pulse
+   "Seven years on Calypso's island, so seven felt-piano and bell loops, repeating every 7.3 to 16.7 seconds. No length is a multiple of another, so they never line up.",
+   'The theme is sung, slowed until each beat lasts a second and a half.',
+   'Its answer falls from the octave back to the home note. A drone breathes underneath on 11, 13 and 17 second cycles.',
+   'The loops stop, and the hall rings on while Odysseus builds his raft.',
+   # VII. Ithaca, after Fred again..: 128 BPM, Eb major
+   'Piano chords, and the theme chopped into a found-voice riff with stutters.',
+   "The bow is strung: a low twang that drops in pitch, and a swallow's cry. The kick drops in.",
+   'The beat leaves: the strip-back. Only the piano and the voice are left as Penelope recognises him.',
+   'Kick, clap, swung hats and a sub return, everything pumping.',
+   'Home. The piano plays the theme alone and lands on the octave, then holds an Eb chord.']),
  'bach-splatinum': dict(
   artist='Splatinum', how="Bach's Prelude in C (BWV 846), every note in his own rhythm, on golden-ratio FM bells. Around it, Splatinum's bass music: a roll into a vacuum, a talking wobble drop, and a riddim built on the piece's own long G pedal.",
   trick="Bach did half the work. Bars 24-31 hold G in the bass for eight bars, the oldest build-up in the book, so that is where the riddim goes.",

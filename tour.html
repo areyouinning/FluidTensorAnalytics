@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>How do you build a sound? | FluidTA</title>
-<meta name="description" content="28 tracks in the styles of producers from Brian Eno to EPROM, three of them remixing Bach, every sound synthesized from code. Each one plays with a guided tour of what to listen for.">
+<meta name="description" content="28 tracks in the styles of producers from Brian Eno to EPROM, three of them remixing Bach and seven of them telling the Odyssey, every sound synthesized from code. Each one plays with a guided tour of what to listen for.">
 <link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/fta-tokens.css">
 <style>
@@ -57,6 +57,10 @@
   .stops b { display: block; font-weight: 600; }
   .stops p { margin: 2px 0 0; color: var(--ink-soft); }
   .stops li[aria-current="true"] p { color: var(--ink); }
+  .stops li.chap { margin-top: 14px; border-top-color: var(--line); border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+  .stops li.chap:first-child { margin-top: 0; }
+  .stops li.chap[aria-current="true"] { border-color: var(--blue); border-radius: var(--radius-sm); }
+  .stops .chap-h { display: block; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--purple-t); font-weight: 600; }
   .trick { margin: 18px 0 0; padding: 12px 14px; border-left: 4px solid var(--purple); background: var(--sunk); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
   .trick b { color: var(--purple-t); }
   .fine { font-size: 14px; color: var(--ink-soft); margin: 18px 0 0; max-width: var(--measure); }
@@ -80,7 +84,7 @@
 <script src="/fta.js" data-guest defer></script>
 <main>
   <h1>How do you build a sound?</h1>
-  <p class="lede">Twenty-eight tracks, each in the manner of a producer, from Brian Eno's drifting loops to EPROM's machine bass, including three remixes of Bach's Prelude in C. Every sound is written from code: no samples, no instruments, no recordings. Press play and the tour walks you through what to listen for.</p>
+  <p class="lede">Twenty-eight tracks, each in the manner of a producer, from Brian Eno's drifting loops to EPROM's machine bass, including three remixes of Bach's Prelude in C. Seven of them also take turns telling Homer's Odyssey in one six-and-a-half-minute voyage. Every sound is written from code: no samples, no instruments, no recordings. Press play and the tour walks you through what to listen for.</p>
   <select id="pick" aria-label="Choose a track"></select>
   <div class="wrap">
     <nav class="list" id="list" aria-label="Tracks"></nav>
