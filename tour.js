@@ -1,4 +1,4 @@
-/* The tours: one page, 28 tracks. The 3D water above the transform is tour-fluid.js. The audio clock is the only state; everything drawn reads it.
+/* The tours: one page, 28 tracks plus the Odyssey suite (a tour with `chapters`). The 3D water above the transform is tour-fluid.js. The audio clock is the only state; everything drawn reads it.
    Each track's data (tours/<slug>.js) sets window.FTA_TOUR; its transform is bytes, one row per
    semitone from C1, ten columns a second. */
 (function () {
@@ -6,7 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var audio = $('audio'), cv = $('gram'), ctx = cv.getContext('2d');
   var tracks = window.FTA_TOURS || [], tour = null, img = null, raf = 0, curStop = -1;
-  var GROUPS = { bach: 'Bach, remixed', soundtrack: 'From the soundtrack', influences: 'From the guide\'s influences' };
+  var GROUPS = { odyssey: 'The Odyssey, told by seven', bach: 'Bach, remixed', soundtrack: 'From the soundtrack', influences: 'From the guide\'s influences' };
 
   function fmt(s) { s = Math.max(0, s || 0); var m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ':' + (r < 10 ? '0' : '') + r; }
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('on'); }, 1600); }
@@ -73,14 +73,16 @@
     var T = tour.seconds, t = audio.currentTime || 0;
     ctx.font = (12 * d) + 'px ' + (css('--font') || 'sans-serif');
     ctx.textBaseline = 'top';
+    var suite = !!tour.chapters;      // a suite has too many stops to label: name the chapters, and the stop you're at
     tour.stops.forEach(function (s, i) {
-      var x = Math.round(s.t / T * W) + .5;
-      ctx.strokeStyle = 'rgba(255,255,255,' + (i === curStop ? .9 : .35) + ')'; ctx.lineWidth = d;
+      var x = Math.round(s.t / T * W) + .5, chap = s.chap != null;
+      ctx.strokeStyle = 'rgba(255,255,255,' + (i === curStop ? .9 : suite && !chap ? .18 : .35) + ')'; ctx.lineWidth = (suite && chap ? 2 : 1) * d;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      if (W > 420 * d || i === curStop) {
+      if (suite ? (i === curStop || (chap && W > 640 * d)) : (W > 420 * d || i === curStop)) {
         ctx.fillStyle = 'rgba(11,16,22,.7)'; var label = s.label, w = ctx.measureText(label).width + 8 * d;
-        ctx.fillRect(x + 2 * d, 4 * d, w, 18 * d);
-        ctx.fillStyle = '#EEF1F4'; ctx.fillText(label, x + 6 * d, 7 * d);
+        var y = (suite && !chap && W > 640 * d ? 26 : 4) * d, lx = suite ? Math.max(0, Math.min(x + 2 * d, W - w - 2 * d)) : x + 2 * d;   // a stop's label sits under the chapter names
+        ctx.fillRect(lx, y, w, 18 * d);
+        ctx.fillStyle = '#EEF1F4'; ctx.fillText(label, lx + 4 * d, y + 3 * d);
       }
     });
     ctx.fillStyle = 'rgba(238,241,244,.55)';
@@ -153,7 +155,7 @@
       tour = window.FTA_TOUR; img = decode(tour.gram); curStop = -1;
       if (window.FTA_FLUID) { FTA_FLUID.clock = function () { return audio.currentTime || 0; }; FTA_FLUID.load(tour, at || 0); }
       $('title').textContent = tour.title;
-      $('meta').textContent = 'after ' + tour.artist + ' · ' + tour.bpm + ' BPM' + (tour.key ? ' · ' + tour.key : '') + ' · ' + fmt(tour.seconds);
+      $('meta').textContent = (tour.meta || 'after ' + tour.artist + ' · ' + tour.bpm + ' BPM' + (tour.key ? ' · ' + tour.key : '')) + ' · ' + fmt(tour.seconds);
       $('how').textContent = tour.how;
       $('trick').innerHTML = ''; var b = document.createElement('b'); b.textContent = 'The trick: '; $('trick').appendChild(b);
       $('trick').appendChild(document.createTextNode(tour.trick));
@@ -163,9 +165,15 @@
         btn.type = 'button'; btn.textContent = fmt(st.t); btn.setAttribute('aria-label', 'Jump to ' + st.label + ' at ' + fmt(st.t));
         btn.addEventListener('click', function () { seek(st.t, true); });
         var bb = document.createElement('b'); bb.textContent = st.label; var p = document.createElement('p'); p.textContent = st.text;
+        if (st.chap != null && tour.chapters) {
+          var ch = tour.chapters[st.chap], hd = document.createElement('span');
+          li.className = 'chap'; hd.className = 'chap-h'; hd.textContent = 'Chapter ' + ch.n + ' · after ' + ch.artist;
+          div.appendChild(hd);
+        }
         div.appendChild(bb); div.appendChild(p); li.appendChild(btn); li.appendChild(div); ol.appendChild(li);
       });
-      $('fine').textContent = 'Synthesized from code on a beat-semitone grid, with no samples, and written from what is known of ' +
+      $('fine').textContent = tour.fine ? tour.fine + ' Mastered to ' + tour.checks.lufs + ' LUFS, true peak ' + tour.checks.tp + ' dBTP, ' +
+        tour.checks.clicks + ' stray clicks. Fingerprint ' + tour.checks.sha + '.' : 'Synthesized from code on a beat-semitone grid, with no samples, and written from what is known of ' +
         tour.artist.replace(' (unverified)', '') + '’s method, not copied from a recording.' +
         (tour.group === 'bach' ? ' Bach’s notes come from the Mutopia Project’s public-domain edition of BWV 846.' : '') + ' Mastered to ' + tour.checks.lufs +
         ' LUFS, true peak ' + tour.checks.tp + ' dBTP, ' + tour.checks.clicks + ' stray clicks. Fingerprint ' + tour.checks.sha + '.';

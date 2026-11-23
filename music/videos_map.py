@@ -33,7 +33,20 @@ SEQ = {
 }
 
 
+CHAPTER_CLIPS = {    # one clip per chapter, so the picture changes when the story does
+    'odyssey-in-seven': ['soundscape', 'navier-stokes-demo', 'circles', 'rivers-all-the-way-down', 'blowup',
+                         'way-of-water', 'remix-sphere'],
+}
+
+
 def videos_for(slug, stops, i):
+    if slug in CHAPTER_CLIPS:
+        out, c = [], -1
+        for st in stops:
+            c = st.get('chap', c)
+            label, page = CLIPS[CHAPTER_CLIPS[slug][c]]
+            out.append(dict(t=st['t'], clip=f'video/{CHAPTER_CLIPS[slug][c]}.mp4', label=label, page=page))
+        return out
     """[{t, clip, label, page}] one per stop. Tracks without a chosen sequence take a theme by their index."""
     seq = SEQ.get(slug) or [FLUID, MATH, BASS][i % 3]
     out = []

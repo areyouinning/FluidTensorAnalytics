@@ -16,6 +16,7 @@ Like the rest of the site, this folder is public domain (CC0). Read it, check it
 | `recipes.py` | The layer the studies are written in: progressions, drum grids with swing, pads, arps, basslines, melodies and the mixdown. |
 | `<artist>.py` | One study per track. Each docstring says which method it borrows and what it assumes. |
 | `clams_koresma.py` | Cloud Compass, a remix of the FluidTA theme (`theme/events.json`). |
+| `odyssey.py` | The Odyssey in Seven: Homer told by seven of the studies in succession, one theme for Odysseus re-keyed into every chapter, the sea under each crossing, mastered once. Writes `chapters.json` with each chapter's start. |
 | `bach/` | Bach's Prelude in C, BWV 846, from the Mutopia Project's public-domain MIDI, and three remixes. Every note of the Prelude plays in each one. |
 | `build_tours.py`, `tour_text.py`, `videos_map.py` | Build `tours/<slug>.js`: the words, the timed stops and the page clips for each tour. |
 | `synthaesthesia/` | The engine: the transform (`bst.py`), mastering (`master.py`), measurement (`listen.py`), reference transcription (`transcribe.py`) and a self-test. Notes on the method are in `SKILL.md` and `references/`. |

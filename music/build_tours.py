@@ -18,7 +18,8 @@ OUT = os.path.join(os.path.dirname(MUSIC), 'tours')
 os.makedirs(OUT, exist_ok=True)
 GROUPS = {'eno-slow-morning': 'soundtrack', 'hopkins-breathing-machine': 'soundtrack', 'splatinum-golden-wobble': 'soundtrack',
           'luke-low-light-prayer': 'soundtrack', 'clams-cloud-hymn': 'soundtrack',
-          'bach-splatinum': 'bach', 'bach-hopkins': 'bach', 'bach-eno': 'bach'}
+          'bach-splatinum': 'bach', 'bach-hopkins': 'bach', 'bach-eno': 'bach', 'odyssey-in-seven': 'odyssey'}
+ROMAN = re.compile(r'^([IVX]+)\. (.+) \(after (.+)\)$')
 ORDER = list(TOURS)
 
 
@@ -44,7 +45,7 @@ def main(only=None):
         secs = rep['sections']
         assert len(secs) == len(t['stops']), f'{slug}: {len(secs)} sections, {len(t["stops"])} stops'
         title = re.sub(r'\s*\(after .*\)$', '', rep['title'])
-        key = rep['notes'].split(',')[1].split(';')[0].strip() if ',' in rep['notes'] else ''
+        key = t['key'] if 'key' in t else rep['notes'].split(',')[1].split(';')[0].strip() if ',' in rep['notes'] else ''
         entry = dict(slug=slug, title=title, artist=t['artist'], bpm=rep['bpm'], key=key, seconds=rep['seconds'],
                      group=GROUPS.get(slug, 'influences'))
         index.append(entry)
@@ -58,6 +59,21 @@ def main(only=None):
                    stops=[dict(t=round(s[0], 3), label=s[1], text=x) for s, x in zip(secs, t['stops'])],
                    checks=dict(lufs=rep['lufs'], tp=rep['tp'], clicks=rep['clicks'], sha=rep['sha256'][:16]),
                    gram=dict(rows=72, cols=cols, lo='C1', fps=10, b64=data))
+        for k in ('meta', 'fine'):
+            if k in t:
+                doc[k] = t[k]
+        chj = os.path.join(MUSIC, slug, 'chapters.json')
+        if os.path.exists(chj):                         # a suite: mark the stop where each chapter starts
+            doc['chapters'] = []
+            for c in json.load(open(chj, encoding='utf-8')):
+                n, name, artist = ROMAN.match(c['title']).groups()
+                k = next(i for i, s in enumerate(doc['stops']) if abs(s['t'] - c['start']) < .01)
+                doc['stops'][k]['chap'] = len(doc['chapters'])
+                doc['stops'][k]['label'] = n + '. ' + name
+                doc['chapters'].append(dict(n=n, title=name, artist=artist, t=round(c['start'], 3)))
+            for s in doc['stops']:
+                if 'chap' not in s:
+                    s['label'] = s['label'][0].upper() + s['label'][1:]
         doc['videos'] = videos_for(slug, doc['stops'], ORDER.index(slug))
         with open(os.path.join(OUT, slug + '.js'), 'w', encoding='utf-8') as f:
             f.write('window.FTA_TOUR = ' + json.dumps(doc, ensure_ascii=False, separators=(',', ':')) + ';\n')

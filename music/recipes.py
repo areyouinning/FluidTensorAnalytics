@@ -175,7 +175,8 @@ class Song:
 
     # ------------------------------------------------------------------ mix
     def mixdown(self, levels, pump=None, sends=None, room=None, delay=None, delay_sends=None, master_eq=None,
-                target=-14.0, fade=None, notes='', lofi=None):
+                target=-14.0, fade=None, notes='', lofi=None, master=True):
+        """master=False returns the unmastered (2, N) mix instead of finishing (a chapter of a suite)."""
         tr = self.tr
         b = {k: norm_rms(v, levels[k]) for k, v in self.buses.items() if k in levels}
         mix = tr.bus()
@@ -200,5 +201,7 @@ class Song:
             mix = np.stack([fft_eq(c, SR, lofi) for c in mix])
         if master_eq:
             mix = np.stack([fft_eq(c, SR, master_eq) for c in mix])
+        if not master:
+            return mix
         fade = fade or (tr.at(self.bars - 1), tr.at(self.bars) + 1.0)
         return finish(tr, mix, target=target, fade=fade, sections=self.sections, notes=notes)

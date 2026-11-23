@@ -1,5 +1,14 @@
 window.FTA_TOURS = [
 {
+"slug": "odyssey-in-seven",
+"title": "The Odyssey in Seven",
+"artist": "seven producers",
+"bpm": 120,
+"key": "",
+"seconds": 394.0,
+"group": "odyssey"
+},
+{
 "slug": "bach-splatinum",
 "title": "Prelude in C",
 "artist": "Splatinum",
