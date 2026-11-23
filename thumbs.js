@@ -22,6 +22,13 @@
   }
 
   window.FTA_THUMBS = {
+    critline: function () {
+      /* the critical strip with its line at real part one half, zeros on it, and a proof tree branching beside */
+      var o = '<rect x="100" y="8" width="120" height="164" fill="' + B + '" opacity=".12"/>' + line('M160 8V172', P, 3);
+      [24, 52, 70, 96, 112, 134, 150].forEach(function (y) { o += dot(160, y, 5, O); });
+      o += line('M40 30L70 60M40 30L20 60M70 60L60 90M70 60L84 90M20 60L14 90', I, 1.6, .6);
+      return o + dot(40, 30, 5, I);
+    },
     tours: function () {
       /* a transform as note blocks (time across, pitch up), section lines, and the playhead mid-tour */
       var o = '', r = rng(7), cols = [B, P, O, G];
