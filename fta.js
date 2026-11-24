@@ -101,7 +101,7 @@
     var svg = (window.FTA_THUMBS && FTA_THUMBS[e.thumb]) ? FTA_THUMBS[e.thumb]() : '';
     return '<li><a class="card' + (e.kids ? ' kids' : '') + '" href="' + e.href + '"><svg class="thumb" viewBox="0 0 320 180" aria-hidden="true">' + svg + '</svg><div class="txt"><b>' + esc(e.title) + '</b><span>' + esc(e.blurb) + '</span></div></a></li>';
   }
-  /* <div data-shelf="play" data-limit="4"> or <div data-topic="fluids"> fills itself from the catalog; data-new sorts newest first */
+  /* <div data-shelf="play" data-limit="4"> or <div data-topic="fluids"> fills itself from the catalog; data-new sorts newest first, skipping entries marked notNew */
   function when(e) { var a = e.added || '9999', u = e.updated || ''; return u > a ? u : a; }
   function shelves() {
     document.querySelectorAll('[data-shelf],[data-topic],[data-hrefs],[data-new]').forEach(function (box) {
@@ -109,7 +109,7 @@
       var picks = (box.getAttribute('data-hrefs') || '').split(/\s+/).filter(Boolean);
       var list = picks.length ? picks.map(function (h) { return FTA_CATALOG.find(function (e) { return e.href === h; }); }).filter(Boolean)
         : FTA_CATALOG.filter(function (e) { return (!shelf || inShelf(e, shelf)) && (!topic || e.topics.indexOf(topic) >= 0); });
-      if (box.hasAttribute('data-new')) list = list.slice().sort(function (x, y) { return when(y).localeCompare(when(x)); });   // newest first, counting a rework as new
+      if (box.hasAttribute('data-new')) list = list.filter(function (e) { return !e.notNew; }).sort(function (x, y) { return when(y).localeCompare(when(x)); });   // newest first, counting a rework as new
       box.innerHTML = '<ul class="cards">' + list.slice(0, limit).map(card).join('') + '</ul>';
     });
   }
