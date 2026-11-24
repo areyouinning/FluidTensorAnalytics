@@ -18,7 +18,7 @@ const NETWORK = /Failed to load resource|net::|ERR_|NetworkError|Failed to fetch
 
 (async () => {
   const win = {}; new Function('window', fs.readFileSync(path.join(ROOT, 'catalog.js'), 'utf8'))(win);
-  const sections = ['/', '/explore.html', '/paradox.html', '/riddles.html', '/play.html', '/way-of.html', '/tools.html', '/key.html', '/obovoid.html'];
+  const sections = ['/', '/explore.html', '/water.html', '/paradox.html', '/riddles.html', '/play.html', '/way-of.html', '/tools.html', '/key.html', '/obovoid.html'];
   const only = process.argv.slice(2);
   const pages = only.length ? only : sections.concat(win.FTA_CATALOG.map(e => e.href));
   const browser = await chromium.launch();

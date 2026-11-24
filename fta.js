@@ -11,6 +11,7 @@
   var TABS = [
     { href: '/', shelf: 'home', label: 'Home', icon: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>' },
     { href: '/explore.html', shelf: 'explore', label: 'Explore', icon: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>' },
+    { href: '/water.html', shelf: 'water', label: 'Water', icon: '<path d="M12 3.5S6 10.5 6 14.5a6 6 0 0 0 12 0c0-4-6-11-6-11z"/><path d="M9 15a3 3 0 0 0 3 3"/>' },
     { href: '/paradox.html', shelf: 'paradox', label: 'Paradox', icon: '<circle cx="9.5" cy="12" r="5.5"/><circle cx="14.5" cy="12" r="5.5"/>' },
     { href: '/riddles.html', shelf: 'riddles', label: 'Riddles', icon: '<path d="M9 9a3 3 0 1 1 4.2 2.8c-1.1.6-1.7 1.2-1.7 2.4"/><circle cx="11.5" cy="18.3" r="0.6"/>' },
     { href: '/play.html', shelf: 'play', label: 'Play', icon: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 12h16M12 4v16"/>' },

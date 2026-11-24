@@ -12,7 +12,7 @@
 import { LINKS } from './links.js';
 const THREE = window.THREE;
 const CAT = (window.FTA_CATALOG || []).filter(e => e && e.href), TOPICS = window.FTA_TOPICS || {}, THUMBS = window.FTA_THUMBS || {};
-const SHELF = { explore: ['Explore', 0x4C8DF6], paradox: ['Paradox', 0x9B6BFF], riddles: ['Riddles', 0xF2B233], play: ['Play', 0x3DBE7A], way: ['Way Of', 0x2BC4B4], tools: ['Tools', 0xF07A2B] };
+const SHELF = { explore: ['Explore', 0x4C8DF6], water: ['Water', 0x1FA2E0], paradox: ['Paradox', 0x9B6BFF], riddles: ['Riddles', 0xF2B233], play: ['Play', 0x3DBE7A], way: ['Way Of', 0x2BC4B4], tools: ['Tools', 0xF07A2B] };
 const TOPIC = { logic: 0xE86A9A, numbers: 0xF2D03B, strategy: 0xB58CFF, fluids: 0x35B6F5, tensors: 0x6E7CF7, water: 0x2ED3BE, chance: 0xFF8C42, math: 0xF25C54, remix: 0xB0B7C3, kids: 0xFFD23F };
 const TOPIC_NAME = Object.assign({ kids: 'For kids' }, TOPICS);
 const FOG = new THREE.Color(0x070b14);
