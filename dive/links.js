@@ -73,12 +73,9 @@ export const LINKS = [
   ['rivers-all-the-way-down', 'image-log', 'A logarithm reveals the structure'],
   // water and Colorado
   ['wind-twin', 'peak-finder-v3', 'Naming the Front Range peaks', 'linked'],
-  ['peak-finder-v3', 'water-resources-dashboard', 'Colorado’s mountains'],
-  ['water-resources-dashboard', 'reservoir-optimization-complete', 'Reservoirs and the water in them'],
   ['reservoir-optimization-complete', 'reservoir-optimization-moo', 'The same reservoir, more goals'],
   ['hydrograph-synth', 'optimal-channel-networks', 'Rain running down a river network'],
   ['hydrograph-synth', 'kiddos-cloud', 'Rain becoming streamflow'],
-  ['kiddos-cloud', 'water-resources-dashboard', 'Colorado creeks, real and played'],
   // the kids' games
   ['kiddos-cloud', 'rally', 'Monster trucks'],
   ['kiddos-cloud', 'truck-lab', 'Trucks that kids drive'],
