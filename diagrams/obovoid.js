@@ -22,7 +22,7 @@ const GROUPS = [
   { name: 'Rajagopalan Balaji', label: 'Balaji', who: 'hydroclimatology · CU Boulder', hue: GREEN,
     how: 'Taught the hypergeometric distribution with a pond — tag some fish, catch again, and let the notebook be the model. A hydroclimatologist who reads rivers and monsoons through statistics, he was also the generous critic who read work outside his own wheelhouse and asked the questions that actually mattered.' },
   { name: 'Ricardo Mantilla', label: 'Mantilla', who: 'river networks', hue: BLUE,
-    how: 'Introduced optimal channel networks: rivers branch the way they do because that shape spends the least energy moving water downhill. His advisor, Vijay Gupta, was to teach multiscale hydrology at CU but fell ill; Ricardo’s software, Cuencas, and his thorough explanations online in 2012 became the foundation instead, given from the faculty of another university, where none of it was his job. The river-network pages here start with him.' }
+    how: 'Introduced me to optimal channel networks: rivers branch the way they do because that shape spends the least energy moving water downhill. His advisor, Vijay Gupta, was to teach multiscale hydrology at CU but fell ill; Ricardo’s software, Cuencas, and his thorough explanations online in 2012 became the foundation instead, given from the faculty of another university, where none of it was his job. The river-network pages here start with him.' }
   ] },
   { title: 'Still writing', windy: false, people: [
   { name: 'Douglas Hofstadter', label: 'Hofstadter', who: 'b. 1945', hue: PURPLE,
