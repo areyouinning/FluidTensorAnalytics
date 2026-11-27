@@ -846,6 +846,7 @@ void main(){ vUV=aV.xy; vHp=uHuv.xy+aV.xy*uHuv.zw; float h=hf(vHp); vH=h;
   vDist=distance(w,uEye); gl_Position=uPV*vec4(w,1.); }`,
 `in vec2 vUV; in vec2 vHp; in float vDist; in float vH; in vec2 vM; out vec4 o; ${HF}
 uniform sampler2D uC,uO; uniform vec4 uCuv,uOuv; uniform float uMode,uHasO,uHm,uVE,uFog; uniform vec3 uSky;
+uniform sampler2D uW; uniform vec4 uWB; uniform vec2 uWS; uniform float uWOn,uWMode;   /* the storm's water field (field-kit-storm.js) */
 ${LENS_F}
 vec3 hyps(float h){ if(h<=0.){ return mix(vec3(.10,.26,.42),vec3(.22,.45,.60),clamp(1.+h/3000.,0.,1.)); }
   vec3 a=vec3(.30,.50,.32),b=vec3(.62,.66,.42),c=vec3(.66,.52,.38),d=vec3(.70,.66,.62),e=vec3(.97,.97,.97);
@@ -857,6 +858,10 @@ void main(){ float e=1./255.; float dx=hf(vHp+vec2(e,0.))-hf(vHp-vec2(e,0.)), dy
   else { c=vec3(.58,.60,.60)*clamp(.5+.5*l,.3,1.3); }
   c=lensColor(c,vH,l);
   if(uHasO>.5){ vec4 q=texture(uO,uOuv.xy+vUV*uOuv.zw); c=q.rgb+c*(1.-q.a); }
+  if(uWOn>.5){ vec2 m=vec2(vM.x+20037508.342789244, 20037508.342789244-vM.y)/40075016.686, q=(m-uWB.xy)/(uWB.zw-uWB.xy);
+    if(q.x>0.&&q.y>0.&&q.x<1.&&q.y<1.){ float w=clamp((texture(uW,vec2(q.x*uWS.x,q.y)).r-.0627)/.8588,0.,1.)*uWS.y;   /* video luma is limited range */
+      vec3 wc=uWMode<.5?mix(vec3(.35,.62,.85),vec3(.10,.32,.62),smoothstep(.3,1.,w)):mix(vec3(.66,.49,.31),vec3(.42,.28,.16),smoothstep(.3,1.,w));
+      c=mix(c,wc,smoothstep(.10,.32,w)*.92); } }
   float f=1.-exp(-pow(vDist/uFog,2.)); o=vec4(mix(c,uSky,f),1.); }`);
 const P_S = prog(`out vec2 vP; void main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); vP=p*2.-1.; gl_Position=vec4(vP,.9999,1.); }`,
 `in vec2 vP; out vec4 o; uniform vec3 uR,uU,uF,uZen,uHor; void main(){ vec3 d=normalize(uF+uR*vP.x+uU*vP.y); float t=pow(clamp(d.z,0.,1.),.55); o=vec4(mix(uHor,uZen,t),1.); }`);
@@ -1013,7 +1018,7 @@ function drawTerrain() {
   const T = P_T, u = T.u, mode = BASEMAPS[baseKey].url ? 0 : 1; gl.useProgram(T.p); gl.bindVertexArray(GRID.vao); gl.disable(gl.CULL_FACE);
   gl.uniformMatrix4fv(u.uPV, false, V.PV); gl.uniform3fv(u.uEye, V.e); gl.uniform1f(u.uVE, ve); gl.uniform1f(u.uFog, V.fog); gl.uniform3fv(u.uSky, V.sky); gl.uniform1i(u.uH, 0); gl.uniform1i(u.uC, 1); gl.uniform1i(u.uO, 2);
   gl.uniform2f(u.uP0, ch.mx * EARTH - PDX.MERC, PDX.MERC - ch.my * EARTH); gl.uniform1f(u.uPs, 1 / V.cos);
-  PDX.lensUniforms(T, false);
+  PDX.lensUniforms(T, false); if (window.STORM) STORM.bindTerrain(u); else gl.uniform1f(u.uWOn, 0);
   const ovOn = overlayActive();
   for (const d of DRAWS) {
     const ht = deepest(HT, d.z, d.x, d.y, HMAX) || FLAT, sizeM = d.sz * V.S, latT = latOf((d.y + .5) * d.sz), zs = V.cos / Math.max(.02, Math.cos(latT * RD));
@@ -1048,7 +1053,7 @@ function frame(now) {
   for (const r of PDX.roots()) visit(r[0], r[1], r[2]);
   pump(); if (frameNo % 60 === 0) { evict(HT, CACHE); evict(CT, CACHE); evict(OT, OVCACHE); }
   gl.clearColor(V.sky[0], V.sky[1], V.sky[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  drawSky(); drawTerrain(); drawLayersGL(); if (typeof stepWind === 'function') stepWind(dt); drawBalloon(); flushLines();
+  drawSky(); drawTerrain(); drawLayersGL(); if (window.STORM) STORM.draw(); if (typeof stepWind === 'function') stepWind(dt); drawBalloon(); flushLines();
   buildOverlays(now); drawLabels();
   if (now - hudT > 180) { hudT = now; hud(); }
   if (now - hashT > 1500) { hashT = now; saveHash(); }
@@ -1576,7 +1581,7 @@ function hud() {
   $('hud').textContent = `${Math.abs(lat).toFixed(4)}${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon).toFixed(4)}${lon >= 0 ? 'E' : 'W'} · ground ${Math.round(ch.gz).toLocaleString()} m · ${fmtM(ch.agl)} up · heading ${head}${w ? ` · wind ${Math.hypot(w[0], w[1]).toFixed(1)} m/s at ${w[2]}` : ''}${drift ? ' · drifting' : ''}${inflight ? ` · loading ${inflight}` : ''}${!stats.hOk && stats.hFail ? ' · terrain offline' : ''}`;
   mini();
 }
-function saveHash() { try { history.replaceState(null, '', `#@${latOf(ch.my).toFixed(5)},${lonOf(ch.mx).toFixed(5)},${Math.round(ch.agl)},${ch.yaw.toFixed(2)},${ch.pitch.toFixed(2)},${baseKey}`); } catch (e) { /* a link is a convenience */ } }
+function saveHash() { try { history.replaceState(null, '', `#@${latOf(ch.my).toFixed(5)},${lonOf(ch.mx).toFixed(5)},${Math.round(ch.agl)},${ch.yaw.toFixed(2)},${ch.pitch.toFixed(2)},${baseKey}${window.STORM && STORM.on ? ',storm' : ''}`); } catch (e) { /* a link is a convenience */ } }
 
 /* ========================================================== the locator */
 const miniTiles = new Map(), mc = $('mini'), mg = mc.getContext('2d');
@@ -2370,13 +2375,15 @@ PDX.hooks = {
   /* the launch sheet's two ways in */
   $('l-go').onclick = () => { closeSheets(); flyTo(mxOf(PDX.HOUSE[0]), myOf(PDX.HOUSE[1]), 900, { pitch: -.35, yaw: 2.2 }); };
   $('l-world').onclick = () => { closeSheets(); fitTo([mxOf(PDX.BOX[0]), myOf(PDX.BOX[3]), mxOf(PDX.BOX[2]), myOf(PDX.BOX[1])]); };
-  /* start looking at the box rather than at the empty globe aerostat defaults to */
-  ch.mx = mxOf((PDX.BOX[0] + PDX.BOX[2]) / 2); ch.my = myOf((PDX.BOX[1] + PDX.BOX[3]) / 2); ch.agl = 42000; ch.pitch = -.8;
+  /* with no link, start over the canyon looking up the watershed, the view the storm layer was made for.
+     A link's own view (parsed at start into hm) is left alone: this used to overwrite it. */
+  if (!hm) { ch.my = myOf(38.32507); ch.mx = mxOf(-108.99285); ch.agl = 1334; ch.yaw = -2.13; ch.pitch = -.87; closeSheets(); }
   wake();
   showTab('map');
 })();
 
 </script>
+<script src="field-kit-storm.js"></script>
 </body>
 </html>
 
