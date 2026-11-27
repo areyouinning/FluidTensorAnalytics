@@ -34,7 +34,7 @@ def main(files):
         why = None
         if p.parent.name == "letters" and p.suffix == ".md": why = letter(p)
         elif p.parent.name == "notes" and p.suffix.lower() in IMAGE: why = photo(p)
-        elif p.parent.name == "notes" and p.name == "README.md": pass
+        elif p.name == "README.md" and str(p.parent) in ("mailbox", "mailbox/notes", "mailbox/letters"): pass  # the mailbox's own notes
         else: why = "is not a letter (mailbox/letters/*.md) or a photo (mailbox/notes/*.jpg, .png, .webp)"
         print(("FAIL " if why else "ok   ") + f + (": " + why if why else ""))
         bad += bool(why)
