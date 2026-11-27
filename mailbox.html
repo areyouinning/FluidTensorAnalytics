@@ -102,7 +102,7 @@ footer .apprentice { font-family: var(--hand); }
     <text x="150" y="98" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="var(--on-accent)" letter-spacing=".08em">KINDRED</text>
   </svg>
   <h1>Kindred Stranger Mailbox</h1>
-  <p class="lede">You came down the road to Paradox and you were made welcome. Leave a letter for the next stranger, and for the Wizard who keeps the gate.</p>
+  <p class="lede">You came down the road to Paradox and you were made welcome. Leave a letter for the next stranger, and for the Wizard who keeps the gate. Today you are the Apprentice.</p>
   <div class="row">
     <a class="btn go" href="#write">Write a letter</a>
     <a class="btn" href="/field-kit.html#storm">See the valley</a>
@@ -121,7 +121,7 @@ footer .apprentice { font-family: var(--hand); }
 <form id="form" novalidate>
   <div class="two">
     <div><label for="f-name">Sign it as <small>(a first name, a nickname, or nothing)</small></label>
-      <input type="text" id="f-name" maxlength="60" autocomplete="off" placeholder="A kindred stranger"></div>
+      <input type="text" id="f-name" maxlength="60" autocomplete="off" placeholder="The Apprentice"></div>
     <div><label for="f-from">Coming from <small>(optional, a town or a region)</small></label>
       <input type="text" id="f-from" maxlength="60" autocomplete="off" placeholder="Somewhere down the road"></div>
   </div>
@@ -146,7 +146,7 @@ footer .apprentice { font-family: var(--hand); }
 </form>
 
 <footer>
-  <p>Letters are read and sorted by <span class="apprentice">the Apprentice</span>.</p>
+  <p>Sign the box and you are <span class="apprentice">the Wizard's Apprentice</span>, for as long as you stay.</p>
   <p>“There is no place like home.”<br><small>L. Frank Baum, <i>The Wonderful Wizard of Oz</i> (1900)</small></p>
 </footer>
 </main>
@@ -194,7 +194,7 @@ footer .apprentice { font-family: var(--hand); }
         if (!t) return;
         const { meta, body } = parse(t), card = el('article', 'letter');
         card.innerHTML = SEAL;
-        card.append(el('p', 'body', body), el('p', 'sig', '— ' + (meta.name || 'a kindred stranger')));
+        card.append(el('p', 'body', body), el('p', 'sig', '— ' + (meta.name || 'the Apprentice')));
         const bits = [meta.from, monthName(meta.visited)].filter(Boolean).join(', ');
         if (bits) card.append(el('p', 'meta', bits));
         box.append(card);
@@ -217,7 +217,7 @@ footer .apprentice { font-family: var(--hand); }
   const clean = s => s.replace(/[\r\n]+/g, ' ').replace(/"/g, "'").trim().slice(0, 60);
   function letter() {
     const name = clean($('f-name').value), from = clean($('f-from').value), when = $('f-when').value;
-    return '---\n' + `name: "${name || 'a kindred stranger'}"\n` + (from ? `from: "${from}"\n` : '') + (when ? `visited: ${when}\n` : '') + `written: ${new Date().toISOString().slice(0, 10)}\n---\n\n` + body.value.trim() + '\n';
+    return '---\n' + `name: "${name || 'the Apprentice'}"\n` + (from ? `from: "${from}"\n` : '') + (when ? `visited: ${when}\n` : '') + `written: ${new Date().toISOString().slice(0, 10)}\n---\n\n` + body.value.trim() + '\n';
   }
   function problem() {
     if (body.value.trim().length < 10) return 'Write a few words first.';
