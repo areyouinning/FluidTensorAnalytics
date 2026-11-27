@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Kindred Stranger Mailbox</title>
+<link rel="icon" href="/favicon.svg">
+<style>
+/* The Kindred Stranger Mailbox. A guest book for visitors to the Paradox ground.
+   Letters live in mailbox/letters/*.md and arrive as pull requests; see mailbox/README.md.
+   Not in catalog.js on purpose: the page is shared by link, not listed. */
+:root {
+  color-scheme: light;
+  --paper: #F7F1E3; --panel: #FFFDF7; --sunk: #EDE4CF; --ink: #2A2118; --ink-soft: #5E5243; --line: #D9CCB0;
+  --brick: #E2B52B; --brick-edge: #B98C12; --emerald: #11795A; --emerald-t: #0C5E45; --silver: #8E99A6; --mud: #8A5A35;
+  --on-accent: #FFFFFF; --shadow: 0 1px 2px rgba(42,33,24,.08), 0 10px 28px rgba(42,33,24,.10);
+  --font: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --hand: 'Segoe Print', 'Bradley Hand', 'Comic Neue', 'Chalkboard SE', cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #17140F; --panel: #221D16; --sunk: #110E0A; --ink: #F2EAD8; --ink-soft: #C7B9A0; --line: #3E3528;
+    --brick: #E8BF3F; --brick-edge: #A98216; --emerald: #2FB487; --emerald-t: #6FDDB3; --silver: #AEB8C4; --mud: #C08657;
+    --on-accent: #10130F; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #17140F; --panel: #221D16; --sunk: #110E0A; --ink: #F2EAD8; --ink-soft: #C7B9A0; --line: #3E3528;
+  --brick: #E8BF3F; --brick-edge: #A98216; --emerald: #2FB487; --emerald-t: #6FDDB3; --silver: #AEB8C4; --mud: #C08657;
+  --on-accent: #10130F; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.3);
+}
+/* Baum's Emerald City: everyone inside wears green spectacles, so everything looks green. */
+html.spectacles body { filter: sepia(.35) hue-rotate(80deg) saturate(1.6); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--font); }
+a { color: var(--emerald-t); }
+main { max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
+header { text-align: center; padding: 20px 0 8px; }
+header svg { width: min(340px, 90%); height: auto; display: block; margin: 0 auto; }
+h1 { font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 6px 0 6px; letter-spacing: .01em; }
+.lede { color: var(--ink-soft); margin: 0 auto 4px; max-width: 34em; }
+.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 14px 0 4px; }
+.btn { font: 600 16px/1 var(--font); min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn.go { background: var(--emerald); border-color: var(--emerald); color: var(--on-accent); }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--emerald); outline-offset: 2px; }
+h2 { font-size: 22px; margin: 36px 0 10px; display: flex; align-items: center; gap: 10px; }
+h2::after { content: ""; flex: 1; height: 8px; border-radius: 2px; opacity: .55;
+  background: repeating-linear-gradient(90deg, var(--brick) 0 18px, var(--brick-edge) 18px 20px); } /* a short stretch of yellow brick */
+.letters { display: grid; gap: 14px; }
+.letter { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px 16px; box-shadow: var(--shadow); }
+.letter:nth-child(odd) { transform: rotate(-.35deg); } .letter:nth-child(even) { transform: rotate(.3deg); }
+.letter .seal { position: absolute; top: -12px; right: 16px; width: 34px; height: 34px; }
+.letter .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 10px; }
+.letter .sig { font-family: var(--hand); text-align: right; margin: 0; }
+.letter .meta { color: var(--ink-soft); font-size: 14px; text-align: right; margin: 2px 0 0; }
+.empty, .status { color: var(--ink-soft); font-style: italic; }
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.photos a { display: block; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--sunk); }
+.photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+form { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; box-shadow: var(--shadow); }
+label { display: block; font-weight: 600; margin: 12px 0 4px; }
+label small { font-weight: 400; color: var(--ink-soft); }
+input[type=text], input[type=month], textarea { width: 100%; font: 17px/1.45 var(--font); padding: 10px 12px; min-height: 44px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
+textarea { min-height: 200px; resize: vertical; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
+.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin-top: 14px; }
+.check input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--emerald); }
+.count { font-size: 14px; color: var(--ink-soft); text-align: right; margin: 4px 0 0; }
+.how { color: var(--ink-soft); font-size: 15px; margin: 12px 0 0; padding-left: 20px; }
+.how li { margin: 3px 0; }
+#sent { margin: 12px 0 0; min-height: 1.4em; }
+footer { text-align: center; color: var(--ink-soft); font-size: 14px; margin-top: 48px; }
+footer .apprentice { font-family: var(--hand); }
+@media (prefers-reduced-motion: no-preference) { #balloon { animation: bob 6s ease-in-out infinite; transform-origin: 236px 40px; } }
+@keyframes bob { 50% { transform: translateY(-5px) rotate(2deg); } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <!-- A mailbox on a post at the end of a yellow brick path, with a small balloon tied to its flag. -->
+  <svg viewBox="0 0 340 200" role="img" aria-label="A mailbox on a post with a balloon tied to its flag, at the end of a yellow brick path">
+    <path d="M10 196 Q120 170 150 186 T170 196 Z" fill="var(--brick)" stroke="var(--brick-edge)" stroke-width="1.5"/>
+    <path d="M40 192 l14 -5 M70 186 l14 -3 M100 181 l14 -1 M128 181 l12 1" stroke="var(--brick-edge)" stroke-width="1.5" fill="none"/>
+    <rect x="160" y="108" width="10" height="88" rx="2" fill="var(--mud)"/>
+    <path d="M118 74 h72 a22 22 0 0 1 22 22 v18 h-94 z" fill="var(--emerald)" stroke="var(--ink)" stroke-width="2"/>
+    <path d="M118 74 a22 22 0 0 0 -22 22 v18 h22 z" fill="var(--emerald-t)" stroke="var(--ink)" stroke-width="2"/>
+    <rect x="200" y="68" width="5" height="34" fill="var(--ink)"/>
+    <rect x="200" y="68" width="20" height="12" fill="#C8321F"/>
+    <path d="M214 74 Q228 60 236 50" stroke="var(--ink-soft)" stroke-width="1.2" fill="none"/>
+    <g id="balloon">
+      <path d="M236 10 a20 22 0 0 1 20 22 c0 12 -12 18 -16 22 h-8 c-4 -4 -16 -10 -16 -22 a20 22 0 0 1 20 -22z" fill="var(--brick)" stroke="var(--ink)" stroke-width="1.5"/>
+      <path d="M236 10 c-8 10 -8 34 0 44 M236 10 c8 10 8 34 0 44" stroke="var(--brick-edge)" stroke-width="1.2" fill="none"/>
+      <text x="236" y="36" text-anchor="middle" font-family="Georgia, serif" font-size="9" font-weight="700" fill="var(--ink)">O.Z.</text>
+      <rect x="231" y="56" width="10" height="7" rx="1" fill="var(--mud)" stroke="var(--ink)" stroke-width="1"/>
+    </g>
+    <text x="150" y="98" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="var(--on-accent)" letter-spacing=".08em">KINDRED</text>
+  </svg>
+  <h1>Kindred Stranger Mailbox</h1>
+  <p class="lede">You came down the road to Paradox and you were made welcome. Leave a letter for the next stranger, and for the Wizard who keeps the gate.</p>
+  <div class="row">
+    <a class="btn go" href="#write">Write a letter</a>
+    <a class="btn" href="/field-kit.html#storm">See the valley</a>
+    <button class="btn" id="specs" type="button" aria-pressed="false">Put on the green spectacles</button>
+  </div>
+</header>
+
+<h2>Letters in the box</h2>
+<div class="letters" id="letters"><p class="status">Opening the mailbox…</p></div>
+
+<h2>Notes from visits</h2>
+<div class="photos" id="photos"></div>
+<p class="empty" id="photos-empty" hidden>No photos yet.</p>
+
+<h2 id="write">Write a letter</h2>
+<form id="form" novalidate>
+  <div class="two">
+    <div><label for="f-name">Sign it as <small>(a first name, a nickname, or nothing)</small></label>
+      <input type="text" id="f-name" maxlength="60" autocomplete="off" placeholder="A kindred stranger"></div>
+    <div><label for="f-from">Coming from <small>(optional, a town or a region)</small></label>
+      <input type="text" id="f-from" maxlength="60" autocomplete="off" placeholder="Somewhere down the road"></div>
+  </div>
+  <label for="f-when">When you visited</label>
+  <input type="month" id="f-when">
+  <label for="f-body">Your letter</label>
+  <textarea id="f-body" maxlength="3000" placeholder="Dear next stranger,"></textarea>
+  <p class="count" id="count">0 / 3000</p>
+  <label class="check"><input type="checkbox" id="f-ok"> <span>I understand that this letter will be public. It has no phone numbers, addresses or anyone's full name, and I haven't written about anyone who didn't say I could.</span></label>
+  <div class="row" style="justify-content:flex-start">
+    <button class="btn go" type="submit">Seal it and send</button>
+    <button class="btn" type="button" id="copy">Copy it for the Wizard instead</button>
+  </div>
+  <p id="sent" role="status"></p>
+  <ol class="how">
+    <li><b>Seal it and send</b> opens GitHub with your letter already written in. You will need a free GitHub account.</li>
+    <li>Press <b>Commit changes</b> and then <b>Propose changes</b>, and then <b>Create pull request</b>. GitHub makes your own copy along the way.</li>
+    <li>The letter goes into the box once it has been read. That can take a few days.</li>
+    <li>No GitHub account? Use <b>Copy it for the Wizard</b> and send it by text or email. The Wizard can post it for you.</li>
+  </ol>
+  <p class="how" style="padding:0">Adding photos from your visit: <a id="upload" href="#" target="_blank" rel="noopener">upload them to the visit notes</a> and open a pull request in the same way. Only send photos of places, not of people. Phones store where a photo was taken, and GitHub keeps that, so turn off location for the camera first. The box refuses photos that still have a location in them.</p>
+</form>
+
+<footer>
+  <p>Letters are read and sorted by <span class="apprentice">the Apprentice</span>.</p>
+  <p>“There is no place like home.”<br><small>L. Frank Baum, <i>The Wonderful Wizard of Oz</i> (1900)</small></p>
+</footer>
+</main>
+
+<script>
+(() => {
+  const REPO = 'areyouinning/FluidTensorAnalytics', BRANCH = 'main';
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  // The seal on each letter: a silver star, for the silver shoes.
+  const SEAL = '<svg class="seal" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="var(--emerald)" stroke="var(--ink)" stroke-width="1.5"/><path d="M17 6l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2L17 22.5l-6.5 3.4 1.3-7.2-5.3-5.1 7.3-1z" fill="var(--silver)"/></svg>';
+
+  // Green spectacles: a per-visitor setting, kept only in this browser.
+  const specs = $('specs');
+  const wear = on => { document.documentElement.classList.toggle('spectacles', on); specs.setAttribute('aria-pressed', on); specs.textContent = on ? 'Take off the spectacles' : 'Put on the green spectacles'; };
+  try { wear(localStorage.getItem('ksm-specs') === '1'); } catch (e) {}
+  specs.onclick = () => { const on = !document.documentElement.classList.contains('spectacles'); wear(on); try { localStorage.setItem('ksm-specs', on ? '1' : '0'); } catch (e) {} };
+
+  // A letter is a small Markdown file with a front-matter block: name, from, visited, then the body.
+  function parse(text) {
+    const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text), meta = {};
+    if (!m) return { meta, body: text.trim() };
+    m[1].split(/\r?\n/).forEach(l => { const i = l.indexOf(':'); if (i > 0) meta[l.slice(0, i).trim()] = l.slice(i + 1).trim().replace(/^"(.*)"$/, '$1'); });
+    return { meta, body: m[2].trim() };
+  }
+  const monthName = v => { const m = /^(\d{4})-(\d{2})/.exec(v || ''); return m ? new Date(+m[1], +m[2] - 1, 15).toLocaleString('en-US', { month: 'long', year: 'numeric' }) : ''; };
+
+  async function list(dir) {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${dir}?ref=${BRANCH}`, { headers: { Accept: 'application/vnd.github+json' } });
+    if (r.status === 404) return [];
+    if (!r.ok) throw new Error('GitHub said ' + r.status);
+    return (await r.json()).filter(f => f.type === 'file');
+  }
+  // Files are read from this site when it is the live site, and from GitHub otherwise.
+  const src = f => location.hostname.endsWith('fluidta.com') ? '/' + f.path : f.download_url;
+
+  async function loadLetters() {
+    const box = $('letters');
+    try {
+      const files = (await list('mailbox/letters')).filter(f => /\.md$/i.test(f.name)).sort((a, b) => b.name.localeCompare(a.name)).slice(0, 60);
+      const texts = await Promise.all(files.map(f => fetch(src(f)).then(r => r.ok ? r.text() : '').catch(() => '')));
+      box.textContent = '';
+      texts.forEach(t => {
+        if (!t) return;
+        const { meta, body } = parse(t), card = el('article', 'letter');
+        card.innerHTML = SEAL;
+        card.append(el('p', 'body', body), el('p', 'sig', '— ' + (meta.name || 'a kindred stranger')));
+        const bits = [meta.from, monthName(meta.visited)].filter(Boolean).join(', ');
+        if (bits) card.append(el('p', 'meta', bits));
+        box.append(card);
+      });
+      if (!box.children.length) box.append(el('p', 'empty', 'The box is empty. Yours could be the first letter.'));
+    } catch (e) { box.textContent = ''; box.append(el('p', 'status', 'The mailbox would not open just now. Try again in a little while.')); }
+  }
+  async function loadPhotos() {
+    try {
+      const files = (await list('mailbox/notes')).filter(f => /\.(jpe?g|png|webp)$/i.test(f.name)).sort((a, b) => b.name.localeCompare(a.name)).slice(0, 48);
+      files.forEach(f => { const a = el('a'), img = el('img'); a.href = src(f); a.target = '_blank'; a.rel = 'noopener'; img.src = src(f); img.alt = 'A photo from a visit'; img.loading = 'lazy'; a.append(img); $('photos').append(a); });
+      $('photos-empty').hidden = files.length > 0;
+    } catch (e) { $('photos-empty').hidden = false; }
+  }
+
+  // Writing.
+  const body = $('f-body');
+  body.oninput = () => { $('count').textContent = body.value.length + ' / 3000'; };
+  $('upload').href = `https://github.com/${REPO}/upload/${BRANCH}/mailbox/notes`;
+  const clean = s => s.replace(/[\r\n]+/g, ' ').replace(/"/g, "'").trim().slice(0, 60);
+  function letter() {
+    const name = clean($('f-name').value), from = clean($('f-from').value), when = $('f-when').value;
+    return '---\n' + `name: "${name || 'a kindred stranger'}"\n` + (from ? `from: "${from}"\n` : '') + (when ? `visited: ${when}\n` : '') + `written: ${new Date().toISOString().slice(0, 10)}\n---\n\n` + body.value.trim() + '\n';
+  }
+  function problem() {
+    if (body.value.trim().length < 10) return 'Write a few words first.';
+    if (/\b\d{3}[\s.-]?\d{3}[\s.-]?\d{4}\b|@\w+\.\w|\b\d{2,5}\s+\w+\s+(road|rd|street|st|lane|ln|drive|dr|ave|avenue|hwy|highway)\b/i.test(body.value + ' ' + $('f-from').value)) return 'That looks like a phone number, an email or a street address. Please take it out, because the letter will be public.';
+    if (!$('f-ok').checked) return 'Tick the box to say you know the letter will be public.';
+    return '';
+  }
+  $('form').onsubmit = e => {
+    e.preventDefault();
+    const p = problem(); if (p) { $('sent').textContent = p; return; }
+    const slug = (clean($('f-name').value) || 'stranger').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'stranger';
+    const file = `mailbox/letters/${new Date().toISOString().slice(0, 10)}-${slug}-${Math.random().toString(36).slice(2, 6)}.md`;
+    const url = `https://github.com/${REPO}/new/${BRANCH}?filename=${encodeURIComponent(file)}&value=${encodeURIComponent(letter())}`;
+    window.open(url, '_blank', 'noopener');
+    $('sent').textContent = 'GitHub has opened in a new tab with your letter in it. Follow the steps below to send it.';
+  };
+  $('copy').onclick = async () => {
+    const p = problem(); if (p) { $('sent').textContent = p; return; }
+    try { await navigator.clipboard.writeText(letter()); $('sent').textContent = 'Copied. Paste it into a text or an email to the Wizard.'; }
+    catch (e) { $('sent').textContent = 'Copying did not work here. Select the letter and copy it yourself.'; body.select(); }
+  };
+
+  loadLetters(); loadPhotos();
+})();
+</script>
+</body>
+</html>

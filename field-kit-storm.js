@@ -47,7 +47,7 @@
   $('barright').insertBefore(btn, $('b-layers'));
   const P = document.createElement('section'); P.id = 'storm'; P.className = 'panel'; P.hidden = true; P.setAttribute('aria-label', 'Storm');
   P.innerHTML = `
-<div class="phead"><h2>Storm of 19&ndash;20 July 2026</h2><button class="btn mini" id="st-x">Close</button></div>
+<div class="phead"><h2>Storm of 19&ndash;20 July 2026</h2><a class="btn mini" style="margin-left:auto;margin-right:6px;text-decoration:none" href="mailbox.html" title="Kindred Stranger Mailbox: leave a letter for the next visitor" aria-label="Kindred Stranger Mailbox">&#9993;</a><button class="btn mini" id="st-x">Close</button></div>
 <div class="srow"><button class="btn go mini" id="st-play">Play</button><input id="st-scrub" type="range" min="0" max="1799" value="660" aria-label="Storm time"><span class="sval" id="st-when"></span></div>
 <div class="srow">
   <select id="st-mode" aria-label="What the water shows"><option value="0">Runoff</option><option value="1">Debris flow (provisional)</option></select>
