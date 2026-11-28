@@ -1581,7 +1581,7 @@ function hud() {
   $('hud').textContent = `${Math.abs(lat).toFixed(4)}${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon).toFixed(4)}${lon >= 0 ? 'E' : 'W'} · ground ${Math.round(ch.gz).toLocaleString()} m · ${fmtM(ch.agl)} up · heading ${head}${w ? ` · wind ${Math.hypot(w[0], w[1]).toFixed(1)} m/s at ${w[2]}` : ''}${drift ? ' · drifting' : ''}${inflight ? ` · loading ${inflight}` : ''}${!stats.hOk && stats.hFail ? ' · terrain offline' : ''}`;
   mini();
 }
-function saveHash() { try { history.replaceState(null, '', `#@${latOf(ch.my).toFixed(5)},${lonOf(ch.mx).toFixed(5)},${Math.round(ch.agl)},${ch.yaw.toFixed(2)},${ch.pitch.toFixed(2)},${baseKey}${window.STORM && STORM.on ? ',storm' : ''}`); } catch (e) { /* a link is a convenience */ } }
+function saveHash() { try { history.replaceState(null, '', `#@${latOf(ch.my).toFixed(5)},${lonOf(ch.mx).toFixed(5)},${Math.round(ch.agl)},${ch.yaw.toFixed(2)},${ch.pitch.toFixed(2)},${baseKey}${window.STORM ? (STORM.on ? ',storm' : ',calm') : ''}`); } catch (e) { /* a link is a convenience */ } }
 
 /* ========================================================== the locator */
 const miniTiles = new Map(), mc = $('mini'), mg = mc.getContext('2d');
