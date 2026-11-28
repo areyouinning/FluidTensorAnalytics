@@ -254,6 +254,7 @@ void main(){ float age=(uK-aKS.x)/uFall; vSoak=aKS.y;
   }
   const inspX = $('insp-x'), inspPrev = inspX.onclick; inspX.addEventListener('click', () => { if (S.sel) { S.sel = null; wake(); } });
 
-  /* opened from a link: #...&storm (kept simple: the kit's own hash stays first) */
-  if (!location.hash || /storm/.test(location.hash) || window.STORM_OPEN) open(true);
+  /* the storm is what the kit is shared for, so it opens unless the link says ",calm" (the kit writes that when it
+     is closed). Links made before the storm layer, like #@lat,lon,agl,yaw,pitch,naip, open with it too. */
+  if (!/(^|,)calm\b/.test(location.hash) || window.STORM_OPEN) open(true);
 })();
